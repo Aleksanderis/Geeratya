@@ -199,6 +199,42 @@ public class LaneFoldsTests
         Assert.Empty(Only(cycled).FoldedLanes);
     }
 
+    [Fact]
+    public void GivenTheZcAndZoKeys_WhenPressed_ThenTheLaneFoldsAndOpensThroughTheKeymap()
+    {
+        var folded = _reducer.Reduce(_reducer.Reduce(Active(Stacked()), Key('z')).State, Key('c')).State;
+
+        Assert.Equal(["u1"], Only(folded).FoldedLanes);
+
+        var opened = _reducer.Reduce(_reducer.Reduce(folded, Key('z')).State, Key('o')).State;
+
+        Assert.Empty(Only(opened).FoldedLanes);
+    }
+
+    [Fact]
+    public void GivenARightClickOrDoubleClickOnALaneHeader_WhenPointing_ThenNoCardActionRuns()
+    {
+        var tab = Stacked();
+        var second = LaneRegions.Regions(tab)[1];
+
+        foreach (var action in new[] { ActionIds.ItemOpen, ActionIds.ContextMenuOpen })
+        {
+            var then = new ActionRequested(action, 1, DateTimeOffset.UnixEpoch);
+
+            var result = _reducer.Reduce(Active(tab), new PointerPlaced(10, second.Top, Width, then));
+
+            Assert.Equal("u2", Only(result.State).Lane);
+            Assert.Equal(InputMode.Normal, result.State.Mode);
+            Assert.Empty(Only(result.State).Detail);
+            Assert.Null(result.State.ContextMenu);
+        }
+    }
+
+    private static KeyPressed Key(char key)
+    {
+        return new KeyPressed(key.ToString(), DateTimeOffset.UnixEpoch);
+    }
+
     private static AppState Reduce(AppState state, string action)
     {
         return _reducer.Reduce(state, new ActionRequested(action)).State;

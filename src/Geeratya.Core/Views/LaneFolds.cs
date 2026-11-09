@@ -23,7 +23,10 @@ public static class LaneFolds
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
-    /// <summary><c>lane.fold</c>: folds the current lane and moves to the next open lane below it (above it at the end).</summary>
+    /// <summary>
+    /// <c>lane.fold</c>: folds the current lane and moves to the next open lane below it (above it at the end), among
+    /// the lanes drawn.
+    /// </summary>
     public static ReduceResult Fold(AppState state)
     {
         if (Active(state) is not { } tab || !LaneRegions.IsStacked(tab))
@@ -42,10 +45,15 @@ public static class LaneFolds
         var name = NameOf(tab, current);
         var folded = ColumnsNavigation.SwitchLane(tab with { FoldedLanes = [.. tab.FoldedLanes, current] }, target);
 
-        return new ReduceResult(ViewReducer.Replace(state, folded) with { Message = $"Folded lane {name}." }, _noEffects);
+        var message = $"Folded lane {name}.";
+
+        return new ReduceResult(ViewReducer.Replace(state, folded) with { Message = message }, _noEffects);
     }
 
-    /// <summary><c>lane.unfold</c>: opens the next folded lane below the current one (wrapping) and moves to it.</summary>
+    /// <summary>
+    /// <c>lane.unfold</c>: opens the next folded lane below the current one (wrapping) among the lanes drawn, and
+    /// moves to it.
+    /// </summary>
     public static ReduceResult Unfold(AppState state)
     {
         if (Active(state) is not { } tab || !LaneRegions.IsStacked(tab))
@@ -62,13 +70,15 @@ public static class LaneFolds
 
         var opened = ColumnsNavigation.SwitchLane(tab, target);
 
-        return new ReduceResult(ViewReducer.Replace(state, opened) with { Message = $"Opened lane {NameOf(tab, target)}." }, _noEffects);
+        var message = $"Opened lane {NameOf(tab, target)}.";
+
+        return new ReduceResult(ViewReducer.Replace(state, opened) with { Message = message }, _noEffects);
     }
 
     /// <summary>
-    /// A click on the chevron of lane <paramref name="key"/>: opens it when folded (and moves to it), folds it when open
-    /// (the current lane hands the cursor to the next open one). The tab is returned as it is when the fold would leave
-    /// no lane open.
+    /// A click on the chevron of lane <paramref name="key"/>: opens it when folded (and moves to it), folds it when
+    /// open (the current lane hands the cursor to the next open one). The tab is returned as it is when the fold would
+    /// leave no lane open.
     /// </summary>
     public static TabState ToggleAt(TabState tab, string key)
     {
@@ -81,9 +91,12 @@ public static class LaneFolds
 
         if (key == current)
         {
-            return Neighbour(tab, current, static region => !region.Folded) is { } target
-                ? ColumnsNavigation.SwitchLane(tab with { FoldedLanes = [.. tab.FoldedLanes, key] }, target)
-                : tab;
+            if (Neighbour(tab, current, static region => !region.Folded) is not { } target)
+            {
+                return tab;
+            }
+
+            return ColumnsNavigation.SwitchLane(tab with { FoldedLanes = [.. tab.FoldedLanes, key] }, target);
         }
 
         return ColumnsNavigation.Settle(tab with { FoldedLanes = [.. tab.FoldedLanes, key] });
@@ -92,7 +105,12 @@ public static class LaneFolds
     private static string? Neighbour(TabState tab, string current, Func<LaneRegion, bool> wanted)
     {
         var regions = LaneRegions.Regions(tab);
-        var index = Math.Max(0, regions.ToList().FindIndex(region => region.Key == current));
+        var index = 0;
+
+        while (index < regions.Count - 1 && regions[index].Key != current)
+        {
+            index++;
+        }
 
         for (var step = 1; step < regions.Count; step++)
         {

@@ -23,7 +23,7 @@ public static partial class ColumnsNavigation
     /// <summary>
     /// A click: places the cursor on the card or column header at a body cell drawn for <paramref name="width"/>.
     /// With stacked lanes (#891) a click in another lane, on a card or its header row, makes that lane the current one
-    /// first (a folded lane opens); a click on the chevron of a lane header folds or unfolds it (#893). A cell with neither is returned unchanged.
+    /// first (a folded lane opens); a click on the chevron of a lane header folds or opens it (#893). A cell with neither is returned unchanged.
     /// </summary>
     public static TabState Place(TabState tab, int width, int column, int row)
     {
@@ -34,7 +34,9 @@ public static partial class ColumnsNavigation
 
         if (region.HasHeader && row == region.Top)
         {
-            return column < LaneRegions.ChevronCells ? LaneFolds.ToggleAt(tab, region.Key) : SwitchLane(tab, region.Key);
+            return column < LaneRegions.ChevronCells
+                ? LaneFolds.ToggleAt(tab, region.Key)
+                : SwitchLane(tab, region.Key);
         }
 
         if (region.Folded)

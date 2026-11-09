@@ -9,14 +9,15 @@ namespace Geeratya.Core.Boards;
 /// lanes holding the current one (pages of the same size from the first lane, the last page ending at the last
 /// lane), so stepping inside a page never moves the others. Without stacking, or when fewer than two lanes fit, the
 /// one current lane takes the whole body, as before. The reducer's scroll maths, the hit tests, the flash labels and
-/// the renderer all read these regions. Pure, O(lanes), no allocation for the current lane's region.
+/// the renderer all read these regions. Pure; O(lanes) and no allocation for the current lane's region unless a lane is
+/// folded (#893), which adds a pass over the few lanes drawn.
 /// </summary>
 public static class LaneRegions
 {
     /// <summary>The rows of a lane header above its columns.</summary>
     public const int HeaderRows = 1;
 
-    /// <summary>The cells at the start of a lane header that hold its chevron: a click there folds or unfolds the lane.</summary>
+    /// <summary>The cells at the start of a lane header that hold its chevron: a click there folds or opens the lane.</summary>
     public const int ChevronCells = 2;
 
     /// <summary>The fewest rows a stacked lane takes: its header and a board of seven rows (edges and five lines).</summary>

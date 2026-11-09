@@ -45,8 +45,8 @@ public sealed partial class ColumnsBodyRenderer
     }
 
     /// <summary>
-    /// Stacked lanes (#891): under the strip, each drawn lane is a header row (<c>▾ Name n</c>, <c>▸</c> when folded to
-    /// the header alone, #893; bold for the current lane) and its own framed columns, in the rows <see cref="LaneRegions"/> gives. The body is padded or cut to
+    /// Stacked lanes (#891): under the strip, each drawn lane is a header row (<c>▾ Name n</c>, <c>▸</c> when folded
+    /// to the header alone, #893; bold for the current lane) and its own framed columns, in the rows <see cref="LaneRegions"/> gives. The body is padded or cut to
     /// <paramref name="height"/> so a host that reports another height than the tab's never gets a short frame.
     /// </summary>
     private static void AddStackedLanes(
