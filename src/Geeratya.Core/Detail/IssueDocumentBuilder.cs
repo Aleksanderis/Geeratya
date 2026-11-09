@@ -297,7 +297,7 @@ public static class IssueDocumentBuilder
     {
         while (panel.Lines.Count < rows)
         {
-            panel.AddGap(StyledLine.Of(string.Empty, TextRole.Body));
+            panel.AddGap(StyledLine.Of(string.Empty));
         }
     }
 
