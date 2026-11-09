@@ -20,9 +20,9 @@ public static class ContextMenus
     [
         ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
-        ActionIds.IssueYankKey,
-        ActionIds.IssueYankLink,
-        ActionIds.IssueYankSummary,
+        ActionIds.YankKey,
+        ActionIds.YankLink,
+        ActionIds.YankSummary,
         ActionIds.IssueEdit,
         ActionIds.IssueAssignMe,
         ActionIds.IssueTransitionPrevious,

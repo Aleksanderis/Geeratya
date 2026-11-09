@@ -79,9 +79,9 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>iC` | `issue.create-subtask` | Create a sub-task of the selected issue | E | context menu | M2 #162 (bound) |
 | `<space>ie` | `issue.edit` | Edit the title in place: opens the issue detail (from a list or board) with the title pane in the edit state (`ux-screens.md`, "Editing in place"); `:priority` and `:labels` open the one-field form | E | click the field in the detail | M2 #164, M7 #709 |
 | `y` | `detail.yank` | In the issue detail, copy the Visual selection (started with `v`) to the system clipboard, or with none the whole Description, comment or field under the cursor; in a list, board or backlog it copies the key of the selected issue (#876) | E | drag over the lines (`Drag rows`) | M7 #773 |
-| `<space>y y` | `issue.yank-key` | Copy the key of the focused issue: the selected row or card, the shown issue, or the sub-task, linked issue, parent or epic under the detail cursor | E | right-click menu | M9 #876 |
-| `<space>y u` | `issue.yank-link` | Copy the link (`https://site/browse/KEY`) of the focused issue, same target rules | E | right-click menu | M9 #876 |
-| `<space>y s` | `issue.yank-summary` | Copy `KEY Summary` of the focused issue (the key alone when the summary is not known, as for a linked issue not loaded yet) | E | right-click menu | M9 #876 |
+| `<space>y y` | `yank.key` | Copy the key of the focused issue: the selected row or card, the shown issue, or the sub-task, linked issue, parent or epic under the detail cursor | E | right-click menu | M9 #876 |
+| `<space>y u` | `yank.link` | Copy the link (`https://site/browse/KEY`) of the focused issue, same target rules | E | right-click menu | M9 #876 |
+| `<space>y s` | `yank.summary` | Copy `KEY Summary` of the focused issue (the key alone when the summary is not known, as for a linked issue not loaded yet) | E | right-click menu | M9 #876 |
 | `i` | `detail.edit` | In the issue detail, edit the title or Description pane under the cursor in place (like `Enter` on it); elsewhere it does nothing | E | double click on the pane (`item.open`) | M7 #709 |
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
