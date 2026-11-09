@@ -3,7 +3,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// Rounds off filled chips (<c>docs/internal/ux-look.md</c>, "Rounded chips"). A chip is a span in a chip role whose text
+/// Rounds off filled chips (<c>docs/internal/ux-look.md</c>, the "Label chip" row). A chip is a span in a chip role whose text
 /// starts and ends with the padding space; with caps on, the two padding cells become Powerline half circles
 /// (U+E0B6, U+E0B4) drawn in the chip's fill colour on the surrounding background, so the chip keeps its width, its mouse
 /// cells and its text. Generic: a chip kind takes part by being listed in <see cref="CapRole"/>. Pure.

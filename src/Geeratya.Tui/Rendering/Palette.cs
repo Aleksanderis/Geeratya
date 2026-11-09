@@ -32,7 +32,13 @@ public static class Palette
 
         return (ground & (SpanGround.Selection | SpanGround.Range | SpanGround.Cursor)) == 0
             ? style
-            : Tinted(theme, tier, style, ground, faintSupported);
+            : Tinted(theme, tier, style, ground, faintSupported, IsCap(role));
+    }
+
+    private static bool IsCap(PaletteRole role)
+    {
+        return role is PaletteRole.LabelCap0 or PaletteRole.LabelCap1 or PaletteRole.LabelCap2
+            or PaletteRole.LabelCap3 or PaletteRole.LabelCap4;
     }
 
     private static ResolvedStyle ResolveRole(
@@ -43,7 +49,8 @@ public static class Palette
         bool faintSupported)
     {
         var entry = theme.Entry(role);
-        var dim = ground.HasFlag(SpanGround.Dim);
+        // A cap is the fill of its chip as text: the fill is never dimmed (a chip keeps it), so neither is the cap.
+        var dim = ground.HasFlag(SpanGround.Dim) && !IsCap(role);
 
         switch (tier)
         {
@@ -84,7 +91,8 @@ public static class Palette
         ColorSupport tier,
         ResolvedStyle style,
         SpanGround ground,
-        bool faintSupported)
+        bool faintSupported,
+        bool keepForeground)
     {
         var underline = ground.HasFlag(SpanGround.Cursor) ? RoleStyle.Underline : RoleStyle.None;
 
@@ -95,6 +103,12 @@ public static class Palette
 
         var tintRole = ground.HasFlag(SpanGround.Range) ? PaletteRole.Range : PaletteRole.Selected;
         var tint = Resolve(theme, tier, tintRole, ground & SpanGround.Dim, faintSupported);
+
+        if (keepForeground)
+        {
+            // A cap keeps its chip's fill colour whatever the contrast: only the background is the tint's.
+            return tint with { Foreground = style.Foreground, Foreground16 = style.Foreground16, Style = style.Style };
+        }
 
         switch (tier)
         {

@@ -5,6 +5,7 @@ using Geeratya.Tui.Rendering.Themes;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
+[Trait("Os", "Independent")]
 public sealed class ChipCapsTests
 {
     [Fact]
@@ -100,5 +101,22 @@ public sealed class ChipCapsTests
         }
 
         Assert.Null(ChipCaps.CapRole(TextRole.Body));
+    }
+
+    [Fact]
+    public void GivenACapOnADimmedOrSelectedGround_WhenResolving_ThenItKeepsTheChipFillInEveryBuiltInTheme()
+    {
+        foreach (var name in BuiltInThemes.Names)
+        {
+            var theme = new ThemeSwitcher(new ThemeCatalog(null)).Start(name, false).Theme;
+
+            foreach (var ground in new[] { SpanGround.Dim, SpanGround.Selection, SpanGround.Selection | SpanGround.Dim })
+            {
+                var fill = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.LabelChip3).Background;
+                var cap = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.LabelCap3, ground, true);
+
+                Assert.Equal(fill, cap.Foreground);
+            }
+        }
     }
 }

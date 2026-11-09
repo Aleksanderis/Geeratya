@@ -172,6 +172,18 @@ public class ColumnsBodyRendererTests
     }
 
     [Fact]
+    public void GivenALabelledCard_WhenApplyingCaps_ThenTheChipsAreRoundedAtTheSameWidthAndAsciiKeepsThemPadded()
+    {
+        var issue = Issue("1", "A-1") with { Labels = ["alpha"] };
+        var body = Render(Tab(issue), 120, 30);
+        var rounded = body.Select(ChipCaps.Apply).ToList();
+
+        Assert.Contains(rounded, line => line.PlainText.Contains($"{ChipCaps.Left}alpha{ChipCaps.Right}"));
+        Assert.Contains(body, line => line.PlainText.Contains(" alpha "));
+        Assert.All(rounded.Skip(1), line => Assert.Equal(120, TextWidth.Of(line.PlainText)));
+    }
+
+    [Fact]
     public void GivenALabelledCard_WhenRendering_ThenItShowsOneSummaryLineThenTheChipsThenTheBottomRow()
     {
         var issue = Issue("1", "A-1", "A summary that is long enough to need a second line on a narrow card")
