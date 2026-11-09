@@ -20,6 +20,8 @@ internal static class DetailUnderlayGate
         ActionIds.ViewQuickFilter,
         ActionIds.ViewSwimlane,
         ActionIds.ViewSwimlaneStack,
+        ActionIds.LaneFold,
+        ActionIds.LaneUnfold,
         ActionIds.ViewDoneCutoff,
         ActionIds.SectionNext,
         ActionIds.SectionPrevious,

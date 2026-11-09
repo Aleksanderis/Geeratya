@@ -39,7 +39,7 @@ public static class FlashBoardLabeler
         var blocked = new HashSet<char>();
         var current = ColumnsNavigation.CurrentLaneKey(tab);
 
-        foreach (var region in LaneRegions.Regions(tab).OrderBy(region => region.Key == current ? 0 : 1))
+        foreach (var region in LaneRegions.Regions(tab).Where(region => !region.Folded).OrderBy(region => region.Key == current ? 0 : 1))
         {
             found.AddRange(LabelsOf(tab, region, text, width, height, blocked));
         }

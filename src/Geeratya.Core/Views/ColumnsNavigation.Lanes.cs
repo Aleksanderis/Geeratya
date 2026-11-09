@@ -82,6 +82,7 @@ public static partial class ColumnsNavigation
             Lane = laneKey,
             LaneCursors = saved,
             LaneKeys = keys,
+            FoldedLanes = [.. tab.FoldedLanes.Where(key => key != laneKey)],
             Cursor = null,
             Marks = [],
             VisualAnchor = null,
@@ -92,6 +93,18 @@ public static partial class ColumnsNavigation
         var cursor = BoardMotion.Resolve(columns, seed with { Column = column }, keys.GetValueOrDefault(laneKey), ViewOf(next));
 
         return Follow(next, columns, cursor);
+    }
+
+    /// <summary>
+    /// Settles the current lane's cursor for the room it has now (another lane was folded or unfolded, so its height
+    /// changed); the cursors kept for the other lanes stay.
+    /// </summary>
+    public static TabState Settle(TabState tab)
+    {
+        var columns = ColumnsOf(tab);
+        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, ViewOf(tab));
+
+        return Follow(tab, columns, cursor);
     }
 
     /// <summary>
@@ -124,7 +137,7 @@ public static partial class ColumnsNavigation
             return current;
         }
 
-        foreach (var region in LaneRegions.Regions(tab))
+        foreach (var region in LaneRegions.Regions(tab).Where(region => !region.Folded))
         {
             if (ColumnsOfLane(tab, region.Key).Any(column => HasKey(column.Rows, key)))
             {

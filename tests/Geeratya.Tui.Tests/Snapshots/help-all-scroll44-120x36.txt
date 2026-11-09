@@ -2,9 +2,11 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Tab        Next tab  (gt)                                                 ▲│           │
-│           │   All actions │   Shift-Tab  Previous tab  (gT)                                              │           │
-│           │   Commands    │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
+│           │   Global      │   <space>sg  Show the full goal of the sprint                               ▲│           │
+│           │   All actions │ Tabs                                                                         │           │
+│           │   Commands    │   Tab        Next tab  (gt)                                                  │           │
+│           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
+│           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
 │           │               │   Alt-1      Go to tab 1                                                     │           │
 │           │               │   Alt-2      Go to tab 2                                                     │           │
 │           │               │   Alt-3      Go to tab 3                                                     │           │
@@ -28,9 +30,7 @@
 │           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
 │           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
 │           │               │   Enter      Open the selected item                                          │           │
-│           │               │   0          Go to the first column                                          │           │
-│           │               │   $          Go to the last column                                           │           │
-│           │               │   ]]         Next section of the Scrum backlog, or next swimlane            ▼│           │
+│           │               │   0          Go to the first column                                         ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

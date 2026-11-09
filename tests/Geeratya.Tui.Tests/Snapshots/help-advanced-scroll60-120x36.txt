@@ -2,9 +2,11 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Alt-6      Go to tab 6                                                    ▲│           │
-│           │   All actions │   Alt-7      Go to tab 7                                                     │           │
-│           │   Commands    │   Alt-8      Go to tab 8                                                     │           │
+│           │   Global      │   Alt-4      Go to tab 4                                                    ▲│           │
+│           │   All actions │   Alt-5      Go to tab 5                                                     │           │
+│           │   Commands    │   Alt-6      Go to tab 6                                                     │           │
+│           │               │   Alt-7      Go to tab 7                                                     │           │
+│           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
 │           │               │   <space>t   Open the source picker for a new tab  (Ctrl-t)                  │           │
 │           │               │   <space>c   Close the tab                                                   │           │
@@ -28,9 +30,7 @@
 │           │               │              backlog section                                                 │           │
 │           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
 │           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
-│           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
-│           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                                │           │
-│           │               │   Ctrl-l     Focus the pane to the right (zoomed: the next section)         ▼│           │
+│           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                               ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

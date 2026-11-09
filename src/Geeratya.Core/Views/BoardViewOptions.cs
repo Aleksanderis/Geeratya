@@ -166,6 +166,7 @@ public static class BoardViewOptions
                 Swimlane = kind,
                 Lane = null,
                 StackLanes = tab.StackLanes && kind != SwimlaneKind.None,
+                FoldedLanes = [],
                 LaneCursors = TabState.EmptyLaneCursors,
                 LaneKeys = TabState.EmptyLaneKeys,
             });

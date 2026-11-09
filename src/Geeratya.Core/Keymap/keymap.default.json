@@ -28,6 +28,8 @@
     { "mode": "normal", "keys": "] ]", "action": "detail.section-next" },
     { "mode": "normal", "keys": "[ [", "action": "detail.section-previous" },
     { "mode": "normal", "keys": "z a", "action": "section.toggle" },
+    { "mode": "normal", "keys": "z c", "action": "lane.fold" },
+    { "mode": "normal", "keys": "z o", "action": "lane.unfold" },
     { "mode": "normal", "keys": "Ctrl-h", "action": "pane.focus-left" },
     { "mode": "normal", "keys": "Ctrl-Backspace", "action": "pane.focus-left" },
     { "mode": "normal", "keys": "Ctrl-w h", "action": "pane.focus-left" },

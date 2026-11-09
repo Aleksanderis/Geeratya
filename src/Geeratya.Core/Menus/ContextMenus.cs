@@ -159,6 +159,8 @@ public static class ContextMenus
             actions.Add(ActionIds.ViewQuickFilter);
             actions.Add(ActionIds.ViewSwimlane);
             actions.Add(ActionIds.ViewSwimlaneStack);
+            actions.Add(ActionIds.LaneFold);
+            actions.Add(ActionIds.LaneUnfold);
             if (active.CutoffSource is not null)
             {
                 actions.Add(ActionIds.ViewDoneCutoff);

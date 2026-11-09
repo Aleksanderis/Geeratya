@@ -8,7 +8,8 @@ namespace Geeratya.Core.Boards;
 /// <param name="Top">The body row of the first row of the region.</param>
 /// <param name="Rows">The rows of the region, header included.</param>
 /// <param name="HasHeader">The region starts with a lane header row (stacked lanes only).</param>
-public readonly record struct LaneRegion(string Key, int Top, int Rows, bool HasHeader)
+/// <param name="Folded">The lane is folded: the region is its header row alone, with no board.</param>
+public readonly record struct LaneRegion(string Key, int Top, int Rows, bool HasHeader, bool Folded = false)
 {
     /// <summary>The body row where the board's top edge is.</summary>
     public int BoardTop => Top + (HasHeader ? LaneRegions.HeaderRows : 0);
