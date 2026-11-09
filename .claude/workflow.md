@@ -30,7 +30,7 @@ Run from the repo root.
 - `spike` issues: never merged by an agent; they stay on unmerged `spike/` branches and close with findings
 - autonomy: `autonomous` (the owner must never be the bottleneck; decide from the docs, log it, report afterwards)
 - push policy: never push to a remote without the owner's confirmation; ad-hoc changes are committed locally ("committed locally, not pushed"). The landing repository `../Geeratya-landing` is always pushed by agents straight to its `main` (owner, 2026-11-09). The autonomous PR flow (agents pushing `feature/`/`fix/` branches, opening and merging PRs, `scripts/screenshot.sh publish`/`clean`) is exempt.
-- CI: `manual` (never runs automatically, local build and tests are the gate); dispatch once before closing a milestone: `gh workflow run ci.yml --ref main`, about 4-6 minutes
+- CI: `automatic` (ubuntu on every PR and push to `main`, windows on push to `main` and manual dispatch: `gh workflow run ci.yml --ref <branch> -f os=windows`); CI duration: 10 minutes; CI fix attempts: 3
 - labels: `needs-owner` (only the owner can settle it), `owner` (owner wrote or commented), `windows-vm` (needs a Windows VM; the orchestrator never picks it), `tracking` (milestone tracking issue, never work), `spike`, `needs-review`
 - every issue has a milestone (`gh issue create -m "<milestone>"`)
 - commit message format: Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`)
@@ -45,7 +45,7 @@ JSON mapping of search results, ADF rendering, list/board rendering, request sch
 
 - Live Jira calls only to hosts in `GEERATYA_LIVE_HOSTS` (the dev site); never the owner's company site, not even read-only.
 - Never log, print, commit or snapshot API tokens; fixtures are scrubbed.
-- Verify locally (build, tests), open the PR ready, push once; no empty commits, no comment-only nits; skip screenshots without a visual change.
+- Verify locally (build, tests) first, open the PR ready, push once, then wait for the CI run of the push and fix it if red (never merge a red PR); no empty commits, no comment-only nits; skip screenshots without a visual change.
 - Never delete branches you did not create; never touch anything outside this repo and the scratchpad (except reading `../Gitunia`).
 
 ## Self-review additions

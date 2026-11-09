@@ -72,6 +72,10 @@ Scrum routes (`FakeScrumStore`, #173) serve the survey fixtures of #172 (`Fixtur
 
 The other write replies sit with their area: transitions (`transitions/`), create metadata and edit metadata (`metadata/`), create replies and delete errors (`hierarchy/`, `errors/`), rank (`boards/`), comment posts with ADF (`adf/`), edit 400s (`adf/edit-400-*`). The 403 for a missing permission is `errors/issue-delete-403-no-permission.json`; a missing-permission edit could not be reproduced with the sandbox account, which owns the projects.
 
+## CI
+
+`.github/workflows/ci.yml` runs automatically: the ubuntu job (build, tests, AOT publish, smoke run) on every pull request and push to `main`, the windows job (OS-specific tests only) on push to `main` and manual dispatch (`gh workflow run ci.yml --ref <branch> -f os=windows`). macOS is not run. The workflow has `contents: read` only and uses no secrets, so fork PRs are safe. Local build and tests come first; a PR is not merged while its run is red.
+
 ## Live tests
 
 Only on the owner's dev site, opt-in, never part of the review or CI gate; rules and environment in the `testing` skill. `LiveWriteRoundTripTests` creates a `GTM` task labelled `geeratya-test-<run id>`, edits it, adds, edits and deletes a comment, transitions it, reads the result back and deletes the issue in a `finally`; it skips without the environment.

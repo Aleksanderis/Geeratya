@@ -14,7 +14,7 @@ Goal: everything the feature milestones build on, and real knowledge of how Jira
 - Profiles and credential store (OS secret store, env var fallback).
 - App shell: Terminal.Gui v2 startup, keymap and generated reference, palette, help.
 - Fake Jira server, tmux harness, measurement and screenshot scripts.
-- CI by dispatch; dev-site seed data.
+- CI (automatic since 2026-11-09); dev-site seed data.
 
 Done when: the AOT binary starts into an empty shell under 100 ms, the transport is tested against the fake with recorded fixtures, and an agent can run the binary against the fake Jira in tmux.
 
