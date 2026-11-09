@@ -210,10 +210,34 @@ public class DetailYankTests
     }
 
     [Fact]
+    public void GivenMarkedRows_WhenYankingTheKey_ThenNothingIsCopiedAndTheStatusSaysWhy()
+    {
+        var closed = Press(Opened(Paragraphs(2), []), "Esc").State;
+        var visual = Press(closed, "Alt-m").State;
+
+        var result = Press(visual, "y");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("Copy takes one issue", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAProfileWithNoSite_WhenYankingTheLink_ThenNothingIsCopiedAndTheStatusWarns()
+    {
+        var closed = Press(Opened(Paragraphs(2), []), "Esc").State;
+        var state = closed with { Profiles = ProfileCatalog.Empty };
+
+        var result = Press(state, "Space", "y", "u");
+
+        Assert.Empty(result.Effects);
+        Assert.Contains("no active site", result.State.Message);
+    }
+
+    [Fact]
     public void GivenAnEmptyView_WhenYankingTheKey_ThenNothingIsCopiedAndTheStatusWarns()
     {
         var closed = Press(Opened(Paragraphs(2), []), "Esc").State;
-        var emptied = closed with { Session = closed.Session };
+        var emptied = closed;
         var tab = Active(emptied);
         var cleared = tab with { Rows = [] };
         var tabs = emptied.Session.Tabs.Select(candidate => candidate.Id == tab.Id ? cleared : candidate).ToList();

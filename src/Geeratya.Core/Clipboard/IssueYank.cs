@@ -1,4 +1,5 @@
 using Geeratya.Core.Detail;
+using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira;
@@ -31,6 +32,11 @@ public static class IssueYank
     /// <summary>Copies the focused issue in the given form; warns when there is none.</summary>
     public static ReduceResult Copy(AppState state, IssueYankForm form)
     {
+        if (HoldsSet(state))
+        {
+            return Warn(state, "Copy takes one issue: clear the selection first");
+        }
+
         if (Focused(state) is not { } issue)
         {
             return Warn(state, "No issue selected: select a row or open an issue to copy it");
@@ -56,6 +62,13 @@ public static class IssueYank
         }
 
         return new ReduceResult(state, [new CopyToClipboardEffect(text, what)]);
+    }
+
+    private static bool HoldsSet(AppState state)
+    {
+        var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+
+        return tab is { Detail.Count: 0 } && RowSelection.HoldsASet(tab);
     }
 
     private static string? LinkOf(AppState state, string key)
