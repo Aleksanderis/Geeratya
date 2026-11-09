@@ -110,7 +110,7 @@ internal static partial class DetailReducer
         var loading = top with { CommentsLoad = new Loading(LoadReason.NextPage), CommentsRequest = requestId };
         var laidOut = Layout(loading, DetailSize.Columns(state), DetailSize.ListRows(state, tab));
 
-        effects.Add(new LoadIssueCommentsEffect(tab.Id, top.Key, startAt, requestId));
+        effects.Add(new LoadIssueCommentsEffect(tab.Id, top.Key, startAt, requestId, top.CommentsNewestFirst));
 
         return ViewReducer.Replace(state, ReplaceTop(tab, laidOut)) with { Sequence = requestId };
     }

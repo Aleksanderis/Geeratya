@@ -94,6 +94,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `<space>iu` | `issue.unlink` | Remove the link under the cursor in the issue detail (Confirm names both issues; no undo) | A | right-click menu on the link row (offered only there) | M6 #190 (bound) |
 | `<space>ma` | `comment.add` | Add a comment (multi-line editor); built | E | `+` in the comments section (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
 | `<space>me` | `comment.edit` | Edit the comment under the cursor (another author's: the editor warns, Jira decides); built | E | click the comment (mouse part C, [ux-mouse.md](ux-mouse.md)) | M2 #167 |
+| `<space>mo` | `comment.order` | Reverse the comments of the shown issue: oldest first or newest first; saved as `comments.order`; built | E | right-click menu in the issue ([ux-mouse.md](ux-mouse.md), part M) | M9 #875 |
 | `<space>md` | `comment.delete` | Delete the comment under the cursor (Confirm; no undo); built | A | right-click menu on the comment ([ux-mouse.md](ux-mouse.md), part M) | M2 #167 |
 | `Alt-k` / `Alt-j` | `rank.up` / `rank.down` | Rank the selected issue one place up or down (a count moves it that many places; a marked set or Visual range moves as one block, see "Which writes accept a set"). Built (#169, block #428) in a board or backlog view | E | drag the row or card | M2 #169 |
 | `<space>kt` / `<space>kb` | `rank.top` / `rank.bottom` | Rank to the top or bottom of the list or column. Built (#169); to the bottom waits until every issue is loaded | A | context menu | M2 #169 |

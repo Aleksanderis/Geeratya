@@ -78,6 +78,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>ma` | Add a comment to the issue | `comment.add` | everyday |
 | `<space>me` | Edit the comment under the cursor | `comment.edit` | everyday |
 | `<space>md` | Delete the comment under the cursor | `comment.delete` | advanced |
+| `<space>mo` | Reverse the order of the comments: oldest first or newest first | `comment.order` | everyday |
 | `<space>is` | Change the status of the issue | `issue.transition` | everyday |
 | `Alt-l` | Move the card to the next column | `issue.transition-next` | everyday |
 | `Alt-h` | Move the card to the previous column | `issue.transition-previous` | everyday |
@@ -256,7 +257,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:settings` | Open the settings screen: change the theme and the options |
 | `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
-| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|board.done-cutoff] [value]` | List the settings, show one, or change one (saved) |
+| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|board.done-cutoff|comments.order] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |

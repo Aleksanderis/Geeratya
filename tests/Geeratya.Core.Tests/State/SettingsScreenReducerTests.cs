@@ -23,7 +23,7 @@ public sealed class SettingsScreenReducerTests
             [SettingsRowKind.Profiles, SettingsRowKind.Info, SettingsRowKind.Info, SettingsRowKind.Info],
             rows.TakeLast(4).Select(row => row.Kind));
         Assert.Equal(
-            ["Appearance", "Hints and keys", "Startup", "Board", "Profiles", "About"],
+            ["Appearance", "Hints and keys", "Startup", "Board", "Issue detail", "Profiles", "About"],
             SettingsRows.Categories(rows));
     }
 

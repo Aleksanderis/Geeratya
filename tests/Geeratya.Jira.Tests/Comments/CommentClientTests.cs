@@ -220,6 +220,19 @@ public sealed class CommentClientTests
             Assert.Single(fixture.Handler.Requests).PathAndQuery);
     }
 
+    [Fact]
+    public async Task GivenOldestFirst_WhenGetting_ThenTheRequestOrdersByCreated()
+    {
+        using var fixture = Serving(GcmPath, "comments/comments-gcm6.json");
+
+        await new CommentClient(fixture.Transport)
+            .GetCommentsAsync("GCM-6", 0, CancellationToken.None, newestFirst: false);
+
+        Assert.Equal(
+            $"{GcmPath}?orderBy=created&startAt=0&maxResults=100",
+            Assert.Single(fixture.Handler.Requests).PathAndQuery);
+    }
+
     private static IEnumerable<AdfNode> Flatten(AdfNode node)
     {
         yield return node;

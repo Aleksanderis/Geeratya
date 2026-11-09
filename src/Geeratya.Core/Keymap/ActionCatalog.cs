@@ -63,6 +63,7 @@ public static class ActionCatalog
         [ActionIds.CommentAdd] = ActionScope.Detail,
         [ActionIds.CommentEdit] = ActionScope.Detail,
         [ActionIds.CommentDelete] = ActionScope.Detail,
+        [ActionIds.CommentOrder] = ActionScope.Detail,
     };
 
     /// <summary>The ids the scope table names (for the test that checks them against the catalog).</summary>
@@ -189,6 +190,7 @@ public static class ActionCatalog
         new(ActionIds.CommentAdd, "Add a comment to the issue"),
         new(ActionIds.CommentEdit, "Edit the comment under the cursor"),
         new(ActionIds.CommentDelete, "Delete the comment under the cursor", CommandLevel.Advanced),
+        new(ActionIds.CommentOrder, "Reverse the order of the comments: oldest first or newest first"),
         new(ActionIds.EditorLeft, "Move the cursor left"),
         new(ActionIds.EditorRight, "Move the cursor right"),
         new(ActionIds.EditorRowStart, "Move the cursor to the start of the row"),

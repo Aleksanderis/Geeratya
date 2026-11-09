@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │ Rank                                                                        ▲│           │
-│           │   All actions │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
-│           │   Commands    │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
+│           │   Global      │   <space>mo  Reverse the order of the comments: oldest first or newest first▲│           │
+│           │   All actions │ Rank                                                                         │           │
+│           │   Commands    │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │ Selection                                                                    │           │
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
 │           │               │              issue)                                                          │           │
@@ -29,8 +30,7 @@
 │           │               │ Tabs                                                                         │           │
 │           │               │   Tab        Next tab  (gt)                                                  │           │
 │           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
-│           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
-│           │               │   Alt-1      Go to tab 1                                                    ▼│           │
+│           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                          ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -243,7 +243,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-04 (#703, comments newest first)
 
-**Jira layer:** The comment call sends `orderBy=-created` and the detail lists comments newest first; an added comment goes on top, a thread cut at 1000 keeps the newest. Why: the Comments pane spec says `newest first` and a long thread should show the latest at once (readiness default, owner not blocking; supersedes the 2026-11-02 "oldest first" entry, #84).
+**Jira layer:** [Superseded 2026-11-09, #875: oldest first by default, reversible.] The comment call sends `orderBy=-created` and the detail lists comments newest first; an added comment goes on top, a thread cut at 1000 keeps the newest. Why: the Comments pane spec says `newest first` and a long thread should show the latest at once (readiness default, owner not blocking; supersedes the 2026-11-02 "oldest first" entry, #84).
 
 ## 2026-11-04 (Details pane: sidebar, field blocks and dropdowns, #704)
 
@@ -292,6 +292,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-08 (Arch package, #861)
 
 **Process:** The Arch/Omarchy `.pkg.tar.zst` is built by `scripts/package-linux.sh` itself (tar + zstd + `.PKGINFO`, no nfpm or makepkg, like the `.deb`) from the linux archive, so no extra tool is fetched in the release job. Install check: real `pacman -U` in `archlinux:latest` for x86_64; aarch64 has no official Arch image (Arch Linux ARM is third-party, not trusted in a release job), so the native arm64 runner unpacks the package, checks `.PKGINFO` and runs the packaged binary. The package is covered by `SHA256SUMS`; the AUR PKGBUILD already builds from the same archives for both arches and is unchanged. Gitunia (nfpm, no install check) was read for scope only.
+
+## 2026-11-09 (#875, comment order)
+
+**UI:** Comments are oldest first by default and `<space>mo` reverses them, saved as the `comments.order` setting (supersedes the 2026-11-04 "newest first" entry, #703). The request follows the order (`orderBy=created` or `-created`), so paging stays by offset; an issue keeps the order it was opened with, a flip only changes the shown issue and the default for later ones. Why: owner request. Threads: Jira Cloud REST v3 has no reply field on comments, so none are drawn (follow-up registered).
 
 ## 2026-11-09 (copy issues, #876)
 

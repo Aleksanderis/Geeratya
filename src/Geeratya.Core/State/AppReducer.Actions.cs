@@ -139,6 +139,7 @@ public sealed partial class AppReducer
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
             ActionIds.CommentDelete => InNormal(state, () => CommentEditing.Delete(state, at)),
+            ActionIds.CommentOrder => InNormal(state, () => DetailReducer.ReverseComments(state)),
             ActionIds.NavigateDown => Navigate(state, ListMove.Down, 1),
             ActionIds.NavigateUp => Navigate(state, ListMove.Up, -1),
             ActionIds.NavigateTop => Navigate(state, ListMove.Top, 0),

@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Ctrl-^     Previously active tab  (<space><Tab>)                          ▲│           │
-│           │   All actions │   Alt-1      Go to tab 1                                                     │           │
-│           │   Commands    │   Alt-2      Go to tab 2                                                     │           │
+│           │   Global      │   Shift-Tab  Previous tab  (gT)                                             ▲│           │
+│           │   All actions │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
+│           │   Commands    │   Alt-1      Go to tab 1                                                     │           │
+│           │               │   Alt-2      Go to tab 2                                                     │           │
 │           │               │   Alt-3      Go to tab 3                                                     │           │
 │           │               │   Alt-4      Go to tab 4                                                     │           │
 │           │               │   Alt-5      Go to tab 5                                                     │           │
@@ -29,8 +30,7 @@
 │           │               │   0          Go to the first column                                          │           │
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a        ▼│           │
+│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane    ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

@@ -107,6 +107,8 @@ public static class ContextMenus
             actions.Remove(ActionIds.IssueUnlink);
         }
 
+        actions.Add(ActionIds.CommentOrder);
+
         if (CommentEditing.IsOnComment(state))
         {
             actions.Add(ActionIds.CommentDelete);

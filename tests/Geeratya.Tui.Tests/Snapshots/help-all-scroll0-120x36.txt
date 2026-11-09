@@ -23,14 +23,14 @@
 │           │               │ Comment                                                                      │           │
 │           │               │   <space>ma  Add a comment to the issue                                      │           │
 │           │               │   <space>me  Edit the comment under the cursor                               │           │
+│           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
 │           │               │ Rank                                                                         │           │
 │           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │ Selection                                                                    │           │
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
 │           │               │              issue)                                                          │           │
-│           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
-│           │               │ View                                                                        ▼│           │
+│           │               │   Alt-m      Mark or unmark the selected row and move down                  ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

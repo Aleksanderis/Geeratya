@@ -10,7 +10,8 @@ using Geeratya.Jira.Writes.Models;
 namespace Geeratya.Jira.Comments;
 
 /// <summary>
-/// Reads the comments of one issue, one offset page at a time, newest first (<c>orderBy=-created</c>), and adds,
+/// Reads the comments of one issue, one offset page at a time, newest first (<c>orderBy=-created</c>) or oldest
+/// first (<c>orderBy=created</c>), and adds,
 /// edits and deletes one.
 /// Reading is a read; <see cref="AddCommentAsync"/>, <see cref="EditCommentAsync"/> and
 /// <see cref="DeleteCommentAsync"/> are writes: call them only from a confirmed command, never retry them
@@ -27,14 +28,16 @@ public sealed class CommentClient(JiraTransport transport)
 
     /// <summary>
     /// Loads the page starting at <paramref name="startAt"/>; continue with <see cref="OffsetPage{T}.NextStartAt"/>
-    /// until it is null.
+    /// until it is null. <paramref name="newestFirst"/> picks the order Jira lists them in (offsets count in it);
+    /// it defaults to newest first (write verification); the detail passes its own order.
     /// </summary>
     public async Task<JiraResult<OffsetPage<IssueComment>>> GetCommentsAsync(
         string key,
         int startAt,
         CancellationToken cancellationToken,
         int pageSize = MaxPageSize,
-        JiraPriority priority = JiraPriority.User)
+        JiraPriority priority = JiraPriority.User,
+        bool newestFirst = true)
     {
         if (!IssueUrls.IsValidKey(key))
         {
@@ -44,7 +47,8 @@ public sealed class CommentClient(JiraTransport transport)
 
         var start = Math.Max(startAt, 0);
         var size = Math.Clamp(pageSize, 1, MaxPageSize);
-        var url = $"{IssuePath}/{key}/comment?orderBy=-created&startAt={Number(start)}&maxResults={Number(size)}";
+        var order = newestFirst ? "-created" : "created";
+        var url = $"{IssuePath}/{key}/comment?orderBy={order}&startAt={Number(start)}&maxResults={Number(size)}";
 
         var result = await transport.SendAsync(
             JiraRequest.Get(url) with { Priority = priority },

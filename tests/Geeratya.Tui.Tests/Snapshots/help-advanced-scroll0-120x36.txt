@@ -28,9 +28,9 @@
 │           │               │   <space>ma  Add a comment to the issue                                      │           │
 │           │               │   <space>me  Edit the comment under the cursor                               │           │
 │           │               │   <space>md  Delete the comment under the cursor                             │           │
+│           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
 │           │               │ Rank                                                                         │           │
-│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
-│           │               │   Alt-j      Rank the issue down (a count moves it that many places)        ▼│           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)          ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

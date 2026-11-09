@@ -24,7 +24,8 @@ public static class CommentRows
     private const string RetryText = " (Enter to retry)";
     private const string UnknownAuthor = "Unknown";
     private const string EditedText = "edited";
-    private const string TooManyText = "Showing the newest comments only.";
+    private const string TooManyNewestText = "Showing the newest comments only.";
+    private const string TooManyOldestText = "Showing the oldest comments only (<space>mo shows the newest).";
     private const int BarGap = 2;
 
     private static readonly TimeSpan _editedAfter = TimeSpan.FromMinutes(1);
@@ -181,7 +182,7 @@ public static class CommentRows
         }
         else if (detail.CommentTotal is { } total && total > detail.Comments.Count)
         {
-            rows.Add(Plain(TooManyText, TextRole.Muted));
+            rows.Add(Plain(detail.CommentsNewestFirst ? TooManyNewestText : TooManyOldestText, TextRole.Muted));
         }
     }
 

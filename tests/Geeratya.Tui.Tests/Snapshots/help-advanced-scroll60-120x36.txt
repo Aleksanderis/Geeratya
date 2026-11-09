@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   Alt-8      Go to tab 8                                                    ▲│           │
-│           │   All actions │   Alt-9      Go to tab 9                                                     │           │
-│           │   Commands    │   <space>t   Open the source picker for a new tab  (Ctrl-t)                  │           │
+│           │   Global      │   Alt-7      Go to tab 7                                                    ▲│           │
+│           │   All actions │   Alt-8      Go to tab 8                                                     │           │
+│           │   Commands    │   Alt-9      Go to tab 9                                                     │           │
+│           │               │   <space>t   Open the source picker for a new tab  (Ctrl-t)                  │           │
 │           │               │   <space>c   Close the tab                                                   │           │
 │           │               │   <space>T   Show a list of open tabs                                        │           │
 │           │               │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
@@ -29,8 +30,7 @@
 │           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
 │           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                                │           │
 │           │               │   Ctrl-l     Focus the pane to the right (zoomed: the next section)          │           │
-│           │               │              (Ctrl-w l)                                                      │           │
-│           │               │   <space>z   Zoom the focused pane, or leave the zoom                       ▼│           │
+│           │               │              (Ctrl-w l)                                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
