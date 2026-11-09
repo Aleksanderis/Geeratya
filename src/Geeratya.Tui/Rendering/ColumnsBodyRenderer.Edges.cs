@@ -82,7 +82,8 @@ public sealed partial class ColumnsBodyRenderer
         BoardCursor cursor,
         BoardWindow window,
         FrameGrid grid,
-        List<PaneRect> panes)
+        List<PaneRect> panes,
+        bool focused)
     {
         if (window.Count == 1 && window.Total > 1)
         {
@@ -100,7 +101,7 @@ public sealed partial class ColumnsBodyRenderer
                 ? new List<StyledSpan> { new(hidden, TextRole.Muted) }
                 : null;
 
-            chips.AddRange(FrameGrid.Chips(panes[position], title, right, column == cursor.Column));
+            chips.AddRange(FrameGrid.Chips(panes[position], title, right, focused && column == cursor.Column));
         }
 
         return new StyledLine(grid.Row(0, static (_, _) => [], chips));

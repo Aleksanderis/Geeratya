@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>c   Close the tab                                                  ▲│           │
-│           │   All actions │   <space>T   Show a list of open tabs                                        │           │
-│           │   Commands    │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
+│           │   Global      │   <space>t   Open the source picker for a new tab  (Ctrl-t)                 ▲│           │
+│           │   All actions │   <space>c   Close the tab                                                   │           │
+│           │   Commands    │   <space>T   Show a list of open tabs                                        │           │
+│           │               │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
 │           │               │ Navigate                                                                     │           │
 │           │               │   j          Move down  (Down)                                               │           │
 │           │               │   k          Move up  (Up)                                                   │           │
@@ -29,8 +30,7 @@
 │           │               │              (Ctrl-w l)                                                      │           │
 │           │               │   <space>z   Zoom the focused pane, or leave the zoom                        │           │
 │           │               │   i          Edit the title or the Description in place                      │           │
-│           │               │   y          Copy the selection or the field under the cursor                │           │
-│           │               │   <space>j   Jump to a visible row (type text, press the letter on the row) ▼│           │
+│           │               │   y          Copy the selection or the field under the cursor               ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

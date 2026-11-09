@@ -19,6 +19,9 @@ public static class BoardViewOptions
     public const string FilterUsage = "Usage: :quickfilter [off|<name>|<number>]";
     public const string NoLanesText = "No lanes: the board has no issues.";
 
+    /// <summary>The refusal of <c>view.swimlane-stack</c> without a grouping.</summary>
+    public const string NoGroupingText = "Turn swimlanes on first (<space>vs), then stack the lanes.";
+
     private const string LaneKeysText = "]] and [[ change the lane";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -157,7 +160,14 @@ public static class BoardViewOptions
         }
 
         var kind = Swimlanes.Next(tab.Swimlane);
-        var grouped = ColumnsNavigation.Resync(tab with { Swimlane = kind, Lane = null });
+        var grouped = ColumnsNavigation.Resync(
+            tab with
+            {
+                Swimlane = kind,
+                Lane = null,
+                StackLanes = tab.StackLanes && kind != SwimlaneKind.None,
+                LaneCursors = TabState.EmptyLaneCursors,
+            });
         var lanes = Swimlanes.Lanes(kind, grouped.Rows);
         var noun = lanes.Count == 1 ? "lane" : "lanes";
         var text = kind == SwimlaneKind.None
@@ -165,6 +175,34 @@ public static class BoardViewOptions
             : $"Swimlanes by {Swimlanes.Label(kind)}: {lanes.Count} {noun} ({LaneKeysText}).";
 
         return new ReduceResult(ViewReducer.Replace(state, grouped) with { Message = text }, _noEffects);
+    }
+
+    /// <summary>
+    /// <c>view.swimlane-stack</c>: opens the columns of the lanes that fit at once, stacked, or goes back to the one
+    /// current lane (#891). Needs a grouping, and says so when there is none.
+    /// </summary>
+    public static ReduceResult ToggleStackedLanes(AppState state)
+    {
+        if (Check(state) is not { } tab)
+        {
+            return Refused(state, NoBoardText);
+        }
+
+        if (tab.Definition.Layout != ViewLayout.Columns)
+        {
+            return Refused(state, NoColumnsText);
+        }
+
+        if (tab.Swimlane == SwimlaneKind.None)
+        {
+            return Refused(state, NoGroupingText);
+        }
+
+        var toggled = ColumnsNavigation.Refit(tab with { StackLanes = !tab.StackLanes });
+        var stacked = LaneRegions.IsStacked(toggled);
+        var text = StackedText(toggled, stacked);
+
+        return new ReduceResult(ViewReducer.Replace(state, toggled) with { Message = text }, _noEffects);
     }
 
     /// <summary>
@@ -187,9 +225,26 @@ public static class BoardViewOptions
             return Refused(state, NoLanesText);
         }
 
-        var moved = ColumnsNavigation.Resync(tab with { Lane = lane.Key });
+        var moved = ColumnsNavigation.SwitchLane(tab, lane.Key);
 
         return new ReduceResult(ViewReducer.Replace(state, moved) with { Message = null }, _noEffects);
+    }
+
+    private static string StackedText(TabState tab, bool stacked)
+    {
+        if (!tab.StackLanes)
+        {
+            return "Lanes stacked off: one lane's columns at a time.";
+        }
+
+        if (!stacked)
+        {
+            return "Lanes stacked, but the body is too short for more than one lane at a time.";
+        }
+
+        var count = LaneRegions.Regions(tab).Count;
+
+        return $"Lanes stacked: {count} lanes open at once ({LaneKeysText}).";
     }
 
     private static TabState? Check(AppState state)

@@ -87,6 +87,20 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
     }
 
     [MeasurementTheory]
+    [InlineData(false, "board 10k cards, assignee lanes, one lane open, nav key + frame")]
+    [InlineData(true, "board 10k cards, assignee lanes, stacked, nav key + frame")]
+    public void BoardOf10kCards_WithLanes_NavKeyThroughReducerAndFrame(bool stacked, string label)
+    {
+        var tab = Tab(ViewLayout.Columns, ViewSourceKind.Board, false) with
+        {
+            Swimlane = SwimlaneKind.Assignee,
+            StackLanes = stacked,
+        };
+
+        Report(label, TimeKeys(Active(ColumnsNavigation.Resync(tab)), ["j", "l", "Ctrl-d", "h", "Ctrl-u"]));
+    }
+
+    [MeasurementTheory]
     [InlineData(false)]
     [InlineData(true)]
     public void BoardOf10kCards_RegroupingAloneCostsPerKey(bool withParents)

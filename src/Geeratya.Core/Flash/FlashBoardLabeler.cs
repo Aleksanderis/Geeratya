@@ -23,30 +23,54 @@ public static class FlashBoardLabeler
     /// <summary>The cells before the card text in a full card: the margin and the side border.</summary>
     public const int FullCardLabelColumn = Margin + 1;
 
-    /// <summary>The labels for <paramref name="text"/> in a body of <paramref name="width"/> by <paramref name="height"/>.</summary>
+    /// <summary>
+    /// The labels for <paramref name="text"/> in a body of <paramref name="width"/> by <paramref name="height"/>.
+    /// With stacked lanes (#891) every drawn lane is searched, the current lane's labels first so its cards get the
+    /// first letters.
+    /// </summary>
     public static IReadOnlyList<FlashLabel> Compute(TabState tab, string text, int width, int height)
     {
-        var boardHeight = height - LaneStrip.Offset(tab);
-
-        if (text.Length == 0 || tab.Rows.Count == 0 || !ListViewColumns.IsFramed(width, boardHeight))
+        if (text.Length == 0 || tab.Rows.Count == 0)
         {
             return [];
         }
 
-        var columns = ColumnsNavigation.ColumnsOf(tab);
+        var found = new List<FlashLabel>();
+        var blocked = new HashSet<char>();
+        var current = ColumnsNavigation.CurrentLaneKey(tab);
 
-        if (columns.Count == 0)
+        foreach (var region in LaneRegions.Regions(tab).OrderBy(region => region.Key == current ? 0 : 1))
+        {
+            found.AddRange(LabelsOf(tab, region, text, width, height, blocked));
+        }
+
+        FlashLabeler.AssignLetters(found, blocked);
+
+        return found;
+    }
+
+    private static List<FlashLabel> LabelsOf(
+        TabState tab,
+        LaneRegion region,
+        string text,
+        int width,
+        int height,
+        HashSet<char> blocked)
+    {
+        var boardHeight = Math.Min(region.BoardBodyRows, height - region.BoardTop);
+        var columns = ColumnsNavigation.ColumnsOfLane(tab, region.Key);
+
+        if (columns.Count == 0 || !ListViewColumns.IsFramed(width, boardHeight))
         {
             return [];
         }
 
-        var boardRows = LaneStrip.BoardRows(tab);
+        var boardRows = region.BoardRows;
         var visible = BoardCards.Visible(boardRows, ListLayout.HeaderRows);
-        var cursor = BoardMotion.Resolve(columns, tab.Cursor, tab.SelectedKey, new BoardViewport(boardRows, width));
+        var cursor = ColumnsNavigation.CursorOfLane(tab, region, columns, width);
         var window = BoardWindows.For(columns.Count, cursor.Column, width);
         var compact = BoardCards.IsCompact(boardRows, ListLayout.HeaderRows);
         var found = new List<FlashLabel>();
-        var blocked = new HashSet<char>();
 
         for (var position = 0; position < window.Count; position++)
         {
@@ -54,7 +78,7 @@ public static class FlashBoardLabeler
             var cell = window.CellWidth(position);
             var group = columns[column];
 
-            foreach (var card in CardsInView(group, cursor.Scrolls[column], cell, tab, compact, visible))
+            foreach (var card in CardsInView(group, cursor.Scrolls[column], cell, boardRows, compact, visible))
             {
                 var fields = FieldsOf(group, card, cell, compact);
 
@@ -71,7 +95,6 @@ public static class FlashBoardLabeler
         }
 
         found.Sort((left, right) => Compare(left, right, cursor));
-        FlashLabeler.AssignLetters(found, blocked);
 
         return found;
     }
@@ -80,7 +103,7 @@ public static class FlashBoardLabeler
         BoardColumnGroup group,
         int first,
         int cell,
-        TabState tab,
+        int boardRows,
         bool compact,
         int visible)
     {
@@ -89,7 +112,7 @@ public static class FlashBoardLabeler
             return Enumerable.Range(first, Math.Max(0, Math.Min(group.Rows.Count, first + visible) - first));
         }
 
-        var rows = BoardCards.CardRows(LaneStrip.BoardRows(tab), ListLayout.HeaderRows);
+        var rows = BoardCards.CardRows(boardRows, ListLayout.HeaderRows);
 
         return BoardColumnLayout.Place(group, first, cell, rows).Select(static placed => placed.Card);
     }

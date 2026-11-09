@@ -29,16 +29,34 @@ public static class LaneStrip
             && tab.Rows.Count > 0;
     }
 
-    /// <summary>The list rows left for the board: the tab's visible rows less the strip.</summary>
+    /// <summary>
+    /// The list rows the current lane's board has: the tab's visible rows less the strip, and with stacked lanes
+    /// (#891) the share of the lane (<see cref="LaneRegions"/>).
+    /// </summary>
     public static int BoardRows(TabState tab)
     {
-        return IsShown(tab) ? Math.Max(0, tab.VisibleRows - Rows) : tab.VisibleRows;
+        return LaneRegions.FocusRegion(tab).BoardRows;
     }
 
-    /// <summary>The rows above the frame (the strip), for converting body rows to board rows.</summary>
+    /// <summary>The body row of the current lane's top edge, for converting body rows to board rows.</summary>
     public static int Offset(TabState tab)
     {
-        return IsShown(tab) ? Rows : 0;
+        return LaneRegions.FocusRegion(tab).BoardTop;
+    }
+
+    /// <summary>
+    /// Whether the strip row is drawn: while shown, unless every lane is stacked with its own header
+    /// (<see cref="LaneRegions.StripHidden"/>).
+    /// </summary>
+    public static bool IsDrawn(TabState tab)
+    {
+        return IsShown(tab) && !LaneRegions.StripHidden(tab);
+    }
+
+    /// <summary>A lane as the strip and a stacked lane header write it: mark, name and card count.</summary>
+    public static string Label(SwimlaneLane lane, bool current)
+    {
+        return Text(lane, current);
     }
 
     /// <summary>

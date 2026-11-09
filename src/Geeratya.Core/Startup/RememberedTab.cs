@@ -14,6 +14,7 @@ namespace Geeratya.Core.Startup;
 /// <param name="Name">The name the user gave the tab (<c>tab.rename</c>), or null for the source label.</param>
 /// <param name="DoneCutoff">The quick choice of the Done cutoff of a Kanban board (<c>view.done-cutoff</c>): days,
 /// 0 for all, or null to follow Jira.</param>
+/// <param name="Stacked">The lanes' columns are open at once, stacked (<c>view.swimlane-stack</c>, #891); null for off.</param>
 public sealed record RememberedTab(
     string Source,
     string SourceValue,
@@ -23,4 +24,5 @@ public sealed record RememberedTab(
     string? Swimlane = null,
     string? Lane = null,
     string? Name = null,
-    int? DoneCutoff = null);
+    int? DoneCutoff = null,
+    bool? Stacked = null);

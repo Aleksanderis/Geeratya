@@ -14,6 +14,7 @@ public sealed class ColumnsMemo
 {
     private Entry? _last;
     private LaneEntry? _lanes;
+    private LaneColumnsEntry? _laneColumns;
 
     /// <summary>The columns for these inputs, built by <paramref name="build"/> only when they differ from the last call.</summary>
     internal IReadOnlyList<BoardColumnGroup> Get(TabState tab, Func<TabState, IReadOnlyList<BoardColumnGroup>> build)
@@ -58,6 +59,37 @@ public sealed class ColumnsMemo
         return lanes;
     }
 
+    /// <summary>
+    /// The columns of one lane (stacked lanes, #891), built by <paramref name="build"/> once per lane until the rows,
+    /// board, folded cards, grouping or cut-off change. Every lane's entry is dropped together.
+    /// </summary>
+    internal IReadOnlyList<BoardColumnGroup> GetLaneColumns(
+        TabState tab,
+        string laneKey,
+        Func<TabState, string, IReadOnlyList<BoardColumnGroup>> build)
+    {
+        var last = _laneColumns;
+
+        if (last is null
+            || !ReferenceEquals(last.Rows, tab.Rows)
+            || !ReferenceEquals(last.Board, tab.Board)
+            || !ReferenceEquals(last.Expanded, tab.ExpandedSubtasks)
+            || last.Swimlane != tab.Swimlane
+            || last.DoneCutoffDays != tab.DoneCutoffDays)
+        {
+            last = new LaneColumnsEntry(tab.Rows, tab.Board, tab.ExpandedSubtasks, tab.Swimlane, tab.DoneCutoffDays, []);
+            _laneColumns = last;
+        }
+
+        if (!last.ByLane.TryGetValue(laneKey, out var columns))
+        {
+            columns = build(tab, laneKey);
+            last.ByLane[laneKey] = columns;
+        }
+
+        return columns;
+    }
+
     /// <summary>The memo is a cache, not state: two tabs that differ only in it are equal.</summary>
     public override bool Equals(object? obj)
     {
@@ -83,4 +115,12 @@ public sealed class ColumnsMemo
         IReadOnlyList<IssueSummary> Rows,
         SwimlaneKind Swimlane,
         IReadOnlyList<SwimlaneLane> Lanes);
+
+    private sealed record LaneColumnsEntry(
+        IReadOnlyList<IssueSummary> Rows,
+        BoardConfiguration? Board,
+        IReadOnlyList<string> Expanded,
+        SwimlaneKind Swimlane,
+        int DoneCutoffDays,
+        Dictionary<string, IReadOnlyList<BoardColumnGroup>> ByLane);
 }

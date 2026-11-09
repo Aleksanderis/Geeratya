@@ -296,3 +296,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (swimlane strip, #874)
 
 **UI:** Swimlanes show every lane together as a one-row strip above the frame (`▾ Name n` for the lane whose columns are drawn, `▸ Name n` for the others; click a chip to show it), instead of only a `Lane n/N` text in the status line (supersedes "one lane at a time" of #192; the owner's Jira screenshot shows lane headers over the columns). Why: all lanes visible with their counts, at a fixed cost of one row, so the card-pitch viewport maths stay valid (`LaneStrip.BoardRows`). Several lanes with columns open at once and folding lanes are follow-ups; they need a per-lane cursor and scroll. Details: `ux-screens.md`, "Columns layout".
+
+## 2026-11-09 (stacked lanes, #891)
+
+**UI:** Several lanes' columns can be open at once, stacked under a header row each (`<space>vl`, `view.swimlane-stack`), a per-tab toggle next to the grouping rather than an open/closed state per lane; the body is divided equally between the lanes that fit at 8 rows each, paged around the current lane, and every lane keeps its own cursor and scrolls (the owner's Jira screenshot on #874 shows all lanes with their columns under a header). Why: a toggle needs one key and one flag and keeps the single-lane layout as the default; per-lane open/closed state is what folding (#893) adds on the same regions, and the key stays free for it. Details: `ux-screens.md`, "Columns layout".

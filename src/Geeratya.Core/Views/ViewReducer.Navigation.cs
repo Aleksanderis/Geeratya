@@ -103,7 +103,7 @@ public static partial class ViewReducer
         {
             if (ColumnsNavigation.LaneAt(tab, placed.Width, placed.Column, placed.Row) is { } laneKey)
             {
-                var shown = ColumnsNavigation.Resync(tab with { Lane = laneKey });
+                var shown = ColumnsNavigation.SwitchLane(tab, laneKey);
 
                 return new ReduceResult(Replace(state, shown), _noEffects);
             }
