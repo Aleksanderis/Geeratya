@@ -70,7 +70,11 @@ internal static partial class DetailReducer
         var by = move == ListMove.PageDown ? half : -half;
         var scrolled = scroll.By(by);
         var row = top.Cursor - document.Sections[section];
-        var newRow = Math.Clamp(row + by - (scrolled.ClampedOffset - scroll.ClampedOffset), 0, scroll.Viewport - 1);
+
+        // The note row under the text is a stop too, so the cursor may travel down to the pane's last stop.
+        var lastRow = document.Stops.Where(stop => document.SectionAt(stop) == section).DefaultIfEmpty(top.Cursor).Max()
+            - document.Sections[section];
+        var newRow = Math.Clamp(row + by - (scrolled.ClampedOffset - scroll.ClampedOffset), 0, Math.Max(0, lastRow));
 
         if (scrolled.ClampedOffset == scroll.ClampedOffset && newRow == row)
         {

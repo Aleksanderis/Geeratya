@@ -296,6 +296,27 @@ public class IssueDetailSectionTests
     }
 
     [Fact]
+    public void GivenTheCursorOnTheMoreNote_WhenPressingCtrlDOrCtrlU_ThenItNeverMovesAgainstTheKey()
+    {
+        var state = OnLine(Opened(LongText(20), [Comment("7", 8)]), "more lines");
+
+        for (var index = 0; index < 60; index++)
+        {
+            state = Press(state, "Ctrl-d").State;
+        }
+
+        var atEnd = Top(state).Cursor;
+
+        Assert.Equal(atEnd, Top(Press(state, "Ctrl-d").State).Cursor);
+
+        state = OnLine(state, "more lines");
+        var up = Press(state, "Ctrl-u").State;
+
+        Assert.Equal(Top(state).Cursor, Top(up).Cursor);
+        Assert.Equal(Top(state).DescriptionOffset - 1, Top(up).DescriptionOffset);
+    }
+
+    [Fact]
     public void GivenAScrolledDescription_WhenPressingEnterOnTheNote_ThenItExpandsInPlace()
     {
         var state = OnDescriptionRow(Opened(LongText(5), []), 2);
