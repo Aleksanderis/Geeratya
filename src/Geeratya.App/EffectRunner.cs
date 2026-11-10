@@ -1,3 +1,4 @@
+using Geeratya.App.Updates;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
@@ -156,6 +157,11 @@ public sealed class EffectRunner : IDisposable
 
         var launcher = browser
             ?? BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner());
+
+        if (_profiles.StateDirectory is { } stateDirectory)
+        {
+            _local.Add(UpdateCheckHandler.CreateForProcess(stateDirectory));
+        }
 
         _local.Add(new BrowserEffectHandler(launcher));
         _local.Add(new ClipboardEffectHandler(clipboard ?? Clipboards.ForProcess()));

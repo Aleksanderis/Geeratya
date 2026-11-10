@@ -6,7 +6,7 @@ Geeratya is a keyboard-first terminal client for Jira Cloud. This page gets you 
 
 Needs a Jira Cloud site, an Atlassian account on it and an API token (below). Any terminal works; truecolor looks best. No release is published yet (see the milestone "M8 - Release and going public"): every route below works once the first release is out.
 
-One command installs the latest release; run it again to update.
+One command installs the latest release; run it again (or `geeratya update`, see [Updating](#updating)) to update.
 
 ### Linux and macOS
 
@@ -54,6 +54,18 @@ All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/release
 - From source: see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 Where the token is kept: Linux uses `secret-tool` (libsecret; install it, for example the `libsecret-tools` package), Windows uses Credential Manager, macOS uses the Keychain. Without a secret store you can set the environment variable `GEERATYA_TOKEN` instead (it works while exactly one profile exists).
+
+#### Updating
+
+A new release shows up as `update <version> available` in the status bar (and once as a message, `<space>n`). After the first frame, and at most once a day after a successful answer (a failed try is repeated at the next start), Geeratya asks GitHub for the latest release tag in the background; it never delays the start and sends nothing but a `User-Agent` (`Geeratya/<version>`), no account or site data. Turn it off with `:set update.check off` (or the settings screen), or set `GEERATYA_NO_UPDATE_CHECK=1`. Development builds never check.
+
+`geeratya update` brings an install to the latest release, outside the terminal UI and without PowerShell or any other tool: the program downloads the archive itself, checks it against the release's `SHA256SUMS`, starts the new binary with `--version`, and only then replaces the old one (on Windows the running `.exe` is renamed aside and removed on a later start). It follows the system proxy settings. Which route applies depends on how Geeratya was installed (the install scripts leave a `geeratya.install-source` file next to the binary):
+
+- Installed by the install scripts: `geeratya update` replaces the binary, and says the version change and the source. If something fails (a checksum mismatch, no network, a folder you cannot write to) nothing is changed and the direct archive URL and the manual steps are printed.
+- Installed by a package manager (Homebrew, winget, `.deb`, `.rpm`, Arch): `geeratya update` prints the command to run (`brew upgrade geeratya`, `winget upgrade Aleksanderis.Geeratya`, or download the new package and install it) and touches no file.
+- Anything else (an unpacked archive, a build from source): it prints where to download the new archive.
+
+`geeratya update --check` only looks and sets the exit code for scripts: 0 up to date, 1 a newer release exists, 2 it could not check. `GEERATYA_RELEASES_URL` points both at another release endpoint (a mirror); the checksums come from the same endpoint as the archive, so they guard against a damaged download, not against a hostile mirror.
 
 #### macOS (Gatekeeper)
 

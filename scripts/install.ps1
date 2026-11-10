@@ -8,6 +8,7 @@
 # when the installed version is already the wanted one. To pin a version in the one-liner:
 #   $env:GEERATYA_VERSION = '1.2.3'; irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
 # Uninstall: delete the install folder and remove it from your user PATH (the script prints both).
+# Later updates can also run `geeratya update` (the script leaves a geeratya.install-source marker next to the exe).
 # Linux and macOS: use install.sh.
 #
 # Environment (all optional):
@@ -162,6 +163,8 @@ function Invoke-GeeratyaInstall {
             throw
         }
         Remove-Item -LiteralPath $old -Force -ErrorAction SilentlyContinue
+        # Tells "geeratya update" that this copy is its to replace (a package manager never writes this file).
+        Set-Content -LiteralPath (Join-Path $target 'geeratya.install-source') -Value 'script' -ErrorAction SilentlyContinue
         Write-Host "Installed $executable"
 
         if ($env:GEERATYA_NO_PATH -ne '1') { Add-ToUserPath $target }

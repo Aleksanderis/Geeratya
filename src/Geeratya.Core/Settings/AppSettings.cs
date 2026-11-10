@@ -17,6 +17,7 @@ namespace Geeratya.Core.Settings;
 /// <param name="LabelCaps">Round the ends of filled chips (labels) with Powerline half circles; needs a Powerline or Nerd Font.</param>
 /// <param name="DoneCutoffDays">Days after which a Kanban board hides Done issues; 0 shows them all.</param>
 /// <param name="CommentsNewestFirst">List the comments of an opened issue newest first; false is oldest first.</param>
+/// <param name="UpdateCheck">Look once a day, in the background, for a newer release and hint at it in the status bar.</param>
 public sealed record AppSettings(
     HintLevel StatusHints = HintLevel.Full,
     bool WhichKey = true,
@@ -27,7 +28,8 @@ public sealed record AppSettings(
     bool TransparentBackground = false,
     int DoneCutoffDays = DoneCutoff.DefaultDays,
     bool LabelCaps = true,
-    bool CommentsNewestFirst = false)
+    bool CommentsNewestFirst = false,
+    bool UpdateCheck = true)
 {
     public const string DefaultTheme = "auto";
 

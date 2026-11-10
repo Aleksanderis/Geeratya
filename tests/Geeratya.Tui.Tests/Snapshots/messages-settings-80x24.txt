@@ -9,11 +9,11 @@
 │ labels.caps on (default on) - Round the ends of label chips with half circle…│
 │ jump.target current (default current) - Where the jump prompt (<space>g) ope…│
 │ startup.restore on (default on) - Reopen the tabs of the last run on start; …│
+│ update.check on (default on) - Look for a newer release once a day, in the b…│
 │ board.done-cutoff 14 (default 14) - Days after which a Kanban board hides Do…│
 │ comments.order oldest (default oldest) - Which comments of an opened issue c…│
 │ Messages                                                                     │
 │ Saved A-1                                                                    │
-│                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │

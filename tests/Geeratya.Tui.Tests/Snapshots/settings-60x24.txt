@@ -13,7 +13,7 @@
 │ Startup                                                  │
 │   jump.target                                [current ▾] │
 │   startup.restore                                    [x] │
-│ Board                                                   ▼│
+│   update.check                                       [x]▼│
 ├──────────────────────────────────────────────────────────┤
 │ Default: auto. The colour theme: a built-in one or a     │
 │ file in the themes folder. Values: auto, dark, light,    │

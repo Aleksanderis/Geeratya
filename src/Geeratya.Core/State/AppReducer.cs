@@ -8,6 +8,7 @@ using Geeratya.Core.Selection;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
+using Geeratya.Core.Updates;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 
@@ -180,6 +181,8 @@ public sealed partial class AppReducer
             WriteCommand write => WriteReducer.Reduce(state, write),
             SourceCommand source => SourceReducer.Reduce(state, source),
             StartupRequested => StartupReducer.Begin(Result(state)),
+            UpdateCheckRequested => UpdateReducer.Requested(state),
+            UpdateAvailable available => UpdateReducer.Available(state, available),
             TabsLoaded loaded => StartupReducer.Loaded(state, loaded),
             TabsSaveFailed failed => Result(StatusMessages.Warn(state, failed.Message)),
             ProfilesChanged changed => ProfileReducer.Changed(state, changed),

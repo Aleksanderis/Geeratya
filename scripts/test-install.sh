@@ -52,6 +52,7 @@ set_latest 1.2.3 "$api"
 out="$(run_install "$api" GEERATYA_OS=Linux GEERATYA_ARCH=x86_64)" || fail "install failed: $out"
 [ -x "$tmp/bin/geeratya" ] || fail "binary not installed"
 [ "$(installed_version)" = "Geeratya 1.2.3" ] || fail "wrong binary installed"
+[ "$(cat "$tmp/bin/geeratya.install-source")" = "script" ] || fail "install marker missing or wrong"
 grep -q "To uninstall: rm $tmp/bin/geeratya" <<<"$out" || fail "no uninstall hint: $out"
 [ ! -e "$tmp/bin/geeratya.new" ] || fail "left the temporary file behind"
 

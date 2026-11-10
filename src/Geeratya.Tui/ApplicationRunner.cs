@@ -1,4 +1,5 @@
 using Geeratya.App;
+using Geeratya.App.Updates;
 using Geeratya.Core;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Startup;
@@ -42,6 +43,8 @@ public sealed partial class ApplicationRunner
         '\n',
         "Usage: geeratya [options] [KEY | --board <name> | --backlog <name> | --jql <query> | --filter <name>]",
         "",
+        $"       {ApplicationInfo.Name} {UpdateWord} [{CheckFlag}]",
+        "",
         "Start target (one; opens as a tab after the first frame, on top of the restored tabs):",
         "  KEY, e.g. GEN-123     Open the issue.",
         $"  {StartArguments.BoardFlag} <name>      Open a board as columns.",
@@ -53,6 +56,8 @@ public sealed partial class ApplicationRunner
         "Options:",
         $"  {ShortHelpFlag}, {HelpFlag}        Print this usage and exit.",
         $"  {VersionFlag}             Print the name and version and exit.",
+        $"  {UpdateWord} [{CheckFlag}]    Update to the latest release (script installs; other installs get the matching",
+        $"                        command); {CheckFlag} only looks: exit 0 up to date, 1 newer release, 2 failed.",
         $"  {PrintKeymapFlag}  Print the key reference as Markdown and exit.",
         $"  {PrintFrameFlag}        Print the plain-text frame the shell would draw and exit.",
         $"      [{SizeFlag} <width>x<height>]                  default 80x24",
@@ -76,12 +81,15 @@ public sealed partial class ApplicationRunner
     private readonly TerminalBackgroundDetector? _background;
     private readonly EnvironmentReader _environment;
     private readonly ITransportFactory? _transports;
+    private readonly IUpdateCommand? _update;
 
     public ApplicationRunner(
         RunnerContext context,
         IProfileServicesFactory? profileFactory = null,
-        ITransportFactory? transports = null)
+        ITransportFactory? transports = null,
+        IUpdateCommand? update = null)
     {
+        _update = update;
         _environment = context.Environment ?? EnvironmentReader.ForProcess();
         _transports = transports;
         _background = context.Background;
@@ -95,6 +103,11 @@ public sealed partial class ApplicationRunner
 
     public int Run(string[] arguments)
     {
+        if (IsUpdate(arguments) && !arguments.Contains(HelpFlag) && !arguments.Contains(ShortHelpFlag))
+        {
+            return RunUpdate(arguments);
+        }
+
         var unknown = FindUnknownArgument(arguments);
 
         if (arguments.Contains(HelpFlag) || arguments.Contains(ShortHelpFlag))

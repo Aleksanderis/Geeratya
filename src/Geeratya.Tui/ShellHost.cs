@@ -3,6 +3,7 @@ using Geeratya.Core.Comments;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
+using Geeratya.Core.Updates;
 using Geeratya.Core.Views;
 using Geeratya.Platform;
 using Geeratya.Platform.Clipboard;
@@ -143,6 +144,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             Dispatch(new ViewportChanged(screen.BodyRows, screen.BodyColumns, screen.BodyHeight));
             Dispatch(new ConnectionCheckRequested());
             Dispatch(new StartupRequested());
+            Dispatch(new UpdateCheckRequested());
             _tickTimer = TimeProvider.System.CreateTimer(PostTick, null, _tickInterval, _tickInterval);
 
             StartShutdownGuards();
