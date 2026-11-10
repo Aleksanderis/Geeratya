@@ -74,7 +74,7 @@ public sealed class HeadlessSession : ICommandSink, IDisposable
             LoadViewPageEffect load => _views.StartAsync(load),
             LoadQuickFiltersEffect quickFilters => _views.StartQuickFiltersAsync(quickFilters),
             LoadIssueDetailEffect or LoadIssueCommentsEffect or LoadRemoteLinksEffect or LoadIssueChildrenEffect
-                or LoadEditableFieldsEffect
+                or LoadEditableFieldsEffect or LoadSubtaskAssigneesEffect
                 => _details.StartAsync(effect),
             LoadSourcesEffect sources => _sources.StartAsync(sources),
             LoadSprintsEffect sprints => _sources.StartSprintsAsync(sprints),

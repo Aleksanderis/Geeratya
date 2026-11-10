@@ -63,6 +63,8 @@ public sealed class IssueDetailLoadHandler
             LoadRemoteLinksEffect links => Run(links.Tab.Value, links.Tab, links.RequestId, LinksAsync(links)),
             LoadIssueChildrenEffect children =>
                 Run(children.Tab.Value, children.Tab, children.RequestId, ChildrenAsync(children)),
+            LoadSubtaskAssigneesEffect assignees =>
+                Run(assignees.Tab.Value, assignees.Tab, 0, SubtaskAssigneesAsync(assignees)),
             LoadEditableFieldsEffect editable =>
                 Run(editable.Tab.Value, editable.Tab, 0, EditableAsync(editable)),
             _ => Task.CompletedTask,
@@ -134,6 +136,26 @@ public sealed class IssueDetailLoadHandler
             var ids = result.Value.Where(static field => field.IsEditable).Select(static field => field.FieldId);
 
             return new IssueEditableLoaded(effect.Tab, effect.Key, [.. ids]);
+        };
+    }
+
+    // A failed search posts nothing: the sub-task rows stay without a person.
+    private static Func<JiraServices, CancellationToken, Task<Command?>> SubtaskAssigneesAsync(
+        LoadSubtaskAssigneesEffect effect)
+    {
+        return async (services, token) =>
+        {
+            var query = new IssueSearchQuery(JqlBuilder.Parent(effect.ParentKey));
+            var result = await services.Search.SearchAsync(query, null, token);
+
+            if (!result.IsSuccess)
+            {
+                return null;
+            }
+
+            var assignees = result.Value.Items.Select(static item => new SubtaskAssignee(item.Key, item.Assignee));
+
+            return new SubtaskAssigneesLoaded(effect.Tab, effect.ParentKey, [.. assignees]);
         };
     }
 

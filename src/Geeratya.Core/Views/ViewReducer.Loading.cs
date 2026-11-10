@@ -148,6 +148,12 @@ public static partial class ViewReducer
             effects.Add(FirstPageWrite(tab.Definition, tab.Board, combined, loaded.At));
         }
 
+        // The new rows have fresh sub-task stubs without assignees: ask again for the cards that are expanded (#911).
+        if (!appended && selected.ExpandedSubtasks.Count > 0)
+        {
+            effects.AddRange(SubtaskAssigneeReducer.Loads(selected));
+        }
+
         var recovered = Replace(state, selected);
 
         if (state.Session.Link is Offline or Rejected)

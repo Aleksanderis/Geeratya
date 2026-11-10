@@ -206,13 +206,14 @@ public static class BoardColumns
             subtask.Status,
             new IssueTypeSummary(string.Empty, subtask.TypeName, SubtaskLevel, true),
             null,
-            null,
+            subtask.Assignee,
             [],
             new IssueParent(parent.Key, parent.Summary),
             null,
             parent.ProjectKey)
         {
             IsListed = true,
+            AssigneeLoaded = subtask.AssigneeKnown,
         };
     }
 

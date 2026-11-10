@@ -45,6 +45,9 @@ all_scenarios=(
   "sprint-subtasks;120;36;dark;:board GEN| sv|;▸1/3"
   # h moves from the Unmapped column (where the cursor starts) to a card with sub-tasks
   "sprint-subtasks-expanded;120;36;dark;:board GEN| sv|hza;Generated sub-task"
+  # wide enough for the status chip and the assignee chip to fit beside the type word (#911); the person arrives after
+  # the one parent = KEY search, so the capture waits for a chip
+  "sprint-subtasks-assignee;180;36;dark;:board GEN| sv|hza;[--]"
   # sprint-points reuses the columns view and waits for a card estimate
   "sprint-points;120;36;dark;:board GEN| sv|;p [--]"
   "sprint-no-active;120;36;dark;:board GEN|;No open sprint on this board."

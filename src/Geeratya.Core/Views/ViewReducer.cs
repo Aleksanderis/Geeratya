@@ -57,6 +57,7 @@ public static partial class ViewReducer
             IssueChildrenLoaded loaded => DetailReducer.ChildrenLoaded(state, loaded),
             IssueCommentsLoaded loaded => DetailReducer.CommentsLoaded(state, loaded),
             IssueRemoteLinksLoaded loaded => DetailReducer.LinksLoaded(state, loaded),
+            SubtaskAssigneesLoaded assignees => SubtaskAssigneeReducer.Loaded(state, assignees),
             IssueEditableLoaded editable => DetailReducer.EditableLoaded(state, editable),
             IssueDetailFailed failed => DetailReducer.LoadFailed(state, failed, effects),
             RefreshRequested refresh => Refresh(state, refresh.Tab, effects),

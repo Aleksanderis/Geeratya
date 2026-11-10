@@ -52,3 +52,10 @@ public sealed record IssueDetailFailed(TabId Tab, long RequestId, JiraError Erro
 
 /// <summary>The edit metadata of an issue arrived: the ids of the fields the account can edit on it now.</summary>
 public sealed record IssueEditableLoaded(TabId Tab, string Key, IReadOnlyList<string> FieldIds) : ViewCommand;
+
+/// <summary>The assignee of one sub-task as the <c>parent = KEY</c> search returned it; null when unassigned.</summary>
+public sealed record SubtaskAssignee(string Key, IssueAssignee? Assignee);
+
+/// <summary>The assignees of the sub-tasks of the card <paramref name="ParentKey"/> arrived (#911).</summary>
+public sealed record SubtaskAssigneesLoaded(TabId Tab, string ParentKey, IReadOnlyList<SubtaskAssignee> Assignees)
+    : ViewCommand;

@@ -419,6 +419,33 @@ public sealed class IssueDetailFlowTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAnExpandedBoardCard_WhenItsSubtaskAssigneesAreLoaded_ThenTheParentSearchAnswersPerKey()
+    {
+        _http.Fixture(SearchPath, "hierarchy/search-epic-children-gtm.json");
+        await ConnectAsync();
+
+        await _handler!.StartAsync(new LoadSubtaskAssigneesEffect(new TabId(1), "GTM-9"));
+
+        var loaded = Assert.IsType<SubtaskAssigneesLoaded>(Assert.Single(_posted));
+        Assert.Equal("GTM-9", loaded.ParentKey);
+        Assert.Equal(["GTM-7", "GTM-6"], loaded.Assignees.Select(each => each.Key));
+
+        var search = Assert.Single(_http.Requests, uri => uri.AbsolutePath == SearchPath);
+        Assert.Contains(Uri.EscapeDataString("parent = GTM-9"), search.Query);
+    }
+
+    [Fact]
+    public async Task GivenTheSubtaskSearchIsRefused_WhenAssigneesAreLoaded_ThenNothingIsPosted()
+    {
+        _http.Fixture(SearchPath, "errors/myself-401-bad-token.json", HttpStatusCode.Unauthorized);
+        await ConnectAsync();
+
+        await _handler!.StartAsync(new LoadSubtaskAssigneesEffect(new TabId(1), "GTM-9"));
+
+        Assert.Empty(_posted);
+    }
+
+    [Fact]
     public async Task GivenChildrenSearchRefused_WhenEpicOpened_ThenOnlyTheChildrenSectionShowsTheError()
     {
         _http.Fixture($"{Site}/GTM-9", "issues/issue-gtm9.json")
