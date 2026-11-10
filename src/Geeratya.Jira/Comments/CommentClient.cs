@@ -71,9 +71,9 @@ public sealed class CommentClient(JiraTransport transport)
 
     /// <summary>
     /// Adds a comment as a reply: the id of <paramref name="parentId"/> goes in the body as the JSON number
-    /// <c>parentId</c>, the shape the comment read has. The public REST docs do not list the field and no live check
-    /// has confirmed it yet (<c>docs/internal/jira-layer.md</c>, "Comments"): if Jira ignores it, the comment is stored
-    /// top-level.
+    /// <c>parentId</c>, the shape the comment read has. The public REST docs do not list the field, but the dev site
+    /// honours it (live check #907, <c>docs/internal/jira-layer.md</c>, "Comments"); if Jira ever ignores it, the
+    /// comment is stored top-level.
     /// </summary>
     public Task<WriteResult<IssueComment>> ReplyToCommentAsync(
         string key,

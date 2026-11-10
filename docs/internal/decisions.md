@@ -325,7 +325,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-09 (#905, reply to a comment)
 
-**Jira layer and UI:** `<space>mr` (`comment.reply`, also in the comment's right-click menu) opens the add-comment editor titled `Reply to <author> on <key>`; saving is an add with `parentId` (JSON number, the shape of the read), with no extra confirm, as for any add. One level only: a reply to a reply goes under the thread's top-level comment (the web UI showed one level in #897). The public REST docs do not list `parentId` for the create call, so it is unverified: a live check on the dev site is pending (if Jira ignores the field the comment simply shows top-level).
+**Jira layer and UI:** `<space>mr` (`comment.reply`, also in the comment's right-click menu) opens the add-comment editor titled `Reply to <author> on <key>`; saving is an add with `parentId` (JSON number, the shape of the read), with no extra confirm, as for any add. One level only: a reply to a reply goes under the thread's top-level comment (the web UI showed one level in #897). The public REST docs do not list `parentId` for the create call, so it was unverified; the live check on the dev site (#907, 2026-11-10) showed Jira honours it (a number, recorded in a fixture; a string was also nested, not recorded), and the 201 reply carries `parentId`. No warning is added: the field is undocumented, so if Jira ever ignores it the comment just shows top-level.
 
 ## 2026-11-09 (#909, automatic CI)
 
