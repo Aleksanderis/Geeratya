@@ -13,4 +13,13 @@ public interface ILocalEffectHandler
 
     /// <summary>The command that reports the outcome, or null when there is nothing to report.</summary>
     Task<Command?> RunAsync(Effect effect, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The command that ends the wait of <paramref name="effect"/> when <see cref="RunAsync"/> threw, or null when
+    /// nothing waits on it (the default). Without it a throwing read leaves its caller waiting for ever (#924).
+    /// </summary>
+    Command? Faulted(Effect effect, Exception exception)
+    {
+        return null;
+    }
 }

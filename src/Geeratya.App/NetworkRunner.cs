@@ -10,6 +10,9 @@ namespace Geeratya.App;
 /// </summary>
 public sealed class NetworkRunner : IDisposable
 {
+    /// <summary>How long a network load lets the cache read of the same view post first.</summary>
+    public static readonly TimeSpan CacheReadWait = TimeSpan.FromMilliseconds(250);
+
     private readonly SiteConnections _connections;
     private readonly ICommandSink _sink;
     private readonly CancellationToken _shutdown;
@@ -33,15 +36,18 @@ public sealed class NetworkRunner : IDisposable
     /// Starts <paramref name="work"/> on a background task and returns at once. Does nothing while the site has no
     /// transport, unless <paramref name="whenUnavailable"/> is given: its command is then posted (off the calling
     /// thread), so a request never waits for a reply that cannot come. The work's command, if any, is posted when
-    /// the run is still current. The work maps its own Jira failures to a command; an unexpected exception of a
-    /// current run faults the returned task.
+    /// the run is still current. The work maps its own Jira failures to a command. An unexpected exception of a
+    /// current run (anything but its own cancellation) becomes the command of <paramref name="whenFaulted"/>, so the
+    /// waiting tab ends as a failure instead of loading for ever (#924); without it the exception faults the
+    /// returned task.
     /// </summary>
     public Task Start(
         long scope,
         Func<JiraServices, CancellationToken, Task<Command?>> work,
-        Func<Command?>? whenUnavailable = null)
+        Func<Command?>? whenUnavailable = null,
+        Func<Exception, Command?>? whenFaulted = null)
     {
-        return StartReporting(scope, (services, _, token) => work(services, token), whenUnavailable);
+        return StartReporting(scope, (services, _, token) => work(services, token), whenUnavailable, whenFaulted);
     }
 
     /// <summary>
@@ -52,7 +58,8 @@ public sealed class NetworkRunner : IDisposable
     public Task StartReporting(
         long scope,
         Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
-        Func<Command?>? whenUnavailable = null)
+        Func<Command?>? whenUnavailable = null,
+        Func<Exception, Command?>? whenFaulted = null)
     {
         var services = JiraServices.Create(_connections);
 
@@ -65,7 +72,7 @@ public sealed class NetworkRunner : IDisposable
 
         var token = source.Token;
 
-        return Task.Run(() => RunAsync(services, work, token), CancellationToken.None);
+        return Task.Run(() => RunAsync(services, work, whenFaulted, token), CancellationToken.None);
     }
 
     /// <summary>
@@ -77,6 +84,23 @@ public sealed class NetworkRunner : IDisposable
         var token = ScopeSource(scope).Token;
 
         return Task.Run(() => RunLocal(work, token), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Waits for a cache read started with <see cref="StartLocal"/> for at most <see cref="CacheReadWait"/>, so the
+    /// cached rows normally precede the network reply, but a read stuck on slow disk I/O (a held cache lock) never
+    /// delays the request without limit (#924). The read keeps running and posts when it ends.
+    /// </summary>
+    public static async Task AwaitCacheReadAsync(Task read)
+    {
+        if (read.IsCompleted)
+        {
+            await read;
+
+            return;
+        }
+
+        await Task.WhenAny(read, Task.Delay(CacheReadWait, CancellationToken.None));
     }
 
     /// <summary>Cancels the in-flight work of one tab (<c>CancelTabEffect</c>).</summary>
@@ -267,7 +291,7 @@ public sealed class NetworkRunner : IDisposable
     {
         try
         {
-            await RunAsync(services, (owner, _, token) => work(owner, token), source.Token);
+            await RunAsync(services, (owner, _, token) => work(owner, token), null, source.Token);
         }
         finally
         {
@@ -283,6 +307,7 @@ public sealed class NetworkRunner : IDisposable
     private async Task RunAsync(
         JiraServices services,
         Func<JiraServices, Action<Command>, CancellationToken, Task<Command?>> work,
+        Func<Exception, Command?>? whenFaulted,
         CancellationToken token)
     {
         Command? result;
@@ -299,6 +324,12 @@ public sealed class NetworkRunner : IDisposable
         {
             // The old transport is disposed on a switch, so work still running may fail with anything.
             return;
+        }
+        catch (Exception exception) when (whenFaulted is not null)
+        {
+            // Includes a cancellation whose token was not cancelled (an HttpClient-internal timeout): the reply
+            // that would end the wait must still be posted.
+            result = whenFaulted(exception);
         }
 
         if (result is null || IsObsolete(services, token))

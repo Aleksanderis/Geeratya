@@ -123,6 +123,12 @@ public sealed class EffectRunner : IDisposable
         }
     }
 
+    /// <summary>Adds a local handler after the built-in ones (an extra seam for a host or a test).</summary>
+    public void AddLocalHandler(ILocalEffectHandler handler)
+    {
+        _local.Add(handler);
+    }
+
     /// <summary>Starts the connection check; the host calls it once the connection of the same step exists.</summary>
     public Task StartConnectionCheckAsync(CheckConnectionEffect effect)
     {
@@ -227,7 +233,21 @@ public sealed class EffectRunner : IDisposable
     /// <summary>Runs a local effect off the UI thread and feeds its outcome back as a command.</summary>
     private async Task RunLocalAsync(ILocalEffectHandler handler, Effect effect)
     {
-        var outcome = await Task.Run(() => handler.RunAsync(effect, _shutdown), CancellationToken.None);
+        Command? outcome;
+
+        try
+        {
+            outcome = await Task.Run(() => handler.RunAsync(effect, _shutdown), CancellationToken.None);
+        }
+        catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception exception)
+        {
+            // A throwing local effect must still answer whoever waits for it (a tab list that never loads).
+            outcome = handler.Faulted(effect, exception);
+        }
 
         if (outcome is not null)
         {

@@ -149,6 +149,26 @@ public class IssueDetailReducerTests
     }
 
     [Fact]
+    public void GivenDetailLoading_WhenTickPassesTheDeadline_ThenEveryPartFailsWithATimeout()
+    {
+        var opened = Press(ListState(), "Enter");
+        var seen = Deliver(opened.State, new Tick(_now));
+
+        var late = seen;
+
+        for (var second = 70; second < 73; second++)
+        {
+            late = Deliver(late, new Tick(_now.AddSeconds(second)));
+        }
+
+        var detail = Active(late).Detail[0];
+        Assert.IsType<Loading>(Active(seen).Detail[0].IssueLoad);
+        Assert.Equal(JiraErrorKind.Timeout, Assert.IsType<Failed>(detail.IssueLoad).Kind);
+        Assert.Equal(JiraErrorKind.Timeout, Assert.IsType<Failed>(detail.CommentsLoad).Kind);
+        Assert.Equal(JiraErrorKind.Timeout, Assert.IsType<Failed>(detail.LinksLoad).Kind);
+    }
+
+    [Fact]
     public void GivenCommentsLoad_WhenItFailsWithNotFound_ThenTheIssueCacheEntryStays()
     {
         var opened = Press(ListState(), "Enter");

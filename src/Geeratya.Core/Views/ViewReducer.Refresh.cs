@@ -6,12 +6,18 @@ namespace Geeratya.Core.Views;
 public static partial class ViewReducer
 {
     /// <summary>
-    /// The clock tick: refreshes the active tab in the background when its schedule says so. Returns the same state
-    /// instance and no effects when nothing is due, which is almost every tick.
+    /// The clock tick: ends a load of the active tab that has waited past <see cref="LoadDeadline.Limit"/>, else
+    /// refreshes the active tab in the background when its schedule says so. Returns the same state instance and no
+    /// effects when nothing is due, which is almost every tick (a load first seen is stamped once).
     /// </summary>
     private static ReduceResult Ticked(AppState state, DateTimeOffset now)
     {
         var tab = state.Session.Active is { } id ? Find(state.Session.Tabs, id) : null;
+
+        if (tab is not null && LoadDeadline.Apply(state, tab, now) is var aged && !ReferenceEquals(aged, state))
+        {
+            return new ReduceResult(aged, _noEffects);
+        }
 
         // Writes first: a refresh under a running write would replace rows the write is about to settle. The due
         // time stays in the past, so the first tick after the last operation ends refreshes.
@@ -86,14 +92,16 @@ public static partial class ViewReducer
     }
 
     /// <summary>
-    /// The refresh key: user lane, never a second load while one is in flight. A failed next page is retried as a
+    /// The refresh key: user lane; it replaces a load in flight. A failed next page is retried as a
     /// next page (the rows stay and the reader keeps the position).
     /// </summary>
     private static AppState Refresh(AppState state, TabId id, List<Effect> effects)
     {
         var tab = Find(state.Session.Tabs, id);
 
-        if (tab is null || tab.Cold || tab.Load is Loading)
+        // A load in flight does not block the key: a new request id makes the old reply harmless, and a reply that
+        // never comes must not leave the tab without a way out (#924).
+        if (tab is null || tab.Cold)
         {
             return state;
         }

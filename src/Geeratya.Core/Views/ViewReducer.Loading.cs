@@ -258,6 +258,12 @@ public static partial class ViewReducer
         return count > ViewPaging.MaxRowsPerTab || (count == ViewPaging.MaxRowsPerTab && next is not null);
     }
 
+    /// <summary>A failure of a tab's load that is not a page-expired restart (the deadline's timeout).</summary>
+    internal static AppState FailLoad(AppState state, ViewLoadFailed failed)
+    {
+        return LoadFailed(state, failed, []);
+    }
+
     private static AppState LoadFailed(AppState state, ViewLoadFailed failed, List<Effect> effects)
     {
         var tab = Find(state.Session.Tabs, failed.Tab);
