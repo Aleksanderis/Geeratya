@@ -153,8 +153,12 @@ function Invoke-GeeratyaInstall {
 
         [void](New-Item -ItemType Directory -Force -Path $target)
         # A running geeratya.exe cannot be overwritten but can be renamed away, so an update works while it runs.
-        $old = "$executable.old"
+        # The name matches the app's own (ExecutableSwap), so its next start sweeps whatever stays behind.
+        $old = Join-Path $target 'geeratya.old.exe'
+        Remove-Item -LiteralPath "$executable.old" -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $old -Force -ErrorAction SilentlyContinue
+        # A copy from an earlier update may still run from that name: park this one under another.
+        for ($n = 1; (Test-Path -LiteralPath $old); $n++) { $old = Join-Path $target "geeratya.old.$n.exe" }
         if (Test-Path -LiteralPath $executable) { Move-Item -LiteralPath $executable -Destination $old -Force }
         try {
             Copy-Item -LiteralPath $binary.FullName -Destination $executable

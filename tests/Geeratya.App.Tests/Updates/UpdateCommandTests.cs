@@ -86,7 +86,7 @@ public sealed class UpdateCommandTests : IDisposable
         Assert.Equal("new exe", File.ReadAllText(path));
         Assert.DoesNotContain(
             Directory.GetFiles(_directory.FullName),
-            file => file.EndsWith(".new.exe", StringComparison.Ordinal));
+            file => Path.GetFileName(file).StartsWith("geeratya.new.", StringComparison.Ordinal));
     }
 
     [Fact]

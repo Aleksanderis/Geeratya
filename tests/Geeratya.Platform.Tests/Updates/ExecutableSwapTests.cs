@@ -13,17 +13,23 @@ public sealed class ExecutableSwapTests : IDisposable
     }
 
     [Theory]
-    [InlineData("geeratya", "geeratya.new", "geeratya.old")]
-    [InlineData("geeratya.exe", "geeratya.new.exe", "geeratya.old.exe")]
+    [InlineData("geeratya", "geeratya.old")]
+    [InlineData("geeratya.exe", "geeratya.old.exe")]
     public void GivenAnExecutable_WhenNamingTheSiblings_ThenTheTagGoesBeforeTheExtension(
         string name,
-        string staged,
         string old)
     {
         var executable = Path.Combine("folder", name);
 
-        Assert.Equal(Path.Combine("folder", staged), ExecutableSwap.StagedPath(executable));
         Assert.Equal(Path.Combine("folder", old), ExecutableSwap.OldPath(executable));
+    }
+
+    [Fact]
+    public void GivenAnExecutable_WhenStaging_ThenTheNameIsUniqueToTheProcess()
+    {
+        var staged = ExecutableSwap.StagedPath(Path.Combine("folder", "geeratya.exe"));
+
+        Assert.Equal(Path.Combine("folder", $"geeratya.new.{Environment.ProcessId}.exe"), staged);
     }
 
     [Fact]
@@ -86,6 +92,53 @@ public sealed class ExecutableSwapTests : IDisposable
         new ExecutableSwap(OperatingSystemKind.Windows).RemoveLeftover(executable);
 
         Assert.False(File.Exists(leftover));
+    }
+
+    [Fact]
+    public void GivenAnOldFileThatCannotBeDeleted_WhenReplacingOnWindows_ThenTheUpdateSucceedsAndTheLeftoversGoLater()
+    {
+        var executable = Write("geeratya.exe", "old");
+        var staged = Write("geeratya.new.exe", "new");
+
+        // A directory cannot be deleted with File.Delete, which stands in for a copy still running from the old name.
+        var locked = ExecutableSwap.OldPath(executable);
+
+        Directory.CreateDirectory(locked);
+        File.WriteAllText(Path.Combine(locked, "keep"), "x");
+
+        var swap = new ExecutableSwap(OperatingSystemKind.Windows);
+
+        swap.Replace(executable, staged);
+
+        Assert.Equal("new", File.ReadAllText(executable));
+        Assert.False(File.Exists(staged));
+        Assert.Empty(Directory.GetFiles(_directory.FullName, "geeratya.old.*.exe"));
+
+        // The parked binary was deleted at once; only the locked name remains, and the next start retries it.
+        Assert.True(Directory.Exists(locked));
+
+        swap.RemoveLeftover(executable);
+
+        Assert.True(Directory.Exists(locked));
+    }
+
+    [Fact]
+    public void GivenAParkedOldFile_WhenRemovingOnWindows_ThenEveryOldNameAndTheScriptNameAreDeleted()
+    {
+        var executable = Path.Combine(_directory.FullName, "geeratya.exe");
+        var leftovers = new[]
+        {
+            Write("geeratya.old.exe", "a"),
+            Write("geeratya.old.1.exe", "b"),
+            Write("geeratya.old.2.exe", "c"),
+            Write("geeratya.exe.old", "script"),
+        };
+        var other = Write("geeratya.exe.config", "keep");
+
+        new ExecutableSwap(OperatingSystemKind.Windows).RemoveLeftover(executable);
+
+        Assert.All(leftovers, leftover => Assert.False(File.Exists(leftover)));
+        Assert.True(File.Exists(other));
     }
 
     [Fact]
