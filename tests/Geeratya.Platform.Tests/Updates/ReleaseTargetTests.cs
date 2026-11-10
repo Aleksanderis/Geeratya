@@ -4,6 +4,7 @@ using Geeratya.Platform.Updates;
 
 namespace Geeratya.Platform.Tests.Updates;
 
+[Trait("Os", "Independent")]
 public class ReleaseTargetTests
 {
     [Theory]

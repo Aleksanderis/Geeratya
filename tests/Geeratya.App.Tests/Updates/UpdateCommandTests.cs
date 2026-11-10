@@ -163,6 +163,26 @@ public sealed class UpdateCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenAFileThatTheSystemRefusesToUse_WhenUpdating_ThenTheManualStepsShowAndNoStackTrace()
+    {
+        var path = Install("geeratya", "script");
+        var archive = ReleaseArchives.TarGz("geeratya-1.3.0-linux-x64", "geeratya", "new binary");
+
+        Serve("v1.3.0", Archive, archive);
+
+        var exitCode = await Run(
+            path,
+            OperatingSystemKind.Linux,
+            checkOnly: false,
+            processes: new FakeVersionProcessRunner("", 0, new UnauthorizedAccessException("blocked by a scanner")));
+
+        Assert.Equal(UpdateCommand.Failed, exitCode);
+        Assert.Equal("old binary", File.ReadAllText(path));
+        Assert.Contains("blocked by a scanner", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains(FakeReleaseServer.DownloadUrl(Archive), _output.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task GivenAnArchiveWithoutTheProgram_WhenUpdating_ThenTheOldOneStays()
     {
         var path = Install("geeratya", "script");

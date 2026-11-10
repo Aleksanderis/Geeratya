@@ -5,6 +5,7 @@ using Geeratya.Core.Updates;
 
 namespace Geeratya.Core.Tests.Updates;
 
+[Trait("Os", "Independent")]
 public class UpdateReducerTests
 {
     private static readonly UpdateNotice _notice = new("1.2.3", "run `geeratya update`");

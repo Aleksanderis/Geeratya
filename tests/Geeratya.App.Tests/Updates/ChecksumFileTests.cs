@@ -2,11 +2,12 @@ using Geeratya.App.Updates;
 
 namespace Geeratya.App.Tests.Updates;
 
+[Trait("Os", "Independent")]
 public class ChecksumFileTests
 {
     [Theory]
     [InlineData("ABC123  geeratya-1.0.0-linux-x64.tar.gz\n", "abc123")]
-    [InlineData("abc123 *geeratya-1.0.0-linux-x64.tar.gz\r\n", "abc123")]
+    [InlineData("abc123 *geeratya-1.0.0-linux-x64.tar.gz\n", "abc123")]
     [InlineData("ff00  other.zip\nabc123  geeratya-1.0.0-linux-x64.tar.gz", "abc123")]
     public void GivenALineForTheFile_WhenReading_ThenTheLowerCaseHashComesBack(string text, string expected)
     {

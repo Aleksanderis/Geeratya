@@ -64,7 +64,7 @@ public sealed class UpdateInstaller
                 $"release {release.Tag} has no {ChecksumsName}; refusing to install an unverified download");
 
         using var work = new WorkFolder();
-        var archivePath = Path.Combine(work.Path, archive.Name);
+        var archivePath = Path.Combine(work.Path, Path.GetFileName(archive.Name));
         var checksumsPath = Path.Combine(work.Path, ChecksumsName);
 
         output.WriteLine($"Downloading {archive.Name}");

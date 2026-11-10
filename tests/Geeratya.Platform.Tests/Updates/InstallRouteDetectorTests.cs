@@ -3,6 +3,7 @@ using Geeratya.Platform.Updates;
 
 namespace Geeratya.Platform.Tests.Updates;
 
+[Trait("Os", "Independent")]
 public class InstallRouteDetectorTests
 {
     private const string Home = "/home/ann";

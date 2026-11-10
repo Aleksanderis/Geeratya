@@ -118,6 +118,13 @@ public sealed class UpdateCommand : IUpdateCommand
 
             return Failed;
         }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A file held by an antivirus scanner, a full disk: a message and the manual steps, never a stack trace.
+            PrintManualSteps(release, exception.Message, output);
+
+            return Failed;
+        }
 
         output.WriteLine($"Updated Geeratya {installed} -> {release.Version} ({_binary.Path}).");
         output.WriteLine($"Source: {InstallRouteDetector.ReleasesPage}");

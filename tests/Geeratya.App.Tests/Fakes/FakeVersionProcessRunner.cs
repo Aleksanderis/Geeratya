@@ -7,9 +7,12 @@ public sealed class FakeVersionProcessRunner : IProcessRunner
 {
     private readonly ProcessResult _result;
 
-    public FakeVersionProcessRunner(string standardOutput, int exitCode = 0)
+    private readonly Exception? _failure;
+
+    public FakeVersionProcessRunner(string standardOutput, int exitCode = 0, Exception? failure = null)
     {
         _result = new ProcessResult(exitCode, standardOutput);
+        _failure = failure;
     }
 
     /// <summary>The programs started, with the content of the file at that moment.</summary>
@@ -22,6 +25,11 @@ public sealed class FakeVersionProcessRunner : IProcessRunner
         CancellationToken cancellationToken)
     {
         StartedContents.Add(File.ReadAllText(program));
+
+        if (_failure is not null)
+        {
+            throw _failure;
+        }
 
         return Task.FromResult(_result);
     }

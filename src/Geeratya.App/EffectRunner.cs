@@ -1,3 +1,4 @@
+using Geeratya.App.Updates;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
@@ -9,7 +10,6 @@ using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
-using Geeratya.App.Updates;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;

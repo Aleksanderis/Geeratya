@@ -2,6 +2,7 @@ using Geeratya.Core.Updates;
 
 namespace Geeratya.Core.Tests.Updates;
 
+[Trait("Os", "Independent")]
 public class ReleaseVersionTests
 {
     [Theory]
