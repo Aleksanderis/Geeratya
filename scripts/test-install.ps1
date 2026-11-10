@@ -79,7 +79,7 @@ try {
     Set-Latest '1.3.0' $api
     $out = Invoke-Install $api 'x64'
     if ((Get-Content -LiteralPath $exe -Raw).Trim() -ne 'fake exe 1.3.0') { Fail "not updated: $out" }
-    if (Test-Path -LiteralPath "$exe.old") { Fail 'left the old binary behind' }
+    if (Test-Path -LiteralPath (Join-Path (Join-Path $tmp 'bin') 'geeratya.old.exe')) { Fail 'left the old binary behind' }
 
     $out = Invoke-Install $api 'x64' 'v1.2.3'
     if ((Get-Content -LiteralPath $exe -Raw).Trim() -ne 'fake exe 1.2.3') { Fail "pinned version not installed: $out" }

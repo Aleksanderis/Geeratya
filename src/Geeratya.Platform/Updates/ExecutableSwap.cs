@@ -22,7 +22,8 @@ public sealed class ExecutableSwap
     /// </summary>
     public static string StagedPath(string executable)
     {
-        return Sibling(executable, "new");
+        // The process id keeps two updates running at once from writing the same file.
+        return Sibling(executable, $"new.{Environment.ProcessId}");
     }
 
     /// <summary>Where a replaced binary waits on Windows.</summary>
@@ -50,14 +51,29 @@ public sealed class ExecutableSwap
     }
 
     /// <summary>
-    /// Deletes a binary an earlier Windows update moved aside; quiet when there is none or it is in use.
+    /// Deletes the binaries earlier Windows updates moved aside (<c>geeratya.old*.exe</c>, and the
+    /// <c>geeratya.exe.old</c> that older install scripts left); quiet when there are none or one is in use.
     /// </summary>
     public void RemoveLeftover(string executable)
     {
         // Only a Windows update leaves a file behind; elsewhere a file of that name is none of our business.
         if (_operatingSystem == OperatingSystemKind.Windows)
         {
-            TryDelete(OldPath(executable));
+            var folder = Path.GetDirectoryName(executable) ?? string.Empty;
+            var name = Path.GetFileNameWithoutExtension(executable);
+            var extension = Path.GetExtension(executable);
+
+            TryDelete(executable + ".old");
+
+            if (!Directory.Exists(folder))
+            {
+                return;
+            }
+
+            foreach (var leftover in Directory.EnumerateFiles(folder, $"{name}.old*{extension}"))
+            {
+                TryDelete(leftover);
+            }
         }
     }
 
@@ -87,8 +103,13 @@ public sealed class ExecutableSwap
     {
         var old = OldPath(executable);
 
-        // A leftover from an update before this one: gone when no process runs it any more.
-        File.Delete(old);
+        // A leftover from an update before this one: gone when no process runs it any more. While one still runs
+        // (a second terminal left open) it cannot be deleted, so this update parks its old binary under another name.
+        if (!TryDelete(old))
+        {
+            old = FreeOldPath(executable);
+        }
+
         File.Move(executable, old);
 
         try
@@ -105,15 +126,31 @@ public sealed class ExecutableSwap
         TryDelete(old);
     }
 
-    private static void TryDelete(string path)
+    private static string FreeOldPath(string executable)
+    {
+        for (var number = 1; ; number++)
+        {
+            var candidate = Sibling(executable, $"old.{number}");
+
+            if (!File.Exists(candidate) && !Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+    }
+
+    private static bool TryDelete(string path)
     {
         try
         {
             File.Delete(path);
+
+            return !File.Exists(path) && !Directory.Exists(path);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // Still running or locked: the next start tries again.
+            return false;
         }
     }
 }
