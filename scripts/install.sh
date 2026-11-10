@@ -8,6 +8,7 @@
 # does nothing when the installed version is already the wanted one. No telemetry: the only requests go to GitHub.
 # Pin a version in the one-liner (the variable belongs to sh, not to curl):
 #   curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.sh | GEERATYA_VERSION=1.2.3 sh
+# Later updates can also run `geeratya update` (the script leaves a geeratya.install-source marker next to the binary).
 # Windows: use scripts/install.ps1. Uninstall: delete the binary (the script prints the path).
 # macOS: the binary is not signed or notarised. Downloads by curl carry no quarantine flag, but if you fetched the archive
 # in a browser, run: xattr -d com.apple.quarantine <path to geeratya>
@@ -127,6 +128,8 @@ main() {
   cp "$binary" "$target/geeratya.new"
   chmod 755 "$target/geeratya.new"
   mv -f "$target/geeratya.new" "$installed_binary" || { rm -f "$target/geeratya.new"; fail "could not replace $installed_binary"; }
+  # Tells "geeratya update" that this copy is its to replace (a package manager never writes this file).
+  printf 'script\n' > "$target/geeratya.install-source" || say "Note: could not write $target/geeratya.install-source"
   say "Installed $installed_binary"
   case ":$PATH:" in
     *":$target:"*) ;;

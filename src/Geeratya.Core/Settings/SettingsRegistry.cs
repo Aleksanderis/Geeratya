@@ -153,6 +153,17 @@ public static class SettingsRegistry
             ToggleExpected,
             Category: StartupCategory),
         new SettingDefinition(
+            "update.check",
+            "update.check",
+            SettingKind.Toggle,
+            On,
+            "Look for a newer release once a day, in the background, and hint at it in the status bar (the only "
+            + "request goes to GitHub, with no account data); GEERATYA_NO_UPDATE_CHECK=1 turns it off too.",
+            settings => Word(settings.UpdateCheck),
+            (settings, text) => ParseToggle(text) is { } on ? settings with { UpdateCheck = on } : null,
+            ToggleExpected,
+            Category: StartupCategory),
+        new SettingDefinition(
             "board.done-cutoff",
             "board.doneCutoff",
             SettingKind.Text,

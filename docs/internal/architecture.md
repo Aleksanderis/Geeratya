@@ -328,6 +328,10 @@ Every way into the app ends in one action: a key resolves against the keymap to 
 
 `InputRoutingTests` has a test per rule (the back-out and field-form cases sit in `IssueDetailReducerTests` and `FormOpenerTests`, where those states are built). A new overlay or editor is a mode (or a layer above) in this list, never a check added inside a body action.
 
+## Updates
+
+Two entry points share one engine (`Geeratya.App/Updates`, `Geeratya.Platform/Updates`; decision 2026-11-10, #913). The background check is `CheckForUpdateEffect`, requested by the shell after the first frame and run by `UpdateCheckHandler` off the UI thread: it first removes a Windows leftover `geeratya.old.exe`, then (setting `update.check` on, `GEERATYA_NO_UPDATE_CHECK` unset, not a `0.0.0-dev` build) reads `update-check.json` in the state folder and asks GitHub only when the answer is older than 24 hours; a newer tag comes back as `UpdateAvailable` with the instructions of the install route. It never writes anything else and a failure is silent. `geeratya update [--check]` is handled by `ApplicationRunner` before any terminal setup (`ApplicationRunner.Update.cs`), through `IUpdateCommand`, on the plain console. `InstalledBinary` finds the route lazily (`InstallRouteDetector`: marker file, then path, then `/etc/os-release` for the package command), `UpdateInstaller` downloads, verifies the checksum, unpacks only the program (`ArchiveExtractor`: tar.gz on Linux and macOS, zip on Windows, the name inside the archive never picks the destination), runs it with `--version` and calls `ExecutableSwap`, the only per-OS part. `ReleaseClient` builds its `HttpClient` on first use (default proxy and default credentials), sends only a `User-Agent`, and honours `GEERATYA_RELEASES_URL`. Tests run all of it offline against `FakeReleaseServer`, an in-process message handler.
+
 ## Cross-platform
 
 Linux is built and tested first, then Windows, macOS last. Rules:

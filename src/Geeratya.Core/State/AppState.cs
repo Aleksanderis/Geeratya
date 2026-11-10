@@ -8,6 +8,7 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Startup;
 using Geeratya.Core.Text;
+using Geeratya.Core.Updates;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -57,6 +58,9 @@ public sealed record AppState(
     public int ViewportBodyHeight { get; init; } = UnknownBodyHeight;
 
     public const int UnknownBodyHeight = -1;
+
+    /// <summary>A newer release found by the background check, null when none (or the check is off).</summary>
+    public UpdateNotice? Update { get; init; }
 
     /// <summary>The user's switches (hints, which-key); the defaults until the host loads the file.</summary>
     public AppSettings Settings { get; init; } = AppSettings.Default;

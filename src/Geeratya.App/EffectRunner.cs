@@ -9,6 +9,7 @@ using Geeratya.Core.Sprints;
 using Geeratya.Core.Startup;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
+using Geeratya.App.Updates;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Platform.Browser;
@@ -156,6 +157,11 @@ public sealed class EffectRunner : IDisposable
 
         var launcher = browser
             ?? BrowserLaunchers.Create(ApplicationDirectories.DetectOperatingSystem(), new ProcessRunner());
+
+        if (_profiles.StateDirectory is { } stateDirectory)
+        {
+            _local.Add(UpdateCheckHandler.CreateForProcess(stateDirectory));
+        }
 
         _local.Add(new BrowserEffectHandler(launcher));
         _local.Add(new ClipboardEffectHandler(clipboard ?? Clipboards.ForProcess()));

@@ -330,3 +330,11 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-09 (#909, automatic CI)
 
 **Process:** CI is automatic again (supersedes the manual-CI entry, archived in `history/decisions.md`, "Superseded 2026-11-09"): ubuntu on every PR and push to `main`, windows on push to `main` and dispatch. Why: the repo is public, minutes are no longer scarce.
+
+## 2026-11-10 (#913, update hint and `geeratya update`)
+
+**Scope:** Auto-update is in (owner, 2026-11-10; overrides the silence of the README feature list, which now lists it). Defaults: the hint is on, checked once a day (`update-check.json` in the state folder), turned off by the `update.check` setting or `GEERATYA_NO_UPDATE_CHECK=1`; GitHub is a second outbound host, with only a `User-Agent`. Dev builds (`0.0.0-dev`) never check.
+
+**Code structure:** The update engine lives in `Geeratya.App/Updates` (HTTP, archive, checksum, `IUpdateCommand`) and `Geeratya.Platform/Updates` (install-route detection, per-OS binary swap, release target); versions, the notice and the reducer are in Core (`Updates`). The check is `CheckForUpdateEffect` after the first frame, off the UI thread. The status bar keeps a short `update <version> available` last in its line (the full sentence is posted once), so key hints keep their room.
+
+**Process:** An install's route is the `geeratya.install-source` marker the install scripts write next to the binary, else its path: `~/.local/bin` or `%LOCALAPPDATA%\Geeratya` count as script installs; `/usr/bin`, Homebrew and WinGet paths are package-managed (print a command, touch nothing); the rest is manual. Update steps: download archive and `SHA256SUMS` over `HttpClient` (system proxy, Windows sign-in offered to a proxy), refuse a mismatch or missing sums, unpack only the program beside the installed one, run it with `--version`, then swap: rename over the old file on Linux and macOS, rename-aside (`geeratya.old.exe`, removed on a later start) on Windows. Exit codes of `update --check`: 0 current, 1 newer exists, 2 failed.

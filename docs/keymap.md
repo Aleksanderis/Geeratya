@@ -261,7 +261,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `:assign-me` | Assign the selected or shown issue to me |
 | `:settings` | Open the settings screen: change the theme and the options |
 | `:profile [list]|add|edit [name]|switch <name>|remove <name>|check` | Open the profile manager, or add, edit, switch, remove or check a profile |
-| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|board.done-cutoff|comments.order] [value]` | List the settings, show one, or change one (saved) |
+| `:set [hints.statusBar|hints.whichKey|commandlevel|theme|transparent|labels.caps|jump.target|startup.restore|update.check|board.done-cutoff|comments.order] [value]` | List the settings, show one, or change one (saved) |
 | `:theme [name]` | Switch the colour theme (no name: list the families); saved |
 | `:keys reload` | Read keymap.json again and apply it |
 | `:help` | Show or hide help |

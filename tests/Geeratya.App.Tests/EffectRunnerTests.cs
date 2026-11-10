@@ -52,7 +52,8 @@ public sealed class EffectRunnerTests : IDisposable
             new BoardKindStore(state),
             Settings: new SettingsStore(Path.Combine(_directory.FullName, "settings.json")),
             SavedViews: new SavedViewStore(state),
-            Tabs: new RememberedTabsStore(state));
+            Tabs: new RememberedTabsStore(state),
+            StateDirectory: state);
 
         var sink = new ListCommandSink(_posted);
 

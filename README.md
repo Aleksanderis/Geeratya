@@ -32,6 +32,7 @@ The Jira web UI is slow and mouse-heavy for what you do many times a day: check 
 - Start target on the command line: `geeratya GEN-123`, `--board`, `--backlog`, `--jql`, `--filter` open one tab
 - Command palette, configurable vim-style keys and full mouse support
 - Settings screen: change the theme and the options visually, saved at once
+- Update hint and `geeratya update`: the status bar tells when a newer release exists (checked once a day in the background, can be turned off), and `geeratya update` brings the install to it (script installs; package-managed installs get the matching command)
 
 Attachments and images are shown as links that open in the browser, never rendered in the terminal.
 
@@ -55,7 +56,7 @@ More on the [website](https://geeratya.github.io/).
 
 Needs a Jira Cloud site, an Atlassian account on it and an API token. The connect steps are in the [user guide](docs/user-guide.md).
 
-One command installs the latest release; run it again to update. Pinning a version is in the [user guide](docs/user-guide.md#install).
+One command installs the latest release; run it again (or `geeratya update`) to update. Pinning a version is in the [user guide](docs/user-guide.md#install).
 
 **Linux and macOS** (x64 or arm64 with glibc, Apple silicon), in a shell:
 

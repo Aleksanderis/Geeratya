@@ -73,6 +73,8 @@ try {
     if (-not (Test-Path -LiteralPath $exe)) { Fail "binary not installed: $out" }
     if ((Get-Content -LiteralPath $exe -Raw).Trim() -ne 'fake exe 1.2.3') { Fail 'wrong binary installed' }
     if ($out -notlike '*To uninstall*') { Fail "no uninstall hint: $out" }
+    $marker = Join-Path (Join-Path $tmp 'bin') 'geeratya.install-source'
+    if (-not (Test-Path -LiteralPath $marker) -or (Get-Content -LiteralPath $marker -Raw).Trim() -ne 'script') { Fail 'install marker missing or wrong' }
 
     Set-Latest '1.3.0' $api
     $out = Invoke-Install $api 'x64'

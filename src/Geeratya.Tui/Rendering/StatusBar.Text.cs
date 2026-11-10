@@ -228,6 +228,12 @@ public static partial class StatusBar
             line = line.Length == 0 ? view : $"{view}{Separator}{line}";
         }
 
+        if (state.Update is { } update)
+        {
+            // Last in line, short: the hints on the right keep their room (the full sentence was posted once).
+            line = line.Length == 0 ? update.Brief : $"{line}{Separator}{update.Brief}";
+        }
+
         if (ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0 } selecting && RowSelection.Count(selecting) > 0)
         {
             // The network word stays first, so it survives a cut.

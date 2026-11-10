@@ -16,6 +16,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 | `labels.caps` | `labels.caps` | on or off | `on` | Round the ends of label chips with half circles (Powerline glyphs: needs a Nerd Font or Powerline-patched font; off gives plain padded chips). |
 | `jump.target` | `jump.target` | current or tab | `current` | Where the jump prompt (<space>g) opens an issue: on top of the current tab, or in a new tab. |
 | `startup.restore` | `startup.restore` | on or off | `on` | Reopen the tabs of the last run on start; off starts on the board picker every time. |
+| `update.check` | `update.check` | on or off | `on` | Look for a newer release once a day, in the background, and hint at it in the status bar (the only request goes to GitHub, with no account data); GEERATYA_NO_UPDATE_CHECK=1 turns it off too. |
 | `board.done-cutoff` | `board.doneCutoff` | a number of days (1-3650) or all | `14` | Days after which a Kanban board hides Done issues that reached Done longer ago, or all to show every one. Used when Jira's own "Hide done work items after" cannot be read; <space>vd picks one per tab. |
 | `comments.order` | `comments.order` | oldest or newest | `oldest` | Which comments of an opened issue come first: the oldest or the newest. <space>mo flips it and saves the choice. |
 
