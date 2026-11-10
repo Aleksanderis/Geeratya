@@ -4,27 +4,68 @@
 # The first submission of Geeratya.Geeratya is a manual PR by the owner; this job needs the package to exist
 # already. Needs the repository secret WINGET_TOKEN: a classic PAT with public_repo scope (wingetcreate pushes a branch
 # to the owner's fork of microsoft/winget-pkgs and opens the PR; owner creates it, docs/internal/architecture.md, Releases).
+#
+# Guard (#918): winget-pkgs reviews one version at a time, so a second PR while an earlier one is open only piles up.
+# Before submitting, the manifests job looks for open winget-pkgs PRs by this repository's owner titled
+# "Geeratya.Geeratya ..." (read-only, github.token). If one is open the run ends green with a notice naming it and
+# submits nothing. A manual run (Actions > winget > Run workflow) with the tag of a release and force=true submits
+# anyway; a manual run ignores WINGET_SUBMIT and the pre-release check. If the lookup fails the run goes red and
+# submits nothing. The lookup is scripts/winget-open-pr.sh (test: scripts/test-winget-open-pr.sh).
 name: winget
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to submit, for example v0.7.0 (manual runs only)
+        required: true
+      force:
+        description: Submit even if an earlier Geeratya.Geeratya PR is still open
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   manifests:
-    if: ${{ vars.WINGET_SUBMIT == 'true' && !github.event.release.prerelease }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (vars.WINGET_SUBMIT == 'true' && !github.event.release.prerelease) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    outputs:
+      skip: ${{ steps.guard.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate the manifests from the release
+      - name: Skip while an earlier version PR is open
+        id: guard
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "force=true: not looking for open Geeratya.Geeratya PRs"
+            exit 0
+          fi
+          gh pr list --repo microsoft/winget-pkgs --author "$GITHUB_REPOSITORY_OWNER" --state open \
+            --search "Geeratya.Geeratya in:title" --json number,title,url --limit 20 > open-prs.json
+          open="$(scripts/winget-open-pr.sh open-prs.json)"
+          if [ -n "$open" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice title=winget submission skipped::$TAG not submitted, an earlier Geeratya.Geeratya PR is still open: $open. Run this workflow by hand with the tag and force=true once it is merged or closed."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate the manifests from the release
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           version="${TAG#v}"
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dl
@@ -32,12 +73,14 @@ jobs:
           echo "$version" > out/winget/version.txt
 
       - uses: actions/upload-artifact@v4
+        if: steps.guard.outputs.skip != 'true'
         with:
           name: winget-manifests
           path: out/winget
 
   submit:
     needs: manifests
+    if: ${{ needs.manifests.outputs.skip != 'true' }}
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
