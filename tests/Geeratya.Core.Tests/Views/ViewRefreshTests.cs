@@ -70,7 +70,10 @@ public class ViewRefreshTests
         var second = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(120)));
 
         Assert.Empty(second.Effects);
+        var third = _reducer.Reduce(second.State, new Tick(_start + TimeSpan.FromSeconds(121)));
         Assert.Equal(first.State.Session.Tabs[0].RequestId, second.State.Session.Tabs[0].RequestId);
+        Assert.Empty(third.Effects);
+        Assert.Same(second.State, third.State);
     }
 
     [Fact]
@@ -372,9 +375,9 @@ public class ViewRefreshTests
     {
         var first = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
         var seen = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(61)));
-        var early = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(69)));
+        var early = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(149)));
 
-        var late = _reducer.Reduce(early.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(70)));
+        var late = _reducer.Reduce(early.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(150)));
 
         Assert.IsType<Loading>(early.State.Session.Tabs[0].Load);
         var failed = Assert.IsType<Failed>(late.State.Session.Tabs[0].Load);
@@ -387,7 +390,7 @@ public class ViewRefreshTests
     {
         var first = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
         var seen = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(61)));
-        var failed = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(200)));
+        var failed = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(300)));
 
         var result = _reducer.Reduce(failed.State, new RefreshRequested(failed.State.Session.Tabs[0].Id));
 

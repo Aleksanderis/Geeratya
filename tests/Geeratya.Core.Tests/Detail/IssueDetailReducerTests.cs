@@ -156,7 +156,7 @@ public class IssueDetailReducerTests
 
         var late = seen;
 
-        for (var second = 70; second < 73; second++)
+        for (var second = 150; second < 153; second++)
         {
             late = Deliver(late, new Tick(_now.AddSeconds(second)));
         }

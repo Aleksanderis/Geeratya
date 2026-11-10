@@ -13,10 +13,12 @@ namespace Geeratya.Core.Views;
 internal static class LoadDeadline
 {
     /// <summary>
-    /// Twice the transport's default timeout (30 s) plus a margin for the retry back-off: a healthy load has
-    /// answered by then, with a result or with its own timeout failure.
+    /// Above one attempt chain of the transport's defaults (up to 4 attempts of 30 s, back-off between them), so a
+    /// load that is retrying has normally answered by then, with a result or with its own failure. A deliberate
+    /// trade-off: a worse chain is cut off (the refresh key tries again). The deadline measures silence: a board
+    /// gather that receives a page starts it again, and it does not run while the site link is rate limited.
     /// </summary>
-    public static TimeSpan Limit { get; } = TimeSpan.FromSeconds(70);
+    public static TimeSpan Limit { get; } = TimeSpan.FromSeconds(150);
 
     /// <summary>
     /// The state after the deadline check of the active tab: the same instance when nothing changed, else with the
@@ -29,6 +31,11 @@ internal static class LoadDeadline
         if (!ReferenceEquals(stamped, tab))
         {
             return ViewReducer.Replace(state, stamped);
+        }
+
+        if (state.Session.Link is RateLimited)
+        {
+            return state;
         }
 
         var error = new JiraError(JiraErrorKind.Timeout, null, "No reply from Jira in time.");

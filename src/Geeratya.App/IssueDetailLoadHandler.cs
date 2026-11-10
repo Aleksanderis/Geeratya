@@ -38,7 +38,7 @@ public sealed class IssueDetailLoadHandler
         if (cache is not null && effect is LoadIssueDetailEffect opening)
         {
             // Off the UI thread and without a connection. The network load waits for it only briefly (a cache read
-            // stuck on slow disk I/O must not hold the request back); the reducer drops a cached copy that arrives late.
+            // stuck on slow disk I/O must not hold the request back); the reducer drops a late cached copy.
             local = _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
         }
 

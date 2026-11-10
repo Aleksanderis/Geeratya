@@ -146,5 +146,10 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
         public string Body { get; } = body;
     }
 
-    private sealed record ScriptedReply(HttpStatusCode Status, string Body, Task? Gate, string? RetryAfter, Exception? Failure);
+    private sealed record ScriptedReply(
+        HttpStatusCode Status,
+        string Body,
+        Task? Gate,
+        string? RetryAfter,
+        Exception? Failure);
 }

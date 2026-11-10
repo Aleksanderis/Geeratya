@@ -61,7 +61,9 @@ public static partial class ViewReducer
         List<Effect> effects)
     {
         var requestId = state.Sequence + 1;
-        var gathering = tab with { PendingRows = gathered, RequestId = requestId };
+        // A page arrived: the deadline measures silence, so it starts again (the next tick stamps it).
+        var progress = loading with { Since = null };
+        var gathering = tab with { PendingRows = gathered, RequestId = requestId, Load = progress };
 
         effects.Add(
             new LoadViewPageEffect(
