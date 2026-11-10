@@ -249,7 +249,51 @@ public sealed class JiraTransportTests
         var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
 
         Assert.Equal(JiraErrorKind.Timeout, result.Error.Kind);
-        Assert.Single(fixture.Handler.Requests);
+        Assert.Equal(2, fixture.Handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenGetThatTimesOutOnce_WhenSending_ThenRetryOnNewConnectionSucceeds()
+    {
+        using var fixture = new TransportFixture(options => options with { Timeout = TimeSpan.FromMilliseconds(50) });
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, FakeResponse.Hanging(), FakeResponse.Ok(MyselfJson()));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, fixture.Handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GivenAnyRequest_WhenSending_ThenItAsksForHttp2OrLower()
+    {
+        using var inner = new FakeJiraHandler();
+        inner.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+        var seen = new VersionSpy(inner);
+        using var transport = new JiraTransport(
+            new JiraConnection(new Uri("https://example.atlassian.net"), "a@b.c"),
+            new JiraApiToken("t"),
+            seen);
+
+        await new JiraUserClient(transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.Equal(HttpVersion.Version20, seen.Version);
+        Assert.Equal(HttpVersionPolicy.RequestVersionOrLower, seen.Policy);
+    }
+
+    private sealed class VersionSpy(HttpMessageHandler inner) : DelegatingHandler(inner)
+    {
+        public Version? Version { get; private set; }
+
+        public HttpVersionPolicy? Policy { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Version = request.Version;
+            Policy = request.VersionPolicy;
+
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 
     [Fact]
