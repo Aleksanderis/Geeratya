@@ -272,15 +272,19 @@ jobs:
       - name: Draft release (create, or replace the assets of the existing draft)
         if: ${{ !inputs.dry_run }}
         run: |
-          if state=$(gh release view "$TAG" -R "$REPO" --json isDraft --jq .isDraft 2>/dev/null); then
+          # Only "release not found" means create; any other failure (5xx, rate limit) must not make a second draft.
+          if state=$(gh release view "$TAG" -R "$REPO" --json isDraft --jq .isDraft 2>view-err.txt); then
             if [ "$state" != "true" ]; then
               echo "release $TAG is already published; refusing to change it" >&2
               exit 1
             fi
             echo "draft $TAG exists, replacing its assets"
             gh release upload "$TAG" dist/* -R "$REPO" --clobber
-          else
+          elif grep -q 'release not found' view-err.txt; then
             gh release create "$TAG" dist/* -R "$REPO" --draft --verify-tag --title "Geeratya $TAG" --generate-notes
+          else
+            cat view-err.txt >&2
+            exit 1
           fi
 
       - name: Fail when an optional leg is missing

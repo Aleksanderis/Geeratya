@@ -1,6 +1,6 @@
 # Release checklist
 
-Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. Agents never run a release or a dispatch of `homebrew.yml` / `winget.yml`: they register it as a `needs-owner` issue.
+Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. Agents do not run a release or dispatch `homebrew.yml` / `winget.yml` on their own (they publish to external repositories): they register it as a `needs-owner` issue.
 
 ## Steps
 
@@ -11,7 +11,7 @@ Short procedure for cutting a release. The mechanics of each workflow are in `do
    - A red optional leg (arm64, macOS) does not block the x64 assets: the draft is still made and the run ends red with the names of the missing archives. Fix the cause and use "Re-run failed jobs" on the run: only the red legs rebuild, and the release job replaces the draft's assets (`gh release upload --clobber`) and generates the package manifests once all five archives exist.
    - A red linux-x64 or win-x64 leg means no release is made.
    - Re-running never touches a published release: the job fails instead.
-5. Review the draft on GitHub (assets: five archives, packages, `SHA256SUMS`; generated notes). Edit the notes, then publish. Mark a release candidate as pre-release.
+5. Review the draft on GitHub (assets: five archives, packages, `SHA256SUMS`; generated notes). Publish only after a green run with all five archives present (the manifests and the Homebrew and winget routes need every one); a red run is the signal not to. Edit the notes, then publish. Mark a release candidate as pre-release.
 6. Publishing triggers, for a final (not pre-release) release only: `homebrew.yml` (formula push to the tap; green with a notice when `HOMEBREW_TAP_TOKEN` is missing) and `winget.yml` (only when the repository variable `WINGET_SUBMIT` is `true`; skips with a notice when an earlier winget-pkgs PR is still open).
 7. Check that the install routes work: `geeratya update --check` from the previous version, the Homebrew formula, the packages from the release page.
 
