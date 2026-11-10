@@ -119,7 +119,8 @@ public static partial class ViewReducer
 
         var updated = tab with
         {
-            Rows = rows,
+            // A refresh brings fresh sub-task stubs without assignees: keep those read for the expanded cards (#911).
+            Rows = appended ? rows : SubtaskAssigneeReducer.CarryOver(tab.Rows, rows, tab.ExpandedSubtasks),
             Next = cursor,
             Truncated = truncated,
             Load = LoadState.Idle,
@@ -146,12 +147,6 @@ public static partial class ViewReducer
         if (!appended && tab.ActiveQuickFilters.Count == 0)
         {
             effects.Add(FirstPageWrite(tab.Definition, tab.Board, combined, loaded.At));
-        }
-
-        // The new rows have fresh sub-task stubs without assignees: ask again for the cards that are expanded (#911).
-        if (!appended && selected.ExpandedSubtasks.Count > 0)
-        {
-            effects.AddRange(SubtaskAssigneeReducer.Loads(selected));
         }
 
         var recovered = Replace(state, selected);

@@ -52,15 +52,32 @@ public class SubtaskAssigneeReducerTests
     }
 
     [Fact]
-    public void GivenExpandedCards_WhenAskingForLoads_ThenOneEffectPerExpandedCard()
+    public void GivenARefreshOfAnExpandedCard_WhenRowsAreMerged_ThenTheKnownAssigneesAreCarriedOver()
     {
-        var tab = Start().Session.Tabs[0] with { ExpandedSubtasks = ["A-1", "A-7"] };
+        var jane = new IssueAssignee("a1", "Jane Doe");
+        var old = SubtaskAssigneeReducer.Loaded(
+            Start(),
+            new SubtaskAssigneesLoaded(new TabId(1), "A-1", [new SubtaskAssignee("A-2", jane)]));
+        var oldRows = old.Session.Tabs[0].Rows;
+        var fresh = Start().Session.Tabs[0].Rows;
 
-        var effects = SubtaskAssigneeReducer.Loads(tab).ToArray();
+        var carried = SubtaskAssigneeReducer.CarryOver(oldRows, fresh, ["A-1"]);
 
-        Assert.Equal(
-            [new LoadSubtaskAssigneesEffect(tab.Id, "A-1"), new LoadSubtaskAssigneesEffect(tab.Id, "A-7")],
-            effects);
+        Assert.Equal(jane, carried[0].Subtasks[0].Assignee);
+        Assert.True(carried[0].Subtasks[0].AssigneeKnown);
+        Assert.False(carried[0].Subtasks[1].AssigneeKnown);
+    }
+
+    [Fact]
+    public void GivenACardThatIsNotExpanded_WhenRowsAreMerged_ThenNothingIsCarriedOver()
+    {
+        var old = SubtaskAssigneeReducer.Loaded(
+            Start(),
+            new SubtaskAssigneesLoaded(new TabId(1), "A-1", [new SubtaskAssignee("A-2", null)]));
+        var fresh = Start().Session.Tabs[0].Rows;
+
+        Assert.Same(fresh, SubtaskAssigneeReducer.CarryOver(old.Session.Tabs[0].Rows, fresh, []));
+        Assert.False(SubtaskAssigneeReducer.CarryOver(old.Session.Tabs[0].Rows, fresh, ["A-9"])[0].Subtasks[0].AssigneeKnown);
     }
 
     [Fact]
@@ -73,6 +90,31 @@ public class SubtaskAssigneeReducerTests
 
         Assert.Equal([new LoadSubtaskAssigneesEffect(new TabId(1), "A-1")], expanded.Effects);
         Assert.Empty(collapsed.Effects);
+    }
+
+    [Theory]
+    [InlineData(LoadReason.Refresh)]
+    [InlineData(LoadReason.Retry)]
+    public void GivenAnExpandedCard_WhenARefreshPageLoads_ThenTheChipsStayAndNoRequestIsSent(
+        LoadReason reason)
+    {
+        var jane = new IssueAssignee("a1", "Jane Doe");
+        var loaded = SubtaskAssigneeReducer.Loaded(
+            Start(),
+            new SubtaskAssigneesLoaded(new TabId(1), "A-1", [new SubtaskAssignee("A-2", jane)]));
+        var tab = loaded.Session.Tabs[0] with
+        {
+            ExpandedSubtasks = ["A-1"],
+            Load = new Loading(reason),
+            RequestId = 7,
+        };
+        var state = loaded with { Session = loaded.Session with { Tabs = [tab] } };
+        var page = new IssuePage(Start().Session.Tabs[0].Rows, null, null);
+
+        var result = ViewReducer.Reduce(state, new ViewPageLoaded(tab.Id, 7, page, DateTimeOffset.UnixEpoch));
+
+        Assert.True(result.State.Session.Tabs[0].Rows[0].Subtasks[0].AssigneeKnown);
+        Assert.DoesNotContain(result.Effects, effect => effect is LoadSubtaskAssigneesEffect);
     }
 
     private static AppState Start()

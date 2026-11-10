@@ -11,13 +11,32 @@ namespace Geeratya.Core.Views;
 /// </summary>
 public static class SubtaskAssigneeReducer
 {
-    /// <summary>The effects that load the assignees of the expanded cards (a refresh swaps in stubs without assignees).</summary>
-    public static IEnumerable<Effect> Loads(TabState tab)
+    /// <summary>
+    /// The new rows of a refresh with the assignees already read for the expanded cards copied into their fresh stubs
+    /// (matched by key), so the chips neither disappear nor cost a request per card on every refresh. The values stay
+    /// those of the last expansion until the card is folded and expanded again.
+    /// </summary>
+    public static IReadOnlyList<IssueSummary> CarryOver(
+        IReadOnlyList<IssueSummary> oldRows,
+        IReadOnlyList<IssueSummary> newRows,
+        IReadOnlyList<string> expanded)
     {
-        foreach (var key in tab.ExpandedSubtasks)
+        if (expanded.Count == 0)
         {
-            yield return new LoadSubtaskAssigneesEffect(tab.Id, key);
+            return newRows;
         }
+
+        var known = new Dictionary<string, IssueSubtask>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in oldRows.Where(row => expanded.Contains(row.Key)))
+        {
+            foreach (var stub in row.Subtasks.Where(static stub => stub.AssigneeKnown))
+            {
+                known[stub.Key] = stub;
+            }
+        }
+
+        return known.Count == 0 ? newRows : [.. newRows.Select(row => Carried(row, known))];
     }
 
     /// <summary>Stores the answer in the stubs of the parent; other stubs and rows are untouched.</summary>
@@ -42,9 +61,27 @@ public static class SubtaskAssigneeReducer
 
     private static IssueSubtask With(IssueSubtask stub, IReadOnlyList<SubtaskAssignee> assignees)
     {
-        var found = assignees.FirstOrDefault(each => string.Equals(each.Key, stub.Key, StringComparison.OrdinalIgnoreCase));
+        var found = assignees.FirstOrDefault(
+            each => string.Equals(each.Key, stub.Key, StringComparison.OrdinalIgnoreCase));
 
         return found is null ? stub : stub with { Assignee = found.Assignee, AssigneeKnown = true };
+    }
+
+    private static IssueSummary Carried(IssueSummary row, Dictionary<string, IssueSubtask> known)
+    {
+        if (row.Subtasks.Count == 0 || !row.Subtasks.Any(stub => known.ContainsKey(stub.Key)))
+        {
+            return row;
+        }
+
+        var stubs = row.Subtasks.Select(stub => Carried(stub, known)).ToArray();
+
+        return row with { Subtasks = stubs };
+    }
+
+    private static IssueSubtask Carried(IssueSubtask stub, Dictionary<string, IssueSubtask> known)
+    {
+        return known.TryGetValue(stub.Key, out var old) ? stub with { Assignee = old.Assignee, AssigneeKnown = true } : stub;
     }
 
     private static int IndexOf(TabState tab, string key)

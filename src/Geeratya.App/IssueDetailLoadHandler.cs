@@ -3,6 +3,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Jql;
+using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transport;
 
@@ -145,7 +146,7 @@ public sealed class IssueDetailLoadHandler
     {
         return async (services, token) =>
         {
-            var query = new IssueSearchQuery(JqlBuilder.Parent(effect.ParentKey));
+            var query = new IssueSearchQuery(JqlBuilder.Parent(effect.ParentKey), JiraSearchClient.MaxPageSize);
             var result = await services.Search.SearchAsync(query, null, token);
 
             if (!result.IsSuccess)
