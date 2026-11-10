@@ -43,6 +43,7 @@ jobs:
           if [ -z "$TAP_TOKEN" ]; then echo "::notice::secret HOMEBREW_TAP_TOKEN is not set, tap not updated"; exit 0; fi
           version="${VERSION_INPUT:-${TAG#v}}"
           version="${version#v}"
+          [[ "$version" =~ ^[0-9]+(\.[0-9]+)*$ ]] || { echo "::error::bad version '$version'"; exit 1; }
           gh release download "v$version" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dl
           src/scripts/gen-manifests.sh "$version" dl/SHA256SUMS manifests
           export GIT_ASKPASS="$RUNNER_TEMP/askpass.sh"
@@ -57,4 +58,5 @@ jobs:
           git add Formula/geeratya.rb
           if git diff --cached --quiet; then echo "tap already up to date"; exit 0; fi
           git -c user.name="Geeratya release" -c user.email="noreply@users.noreply.github.com" commit -q -m "geeratya $version"
+          git pull --rebase -q origin HEAD
           git push -q origin HEAD
