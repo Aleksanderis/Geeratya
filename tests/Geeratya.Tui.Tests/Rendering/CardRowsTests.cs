@@ -92,6 +92,45 @@ public class CardRowsTests
     }
 
     [Fact]
+    public void GivenAListedSubtaskWithKnownAssignee_WhenBuildingTheBottomRow_ThenTheChipSitsRightAfterTheStatus()
+    {
+        var jane = Listed() with { Assignee = new IssueAssignee("a", "Jane Doe"), AssigneeLoaded = true };
+        var unassigned = Listed() with { AssigneeLoaded = true };
+
+        var assigned = CardRows.Bottom(jane, false, 32, TextRole.Body);
+
+        Assert.EndsWith("[To Do]  JD ", Text(assigned));
+        Assert.Equal(PersonChips.For("Jane Doe"), assigned.Single(span => span.Text == " JD ").Role);
+        Assert.EndsWith("[To Do] [--]", Text(CardRows.Bottom(unassigned, false, 32, TextRole.Body)));
+        Assert.Equal(32, Width(assigned));
+    }
+
+    [Fact]
+    public void GivenAListedSubtaskWithUnknownAssignee_WhenBuildingTheBottomRow_ThenOnlyTheStatusShows()
+    {
+        var row = CardRows.Bottom(Listed(), false, 32, TextRole.Body);
+
+        Assert.EndsWith("[To Do]", Text(row));
+        Assert.DoesNotContain("[--]", Text(row));
+    }
+
+    [Fact]
+    public void GivenAListedSubtaskInANarrowCard_WhenBuildingTheBottomRow_ThenTheStatusIsCutBeforeThePersonIsDropped()
+    {
+        var issue = Listed() with
+        {
+            Status = new IssueStatus("1", "In Progress", "indeterminate"),
+            Assignee = new IssueAssignee("a", "Jane Doe"),
+            AssigneeLoaded = true,
+        };
+
+        var row = CardRows.Bottom(issue, false, 24, TextRole.Body);
+
+        Assert.Contains(" JD ", Text(row));
+        Assert.Equal(24, Width(row));
+    }
+
+    [Fact]
     public void GivenAnUnknownPriorityName_WhenBuildingTheBottomRow_ThenNoGlyphIsGuessed()
     {
         var row = CardRows.Bottom(Issue() with { Priority = "Urgent" }, false, 32, TextRole.Body);
@@ -189,6 +228,11 @@ public class CardRowsTests
     private static IssueSubtask Subtask(string key, string category)
     {
         return new IssueSubtask(key, "S", new IssueStatus("1", "S", category), "Sub-task");
+    }
+
+    private static IssueSummary Listed()
+    {
+        return Issue() with { IsListed = true, IssueType = new IssueTypeSummary("", "Sub-task", -1, true) };
     }
 
     private static IssueStatus Status()

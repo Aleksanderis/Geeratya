@@ -28,3 +28,10 @@ public sealed record LoadIssueChildrenEffect(TabId Tab, string Key, long Request
 /// failure posts nothing: the Details pane then shows no dropdown marks.
 /// </summary>
 public sealed record LoadEditableFieldsEffect(TabId Tab, string Key) : Effect;
+
+/// <summary>
+/// Load the assignees of the sub-tasks of a board card that was expanded (<c>parent = KEY</c>, #911): the stubs in the
+/// board payload carry none. The answer is <see cref="SubtaskAssigneesLoaded"/>; a failure posts nothing and the
+/// sub-task rows stay without a person.
+/// </summary>
+public sealed record LoadSubtaskAssigneesEffect(TabId Tab, string ParentKey) : Effect;

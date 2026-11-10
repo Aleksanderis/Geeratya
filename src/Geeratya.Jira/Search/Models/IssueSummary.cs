@@ -39,6 +39,12 @@ public sealed record IssueSummary(
     /// </summary>
     public bool IsListed { get; init; }
 
+    /// <summary>
+    /// Whether <see cref="Assignee"/> is known for a listed sub-task row (a null assignee then means unassigned, not
+    /// "not loaded yet"); always false for other rows, which carry their assignee from the load.
+    /// </summary>
+    public bool AssigneeLoaded { get; init; }
+
     /// <summary>The estimate (story points); null when the issue has none or the field was not requested.</summary>
     public double? Estimate { get; init; }
 

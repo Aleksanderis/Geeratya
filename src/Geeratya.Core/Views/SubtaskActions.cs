@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 
 namespace Geeratya.Core.Views;
@@ -37,7 +38,15 @@ public static class SubtaskActions
             toggled = ColumnsNavigation.FollowCard(toggled, key);
         }
 
-        return new ReduceResult(ViewReducer.Replace(state, toggled), _noEffects);
+        var next = ViewReducer.Replace(state, toggled);
+
+        if (isOpen)
+        {
+            return new ReduceResult(next, _noEffects);
+        }
+
+        // Expanding asks once for the sub-tasks' assignees: the board payload's stubs have none (#911).
+        return new ReduceResult(next, [new LoadSubtaskAssigneesEffect(tab.Id, key)]);
     }
 
     private static IReadOnlyList<string> Toggled(IReadOnlyList<string> expanded, string key, bool isOpen)

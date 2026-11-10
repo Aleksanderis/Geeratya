@@ -119,7 +119,8 @@ public static partial class ViewReducer
 
         var updated = tab with
         {
-            Rows = rows,
+            // A refresh brings fresh sub-task stubs without assignees: keep those read for the expanded cards (#911).
+            Rows = appended ? rows : SubtaskAssigneeReducer.CarryOver(tab.Rows, rows, tab.ExpandedSubtasks),
             Next = cursor,
             Truncated = truncated,
             Load = LoadState.Idle,

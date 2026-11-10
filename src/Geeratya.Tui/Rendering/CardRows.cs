@@ -133,7 +133,17 @@ public static class CardRows
 
         if (issue.IsListed)
         {
-            AddStatus(spans, issue, estimate, room);
+            // The person goes right after the status chip (#911); the status gives way (cut) before it is dropped, and
+            // the person only when not even the shortest status chip fits beside it.
+            var person = issue.AssigneeLoaded && room - ChipCells - 1 >= MinStatusChip ? ChipCells + 1 : 0;
+
+            AddStatus(spans, issue, estimate, room - person);
+
+            if (person > 0 && spans.Count > 0)
+            {
+                spans.Add(new StyledSpan(Blank, TextRole.Body));
+                spans.Add(AssigneeChip(issue));
+            }
 
             return spans;
         }
@@ -153,12 +163,7 @@ public static class CardRows
             spare -= GlyphCells;
         }
 
-        var unassigned = issue.Assignee is null || AssigneeInitials.Of(issue.Assignee.DisplayName).Length == 0;
-        var padded = TextWidth.Pad(InitialsOf(issue), InitialsCells);
-
-        spans.Add(unassigned
-            ? new StyledSpan($"[{padded}]", TextRole.UnassignedChip)
-            : new StyledSpan($" {padded} ", PersonChips.For(issue.Assignee!.DisplayName)));
+        spans.Add(AssigneeChip(issue));
 
         if (estimate.Length > 0 && spare >= TextWidth.Of(estimate) + counterCells)
         {
@@ -166,6 +171,16 @@ public static class CardRows
         }
 
         return spans;
+    }
+
+    private static StyledSpan AssigneeChip(IssueSummary issue)
+    {
+        var unassigned = issue.Assignee is null || AssigneeInitials.Of(issue.Assignee.DisplayName).Length == 0;
+        var padded = TextWidth.Pad(InitialsOf(issue), InitialsCells);
+
+        return unassigned
+            ? new StyledSpan($"[{padded}]", TextRole.UnassignedChip)
+            : new StyledSpan($" {padded} ", PersonChips.For(issue.Assignee!.DisplayName));
     }
 
     private static string InitialsOf(IssueSummary issue)
