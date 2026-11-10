@@ -1,3 +1,4 @@
+# Steps and catch-up dispatches: docs/internal/release-checklist.md
 # Dispatch only (releases are deliberate; ci.yml runs automatically, see docs/internal/decisions.md 2026-11-09); macOS
 # bills 10x minutes, so it is built only here, never in ci.yml.
 #   Dry run (no release; archives are workflow artifacts):
@@ -197,9 +198,13 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  # Runs when the build matrix is red too: a red macOS or arm64 leg must not hold back the x64 assets. The
+  # required legs are checked below; missing optional legs make the run red at the end, after the draft exists.
+  # "Re-run failed jobs" then rebuilds only the red legs and replaces the draft's assets (--clobber).
   release:
     name: checksums and draft release
     needs: [guard, build]
+    if: ${{ !cancelled() && needs.guard.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'failure') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -208,12 +213,29 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.tag }}
       REPO: ${{ github.repository }}
+      VERSION: ${{ needs.guard.outputs.version }}
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: archive-*
           path: dist
           merge-multiple: true
+
+      # linux-x64 and win-x64 are required (they carry the install routes); the others are optional.
+      - name: Check which legs produced an archive
+        id: legs
+        run: |
+          required="linux-x64.tar.gz win-x64.zip"
+          optional="linux-arm64.tar.gz win-arm64.zip osx-arm64.tar.gz"
+          for l in $required; do
+            [ -f "dist/geeratya-$VERSION-$l" ] || { echo "required archive geeratya-$VERSION-$l is missing, no release" >&2; exit 1; }
+          done
+          missing=""
+          for l in $optional; do
+            [ -f "dist/geeratya-$VERSION-$l" ] || missing="$missing $l"
+          done
+          echo "missing=${missing# }" >> "$GITHUB_OUTPUT"
+          [ -z "$missing" ] || echo "::warning::no archive for: $missing (the draft gets what exists; re-run failed jobs to add them)"
 
       - name: Checksums
         working-directory: dist
@@ -225,24 +247,46 @@ jobs:
         with:
           name: release-files
           path: dist/*
+          overwrite: true
 
       # AUR, winget and Homebrew files for this release (#206). Generated only:
       # submitting them needs the owner's accounts (docs/internal/architecture.md, Releases).
+      # They need all five archives (the formula and installer manifests name every one).
       - uses: actions/checkout@v4
         with:
           path: src
 
       - name: Generate package manifests
-        env:
-          VERSION: ${{ needs.guard.outputs.version }}
+        if: ${{ steps.legs.outputs.missing == '' }}
         run: src/scripts/gen-manifests.sh "$VERSION" dist/SHA256SUMS manifests
 
       - uses: actions/upload-artifact@v4
+        if: ${{ steps.legs.outputs.missing == '' }}
         with:
           name: package-manifests
           path: manifests
+          overwrite: true
 
-      # --verify-tag fails when the tag does not exist; this never creates one.
-      - name: Draft release
+      # Idempotent: a draft from an earlier (partial) run gets its assets replaced; a published release is never
+      # touched. --verify-tag fails when the tag does not exist; this never creates one.
+      - name: Draft release (create, or replace the assets of the existing draft)
         if: ${{ !inputs.dry_run }}
-        run: gh release create "$TAG" dist/* -R "$REPO" --draft --verify-tag --title "Geeratya $TAG" --generate-notes
+        run: |
+          if state=$(gh release view "$TAG" -R "$REPO" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$state" != "true" ]; then
+              echo "release $TAG is already published; refusing to change it" >&2
+              exit 1
+            fi
+            echo "draft $TAG exists, replacing its assets"
+            gh release upload "$TAG" dist/* -R "$REPO" --clobber
+          else
+            gh release create "$TAG" dist/* -R "$REPO" --draft --verify-tag --title "Geeratya $TAG" --generate-notes
+          fi
+
+      - name: Fail when an optional leg is missing
+        if: ${{ steps.legs.outputs.missing != '' }}
+        env:
+          MISSING: ${{ steps.legs.outputs.missing }}
+        run: |
+          echo "the draft is incomplete, no archive for: $MISSING; re-run the failed jobs, then publish" >&2
+          exit 1
