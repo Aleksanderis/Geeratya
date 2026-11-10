@@ -30,12 +30,21 @@ public static class JiraErrorMapper
             },
             401 => new JiraError(JiraErrorKind.Unauthorized, code, "Bad or expired credentials (email or API token)."),
             403 => new JiraError(JiraErrorKind.Forbidden, code, Or(message, "No permission.")),
+            407 => ProxyAuthenticationRequired(),
             404 or 410 => new JiraError(JiraErrorKind.NotFound, code, "Not found or no access."),
             429 => new JiraError(JiraErrorKind.RateLimited, code, "Rate limited by Jira.", retryAfter),
             >= 500 => new JiraError(JiraErrorKind.ServerError, code, Or(message, "Jira server error."), retryAfter),
             _ => new JiraError(JiraErrorKind.Unexpected, code, Or(message, $"Unexpected status {code}.")),
         };
     }
+
+    /// <summary>The proxy, not Jira, refused the call.</summary>
+    public static JiraError ProxyAuthenticationRequired() =>
+        new(JiraErrorKind.Unexpected, 407, "The proxy requires authentication (407); check the system proxy settings.");
+
+    /// <summary>True when a failed HTTPS tunnel through the proxy ended in 407.</summary>
+    public static bool IsProxyAuthentication(HttpRequestException exception) =>
+        exception.StatusCode == HttpStatusCode.ProxyAuthenticationRequired;
 
     /// <summary>The v3 <c>errors</c> object as field id to message; empty when the body has none.</summary>
     public static IReadOnlyDictionary<string, string> ExtractFieldErrors(string body)

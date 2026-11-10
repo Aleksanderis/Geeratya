@@ -132,5 +132,6 @@ The settings screen (`<space>,`) and `:set` change the options; see [settings.md
 ## Trouble
 
 - `401` in the banner: the token or the email is wrong (they look the same to Jira). `:profile edit <name>` and type the token again.
+- "The proxy requires authentication (407)": a corporate proxy refused the call. Geeratya uses the system proxy (`HTTPS_PROXY` or the Windows proxy settings) and offers your Windows sign-in to it; a proxy that wants other credentials is not supported.
 - Rate limited (`429`): Geeratya waits as Jira asks.
 - Report a bug with the issue template; it asks for `geeratya --version`, your OS and terminal. Remove the site name, emails and any token from pasted text. Security problems: [SECURITY.md](../SECURITY.md).

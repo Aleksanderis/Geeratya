@@ -446,6 +446,57 @@ public sealed class JiraTransportTests
         Assert.True(result.IsSuccess);
     }
 
+    [Fact]
+    public void GivenDefaultHandler_WhenCreated_ThenItCarriesDefaultProxyCredentials()
+    {
+        using var handler = JiraTransport.CreateDefaultHandler();
+
+        Assert.Same(CredentialCache.DefaultCredentials, handler.DefaultProxyCredentials);
+        Assert.Same(HttpClient.DefaultProxy, handler.Proxy);
+        Assert.True(handler.UseProxy);
+    }
+
+    [Fact]
+    public async Task GivenProxyAnswers407_WhenGetting_ThenProxyErrorIsReturnedWithoutRetry()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.WithStatus(HttpStatusCode.ProxyAuthenticationRequired));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(407, result.Error.StatusCode);
+        Assert.Contains("proxy requires authentication", result.Error.Message, StringComparison.Ordinal);
+        Assert.Single(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenProxyTunnelRefusedWith407_WhenGetting_ThenProxyErrorIsReturnedWithoutRetry()
+    {
+        var handler = new TunnelRefusedHandler();
+        var connection = new JiraConnection(new Uri($"https://{TransportFixture.Host}"), TransportFixture.Email);
+        using var transport = new JiraTransport(connection, new JiraApiToken("t"), handler);
+
+        var result = await new JiraUserClient(transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(407, result.Error.StatusCode);
+        Assert.Contains("proxy requires authentication", result.Error.Message, StringComparison.Ordinal);
+        Assert.Equal(1, handler.Calls);
+    }
+
+    private sealed class TunnelRefusedHandler : HttpMessageHandler
+    {
+        public int Calls { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Calls++;
+
+            throw new HttpRequestException(HttpRequestError.ProxyTunnelError, "tunnel", null, HttpStatusCode.ProxyAuthenticationRequired);
+        }
+    }
+
     private static string MyselfJson() => FixtureFiles.Read("myself/myself.json");
 
     private static string Credentials() =>

@@ -129,9 +129,14 @@ public sealed class JiraTransport : IDisposable
         }
     }
 
-    private static SocketsHttpHandler CreateDefaultHandler() =>
+    /// <summary>The handler a transport uses when none is given; public so tests can inspect its settings.</summary>
+    public static SocketsHttpHandler CreateDefaultHandler() =>
         new()
         {
+            // The system proxy (HTTPS_PROXY, WinHTTP settings) with the signed-in user's credentials, as the update
+            // client does: an NTLM or Kerberos corporate proxy otherwise answers every call with 407.
+            Proxy = HttpClient.DefaultProxy,
+            DefaultProxyCredentials = CredentialCache.DefaultCredentials,
             // Redirects could carry the credential to another host; a 3xx is reported as an unexpected status.
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.All,
@@ -243,6 +248,11 @@ public sealed class JiraTransport : IDisposable
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return Fail<T>(JiraErrorKind.Timeout, $"No reply from Jira within {_options.Timeout.TotalSeconds:0} s.");
+        }
+        catch (HttpRequestException exception) when (JiraErrorMapper.IsProxyAuthentication(exception))
+        {
+            // Not retried: the same credentials would get the same 407.
+            return JiraResults.Failure<T>(JiraErrorMapper.ProxyAuthenticationRequired());
         }
         catch (HttpRequestException exception)
         {
