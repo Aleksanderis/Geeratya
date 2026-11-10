@@ -433,3 +433,6 @@ FodyWeavers.xsd
 .claude/scheduled_tasks.lock
 
 .claude/orchestrator/
+
+# JetBrains Rider / IDE settings (per user)
+.idea/
