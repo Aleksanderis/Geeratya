@@ -95,7 +95,7 @@ public sealed class ExecutableSwapTests : IDisposable
     }
 
     [Fact]
-    public void GivenAnOldFileThatCannotBeDeleted_WhenReplacingOnWindows_ThenTheUpdateSucceedsAndTheLeftoversGoLater()
+    public void GivenAnOldFileThatCannotBeDeleted_WhenReplacingOnWindows_ThenTheUpdateStillSucceeds()
     {
         var executable = Write("geeratya.exe", "old");
         var staged = Write("geeratya.new.exe", "new");
@@ -106,19 +106,13 @@ public sealed class ExecutableSwapTests : IDisposable
         Directory.CreateDirectory(locked);
         File.WriteAllText(Path.Combine(locked, "keep"), "x");
 
-        var swap = new ExecutableSwap(OperatingSystemKind.Windows);
-
-        swap.Replace(executable, staged);
+        new ExecutableSwap(OperatingSystemKind.Windows).Replace(executable, staged);
 
         Assert.Equal("new", File.ReadAllText(executable));
         Assert.False(File.Exists(staged));
         Assert.Empty(Directory.GetFiles(_directory.FullName, "geeratya.old.*.exe"));
 
-        // The parked binary was deleted at once; only the locked name remains, and the next start retries it.
-        Assert.True(Directory.Exists(locked));
-
-        swap.RemoveLeftover(executable);
-
+        // The parked binary was deleted at once; only the locked name remains (the sweep of parked files is covered below).
         Assert.True(Directory.Exists(locked));
     }
 
