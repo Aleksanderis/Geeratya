@@ -46,6 +46,7 @@ JSON mapping of search results, ADF rendering, list/board rendering, request sch
 - Live Jira calls only to hosts in `GEERATYA_LIVE_HOSTS` (the dev site); never the owner's company site, not even read-only.
 - Never log, print, commit or snapshot API tokens; fixtures are scrubbed.
 - Verify locally (build, tests) first, open the PR ready, push once, then wait for the CI run of the push and fix it if red (never merge a red PR); no empty commits, no comment-only nits; skip screenshots without a visual change.
+- GitHub API budget (the account has 5000 REST calls an hour, shared by every agent and session and by the Gitunia runs; `gh run watch` polls every 3 s by default and ran the account dry on 2026-11-10): wait for CI with exactly one `gh run watch <id> --exit-status -i 60` per run, never several watchers for one run and no polling loops of `gh run list` / `gh pr checks`; run `gh api rate_limit` (free) before starting a wait and stop with a report instead of retrying when `remaining` is under 200; save a failed log once with `gh run view <id> --log-failed > file` and read the file.
 - Never delete branches you did not create; never touch anything outside this repo and the scratchpad (except reading `../Gitunia`).
 
 ## Self-review additions
