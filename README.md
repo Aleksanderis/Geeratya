@@ -70,7 +70,7 @@ curl -fsSL https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/
 irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
 ```
 
-Other ways to install: Linux `.deb`/`.rpm`, Arch/Omarchy `.pkg.tar.zst` (x64 and arm64, once the first release is published; AUR `geeratya-bin` is planned), Windows `winget install Aleksanderis.Geeratya` (once the first release is in winget), Homebrew `brew install aleksanderis/tap/geeratya` (macOS and Linux, once the first release is published), a Windows or Linux archive (x64 and arm64), or a macOS archive (Apple silicon; should work but is not fully tested yet, and unsigned, so Gatekeeper asks you to allow it, see the [user guide](docs/user-guide.md#macos-gatekeeper)). No release is published yet, so every route works once the first release is out. To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Other ways to install: Linux `.deb`/`.rpm`, Arch/Omarchy `.pkg.tar.zst` (x64 and arm64, once the first release is published; AUR `geeratya-bin` is planned), Windows `winget install Geeratya.Geeratya` (once the first release is in winget), Homebrew `brew install aleksanderis/tap/geeratya` (macOS and Linux, once the first release is published), a Windows or Linux archive (x64 and arm64), or a macOS archive (Apple silicon; should work but is not fully tested yet, and unsigned, so Gatekeeper asks you to allow it, see the [user guide](docs/user-guide.md#macos-gatekeeper)). No release is published yet, so every route works once the first release is out. To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 

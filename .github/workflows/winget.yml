@@ -1,7 +1,7 @@
 # Opens the winget-pkgs PR for a release (#843). OFF by default: the jobs run only when the repository variable
 # WINGET_SUBMIT is "true" (Settings > Variables). They run when the owner publishes a release (the draft made by
 # release.yml does not trigger it), so the zip URL in the manifest is public by then. Pre-releases never submit.
-# The first submission of Aleksanderis.Geeratya is a manual PR by the owner; this job needs the package to exist
+# The first submission of Geeratya.Geeratya is a manual PR by the owner; this job needs the package to exist
 # already. Needs the repository secret WINGET_TOKEN: a classic PAT with public_repo scope (wingetcreate pushes a branch
 # to the owner's fork of microsoft/winget-pkgs and opens the PR; owner creates it, docs/internal/architecture.md, Releases).
 name: winget
@@ -54,4 +54,4 @@ jobs:
           if (-not $env:WINGET_CREATE_GITHUB_TOKEN) { throw "Repo secret WINGET_TOKEN is not set" }
           $version = (Get-Content winget/version.txt -Raw).Trim()
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
-          .\wingetcreate.exe submit "winget/manifests/a/Aleksanderis/Geeratya/$version"
+          .\wingetcreate.exe submit "winget/manifests/g/Geeratya/Geeratya/$version"

@@ -41,10 +41,10 @@ osx=$(sha osx-arm64.tar.gz)
 render "$root/packaging/aur/PKGBUILD.in" "$out/aur/PKGBUILD"
 # winget-pkgs layout: the three manifests of one version under manifests/a/<Publisher>/<Name>/<version>/ (also the
 # directory `wingetcreate submit` takes). The leading "a" is the lower-cased first letter of the identifier.
-wdir="$out/winget/manifests/a/Aleksanderis/Geeratya/$version"
+wdir="$out/winget/manifests/g/Geeratya/Geeratya/$version"
 mkdir -p "$wdir"
 for part in "" .installer .locale.en-US; do
-  render "$root/packaging/winget/Aleksanderis.Geeratya$part.yaml.in" "$wdir/Aleksanderis.Geeratya$part.yaml"
+  render "$root/packaging/winget/Geeratya.Geeratya$part.yaml.in" "$wdir/Geeratya.Geeratya$part.yaml"
 done
 render "$root/packaging/homebrew/geeratya.rb.in" "$out/homebrew/geeratya.rb"
 # The tap repository (Aleksanderis/homebrew-tap) receives only Formula/geeratya.rb from this tree.

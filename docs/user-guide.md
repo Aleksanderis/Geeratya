@@ -47,7 +47,7 @@ All files are on the [Releases](https://github.com/Aleksanderis/Geeratya/release
 - Debian / Ubuntu: `sudo apt install ./geeratya_<version>_amd64.deb` (`_arm64.deb` on arm64).
 - Fedora / RHEL: `sudo dnf install ./geeratya-<version>-1.x86_64.rpm` (`.aarch64.rpm` on arm64).
 - Arch / Omarchy: `sudo pacman -U geeratya-<version>-1-x86_64.pkg.tar.zst` (`aarch64` on arm64). The AUR package `geeratya-bin` is planned, not registered yet.
-- Windows, winget: `winget install Aleksanderis.Geeratya`. Not available until the package is accepted by winget after the first release; until then use the archive.
+- Windows, winget: `winget install Geeratya.Geeratya`. Not available until the package is accepted by winget after the first release; until then use the archive.
 - Homebrew (macOS and Linux): `brew install aleksanderis/tap/geeratya`, once the first release is published.
 - Windows and Linux archives (x64 and arm64): the `.zip` or `.tar.gz`; unpack it and put `geeratya` (`geeratya.exe`) in a folder on your `PATH`.
 - macOS archive (Apple silicon): `tar xzf geeratya-<version>-osx-arm64.tar.gz`, then put `geeratya` on your `PATH`. macOS should work but is the least tested system, and the binary is unsigned (see [macOS (Gatekeeper)](#macos-gatekeeper)).
