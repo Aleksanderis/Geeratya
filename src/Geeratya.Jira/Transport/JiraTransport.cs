@@ -178,7 +178,8 @@ public sealed class JiraTransport : IDisposable
         }
 
         // A timeout is the signature of a pooled connection that died while the app sat idle (sleep, VPN or NAT
-        // change). One more try opens a new connection; a second timeout is real. Only reads: a write may have landed.
+        // change). One more try usually lands on a new connection; a second timeout is real. Only reads: a write
+        // may have landed.
         if (error.Kind == JiraErrorKind.Timeout)
         {
             return request.IsIdempotent && attempt == 0;
