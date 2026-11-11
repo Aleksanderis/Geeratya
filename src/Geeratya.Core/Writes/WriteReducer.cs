@@ -176,9 +176,11 @@ public static partial class WriteReducer
                 return $"The board is busy ({running.BusyText})";
             }
 
+            var inFlight = new HashSet<string>(operation.Keys, StringComparer.OrdinalIgnoreCase);
+
             foreach (var key in write.Keys)
             {
-                if (operation.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                if (inFlight.Contains(key))
                 {
                     return $"{key} is busy ({operation.Request.BusyText})";
                 }
@@ -192,11 +194,11 @@ public static partial class WriteReducer
     private static List<RowChange> Plan(IReadOnlyList<TabState> tabs, WriteRequest write)
     {
         var changes = new List<RowChange>();
+        var found = FindRows(tabs, write.Keys);
 
         foreach (var key in write.Keys)
         {
-            var row = FindRow(tabs, key);
-            var change = row is null ? null : write.Plan(row);
+            var change = found.TryGetValue(key, out var row) ? write.Plan(row) : null;
 
             if (change is not null)
             {
@@ -207,24 +209,39 @@ public static partial class WriteReducer
         return changes;
     }
 
-    private static IssueSummary? FindRow(IReadOnlyList<TabState> tabs, string key)
+    /// <summary>
+    /// The first row (or sub-task stub, listed under its parent) that shows each key, in tab and row order: one pass
+    /// over the rows however many keys there are.
+    /// </summary>
+    private static Dictionary<string, IssueSummary> FindRows(IReadOnlyList<TabState> tabs, IReadOnlyList<string> keys)
     {
+        var wanted = new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase);
+        var found = new Dictionary<string, IssueSummary>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var tab in tabs)
         {
             foreach (var row in tab.Rows)
             {
-                if (string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))
+                if (found.Count == wanted.Count)
                 {
-                    return row;
+                    return found;
                 }
 
-                if (row.Subtasks.FirstOrDefault(stub => string.Equals(stub.Key, key, StringComparison.OrdinalIgnoreCase)) is { } found)
+                if (wanted.Contains(row.Key))
                 {
-                    return BoardColumns.Listed(row, found);
+                    found.TryAdd(row.Key, row);
+                }
+
+                foreach (var stub in row.Subtasks)
+                {
+                    if (wanted.Contains(stub.Key) && !found.ContainsKey(stub.Key))
+                    {
+                        found[stub.Key] = BoardColumns.Listed(row, stub);
+                    }
                 }
             }
         }
 
-        return null;
+        return found;
     }
 }

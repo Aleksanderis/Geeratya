@@ -24,7 +24,9 @@ public static class WriteMerge
     {
         if (tab.RemovedKeys.Count > 0)
         {
-            incoming = [.. incoming.Where(row => !tab.RemovedKeys.Contains(row.Key, StringComparer.OrdinalIgnoreCase))];
+            var removed = new HashSet<string>(tab.RemovedKeys, StringComparer.OrdinalIgnoreCase);
+
+            incoming = [.. incoming.Where(row => !removed.Contains(row.Key))];
         }
 
         if (state.Session.Operations.Count == 0 && tab.ProtectedKeys.Count == 0 && tab.ProtectedRows.Count == 0)
@@ -48,7 +50,7 @@ public static class WriteMerge
             }
         }
 
-        var running = RunningChanges(state);
+        var running = RunningByKey(state);
 
         if (held.Count == 0 && running.Count == 0)
         {
@@ -85,7 +87,7 @@ public static class WriteMerge
     private static IssueSummary Held(
         IssueSummary row,
         Dictionary<string, IssueSummary> held,
-        IReadOnlyList<RowChange> running)
+        Dictionary<string, List<RowChange>> running)
     {
         if (held.TryGetValue(row.Key, out var own))
         {
@@ -93,9 +95,33 @@ public static class WriteMerge
         }
 
         // A tab that does not hold the issue yet (a next page) takes the optimistic value of a running write.
-        var changes = running.Where(change => IsFor(change, row.Key));
+        if (!running.TryGetValue(row.Key, out var changes))
+        {
+            return row;
+        }
 
         return changes.Aggregate(row, (current, change) => change.Patch(current));
+    }
+
+    /// <summary>The running operations' changes indexed by key (in operation order), so a row looks its changes up.</summary>
+    private static Dictionary<string, List<RowChange>> RunningByKey(AppState state)
+    {
+        var byKey = new Dictionary<string, List<RowChange>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var operation in state.Session.Operations)
+        {
+            foreach (var change in operation.Undo)
+            {
+                if (!byKey.TryGetValue(change.Key, out var list))
+                {
+                    byKey[change.Key] = list = [];
+                }
+
+                list.Add(change);
+            }
+        }
+
+        return byKey;
     }
 
     private static List<RowChange> RunningChanges(AppState state)

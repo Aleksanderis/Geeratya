@@ -121,8 +121,17 @@ public static class RowSelection
     /// <summary>The tab without the given keys among its marks; also leaves Visual mode when its anchor is gone.</summary>
     public static TabState Without(TabState tab, IReadOnlyList<string> keys)
     {
-        var marks = tab.Marks.Where(mark => !Contains(keys, mark)).ToArray();
-        var anchorGone = tab.VisualAnchor is { } anchor && Contains(keys, anchor);
+        return Without(tab, new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// As <see cref="Without(TabState, IReadOnlyList{string})"/> for a set the caller built once (case-insensitive),
+    /// so a call per tab does not rebuild it.
+    /// </summary>
+    public static TabState Without(TabState tab, HashSet<string> keys)
+    {
+        var marks = tab.Marks.Where(mark => !keys.Contains(mark)).ToArray();
+        var anchorGone = tab.VisualAnchor is { } anchor && keys.Contains(anchor);
 
         if (marks.Length == tab.Marks.Count && !anchorGone)
         {

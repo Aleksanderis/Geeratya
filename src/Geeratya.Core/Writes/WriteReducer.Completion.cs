@@ -267,15 +267,17 @@ public static partial class WriteReducer
             return state;
         }
 
-        var moved = operation.Keys.Where(key => !IsAmong(failed, key)).ToArray();
+        var failedSet = KeySet(failed);
+        var moved = operation.Keys.Where(key => !failedSet.Contains(key)).ToArray();
 
         if (moved.Length == 0)
         {
             return state;
         }
 
+        var movedSet = KeySet(moved);
         var tabs = state.Session.Tabs
-            .Select(tab => Holds(tab, moved) ? Unselected(tab, moved) : tab)
+            .Select(tab => Holds(tab, movedSet) ? Unselected(tab, movedSet) : tab)
             .ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
@@ -289,11 +291,10 @@ public static partial class WriteReducer
         List<Effect> effects,
         bool reload = false)
     {
-        var reverted = state;
+        var reverted = MapChanges(state, operation.Undo, true);
 
         foreach (var change in operation.Undo)
         {
-            reverted = MapRows(reverted, [change.Key], change.Revert);
             reverted = Reorder(reverted, change, true);
         }
 

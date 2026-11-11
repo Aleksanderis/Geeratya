@@ -13,23 +13,24 @@ public static class WriteRemoval
 {
     public static AppState Apply(AppState state, IReadOnlyList<string> keys)
     {
-        var tabs = state.Session.Tabs.Select(tab => Without(tab, keys)).ToArray();
+        var set = new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase);
+        var tabs = state.Session.Tabs.Select(tab => Without(tab, keys, set)).ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
     }
 
-    private static TabState Without(TabState tab, IReadOnlyList<string> keys)
+    private static TabState Without(TabState tab, IReadOnlyList<string> keys, HashSet<string> set)
     {
         // A load in flight may still bring the deleted issues back: its reply drops them (WriteMerge).
         var loading = tab.Load is Loading ? tab with { RemovedKeys = [.. tab.RemovedKeys.Union(keys)] } : tab;
 
-        return RowSelection.Without(WithoutRows(loading, keys), keys);
+        return RowSelection.Without(WithoutRows(loading, set), set);
     }
 
-    private static TabState WithoutRows(TabState tab, IReadOnlyList<string> keys)
+    private static TabState WithoutRows(TabState tab, HashSet<string> keys)
     {
-        var details = tab.Detail.Where(detail => !Contains(keys, detail.Key)).ToArray();
-        var kept = tab.Rows.Where(row => !Contains(keys, row.Key)).ToArray();
+        var details = tab.Detail.Where(detail => !keys.Contains(detail.Key)).ToArray();
+        var kept = tab.Rows.Where(row => !keys.Contains(row.Key)).ToArray();
         var removed = tab.Rows.Count - kept.Length;
 
         if (removed == 0)
@@ -47,10 +48,5 @@ public static class WriteRemoval
         var shrunk = tab with { Rows = kept, Detail = details, Total = total, IsStale = true };
 
         return ViewReducer.KeepSelection(shrunk);
-    }
-
-    private static bool Contains(IReadOnlyList<string> keys, string key)
-    {
-        return keys.Contains(key, StringComparer.OrdinalIgnoreCase);
     }
 }
