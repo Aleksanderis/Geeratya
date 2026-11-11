@@ -367,7 +367,7 @@ public static class IssueDocumentBuilder
         sink.AddPanel(PaneIds.Description, [title], content, width, chip, scroll);
     }
 
-    private static List<string?> AddComments(
+    private static IReadOnlyList<string?> AddComments(
         DocumentSink sink,
         DetailState detail,
         int width,
@@ -376,7 +376,7 @@ public static class IssueDocumentBuilder
         IReadOnlyList<CommentRow>? known)
     {
         var rows = known ?? detail.Render.Rows(detail, inner, DetailZoom.BodyLines(detail));
-        var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
+        var ids = detail.Render.IdsOf(rows);
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);
         var order = new StyledSpan(detail.CommentsNewestFirst ? NewestFirstText : OldestFirstText, TextRole.Muted);

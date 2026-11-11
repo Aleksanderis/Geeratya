@@ -15,6 +15,9 @@ internal static class LongText
     /// <summary>Most body rows a Description pane takes before it is cut.</summary>
     private const int DescriptionMaxRows = 12;
 
+    /// <summary>A hidden-line count wider than any real text (comments are cut at 1000, a description at far less).</summary>
+    private const int WidestHidden = 9999999;
+
     /// <summary>
     /// The body rows the Description pane takes (cut or padded to) in a document of <paramref name="viewportRows"/>
     /// rows: a third of it, at least <see cref="DescriptionRows"/>, at most 12, so a small terminal keeps the
@@ -68,8 +71,7 @@ internal static class LongText
             return;
         }
 
-        var hidden = lines.Count - shown;
-        var text = hidden == 1 ? "… 1 more line" : $"… {hidden} more lines";
+        var text = HiddenText(lines.Count - shown);
 
         var action = limit.KeyInFrame ? null : "expand";
 
@@ -87,6 +89,46 @@ internal static class LongText
         DetailTarget target,
         bool zoomHint)
     {
+        var line = NoteOf(text, action, zoomHint);
+        var noteTarget = target with { Note = true };
+
+        if (DisplayWidth.Of(line.PlainText) <= width)
+        {
+            content.Add(line, noteTarget);
+
+            return;
+        }
+
+        var wrapped = new WrappedText(width, false);
+
+        wrapped.Append(line.PlainText, TextRole.Muted);
+        content.Finish(wrapped, noteTarget);
+    }
+
+    /// <summary>
+    /// The one-row note of a cut text with <paramref name="hidden"/> lines left out, as <see cref="Add"/> writes it;
+    /// null when the note would wrap at <paramref name="limit"/> (then the row count depends on the number).
+    /// </summary>
+    public static StyledLine? CollapsedNote(int hidden, LongTextLimit limit)
+    {
+        var line = NoteOf(HiddenText(hidden), limit.KeyInFrame ? null : "expand", limit.ZoomHint);
+
+        return DisplayWidth.Of(line.PlainText) <= limit.Width ? line : null;
+    }
+
+    /// <summary>True when the collapsed note of any realistic line count fits one row of <paramref name="limit"/>.</summary>
+    public static bool NoteFitsOneRow(LongTextLimit limit)
+    {
+        return CollapsedNote(WidestHidden, limit) is not null;
+    }
+
+    private static string HiddenText(int hidden)
+    {
+        return hidden == 1 ? "… 1 more line" : $"… {hidden} more lines";
+    }
+
+    private static StyledLine NoteOf(string text, string? action, bool zoomHint)
+    {
         var spans = new List<StyledSpan> { new(text, TextRole.Muted) };
 
         if (action is not null)
@@ -103,19 +145,6 @@ internal static class LongText
             spans.Add(new StyledSpan(" zoom", TextRole.Muted));
         }
 
-        var line = new StyledLine(spans);
-        var noteTarget = target with { Note = true };
-
-        if (DisplayWidth.Of(line.PlainText) <= width)
-        {
-            content.Add(line, noteTarget);
-
-            return;
-        }
-
-        var wrapped = new WrappedText(width, false);
-
-        wrapped.Append(line.PlainText, TextRole.Muted);
-        content.Finish(wrapped, noteTarget);
+        return new StyledLine(spans);
     }
 }

@@ -19,6 +19,8 @@ public sealed class DetailRenderMemo
     private const int EntriesPerDocument = 4;
 
     private readonly Dictionary<RenderKey, AdfRendering> _renderings = [];
+    private readonly Dictionary<HeadKey, (AdfRendering Rendering, bool Complete)> _heads = [];
+    private (IReadOnlyList<CommentRow> Rows, IReadOnlyList<string?> Ids)? _ids;
     private RowsEntry? _rows;
 
     /// <summary>
@@ -67,6 +69,60 @@ public sealed class DetailRenderMemo
         return rendering;
     }
 
+    /// <summary>
+    /// The start of the rendering of <paramref name="document"/> (<see cref="AdfRenderer.RenderHead"/>), once per
+    /// width and line limit; <c>Complete</c> is false when the document has more than <paramref name="maxLines"/> lines.
+    /// </summary>
+    public (AdfRendering Rendering, bool Complete) Head(AdfDocument document, int width, int maxLines, int documents)
+    {
+        var key = new HeadKey(document, width, maxLines);
+
+        if (_heads.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        if (_heads.Count > Math.Max(MinEntries, documents * EntriesPerDocument))
+        {
+            _heads.Clear();
+        }
+
+        var head = AdfRenderer.RenderHead(document, width, maxLines);
+
+        _heads[key] = head;
+
+        // A document that fits the limit was rendered whole: keep it for Rendering instead of laying it out again.
+        if (head.Complete && !_renderings.ContainsKey(new RenderKey(document, width)))
+        {
+            _renderings[new RenderKey(document, width)] = head.Rendering;
+        }
+
+        return head;
+    }
+
+    /// <summary>
+    /// The comment id of every one of <paramref name="rows"/> (null for rows of no comment), made once per row list:
+    /// the list is the one <see cref="Rows"/> returns, so a key that changes no rows copies nothing.
+    /// </summary>
+    public IReadOnlyList<string?> IdsOf(IReadOnlyList<CommentRow> rows)
+    {
+        if (_ids is { } last && ReferenceEquals(last.Rows, rows))
+        {
+            return last.Ids;
+        }
+
+        var ids = new string?[rows.Count];
+
+        for (var index = 0; index < ids.Length; index++)
+        {
+            ids[index] = rows[index].Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null;
+        }
+
+        _ids = (rows, ids);
+
+        return ids;
+    }
+
     /// <summary>The memo is a cache, not state: two details that differ only in it are equal.</summary>
     public override bool Equals(object? obj)
     {
@@ -77,6 +133,19 @@ public sealed class DetailRenderMemo
     public override int GetHashCode()
     {
         return 0;
+    }
+
+    private readonly record struct HeadKey(AdfDocument Document, int Width, int Lines)
+    {
+        public bool Equals(HeadKey other)
+        {
+            return ReferenceEquals(Document, other.Document) && Width == other.Width && Lines == other.Lines;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RuntimeHelpers.GetHashCode(Document), Width, Lines);
+        }
     }
 
     private readonly record struct RenderKey(AdfDocument Document, int Width)

@@ -47,6 +47,31 @@ public sealed class DetailCommentsMeasurements(ITestOutputHelper output)
         Report("1000 comments, Ctrl-j/Ctrl-k between panes + frame", TimeKeys(state, ["Ctrl-k", "Ctrl-j"]));
     }
 
+    [MeasurementFact]
+    public void ThousandComments_FirstBuildOfTheRows()
+    {
+        var detail = DetailState.Opened("A-1", null, 1, 2, 3) with
+        {
+            Comments = Enumerable.Range(1, CommentCount).Select(Comment).ToArray(),
+            LoadedAt = _now,
+        };
+        var samples = new List<double>();
+
+        for (var index = 0; index < Warmup + 40; index++)
+        {
+            var begin = Stopwatch.GetTimestamp();
+
+            CommentRows.Build(detail, Width - 4, CommentRows.BodyLines, new DetailRenderMemo());
+
+            if (index >= Warmup)
+            {
+                samples.Add(Stopwatch.GetElapsedTime(begin).TotalMilliseconds);
+            }
+        }
+
+        Report("1000 comments, first build of the rows (fresh memo)", samples);
+    }
+
     private static IssueComment Comment(int number)
     {
         var markdown = string.Join('\n', Enumerable.Range(1, Lines).Select(line => $"- item {line} of comment {number}"));

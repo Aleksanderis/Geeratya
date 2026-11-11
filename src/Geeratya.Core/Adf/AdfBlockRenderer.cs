@@ -15,17 +15,23 @@ internal static class AdfBlockRenderer
     /// <summary>Nesting deeper than this is cut off; the parser stops at 64.</summary>
     public const int MaxDepth = 100;
 
-    public static void RenderBlocks(
+    /// <summary>
+    /// Renders <paramref name="nodes"/> into <paramref name="output"/>. Stops after the block that takes the output past
+    /// <paramref name="stopAfter"/> lines (a limit for this level only; nested blocks always render whole) and returns
+    /// true when nodes were left out.
+    /// </summary>
+    public static bool RenderBlocks(
         IReadOnlyList<AdfNode> nodes,
         RenderContext context,
         bool tight,
-        List<StyledLine> output)
+        List<StyledLine> output,
+        int stopAfter = int.MaxValue)
     {
         if (context.Depth > MaxDepth)
         {
             output.Add(StyledLine.Of(AdfMarkers.Truncated, TextRole.Muted));
 
-            return;
+            return false;
         }
 
         var produced = false;
@@ -33,6 +39,11 @@ internal static class AdfBlockRenderer
 
         while (index < nodes.Count)
         {
+            if (output.Count > stopAfter)
+            {
+                return true;
+            }
+
             var separator = produced && !tight;
 
             if (separator)
@@ -57,8 +68,12 @@ internal static class AdfBlockRenderer
             }
             else
             {
-                RenderBlock(node, context, output);
                 index++;
+
+                if (RenderLimited(node, context, output, stopAfter))
+                {
+                    return true;
+                }
             }
 
             if (output.Count > before)
@@ -70,6 +85,8 @@ internal static class AdfBlockRenderer
                 output.RemoveAt(before - 1);
             }
         }
+
+        return false;
     }
 
     /// <summary>Renders children in a narrower context and puts the prefixes in front of the lines.</summary>
@@ -149,6 +166,25 @@ internal static class AdfBlockRenderer
             or AdfMediaInline;
     }
 
+    /// <summary>
+    /// Renders one top-level block; a bullet or ordered list stops after the item that takes the output past
+    /// <paramref name="stopAfter"/> (one long list is a common long comment). True when items were left out.
+    /// </summary>
+    private static bool RenderLimited(AdfNode node, RenderContext context, List<StyledLine> output, int stopAfter)
+    {
+        switch (node)
+        {
+            case AdfBulletList bullets:
+                return RenderBulletList(bullets, context, output, stopAfter);
+            case AdfOrderedList ordered:
+                return RenderOrderedList(ordered, context, output, stopAfter);
+            default:
+                RenderBlock(node, context, output);
+
+                return false;
+        }
+    }
+
     private static void RenderBlock(AdfNode node, RenderContext context, List<StyledLine> output)
     {
         switch (node)
@@ -160,10 +196,10 @@ internal static class AdfBlockRenderer
                 RenderInline(heading.Children, 0, heading.Children.Count, context, TextRole.Heading, output);
                 break;
             case AdfBulletList bullets:
-                RenderBulletList(bullets, context, output);
+                RenderBulletList(bullets, context, output, int.MaxValue);
                 break;
             case AdfOrderedList ordered:
-                RenderOrderedList(ordered, context, output);
+                RenderOrderedList(ordered, context, output, int.MaxValue);
                 break;
             case AdfTaskList tasks:
                 RenderTaskList(tasks, context, output);
@@ -210,28 +246,42 @@ internal static class AdfBlockRenderer
         }
     }
 
-    private static void RenderBulletList(AdfBulletList list, RenderContext context, List<StyledLine> output)
+    private static bool RenderBulletList(AdfBulletList list, RenderContext context, List<StyledLine> output, int stopAfter)
     {
         var marker = new LinePrefix(AdfMarkers.BulletMarker, TextRole.Muted);
 
         for (var index = 0; index < list.Children.Count; index++)
         {
+            if (output.Count > stopAfter)
+            {
+                return true;
+            }
+
             RenderItem(list.Children[index], context, marker, output);
         }
+
+        return false;
     }
 
-    private static void RenderOrderedList(AdfOrderedList list, RenderContext context, List<StyledLine> output)
+    private static bool RenderOrderedList(AdfOrderedList list, RenderContext context, List<StyledLine> output, int stopAfter)
     {
         var lastNumber = list.Order + list.Children.Count - 1;
         var numberWidth = lastNumber.ToString(CultureInfo.InvariantCulture).Length;
 
         for (var index = 0; index < list.Children.Count; index++)
         {
+            if (output.Count > stopAfter)
+            {
+                return true;
+            }
+
             var number = (list.Order + index).ToString(CultureInfo.InvariantCulture);
             var marker = new LinePrefix($"{number.PadLeft(numberWidth)}. ", TextRole.Muted);
 
             RenderItem(list.Children[index], context, marker, output);
         }
+
+        return false;
     }
 
     private static void RenderTaskList(AdfTaskList list, RenderContext context, List<StyledLine> output)
