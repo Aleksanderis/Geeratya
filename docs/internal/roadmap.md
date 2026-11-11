@@ -102,6 +102,16 @@ Goal: someone else can install it and trust it.
 - Name availability check, README demo recording (hosted outside the repo), landing page, contributor docs, issue templates.
 - Idle CPU, startup and memory measurements on a real board and a release check on the first tag.
 
+## After M8: one rolling milestone
+
+Owner, 2026-11-11: milestones are goals, not conditions. Since M8 (and the M10 performance and blocking review, closed the same day) there is one rolling milestone, "M9 - Ongoing improvements", for bugs, follow-ups and loose ends; a new milestone is opened only for a new goal. What blocks an issue is a label, never a milestone, and agents skip these labels:
+
+- `windows-vm`: needs a real Windows machine (or another OS, until a dedicated label is needed)
+- `needs-owner`: only the owner can settle it (decision, accounts, payment)
+- `blocked-upstream`: waits on an upstream fix or release
+
+Everything waiting on something other than an agent: [open issues with these labels](https://github.com/Aleksanderis/Geeratya/issues?q=is%3Aopen+label%3Awindows-vm%2Cneeds-owner%2Cblocked-upstream).
+
 ## Open questions
 
 Each with the recommended default and what changes if it is wrong.

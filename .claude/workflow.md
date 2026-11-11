@@ -31,8 +31,8 @@ Run from the repo root.
 - autonomy: `autonomous` (the owner must never be the bottleneck; decide from the docs, log it, report afterwards)
 - push policy: never push to a remote without the owner's confirmation; ad-hoc changes are committed locally ("committed locally, not pushed"). The landing repository `../Geeratya-landing` is always pushed by agents straight to its `main` (owner, 2026-11-09). The autonomous PR flow (agents pushing `feature/`/`fix/` branches, opening and merging PRs, `scripts/screenshot.sh publish`/`clean`) is exempt.
 - CI: `automatic` (ubuntu on every PR and push to `main`, windows on push to `main` and manual dispatch: `gh workflow run ci.yml --ref <branch> -f os=windows`); CI duration: 10 minutes; CI fix attempts: 3. Orchestrator: after each batch and before handing over, check the latest `main` push run (both jobs); while it is red, fix it first (one agent, `fix/` branch) and do not hand over a red `main` (owner, 2026-11-11: Windows on `main` stayed red unnoticed from #959 to #981)
-- labels: `needs-owner` (only the owner can settle it), `owner` (owner wrote or commented), `windows-vm` (needs a Windows VM; the orchestrator never picks it), `tracking` (milestone tracking issue, never work), `spike`, `needs-review`
-- every issue has a milestone (`gh issue create -m "<milestone>"`)
+- labels: `needs-owner` (only the owner can settle it), `owner` (owner wrote or commented), `windows-vm` (needs a Windows VM; the orchestrator never picks it), `blocked-upstream` (waits on an upstream fix or release; never picked), `tracking` (milestone tracking issue, never work), `spike`, `needs-review`
+- every issue has a milestone (`gh issue create -m "<milestone>"`); bugs, follow-ups and loose ends go to the rolling "M9 - Ongoing improvements" unless they belong to an open goal milestone; a blocking condition is a label, never a milestone (`docs/internal/roadmap.md`, "After M8")
 - commit message format: Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`)
 - models: Sonnet for every role, never Opus
 - context limit: 150000
