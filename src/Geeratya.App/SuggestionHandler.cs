@@ -35,12 +35,13 @@ public sealed class SuggestionHandler
     public Task StartAsync(SearchSuggestionsEffect effect)
     {
         var current = new CancellationTokenSource();
+        var replaced = current.Token;
 
         Replace(effect.Tab, current);
 
         return _runner.StartReporting(
             effect.Tab.Value,
-            (services, report, token) => RunAsync(services, effect, report, current, token),
+            (services, report, token) => RunAsync(services, effect, report, current, replaced, token),
             () => new SuggestionsFailed(effect.Tab, effect.RequestId, NoConnectionMessage));
     }
 
@@ -64,7 +65,26 @@ public sealed class SuggestionHandler
             }
         }
 
-        old?.Cancel();
+        if (old is not null)
+        {
+            _ = RetireAsync(old);
+        }
+    }
+
+    // Cancelling runs the callbacks and continuations of the lookup (debounce wait, transport wait): off the calling
+    // thread, which is the UI thread. A replaced source is disposed here, once it has been cancelled; a lookup that
+    // runs to its end while still the pending one disposes its source itself (see Forget). A source whose lookup never
+    // starts stays pending until the tab's next lookup or Cancel, which disposes it.
+    private static async Task RetireAsync(CancellationTokenSource old)
+    {
+        try
+        {
+            await old.CancelAsync();
+        }
+        finally
+        {
+            old.Dispose();
+        }
     }
 
     private async Task<Command?> RunAsync(
@@ -72,10 +92,9 @@ public sealed class SuggestionHandler
         SearchSuggestionsEffect effect,
         Action<Command> report,
         CancellationTokenSource current,
+        CancellationToken replaced,
         CancellationToken scope)
     {
-        var replaced = current.Token;
-
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(scope, replaced);
 
         try
@@ -94,15 +113,24 @@ public sealed class SuggestionHandler
         }
     }
 
-    // A finished lookup leaves nothing behind unless a newer one has already taken the tab's place.
+    // A finished lookup leaves nothing behind unless a newer one has already taken the tab's place. A source that
+    // was replaced meanwhile is disposed by whoever replaced it, so exactly one side disposes each.
     private void Forget(TabId tab, CancellationTokenSource finished)
     {
+        var owned = false;
+
         lock (_lock)
         {
             if (_pending.TryGetValue(tab.Value, out var latest) && ReferenceEquals(latest, finished))
             {
                 _pending.Remove(tab.Value);
+                owned = true;
             }
+        }
+
+        if (owned)
+        {
+            finished.Dispose();
         }
     }
 

@@ -35,25 +35,34 @@ public static class DisplayWidth
     /// <summary>Cuts <paramref name="text"/> to at most <paramref name="width"/> columns without splitting a character.</summary>
     public static string Fit(string text, int width)
     {
-        var builder = new StringBuilder();
-        var used = 0;
-        var elements = StringInfo.GetTextElementEnumerator(text);
-
-        while (elements.MoveNext())
+        if (text.AsSpan().IndexOfAnyExceptInRange(' ', '~') < 0)
         {
-            var element = elements.GetTextElement();
-            var elementWidth = OfCluster(element);
+            if (text.Length <= width)
+            {
+                return text;
+            }
+
+            return width <= 0 ? string.Empty : text[..width];
+        }
+
+        var used = 0;
+        var end = 0;
+
+        while (end < text.Length)
+        {
+            var length = StringInfo.GetNextTextElementLength(text.AsSpan(end));
+            var elementWidth = OfCluster(text.AsSpan(end, length));
 
             if (used + elementWidth > width)
             {
                 break;
             }
 
-            builder.Append(element);
             used += elementWidth;
+            end += length;
         }
 
-        return builder.ToString();
+        return end == text.Length ? text : text[..end];
     }
 
     /// <summary>Width of one code point: 0, 1 or 2.</summary>
@@ -74,6 +83,12 @@ public static class DisplayWidth
 
     /// <summary>Width of one grapheme cluster: the widest code point, or 2 when it contains an emoji selector.</summary>
     public static int OfCluster(string cluster)
+    {
+        return OfCluster(cluster.AsSpan());
+    }
+
+    /// <summary>As <see cref="OfCluster(string)"/>, over a slice of a larger string (no allocation).</summary>
+    public static int OfCluster(ReadOnlySpan<char> cluster)
     {
         var width = 0;
 

@@ -61,10 +61,12 @@ public static partial class WriteReducer
 
     private static TabState Protected(TabState tab, IReadOnlyList<string> keys, IReadOnlyList<IssueSummary> rows)
     {
+        var set = KeySet(keys);
+
         return tab with
         {
             ProtectedKeys = [.. tab.ProtectedKeys.Union(keys, StringComparer.OrdinalIgnoreCase)],
-            ProtectedRows = [.. tab.ProtectedRows.Where(row => !IsAmong(keys, row.Key)), .. rows],
+            ProtectedRows = [.. tab.ProtectedRows.Where(row => !set.Contains(row.Key)), .. rows],
         };
     }
 
@@ -97,6 +99,12 @@ public static partial class WriteReducer
         return next;
     }
 
+    /// <summary>The keys as one case-insensitive set, built once per call so a lookup per row is O(1).</summary>
+    private static HashSet<string> KeySet(IEnumerable<string> keys)
+    {
+        return new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase);
+    }
+
     private static bool IsAmong(IReadOnlyList<string> keys, string key)
     {
         return keys.Contains(key, StringComparer.OrdinalIgnoreCase);
@@ -124,15 +132,54 @@ public static partial class WriteReducer
 
     private static AppState Patch(AppState state, IReadOnlyList<RowChange> changes)
     {
-        var patched = state;
+        // One pass over the rows for all changes; the order part follows per change (it reads keys only).
+        var patched = MapChanges(state, changes, false);
 
         foreach (var change in changes)
         {
-            patched = MapRows(patched, [change.Key], change.Patch);
             patched = Reorder(patched, change, false);
         }
 
         return patched;
+    }
+
+    /// <summary>
+    /// The row part of the changes (patched, or reverted when <paramref name="undo"/>) in one pass over every tab:
+    /// changes are indexed by key and applied in their given order per row, so the cost does not grow with
+    /// rows times changes.
+    /// </summary>
+    private static AppState MapChanges(AppState state, IReadOnlyList<RowChange> changes, bool undo)
+    {
+        if (changes.Count == 0)
+        {
+            return state;
+        }
+
+        var byKey = new Dictionary<string, List<RowChange>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var change in changes)
+        {
+            if (!byKey.TryGetValue(change.Key, out var list))
+            {
+                byKey[change.Key] = list = [];
+            }
+
+            list.Add(change);
+        }
+
+        return MapRows(state, KeySet(byKey.Keys), row => ApplyAll(row, byKey[row.Key], undo));
+    }
+
+    private static IssueSummary ApplyAll(IssueSummary row, List<RowChange> changes, bool undo)
+    {
+        var current = row;
+
+        foreach (var change in changes)
+        {
+            current = undo ? change.Revert(current) : change.Patch(current);
+        }
+
+        return current;
     }
 
     private static AppState ReplaceRows(AppState state, IReadOnlyList<IssueSummary> fresh)
@@ -144,7 +191,7 @@ public static partial class WriteReducer
 
         var byKey = fresh.ToDictionary(row => row.Key, StringComparer.OrdinalIgnoreCase);
 
-        return MapRows(state, [.. byKey.Keys], row => byKey.GetValueOrDefault(row.Key, row));
+        return MapRows(state, KeySet(byKey.Keys), row => byKey.GetValueOrDefault(row.Key, row));
     }
 
     /// <summary>
@@ -167,8 +214,9 @@ public static partial class WriteReducer
             return state;
         }
 
+        var set = KeySet(operation.Keys);
         var tabs = state.Session.Tabs
-            .Select(tab => IsRankOrdered(tab) && Holds(tab, operation.Keys) ? tab with { RefreshQueued = true } : tab)
+            .Select(tab => IsRankOrdered(tab) && Holds(tab, set) ? tab with { RefreshQueued = true } : tab)
             .ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
@@ -185,16 +233,17 @@ public static partial class WriteReducer
             return state;
         }
 
+        var set = KeySet(operation.Keys);
         var tabs = state.Session.Tabs
-            .Select(tab => Holds(tab, operation.Keys) ? Unselected(tab, operation.Keys) : tab)
+            .Select(tab => Holds(tab, set) ? Unselected(tab, set) : tab)
             .ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
     }
 
-    private static TabState Unselected(TabState tab, IReadOnlyList<string> keys)
+    private static TabState Unselected(TabState tab, HashSet<string> keys)
     {
-        var marks = tab.Marks.Where(mark => !IsAmong(keys, mark)).ToArray();
+        var marks = tab.Marks.Where(mark => !keys.Contains(mark)).ToArray();
 
         return tab with { Marks = marks, VisualAnchor = null };
     }
@@ -228,19 +277,20 @@ public static partial class WriteReducer
 
     private static AppState MarkStale(AppState state, IReadOnlyList<string> keys)
     {
-        var tabs = state.Session.Tabs.Select(tab => Holds(tab, keys) ? tab with { IsStale = true } : tab).ToArray();
+        var set = KeySet(keys);
+        var tabs = state.Session.Tabs.Select(tab => Holds(tab, set) ? tab with { IsStale = true } : tab).ToArray();
 
         return state with { Session = state.Session with { Tabs = tabs } };
     }
 
-    private static bool Holds(TabState tab, IReadOnlyList<string> keys)
+    private static bool Holds(TabState tab, HashSet<string> keys)
     {
-        return tab.Rows.Any(row => keys.Contains(row.Key, StringComparer.OrdinalIgnoreCase));
+        return tab.Rows.Any(row => keys.Contains(row.Key));
     }
 
     private static AppState MapRows(
         AppState state,
-        IReadOnlyList<string> keys,
+        HashSet<string> keys,
         Func<IssueSummary, IssueSummary> map)
     {
         var tabs = state.Session.Tabs;
@@ -264,16 +314,16 @@ public static partial class WriteReducer
 
     private static IReadOnlyList<IssueSummary> MapList(
         IReadOnlyList<IssueSummary> rows,
-        IReadOnlyList<string> keys,
+        HashSet<string> keys,
         Func<IssueSummary, IssueSummary> map)
     {
         IssueSummary[]? copy = null;
 
         for (var index = 0; index < rows.Count; index++)
         {
-            var mapped = keys.Contains(rows[index].Key, StringComparer.OrdinalIgnoreCase)
-                ? map(rows[index])
-                : MapStubs(rows[index], keys, map);
+            // A parent and its sub-task can both be in the bulk: the row and its stubs are both mapped.
+            var own = keys.Contains(rows[index].Key) ? map(rows[index]) : rows[index];
+            var mapped = MapStubs(own, keys, map);
 
             if (ReferenceEquals(mapped, rows[index]))
             {
@@ -291,7 +341,7 @@ public static partial class WriteReducer
     /// The row with the status and title of its sub-task stubs mapped too: an expanded sub-task of a board card is not
     /// a row of the tab, it is listed from the parent's stub, so a write on it must change the stub to show (#645).
     /// </summary>
-    private static IssueSummary MapStubs(IssueSummary parent, IReadOnlyList<string> keys, Func<IssueSummary, IssueSummary> map)
+    private static IssueSummary MapStubs(IssueSummary parent, HashSet<string> keys, Func<IssueSummary, IssueSummary> map)
     {
         IssueSubtask[]? copy = null;
 
@@ -299,7 +349,7 @@ public static partial class WriteReducer
         {
             var stub = parent.Subtasks[index];
 
-            if (!keys.Contains(stub.Key, StringComparer.OrdinalIgnoreCase))
+            if (!keys.Contains(stub.Key))
             {
                 continue;
             }

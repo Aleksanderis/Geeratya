@@ -309,3 +309,29 @@ The key dictionary is built on first use after each row-list change (10 000 hash
 A timed refresh that returns the same issues (same keys in order, each row with the same `Updated`, status, parent, estimate, sprints and sub-tasks: sprint state and sub-task moves do not bump the parent's `Updated`) keeps the tab's `Rows` and `KeyWidth` references (so the layout memos of #930 survive and no `KeepSelection` or key-width pass runs) and emits no `WriteCacheEffect` (no serialization, no write, no eviction check every 60 s per tab). `SiteCache.Flush` serializes before taking the disk lock and holds it per file; eviction lists the folder only when a running byte estimate passes the cap, and orders by last use (reads touch the file time).
 
 Measured (temporary xUnit test, not committed; Release JIT, Linux, page-cache warm): flushing one 100-row view among 150 cache files, median 0.26 ms / p95 0.33 ms before, 0.20 / 0.27 after (the folder scan is gone; the saving grows with folder size and cold disks). Lock hold: a six-view flush used to keep the disk lock for the whole batch; a cache read now waits for one file (test with a 150 ms per-file replacer: the read finishes before the batch does). The reducer cost of a refresh page is below 0.2 ms either way; the gain is the skipped downstream work (memo rebuilds, redraw, cache write), checked by reference-equality tests rather than timed.
+
+## Bulk write merging (#931)
+
+Merging a bulk write into the rows did O(rows x keys) case-insensitive compares per step: `Plan` (one row search per key), `Patch`/rollback (one pass over every row per change), `MapRows`/`MapStubs`, `Holds`, `MarkStale`, `WriteMerge.KeepHeldRows` (a `Where` closure per incoming row, `RemovedKeys.Contains` per row), `WriteRemoval`, `RowSelection.Without` and the `BlockOrderRowChange` sort (linear `IndexOf` in the comparer). Now each call builds one case-insensitive `HashSet` or key dictionary (changes by key, running changes by key, original positions) and every row does a lookup; `Plan` finds all rows in one pass; `Patch` and rollback map the rows once for all changes (the order part still runs per change and reads keys only). Same results, including the order several changes on one key are applied in.
+
+Bench: `BulkWriteMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter BulkWriteMeasurements --logger "console;verbosity=detailed"`), a `SprintMoveRequest` of 1000 marked rows on a 10 000-row list tab, 30 timed runs after 5 warm-up, Release JIT, reducer only (no frame), same machine back to back:
+
+| Step | Before median / p95 (ms) | After median / p95 (ms) |
+|---|---|---|
+| Start (plan, optimistic patch) | 101.41 / 116.50 | 1.15 / 6.54 |
+| Settle (`WriteSucceeded` with 1000 re-read rows) | 47.62 / 65.78 | 0.54 / 1.10 |
+| Failure (rollback of 1000 changes) | 89.59 / 97.37 | 0.85 / 1.37 |
+| Load merge (`KeepHeldRows`, 10 000 incoming rows, write running) | 17.71 / 28.62 | 0.64 / 1.54 |
+
+Memory: a few short-lived key sets and dictionaries (about the size of the bulk) per call; nothing is kept between calls.
+
+## Fitting text in the frame build (#932)
+
+`DisplayWidth.Fit` had no ASCII fast path: every call made a `StringInfo` enumerator, one string per grapheme and a `StringBuilder`, and each line is fitted several times per frame (pane, body, final fit, overlay, `OverlayBox` slice). Now `Fit` returns the same string when printable ASCII fits (`text[..width]` when longer) and otherwise steps through the text with `StringInfo.GetNextTextElementLength` over spans (no per-grapheme string, one substring at the end); `OfCluster` has a span overload. In the frame build, `StyledLines.Fit` returns a line that is already exactly `width` columns unchanged (no empty span in it) and reuses spans whose text did not change; `StyledLines.Slice` steps by index. Wide characters, emoji and combining marks cut as before (`DisplayWidthTests`, `StyledLinesTests`).
+
+| What | Method | Before | After |
+|---|---|---|---|
+| Frame build (`FrameBuilder.BuildStyled`) at 120x40, list, 10 000 rows loaded, bytes allocated per frame | `HotPathMeasurements.ListOf10kRows_AllocationPerFrameAt120x40` (`GC.GetAllocatedBytesForCurrentThread`, 200 warm-up and 500 timed frames, Release JIT) | 805 000 to 808 000 (3 runs) | 238 000 to 263 000 (3 runs; one other machine run read 129 000, so the counter varies between machines, the before figure does not) |
+| Nav key + frame, same list, median / p95 ms | `HotPathMeasurements.ListOf10kRows_NavKeyThroughReducerAndFrame` | 0.34 / 0.72 | 0.13 to 0.29 / 0.27 to 0.42 (timing noisy, machine load) |
+
+Not done here (registered as #962): `ListBodyRenderer` mark `HashSet`, `FlashLabelsOf` dictionary with flash off, `Palette.Resolve` contrast memo, `ShellScreen.Render` list copy, the Windows `Asciified` pass.
