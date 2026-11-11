@@ -6,6 +6,8 @@ namespace Geeratya.Core.Cache;
 
 public sealed partial class SiteCache
 {
+    private const int MaxYields = 50;
+
     // `locked`: the caller already holds the disk lock (a discard after disposal), so the files are deleted directly.
     private void DeleteViewFiles(bool locked = false)
     {
@@ -32,6 +34,8 @@ public sealed partial class SiteCache
     /// <summary>Runs one file operation under the disk lock, unless the cache was disposed meanwhile.</summary>
     private void WithDisk(Action operation)
     {
+        YieldToReads();
+
         lock (_diskLock)
         {
             if (!IsDisposed())
@@ -272,10 +276,11 @@ public sealed partial class SiteCache
         }
     }
 
-    // Between two files of a batch: a read that is already waiting for the disk lock gets it before the next write.
+    // Before each file step of a flush: a read that is already waiting for the disk lock gets it first. Bounded, so a
+    // steady stream of reads cannot hold a flush (the one at exit included) back for long.
     private void YieldToReads()
     {
-        while (Volatile.Read(ref _readsWaiting) > 0)
+        for (var attempt = 0; attempt < MaxYields && Volatile.Read(ref _readsWaiting) > 0; attempt++)
         {
             Thread.Sleep(1);
         }
