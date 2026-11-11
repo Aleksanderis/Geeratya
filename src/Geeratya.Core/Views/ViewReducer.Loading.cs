@@ -121,12 +121,12 @@ public static partial class ViewReducer
 
         // A timed refresh that found nothing new keeps the very same rows (so layout memos and the redraw stay put)
         // and does not rewrite the cache file (#935).
-        var unchanged = !appended && !tab.Restored && SameIssues(tab.Rows, rows);
+        var unchanged = !appended && SameIssues(tab.Rows, rows);
 
         var updated = tab with
         {
             // A refresh brings fresh sub-task stubs without assignees: keep those read for the expanded cards (#911).
-            Rows = unchanged ? tab.Rows : appended ? rows : SubtaskAssigneeReducer.CarryOver(tab.Rows, rows, tab.ExpandedSubtasks),
+            Rows = NextRows(tab, rows, appended, unchanged),
             Next = cursor,
             Truncated = truncated,
             Load = LoadState.Idle,
@@ -138,7 +138,7 @@ public static partial class ViewReducer
             ProtectedKeys = [],
             ProtectedRows = [],
             RemovedKeys = [],
-            KeyWidth = unchanged ? tab.KeyWidth : KeyWidthOf(appended ? tab.KeyWidth : 0, appended ? loaded.Page.Items : merged),
+            KeyWidth = NextKeyWidth(tab, loaded.Page.Items, merged, appended, unchanged),
             Failures = 0,
             Total = loaded.Page.Total ?? tab.Total,
             TotalIsApproximate = loaded.Page.Total is null && tab.TotalIsApproximate,
@@ -147,7 +147,8 @@ public static partial class ViewReducer
                 : RefreshSchedule.AfterSuccess(loaded.At),
         };
 
-        var selected = (appended && !BacklogSections.Applies(tab)) || unchanged ? updated : KeepSelection(updated);
+        var keepsSelection = unchanged || (appended && !BacklogSections.Applies(tab));
+        var selected = keepsSelection ? updated : KeepSelection(updated);
 
         // A page narrowed by quick filters is not the board's view, so it never goes to the cache.
         if (!appended && !unchanged && tab.ActiveQuickFilters.Count == 0)
@@ -169,7 +170,41 @@ public static partial class ViewReducer
         return WantsNextPage(enforced, current) ? RequestNext(enforced, current, effects) : enforced;
     }
 
-    /// <summary>True when both lists hold the same issues in the same order, each last updated at the same time.</summary>
+    private static IReadOnlyList<IssueSummary> NextRows(
+        TabState tab,
+        IReadOnlyList<IssueSummary> rows,
+        bool appended,
+        bool unchanged)
+    {
+        if (unchanged)
+        {
+            return tab.Rows;
+        }
+
+        // A refresh brings fresh sub-task stubs without assignees: keep those read for the expanded cards (#911).
+        return appended ? rows : SubtaskAssigneeReducer.CarryOver(tab.Rows, rows, tab.ExpandedSubtasks);
+    }
+
+    private static int NextKeyWidth(
+        TabState tab,
+        IReadOnlyList<IssueSummary> page,
+        IReadOnlyList<IssueSummary> merged,
+        bool appended,
+        bool unchanged)
+    {
+        if (unchanged)
+        {
+            return tab.KeyWidth;
+        }
+
+        return appended ? KeyWidthOf(tab.KeyWidth, page) : KeyWidthOf(0, merged);
+    }
+
+    /// <summary>
+    /// True when both lists hold the same issues in the same order and every row shows the same thing: a row without
+    /// <c>Updated</c> never matches, and sprints, sub-tasks and the parent are compared too, because Jira changes
+    /// those (a sprint started, a sub-task moved, an epic renamed) without touching the row issue's own update time.
+    /// </summary>
     private static bool SameIssues(IReadOnlyList<IssueSummary> held, IReadOnlyList<IssueSummary> fresh)
     {
         if (held.Count != fresh.Count || held.Count == 0)
@@ -179,14 +214,26 @@ public static partial class ViewReducer
 
         for (var index = 0; index < held.Count; index++)
         {
-            if (held[index].Key != fresh[index].Key || held[index].Updated != fresh[index].Updated
-                || held[index].Updated is null)
+            if (!SameRow(held[index], fresh[index]))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static bool SameRow(IssueSummary held, IssueSummary fresh)
+    {
+        return held.Updated is not null
+            && held.Key == fresh.Key
+            && held.Updated == fresh.Updated
+            && held.Status == fresh.Status
+            && held.Parent == fresh.Parent
+            && held.Estimate == fresh.Estimate
+            && held.IsListed == fresh.IsListed
+            && held.Sprints.SequenceEqual(fresh.Sprints)
+            && held.Subtasks.SequenceEqual(fresh.Subtasks);
     }
 
     /// <summary>

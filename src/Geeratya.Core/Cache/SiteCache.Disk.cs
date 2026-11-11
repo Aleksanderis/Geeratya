@@ -141,7 +141,8 @@ public sealed partial class SiteCache
     {
         try
         {
-            _permissions.CreateDirectory(_folder);
+            // Under the disk lock, so a disposed cache (a folder about to be deleted) never recreates it.
+            WithDisk(() => _permissions.CreateDirectory(_folder));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -257,15 +258,15 @@ public sealed partial class SiteCache
             }
 
             _file.Write(path, stream => stream.Write(bytes), _permissions.RestrictFile);
-            AddWritten(path);
+            AddWritten(bytes.Length);
         }
     }
 
-    private void AddWritten(string path)
+    private void AddWritten(long length)
     {
         if (_diskBytesEstimate >= 0)
         {
-            _diskBytesEstimate += new FileInfo(path).Length;
+            _diskBytesEstimate += length;
         }
     }
 
@@ -282,10 +283,7 @@ public sealed partial class SiteCache
                 return;
             }
 
-            var files = new DirectoryInfo(_folder).GetFiles()
-                .Where(file => !file.Name.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(file => file.LastWriteTimeUtc)
-                .ToList();
+            var files = new DirectoryInfo(_folder).GetFiles().OrderBy(file => file.LastWriteTimeUtc).ToList();
             var total = files.Sum(file => file.Length);
 
             foreach (var file in files)

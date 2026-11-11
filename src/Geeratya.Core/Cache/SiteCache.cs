@@ -64,7 +64,8 @@ public sealed partial class SiteCache : IDisposable
     private bool _failureReported;
     private bool _readProblemReported;
 
-    // Bytes written since the last full listing of the folder (an upper bound, a replaced file counts twice); -1 = not listed yet.
+    // Bytes written since the last full listing of the folder (an upper bound: a replaced file counts twice);
+    // -1 until the first listing.
     private long _diskBytesEstimate = -1;
 
     public SiteCache(
@@ -316,7 +317,7 @@ public sealed partial class SiteCache : IDisposable
 
     /// <summary>
     /// Drops the memory part and any pending write at once, without waiting for file work in progress (the UI
-    /// thread calls it on a profile switch). A batch already being written may still finish; the disk stays.
+    /// thread calls it on a profile switch). The batch being written stops after the file in progress; the disk stays.
     /// Pending removals (an issue that is gone, removed views) are not lost: they are deleted on a pool thread,
     /// the returned task completes when that is done. A cache opened later for the same folder has its own disk
     /// lock, so the two can overlap briefly; at worst that costs one stale hit or one lost page. Not awaited at

@@ -5,6 +5,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Tests.Cache;
@@ -161,6 +162,48 @@ public class ViewCacheReducerTests
     }
 
     [Fact]
+    public void GivenLoadedView_WhenOnlyASubtaskStatusChangesWithTheSameUpdated_ThenTheRowsAreReplaced()
+    {
+        var done = new IssueStatus("3", "Done", "done");
+        var open = new IssueSubtask("A-11", "Child", new IssueStatus("1", "To Do", "new"), "Sub-task");
+        var held = ReplyItems(2, _saved);
+        held[0] = held[0] with { Subtasks = [open] };
+        var loaded = LoadedWith(held);
+        var fresh = ReplyItems(2, _saved);
+        fresh[0] = fresh[0] with { Subtasks = [open with { Status = done }] };
+
+        var result = Refresh(loaded, fresh);
+
+        Assert.Equal(done, result.State.Session.Tabs[0].Rows[0].Subtasks[0].Status);
+        Assert.Single(result.Effects.OfType<WriteCacheEffect>());
+    }
+
+    [Fact]
+    public void GivenLoadedView_WhenOnlyASprintStateChangesWithTheSameUpdated_ThenTheRowsAreReplaced()
+    {
+        var held = ReplyItems(2, _saved);
+        held[0] = held[0] with { Sprints = [new IssueSprint(7, "Sprint 7", SprintState.Future)] };
+        var loaded = LoadedWith(held);
+        var fresh = ReplyItems(2, _saved);
+        fresh[0] = fresh[0] with { Sprints = [new IssueSprint(7, "Sprint 7", SprintState.Active)] };
+
+        var result = Refresh(loaded, fresh);
+
+        Assert.Equal(SprintState.Active, result.State.Session.Tabs[0].Rows[0].Sprints[0].State);
+        Assert.Single(result.Effects.OfType<WriteCacheEffect>());
+    }
+
+    [Fact]
+    public void GivenRowsWithoutAnUpdatedTime_WhenARefreshBringsTheSameIssues_ThenTheyAreStillReplaced()
+    {
+        var loaded = LoadedWith([Issue(1), Issue(2)]);
+
+        var result = Refresh(loaded, [Issue(1), Issue(2)]);
+
+        Assert.Single(result.Effects.OfType<WriteCacheEffect>());
+    }
+
+    [Fact]
     public void GivenLoadedView_WhenARefreshBringsAnIssueMoreOrFewer_ThenTheRowsAreReplacedAndCached()
     {
         var loaded = LoadedWithUpdates(3, _saved);
@@ -264,9 +307,14 @@ public class ViewCacheReducerTests
 
     private AppState LoadedWithUpdates(int count, DateTimeOffset updated)
     {
+        return LoadedWith(ReplyItems(count, updated));
+    }
+
+    private AppState LoadedWith(IssueSummary[] items)
+    {
         var opened = Open();
         var tab = opened.State.Session.Tabs[0];
-        var reply = new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(ReplyItems(count, updated), null, null), _now);
+        var reply = new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(items, null, null), _now);
 
         return _reducer.Reduce(opened.State, reply).State;
     }
