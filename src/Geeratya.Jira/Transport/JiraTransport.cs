@@ -225,7 +225,11 @@ public sealed partial class JiraTransport : IDisposable
             // WaitAsync is the hard deadline: a connection that went dead while the app sat idle (a laptop asleep, a
             // NAT that dropped the flow) can leave a socket call that never honours the token, and the request would
             // then wait for ever. The abandoned call ends with the handler or the connection; nothing waits for it.
-            using var response = await _client.SendAsync(message, timeout.Token).WaitAsync(timeout.Token);
+            // Headers only: the body is then read from the network stream (deserialized from UTF-8, or cut at 8 KB for
+            // an error) instead of being buffered whole inside HttpClient first.
+            using var response = await _client
+                .SendAsync(message, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+                .WaitAsync(timeout.Token);
             RecordRateLimit(response);
 
             if (!response.IsSuccessStatusCode)

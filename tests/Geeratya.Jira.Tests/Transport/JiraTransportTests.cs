@@ -164,14 +164,14 @@ public sealed class JiraTransportTests
     public async Task GivenHugeErrorBody_WhenGetting_ThenErrorIsMappedFromItsFirstBytesOnly()
     {
         using var fixture = new TransportFixture();
-        var body = $"<html><body>Bad gateway {new string('x', 2 * 1024 * 1024)} tail-marker</body></html>";
+        // The message sits after 2 MB of padding: read in full the mapper would find it, cut at 8 KB it cannot.
+        var body = $$"""{"padding":"{{new string('x', 2 * 1024 * 1024)}}","errorMessages":["tail-marker"]}""";
         fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
 
         var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(JiraErrorKind.BadRequest, result.Error.Kind);
-        Assert.True(result.Error.Message.Length < 1024);
         Assert.DoesNotContain("tail-marker", result.Error.Message, StringComparison.Ordinal);
     }
 

@@ -38,6 +38,7 @@ internal static class ResponseBody
             length += read;
         }
 
+        // Jira sends UTF-8; a character cut by the cap becomes U+FFFD, which only reaches a snippet.
         return Encoding.UTF8.GetString(buffer, 0, length);
     }
 
