@@ -52,11 +52,22 @@ public sealed class CancelOffUiThreadTests : IDisposable
         _time.Advance(_debounce);
         await _http.RequestArrived.WaitAsync(_limit);
 
-        var caller = Environment.CurrentManagedThreadId;
-
-        handler.Cancel(_tab);
+        // The caller is a dedicated thread, not a pool thread: after it finishes, the pool could not reuse its id for
+        // the callback, which would make the comparison below depend on timing.
+        var caller = 0;
+        var cancelling = Task.Factory.StartNew(
+            () =>
+            {
+                caller = Environment.CurrentManagedThreadId;
+                handler.Cancel(_tab);
+            },
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
 
         // Cancel has returned while the callback is still blocked: it did not run here, and it did not hold us up.
+        await cancelling.WaitAsync(_limit);
+
         var callbackThread = await _http.CallbackThread.WaitAsync(_limit);
 
         Assert.NotEqual(caller, callbackThread);

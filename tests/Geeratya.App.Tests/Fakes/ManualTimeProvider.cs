@@ -6,9 +6,13 @@ namespace Geeratya.App.Tests.Fakes;
 /// </summary>
 public sealed class ManualTimeProvider : TimeProvider
 {
+    private long _elapsedTicks;
+
     private readonly object _lock = new();
     private readonly List<ManualTimer> _timers = [];
     private DateTimeOffset _now = new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
+
+    public override long TimestampFrequency => TimeSpan.TicksPerSecond;
 
     /// <summary>Timers that are waiting for their due time.</summary>
     public int PendingTimers
@@ -27,6 +31,24 @@ public sealed class ManualTimeProvider : TimeProvider
         lock (_lock)
         {
             return _now;
+        }
+    }
+
+    /// <summary>The monotonic timestamp: moves with <see cref="Advance"/>, never with <see cref="JumpWallClock"/>.</summary>
+    public override long GetTimestamp()
+    {
+        lock (_lock)
+        {
+            return _elapsedTicks;
+        }
+    }
+
+    /// <summary>Changes the wall clock only, as a clock adjustment or a resume from sleep would; no time passes.</summary>
+    public void JumpWallClock(TimeSpan by)
+    {
+        lock (_lock)
+        {
+            _now += by;
         }
     }
 
@@ -52,6 +74,7 @@ public sealed class ManualTimeProvider : TimeProvider
         lock (_lock)
         {
             _now += by;
+            _elapsedTicks += by.Ticks;
             due = [.. _timers.Where(timer => timer.IsDue(_now)).OrderBy(timer => timer.DueAt)];
         }
 

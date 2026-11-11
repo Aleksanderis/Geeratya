@@ -53,6 +53,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly TerminalBackgroundDetector? _background;
     private bool? _lightBackground;
     private readonly ApplicationUiThread _uiThread = new();
+    private readonly UiInvokeGate _uiGate = new();
     private IApplication? _application;
     private ShellScreen? _screen;
     private AppState _state = AppState.Initial;
@@ -71,7 +72,12 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         TerminalBackgroundDetector? background = null)
     {
         _background = background;
-        _watchdog = new QuitWatchdog(TimeProvider.System, new TerminalProcessExit(_uiThread, Console.Out));
+        _watchdog = new QuitWatchdog(TimeProvider.System, new TerminalProcessExit(
+                _uiThread,
+                Console.Out,
+                _uiGate,
+                TerminalReset.ForProcess(),
+                new SystemProcessEnder()));
         _defaultBindings = new KeymapTable(keymap.Bindings);
         _keymap = keymap;
         _keymapLoad = UserKeymaps.Apply(keymap, _defaultBindings, profiles.Keymap);
@@ -152,14 +158,16 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
         }
         finally
         {
+            // Closed and cancelled before the application goes, so a tick or a reply that lands meanwhile is dropped
+            // instead of reaching a disposed application (#940). The callbacks of the cancelled work run on the
+            // thread pool, not inline here (#926); they only cancel linked sources, so nothing below waits for them.
+            _uiGate.Close();
+            _ = _shutdown.CancelAsync();
             StopShutdownGuards();
             _uiThread.Detach();
             _application?.Dispose();
         }
 
-        // The callbacks of the cancelled work run on the thread pool, not inline here (#926); they only cancel linked
-        // sources, so the flushes below do not wait for them.
-        _ = _shutdown.CancelAsync();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();
         _watchdog.Disarm();
@@ -214,7 +222,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             await _effects.WaitForWritesAsync(_quitWait, CancellationToken.None);
         }
 
-        _application!.Invoke(_application.RequestStop);
+        InvokeGuarded(() => _application?.RequestStop());
     }
 
     /// <summary>Thread-safe entry for background work: runs the reducer on the UI thread.</summary>
