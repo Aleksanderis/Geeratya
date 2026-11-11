@@ -44,7 +44,8 @@ public sealed partial class ShellHost
         }
 
         var now = TimeProvider.System.GetUtcNow();
-        var context = PointerContext(now);
+        var wheel = mouse.Flags.HasFlag(MouseFlags.WheeledUp) || mouse.Flags.HasFlag(MouseFlags.WheeledDown);
+        var context = PointerContext(now, wheel);
         var commands = ResolvePointer(context, drag, live, mouse.Flags, new MouseCell(position.X, position.Y), now);
 
         if (commands.Count == 0)
@@ -76,17 +77,26 @@ public sealed partial class ShellHost
         }
     }
 
-    private MouseContext PointerContext(DateTimeOffset now)
+    // A wheel notch outside an overlay needs no drawn cells, so a burst of notches builds no frame (#933); anything
+    // else reads the regions and the marker, which builds the frame of the latest state once.
+    private MouseContext PointerContext(DateTimeOffset now, bool wheel = false)
     {
         var size = _application!.Screen.Size;
 
-        var regions = _screen!.OverlayRegions;
+        var context = MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, null, _keymap)
+            with
+            {
+                LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
+            };
 
-        return MouseContext.From(_state, size.Width, size.Height, FrameBuilder.HeaderRows, now, regions, _keymap) with
+        if (wheel && !context.OverlayOpen)
         {
-            LaneChip = StatusBar.LaneCells(_state, size.Width, _keymap, now),
-            RowMenuMarker = _screen.RowMenuMarker,
-        };
+            return context;
+        }
+
+        _screen!.BuildFrame();
+
+        return context with { Regions = _screen.OverlayRegions, RowMenuMarker = _screen.RowMenuMarker };
     }
 
     // The held button moved: the range follows the pointer; outside the body a timer keeps moving the cursor.

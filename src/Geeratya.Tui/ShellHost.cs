@@ -56,6 +56,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private readonly UiInvokeGate _uiGate = new();
     private IApplication? _application;
     private ShellScreen? _screen;
+    private readonly ConnectionDemand _connectionDemand = new();
     private AppState _state = AppState.Initial;
     private ITimer? _tickTimer;
     private ITimer? _whichKeyTimer;
@@ -282,6 +283,10 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private void OnIteration(object? sender, EventArgs<IApplication?> eventArgs)
     {
         _stalls?.Beat();
+
+        // One build per iteration, before the draw pass: the children of the screen are judged for drawing before
+        // their parent's own draw step runs, so a build inside it would show the previous state (#933).
+        _screen?.BuildFrame();
         _application?.Driver?.SetCursorNeedsUpdate(false);
     }
 
@@ -366,7 +371,13 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             _connections.RetryFailed();
         }
 
-        _ = ConnectAsync();
+        // Only a changed profile (or a retry asked above) needs the connection built again; a key does not.
+        var retry = checks.Count > 0 || command is ProfilesChanged;
+
+        if (_connectionDemand.Needed(_state.Profiles.Active, _state.Profiles.Profiles.Count, retry))
+        {
+            _ = ConnectAsync();
+        }
 
         if (reloaded is not null)
         {
