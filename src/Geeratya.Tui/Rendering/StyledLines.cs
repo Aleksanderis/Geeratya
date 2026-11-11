@@ -18,6 +18,11 @@ public static class StyledLines
     /// <summary>As <see cref="Fit(StyledLine, int)"/>, with the padding drawn in <paramref name="padding"/>.</summary>
     public static StyledLine Fit(StyledLine line, int width, TextRole padding)
     {
+        if (IsExactly(line, width))
+        {
+            return line;
+        }
+
         var spans = new List<StyledSpan>();
         var used = 0;
 
@@ -32,7 +37,7 @@ public static class StyledLines
 
             if (text.Length > 0)
             {
-                spans.Add(span with { Text = text });
+                spans.Add(ReferenceEquals(text, span.Text) ? span : span with { Text = text });
                 used += TextWidth.Of(text);
             }
         }
@@ -43,6 +48,30 @@ public static class StyledLines
         }
 
         return new StyledLine(spans);
+    }
+
+    // A line that is already exactly `width` columns with no empty span is returned as is: it is the common case for
+    // a line that an earlier stage of the frame build has fitted, and refitting it would only copy it.
+    private static bool IsExactly(StyledLine line, int width)
+    {
+        var used = 0;
+
+        foreach (var span in line.Spans)
+        {
+            if (span.Text.Length == 0)
+            {
+                return false;
+            }
+
+            used += TextWidth.Of(span.Text);
+
+            if (used > width)
+            {
+                return false;
+            }
+        }
+
+        return used == width;
     }
 
     /// <summary>
@@ -63,14 +92,16 @@ public static class StyledLines
             }
 
             var text = new StringBuilder();
-            var elements = StringInfo.GetTextElementEnumerator(span.Text);
+            var source = span.Text;
 
-            while (elements.MoveNext())
+            for (var index = 0; index < source.Length;)
             {
-                var element = elements.GetTextElement();
+                var length = StringInfo.GetNextTextElementLength(source.AsSpan(index));
+                var element = source.AsSpan(index, length);
                 var size = DisplayWidth.OfCluster(element);
                 var start = column;
 
+                index += length;
                 column += size;
 
                 if (start >= from && column <= to)

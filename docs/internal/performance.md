@@ -318,3 +318,14 @@ Bench: `BulkWriteMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/G
 | Load merge (`KeepHeldRows`, 10 000 incoming rows, write running) | 17.71 / 28.62 | 0.64 / 1.54 |
 
 Memory: a few short-lived key sets and dictionaries (about the size of the bulk) per call; nothing is kept between calls.
+
+## Fitting text in the frame build (#932)
+
+`DisplayWidth.Fit` had no ASCII fast path: every call made a `StringInfo` enumerator, one string per grapheme and a `StringBuilder`, and each line is fitted several times per frame (pane, body, final fit, overlay, `OverlayBox` slice). Now `Fit` returns the same string when printable ASCII fits (`text[..width]` when longer) and otherwise steps through the text with `StringInfo.GetNextTextElementLength` over spans (no per-grapheme string, one substring at the end); `OfCluster` has a span overload. In the frame build, `StyledLines.Fit` returns a line that is already exactly `width` columns unchanged (no empty span in it) and reuses spans whose text did not change; `StyledLines.Slice` steps by index. Wide characters, emoji and combining marks cut as before (`DisplayWidthTests`, `StyledLinesTests`).
+
+| What | Method | Before | After |
+|---|---|---|---|
+| Frame build (`FrameBuilder.BuildStyled`) at 120x40, list, 10 000 rows loaded, bytes allocated per frame | `HotPathMeasurements.ListOf10kRows_AllocationPerFrameAt120x40` (`GC.GetAllocatedBytesForCurrentThread`, 200 warm-up and 500 timed frames, Release JIT) | 810 243 | 247 221 |
+| Nav key + frame, same list, median / p95 ms | `HotPathMeasurements.ListOf10kRows_NavKeyThroughReducerAndFrame` | 0.34 / 0.72 | 0.29 / 0.42 |
+
+Not done here (registered as #962): `ListBodyRenderer` mark `HashSet`, `FlashLabelsOf` dictionary with flash off, `Palette.Resolve` contrast memo, `ShellScreen.Render` list copy, the Windows `Asciified` pass.
