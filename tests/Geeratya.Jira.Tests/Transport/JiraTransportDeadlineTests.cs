@@ -110,6 +110,34 @@ public sealed class JiraTransportDeadlineTests
         Assert.True(result.IsSuccess);
     }
 
+    [Fact]
+    public async Task GivenBackgroundCallAfterAServerError_WhenAbandonedForAUserCall_ThenItStillCompletesAfterwards()
+    {
+        using var fixture = new TransportFixture(options => options with
+        {
+            MaxConcurrentRequests = 1,
+            Timeout = TimeSpan.FromSeconds(30),
+            OperationDeadline = TimeSpan.FromSeconds(30),
+            PreemptBackgroundAfter = TimeSpan.FromMilliseconds(50),
+        });
+        var never = new TaskCompletionSource();
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, new FakeResponse(HttpStatusCode.ServiceUnavailable));
+        fixture.Handler.Script(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()) with { Gate = never.Task });
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        var background = SendAsync(fixture, JiraRequest.Get(MyselfPath).AsBackground());
+
+        while (fixture.Handler.Requests.Count < 2)
+        {
+            await Task.Delay(10);
+        }
+
+        var user = await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.True(user.IsSuccess);
+        Assert.True((await background).IsSuccess);
+    }
+
     private static string MyselfJson() => FixtureFiles.Read("myself/myself.json");
 
     private static Task<JiraResult<JiraUser>> SendAsync(TransportFixture fixture, JiraRequest request) =>

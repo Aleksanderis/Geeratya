@@ -31,7 +31,7 @@ internal sealed class OperationDeadline : IDisposable
             // A deadline that already passed stays passed.
             if (!_source.IsCancellationRequested)
             {
-                _source.CancelAfter(_end - _clock.GetUtcNow() is { } left && left > TimeSpan.Zero ? left : TimeSpan.Zero);
+                _source.CancelAfter((_end - _clock.GetUtcNow()) is { Ticks: > 0 } left ? left : TimeSpan.Zero);
             }
         }
     }

@@ -15,6 +15,7 @@ public sealed class JiraTransport : IDisposable
 {
     private const string JsonMediaType = "application/json";
     private const int MaxBackoffExponent = 10;
+    private const string AbandonedMessage = "Abandoned for a user request; no reply from Jira in time.";
 
     private readonly JiraConnection _connection;
     private readonly string _authorization;
@@ -127,9 +128,21 @@ public sealed class JiraTransport : IDisposable
         {
             var result = await AttemptAsync(request, resultInfo, operation, callerToken);
 
-            if (result.IsSuccess || operation.Token.IsCancellationRequested || !ShouldRetry(request, result.Error, attempt))
+            if (result.IsSuccess || operation.Token.IsCancellationRequested)
             {
                 return result;
+            }
+
+            if (result.Error.Message != AbandonedMessage && !ShouldRetry(request, result.Error, attempt))
+            {
+                return result;
+            }
+
+            // Dropped by the transport itself for a user request: asked again behind it, without spending a retry
+            // (the operation deadline still bounds it), so a healthy link never shows a refresh as failed.
+            if (result.Error.Message == AbandonedMessage)
+            {
+                continue;
             }
 
             var wait = WaitBeforeRetry(result.Error, attempt);
@@ -314,7 +327,7 @@ public sealed class JiraTransport : IDisposable
         }
         catch (OperationCanceledException) when (lease.IsAbandoned && !cancellationToken.IsCancellationRequested)
         {
-            return Fail<T>(JiraErrorKind.Timeout, "Abandoned for a user request; no reply from Jira in time.");
+            return Fail<T>(JiraErrorKind.Timeout, AbandonedMessage);
         }
         catch (OperationCanceledException) when (operationToken.IsCancellationRequested
             && !cancellationToken.IsCancellationRequested)
