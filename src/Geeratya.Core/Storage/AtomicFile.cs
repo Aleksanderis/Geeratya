@@ -6,9 +6,11 @@ namespace Geeratya.Core.Storage;
 /// Writes a state file through a uniquely named temporary file in the same folder and replaces the target, so a
 /// crash never leaves half a file and two instances never share a temporary file. On Windows an antivirus scanner,
 /// an indexer, a sync tool or a reader in another instance can hold the target for a moment, which fails the replace
-/// with an <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/>; the replace is retried a few times
-/// with a short backoff (20, 40, 80 and 160 ms) before the last error is thrown. Readers use
-/// <see cref="ReadAllText"/> / <see cref="OpenRead"/>, which share with writers and with a replace or delete.
+/// with an <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> (or a
+/// <see cref="FileNotFoundException"/> when the target vanishes under a concurrent replace and the temporary file still
+/// exists); the replace is retried a few times with a short backoff (20, 40, 80 and 160 ms) before the last error is
+/// thrown. Readers use <see cref="ReadAllText"/> /
+/// <see cref="OpenRead"/>, which share with writers and with a replace or delete.
 /// </summary>
 public sealed class AtomicFile
 {
@@ -140,16 +142,22 @@ public sealed class AtomicFile
 
                 return;
             }
-            catch (Exception exception) when (IsRetryable(exception) && attempt < Attempts)
+            catch (Exception exception) when (IsRetryable(exception, temporary) && attempt < Attempts)
             {
                 _replacer.Pause(TimeSpan.FromMilliseconds(FirstBackoffMilliseconds << (attempt - 1)));
             }
         }
     }
 
-    private static bool IsRetryable(Exception exception)
+    // A FileNotFoundException with the temporary file still present means the target vanished under the replace (another
+    // instance replaced or deleted it at the same moment): retry. A missing temporary or folder fails at once.
+    private static bool IsRetryable(Exception exception, string temporary)
     {
-        return exception is (IOException or UnauthorizedAccessException)
-            and not (DirectoryNotFoundException or FileNotFoundException);
+        if (exception is FileNotFoundException)
+        {
+            return File.Exists(temporary);
+        }
+
+        return exception is (IOException or UnauthorizedAccessException) and not DirectoryNotFoundException;
     }
 }
