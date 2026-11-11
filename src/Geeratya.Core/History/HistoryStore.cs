@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.History;
 
@@ -13,16 +14,16 @@ public sealed class HistoryStore
 {
     public const string FileName = "history.json";
 
-    private const string TemporarySuffix = ".tmp";
-
     private readonly string _root;
     private readonly IFilePermissions _permissions;
+    private readonly AtomicFile _file;
     private readonly object _lock = new();
 
-    public HistoryStore(string root, IFilePermissions? permissions = null)
+    public HistoryStore(string root, IFilePermissions? permissions = null, AtomicFile? file = null)
     {
         _root = root;
         _permissions = permissions ?? PlainFilePermissions.Instance;
+        _file = file ?? new AtomicFile();
     }
 
     /// <summary>The folder of a profile's history (it may not exist yet).</summary>
@@ -83,7 +84,7 @@ public sealed class HistoryStore
                 return SiteHistory.Empty;
             }
 
-            var history = JsonSerializer.Deserialize(File.ReadAllText(path), HistoryJsonContext.Default.SiteHistory);
+            var history = JsonSerializer.Deserialize(AtomicFile.ReadAllText(path), HistoryJsonContext.Default.SiteHistory);
 
             return history?.Normalized() ?? SiteHistory.Empty;
         }
@@ -101,11 +102,11 @@ public sealed class HistoryStore
     private void Write(string path, SiteHistory history)
     {
         var folder = Path.GetDirectoryName(path)!;
-        var temporary = $"{path}{TemporarySuffix}";
 
         _permissions.CreateDirectory(folder);
-        File.WriteAllText(temporary, JsonSerializer.Serialize(history, HistoryJsonContext.Default.SiteHistory));
-        _permissions.RestrictFile(temporary);
-        File.Move(temporary, path, overwrite: true);
+        _file.WriteAllText(
+            path,
+            JsonSerializer.Serialize(history, HistoryJsonContext.Default.SiteHistory),
+            _permissions.RestrictFile);
     }
 }

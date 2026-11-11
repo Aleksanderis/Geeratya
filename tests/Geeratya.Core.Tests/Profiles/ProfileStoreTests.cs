@@ -1,4 +1,6 @@
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
+using Geeratya.Core.Tests.Fakes;
 
 namespace Geeratya.Core.Tests.Profiles;
 
@@ -12,6 +14,29 @@ public sealed class ProfileStoreTests : IDisposable
         {
             Directory.Delete(_directory, recursive: true);
         }
+    }
+
+    [Fact]
+    public void GivenTheFileIsBrieflyLocked_WhenSaving_ThenTheSaveRetriesAndSucceeds()
+    {
+        var replacer = new LockedFileReplacer(_ => true, failures: 2);
+        var store = new ProfileStore(_directory, new AtomicFile(replacer));
+        var catalog = ProfileCatalog.Empty.With(new Profile("work", "https://work.atlassian.net", "me@work.test"));
+
+        store.Save(catalog);
+
+        Assert.Equal(2, replacer.Pauses.Count);
+        Assert.Equal(catalog.Profiles, new ProfileStore(_directory).Load().Catalog.Profiles);
+    }
+
+    [Fact]
+    public void GivenTheFileStaysLocked_WhenSaving_ThenTheErrorPropagatesAndNoTemporaryFileRemains()
+    {
+        var store = new ProfileStore(_directory, new AtomicFile(new LockedFileReplacer(_ => true, int.MaxValue)));
+
+        Assert.Throws<IOException>(() => store.Save(ProfileCatalog.Empty));
+
+        Assert.Empty(Directory.GetFileSystemEntries(_directory));
     }
 
     [Fact]

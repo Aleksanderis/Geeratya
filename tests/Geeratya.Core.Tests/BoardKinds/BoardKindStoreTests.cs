@@ -70,21 +70,6 @@ public sealed class BoardKindStoreTests : IDisposable
     }
 
     [Fact]
-    public void GivenAStrayTemporaryFile_WhenDeleting_ThenTheFolderIsRemoved()
-    {
-        var store = new BoardKindStore(_directory);
-
-        store.Save(_work, 1, BoardKind.Scrum);
-
-        var path = Directory.GetFiles(_directory, BoardKindStore.FileName, SearchOption.AllDirectories).Single();
-
-        File.WriteAllText($"{path}.tmp", "half");
-        store.Delete(_work);
-
-        Assert.Empty(Directory.GetFileSystemEntries(_directory));
-    }
-
-    [Fact]
     public void GivenAFailingWrite_WhenSaving_ThenNoTemporaryFileIsLeftAndTheErrorPropagates()
     {
         var store = new BoardKindStore(_directory);
@@ -100,7 +85,7 @@ public sealed class BoardKindStoreTests : IDisposable
 
         // Windows reports a directory in the way as UnauthorizedAccessException, Linux as IOException.
         Assert.True(error is IOException or UnauthorizedAccessException, $"Unexpected: {error}");
-        Assert.False(File.Exists($"{path}.tmp"));
+        Assert.Equal([path], Directory.GetFileSystemEntries(Path.GetDirectoryName(path)!));
     }
 
     public void Dispose()

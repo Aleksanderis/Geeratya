@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.Profiles;
 
@@ -8,13 +9,14 @@ public sealed class ProfileStore
     public const string FileName = "profiles.json";
 
     private const string CorruptSuffix = ".corrupt";
-    private const string TemporarySuffix = ".tmp";
 
     private readonly string _path;
+    private readonly AtomicFile _file;
 
-    public ProfileStore(string configurationDirectory)
+    public ProfileStore(string configurationDirectory, AtomicFile? file = null)
     {
         _path = Path.Combine(configurationDirectory, FileName);
+        _file = file ?? new AtomicFile();
     }
 
     /// <summary>
@@ -51,10 +53,7 @@ public sealed class ProfileStore
             Directory.CreateDirectory(directory);
         }
 
-        var temporary = $"{_path}{TemporarySuffix}";
-
-        File.WriteAllText(temporary, JsonSerializer.Serialize(catalog, ProfilesJsonContext.Default.ProfileCatalog));
-        File.Move(temporary, _path, overwrite: true);
+        _file.WriteAllText(_path, JsonSerializer.Serialize(catalog, ProfilesJsonContext.Default.ProfileCatalog));
     }
 
     private ProfileCatalog? TryParse()
@@ -62,7 +61,7 @@ public sealed class ProfileStore
         try
         {
             var catalog = JsonSerializer.Deserialize(
-                File.ReadAllText(_path),
+                AtomicFile.ReadAllText(_path),
                 ProfilesJsonContext.Default.ProfileCatalog);
 
             return IsValid(catalog) ? catalog : null;

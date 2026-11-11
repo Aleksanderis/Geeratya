@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.Cache;
 
@@ -45,7 +46,7 @@ public sealed partial class SiteCache
 
             try
             {
-                using var stream = File.OpenRead(path);
+                using var stream = AtomicFile.OpenRead(path);
                 var file = JsonSerializer.Deserialize(stream, CacheJsonContext.Default.CachedViewFile);
                 var keyed = file is null ? null : CacheMapper.FromFile(file);
 
@@ -85,7 +86,7 @@ public sealed partial class SiteCache
 
             try
             {
-                using var stream = File.OpenRead(path);
+                using var stream = AtomicFile.OpenRead(path);
                 var file = JsonSerializer.Deserialize(stream, _issueContext.CachedIssueFile);
                 var issue = file is null ? null : IssueCacheMapper.FromFile(file);
 
@@ -117,21 +118,52 @@ public sealed partial class SiteCache
         try
         {
             _permissions.CreateDirectory(_folder);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ReportFailure(exception);
 
-            foreach (var (key, view) in batch)
-            {
-                WriteFile(
-                    Path.Combine(_folder, ViewFileName(key)),
-                    CacheMapper.ToFile(key, view),
-                    CacheJsonContext.Default.CachedViewFile);
-            }
+            return;
+        }
 
-            foreach (var issue in issues)
-            {
-                WriteIssue(issue);
-            }
+        foreach (var (key, view) in batch)
+        {
+            TryWriteView(key, view);
+        }
 
+        foreach (var issue in issues)
+        {
+            WriteIssue(issue);
+        }
+
+        EvictQuietly();
+    }
+
+    // One locked or unwritable file does not stop the rest of the batch; the first failure is reported.
+    private void TryWriteView(CacheKey key, CachedView view)
+    {
+        try
+        {
+            WriteFile(
+                Path.Combine(_folder, ViewFileName(key)),
+                CacheMapper.ToFile(key, view),
+                CacheJsonContext.Default.CachedViewFile);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ReportFailure(exception);
+        }
+    }
+
+    private void EvictQuietly()
+    {
+        try
+        {
             EvictOldest();
+        }
+        catch (FileNotFoundException)
+        {
+            // Another instance replaced or removed a file between the listing and its stat; the next flush evicts.
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -149,22 +181,17 @@ public sealed partial class SiteCache
         }
         catch (Exception exception) when (exception is JsonException or NotSupportedException)
         {
-            // A detail that cannot be serialized is simply not cached; the temporary file may be left behind.
-            DeleteQuietly($"{path}{TemporaryExtension}");
+            // A detail that cannot be serialized is simply not cached (the temporary file is already removed).
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ReportFailure(exception);
         }
     }
 
     private void WriteFile<TFile>(string path, TFile file, JsonTypeInfo<TFile> typeInfo)
     {
-        var temporary = $"{path}{TemporaryExtension}";
-
-        using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            _permissions.RestrictFile(temporary);
-            JsonSerializer.Serialize(stream, file, typeInfo);
-        }
-
-        File.Move(temporary, path, true);
+        _file.Write(path, stream => JsonSerializer.Serialize(stream, file, typeInfo), _permissions.RestrictFile);
     }
 
     /// <summary>Deletes the oldest files until the folder fits the size cap.</summary>
