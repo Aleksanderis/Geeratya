@@ -15,6 +15,7 @@ public sealed class JiraTransport : IDisposable
 {
     private const string JsonMediaType = "application/json";
     private const int MaxBackoffExponent = 10;
+    private const string AbandonedMessage = "Abandoned for a user request; no reply from Jira in time.";
 
     private readonly JiraConnection _connection;
     private readonly string _authorization;
@@ -103,31 +104,64 @@ public sealed class JiraTransport : IDisposable
             return JiraResults.Failure<T>(new JiraError(JiraErrorKind.HostRefused, null, message));
         }
 
+        using var operation = new OperationDeadline(_options.OperationDeadline, _options.Clock, cancellationToken);
+
+        try
+        {
+            return await RunAttemptsAsync(request, resultInfo, operation, cancellationToken);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return OperationTimedOut<T>();
+        }
+    }
+
+    private async Task<JiraResult<T>> RunAttemptsAsync<T>(
+        JiraRequest request,
+        JsonTypeInfo<T>? resultInfo,
+        OperationDeadline operation,
+        CancellationToken callerToken)
+    {
         var attempt = 0;
 
         while (true)
         {
-            var result = await AttemptAsync(request, resultInfo, cancellationToken);
+            var result = await AttemptAsync(request, resultInfo, operation, callerToken);
 
-            if (result.IsSuccess || !ShouldRetry(request, result.Error, attempt))
+            if (result.IsSuccess || operation.Token.IsCancellationRequested)
             {
                 return result;
+            }
+
+            if (result.Error.Message != AbandonedMessage && !ShouldRetry(request, result.Error, attempt))
+            {
+                return result;
+            }
+
+            // Dropped by the transport itself for a user request: asked again behind it, without spending a retry
+            // (the operation deadline still bounds it), so a healthy link never shows a refresh as failed.
+            if (result.Error.Message == AbandonedMessage)
+            {
+                continue;
             }
 
             var wait = WaitBeforeRetry(result.Error, attempt);
 
             if (result.Error.Kind == JiraErrorKind.RateLimited)
             {
-                await WaitForRateLimitAsync(wait, cancellationToken);
+                await WaitForRateLimitAsync(wait, operation);
             }
             else
             {
-                await _options.Delay(wait, cancellationToken);
+                await _options.Delay(wait, operation.Token);
             }
 
             attempt++;
         }
     }
+
+    private JiraResult<T> OperationTimedOut<T>() =>
+        Fail<T>(JiraErrorKind.Timeout, $"Jira did not finish within {_options.OperationDeadline.TotalSeconds:0} s.");
 
     /// <summary>The handler a transport uses when none is given; public so tests can inspect its settings.</summary>
     public static SocketsHttpHandler CreateDefaultHandler() =>
@@ -215,27 +249,65 @@ public sealed class JiraTransport : IDisposable
     private async Task<JiraResult<T>> AttemptAsync<T>(
         JiraRequest request,
         JsonTypeInfo<T>? resultInfo,
-        CancellationToken cancellationToken)
+        OperationDeadline operation,
+        CancellationToken callerToken)
     {
-        await ThrottleAsync(request.Priority, cancellationToken);
-        await _gate.AcquireAsync(request.Priority, cancellationToken);
+        await ThrottleAsync(request.Priority, operation);
+        var lease = await AcquireSlotAsync(request.Priority, operation.Token);
 
         try
         {
-            return await SendOnceAsync(request, resultInfo, cancellationToken);
+            return await SendOnceAsync(request, resultInfo, lease, operation.Token, callerToken);
         }
         finally
         {
-            _gate.Release();
+            _gate.Release(lease);
+        }
+    }
+
+    /// <summary>
+    /// Takes a slot. A user request that waits longer than <see cref="JiraTransportOptions.PreemptBackgroundAfter"/>
+    /// abandons the oldest background request holding one, and again every period while it still waits.
+    /// </summary>
+    private async Task<RequestLease> AcquireSlotAsync(JiraPriority priority, CancellationToken cancellationToken)
+    {
+        var acquire = _gate.AcquireAsync(priority, cancellationToken);
+
+        if (priority != JiraPriority.User || acquire.IsCompleted)
+        {
+            return await acquire;
+        }
+
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        try
+        {
+            while (true)
+            {
+                var tick = Task.Delay(_options.PreemptBackgroundAfter, _options.Clock, stop.Token);
+
+                if (await Task.WhenAny(acquire, tick) == acquire)
+                {
+                    return await acquire;
+                }
+
+                _gate.AbandonOldestBackground();
+            }
+        }
+        finally
+        {
+            await stop.CancelAsync();
         }
     }
 
     private async Task<JiraResult<T>> SendOnceAsync<T>(
         JiraRequest request,
         JsonTypeInfo<T>? resultInfo,
+        RequestLease lease,
+        CancellationToken operationToken,
         CancellationToken cancellationToken)
     {
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(operationToken, lease.AbandonToken);
         timeout.CancelAfter(_options.Timeout);
 
         try
@@ -253,6 +325,15 @@ public sealed class JiraTransport : IDisposable
                 ? ParseBody(body, resultInfo, request.AllowsEmptyBody)
                 : JiraResults.Failure<T>(MapFailure(response, body));
         }
+        catch (OperationCanceledException) when (lease.IsAbandoned && !cancellationToken.IsCancellationRequested)
+        {
+            return Fail<T>(JiraErrorKind.Timeout, AbandonedMessage);
+        }
+        catch (OperationCanceledException) when (operationToken.IsCancellationRequested
+            && !cancellationToken.IsCancellationRequested)
+        {
+            return OperationTimedOut<T>();
+        }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return Fail<T>(JiraErrorKind.Timeout, $"No reply from Jira within {_options.Timeout.TotalSeconds:0} s.");
@@ -269,7 +350,7 @@ public sealed class JiraTransport : IDisposable
     }
 
     /// <summary>Waits out the rate-limit window when the last response said the budget is (nearly) spent.</summary>
-    private async Task ThrottleAsync(JiraPriority priority, CancellationToken cancellationToken)
+    private async Task ThrottleAsync(JiraPriority priority, OperationDeadline operation)
     {
         var threshold = priority == JiraPriority.User ? 0 : _options.BackgroundThrottleRemaining;
         TimeSpan wait;
@@ -291,7 +372,7 @@ public sealed class JiraTransport : IDisposable
             }
         }
 
-        await WaitForRateLimitAsync(Min(wait, _options.MaxWait), cancellationToken);
+        await WaitForRateLimitAsync(Min(wait, _options.MaxWait), operation);
 
         lock (_rateLock)
         {
@@ -303,10 +384,18 @@ public sealed class JiraTransport : IDisposable
         }
     }
 
-    private Task WaitForRateLimitAsync(TimeSpan wait, CancellationToken cancellationToken) =>
-        wait <= TimeSpan.Zero
-            ? _options.Delay(wait, cancellationToken)
-            : _rateWaits.RunAsync(_options.Clock.GetUtcNow() + wait, () => _options.Delay(wait, cancellationToken));
+    private Task WaitForRateLimitAsync(TimeSpan wait, OperationDeadline operation)
+    {
+        if (wait <= TimeSpan.Zero)
+        {
+            return _options.Delay(wait, operation.Token);
+        }
+
+        // The wait is Jira's request, not a hang: it does not count against the operation deadline.
+        operation.Extend(wait);
+
+        return _rateWaits.RunAsync(_options.Clock.GetUtcNow() + wait, () => _options.Delay(wait, operation.Token));
+    }
 
     private void RecordRateLimit(HttpResponseMessage response)
     {

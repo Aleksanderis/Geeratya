@@ -24,6 +24,19 @@ public sealed record JiraTransportOptions
     /// </summary>
     public int BackgroundThrottleRemaining { get; init; } = 10;
 
+    /// <summary>
+    /// Deadline of one call as a whole: the wait for a slot, the throttle, every attempt and the back-off between
+    /// them. A rate-limit wait (throttle or <c>Retry-After</c>) is not counted: it extends the deadline. Below the
+    /// 150 s load deadline of the views, so a call ends with its own failure first.
+    /// </summary>
+    public TimeSpan OperationDeadline { get; init; } = TimeSpan.FromSeconds(90);
+
+    /// <summary>
+    /// A user request that has waited this long for a slot abandons the oldest background request holding one
+    /// (repeating every period), so it never queues behind hung refreshes.
+    /// </summary>
+    public TimeSpan PreemptBackgroundAfter { get; init; } = TimeSpan.FromSeconds(5);
+
     public TimeSpan BaseBackoff { get; init; } = TimeSpan.FromMilliseconds(500);
 
     /// <summary>Upper bound for any single wait, also for a larger <c>Retry-After</c>.</summary>
