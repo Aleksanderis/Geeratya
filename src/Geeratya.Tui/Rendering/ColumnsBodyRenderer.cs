@@ -103,7 +103,7 @@ public sealed partial class ColumnsBodyRenderer : IBodyRenderer
 
         var compact = BoardCards.IsCompact(area, ListLayout.HeaderRows);
         var cardRows = BoardCards.CardRows(area, ListLayout.HeaderRows);
-        var marks = tab.Marks.Count == 0 ? [] : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var marks = MarkSet.Of(tab.Marks);
         var expanded = new HashSet<string>(tab.ExpandedSubtasks, StringComparer.Ordinal);
         var panes = Panes(window, width, height);
         var grid = new FrameGrid(width, height, panes, focused ? cursor.Column - window.First : -1);

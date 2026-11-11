@@ -31,7 +31,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     private const int Indent = ListColumns.MarkWidth;
     private const int GoalIndent = Indent + 2;
 
-    private static readonly HashSet<string> _noMarks = [];
+    private static readonly Dictionary<int, FlashLabel> _noFlash = [];
 
     public bool AppliesTo(AppState state)
     {
@@ -66,7 +66,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         var flash = FlashLabelsOf(state, tab, inner);
         var busy = BusyMarks.Keys(state);
         var range = RowSelection.VisualRange(tab);
-        var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var marks = MarkSet.Of(tab.Marks);
         var first = Math.Clamp(tab.Scroll, 0, Math.Max(0, layout.LineCount - 1));
         var last = Math.Min(layout.LineCount, first + area);
 
@@ -116,14 +116,16 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
     private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner)
     {
+        if (state.FlashJump is not { Text.Length: > 0 } flash)
+        {
+            return _noFlash;
+        }
+
         var labels = new Dictionary<int, FlashLabel>();
 
-        if (state.FlashJump is { Text.Length: > 0 } flash)
+        foreach (var label in FlashLabeler.ComputeBacklog(tab, flash.Text, inner))
         {
-            foreach (var label in FlashLabeler.ComputeBacklog(tab, flash.Text, inner))
-            {
-                labels[label.Row] = label;
-            }
+            labels[label.Row] = label;
         }
 
         return labels;

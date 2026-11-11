@@ -113,7 +113,7 @@ public static class Palette
         switch (tier)
         {
             case ColorSupport.TrueColor:
-                var foreground = Readable(style.Foreground, tint.Background, tint.Foreground);
+                var foreground = Readable(theme, style.Foreground, tint.Background, tint.Foreground);
 
                 return tint with { Foreground = foreground, Style = style.Style | RoleStyle.Bold | underline };
             case ColorSupport.Basic16:
@@ -130,9 +130,9 @@ public static class Palette
         }
     }
 
-    private static Rgb? Readable(Rgb? own, Rgb? background, Rgb? fallback)
+    private static Rgb? Readable(Theme theme, Rgb? own, Rgb? background, Rgb? fallback)
     {
-        return own is { } value && background is { } ground && Contrast.Ratio(value, ground) >= TintContrast
+        return own is { } value && background is { } ground && theme.IsReadable(value, ground, TintContrast)
             ? own
             : fallback;
     }
@@ -144,9 +144,12 @@ public static class Palette
             return fallback;
         }
 
-        var ratio = Contrast.Ratio(Ansi16.ToRgb(value, theme.Variant), Ansi16.ToRgb(ground, theme.Variant));
+        var readable = theme.IsReadable(
+            Ansi16.ToRgb(value, theme.Variant),
+            Ansi16.ToRgb(ground, theme.Variant),
+            TintContrast);
 
-        return ratio >= TintContrast ? value : fallback;
+        return readable ? value : fallback;
     }
 
     // A role on the page keeps the terminal's own background when the theme is drawn transparent; the overlay box

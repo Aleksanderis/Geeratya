@@ -278,7 +278,23 @@ public static class FrameBuilder
     // the chip keeps its width and its mouse cells.
     private static StyledLine Asciified(StyledLine line)
     {
-        return new StyledLine(line.Spans.Select(static span => span with { Text = Bracketed(span) }).ToArray());
+        StyledSpan[]? spans = null;
+
+        for (var index = 0; index < line.Spans.Count; index++)
+        {
+            var span = line.Spans[index];
+            var text = Bracketed(span);
+
+            if (ReferenceEquals(text, span.Text) || text == span.Text)
+            {
+                continue;
+            }
+
+            spans ??= [.. line.Spans];
+            spans[index] = span with { Text = text };
+        }
+
+        return spans is null ? line : new StyledLine(spans);
     }
 
     private static string Bracketed(StyledSpan span)
