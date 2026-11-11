@@ -85,4 +85,30 @@ public class BacklogMemoTests
         Assert.Equal(RowSelection.Targets(tab).Count, RowSelection.Count(tab));
         Assert.True(RowSelection.Count(tab) < _rows.Count);
     }
+
+    [Fact]
+    public void GivenDuplicateAndMixedCaseKeys_WhenReadingTheRange_ThenTheAnchorIsTheFirstMatchingRow()
+    {
+        var rows = new[] { _rows[0], _rows[1] with { Key = _rows[0].Key }, _rows[2], _rows[3] };
+        var tab = BacklogFixtures.Tab(rows) with { VisualAnchor = _rows[0].Key.ToLowerInvariant(), Selected = 3 };
+
+        Assert.Equal(new RowRange(0, 3), RowSelection.VisualRange(tab));
+    }
+
+    [Fact]
+    public void GivenAnAnchorThatIsGone_WhenReadingTheRange_ThenItFallsBackToTheCursorRow()
+    {
+        var tab = BacklogFixtures.Tab(_rows) with { VisualAnchor = "Z-99", Selected = 2 };
+
+        Assert.Equal(new RowRange(2, 2), RowSelection.VisualRange(tab));
+        Assert.Equal(1, RowSelection.Count(tab));
+    }
+
+    [Fact]
+    public void GivenNoCollapsedSection_WhenCounting_ThenTheCountIsTheRangeLength()
+    {
+        var tab = BacklogFixtures.Tab(_rows) with { VisualAnchor = _rows[1].Key, Selected = 4 };
+
+        Assert.Equal(4, RowSelection.Count(tab));
+    }
 }

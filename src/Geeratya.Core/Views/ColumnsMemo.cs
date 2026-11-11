@@ -10,7 +10,7 @@ namespace Geeratya.Core.Views;
 /// The columns last built for a tab, kept so one key and the frame it draws group the rows once instead of once per
 /// question asked of the columns (#758). The inputs are compared by reference (the lists) or value (the settings), so
 /// a changed row list, board, lane, folded card or cut-off always rebuilds; the memo owns no invalidation rule of its
-/// own and holds one entry, dropped with the tab. Copies of a <see cref="TabState"/> share it, and two tabs never do.
+/// own and holds one entry per kind (columns, lanes, lane columns, backlog layout, row flags, key index), dropped with the tab. Copies of a <see cref="TabState"/> share it, and two tabs never do.
 /// </summary>
 public sealed class ColumnsMemo
 {

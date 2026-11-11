@@ -80,9 +80,10 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
     public void ListOf10kRows_VisualModeJkThroughReducerAndFrame()
     {
         var start = Active(Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false));
-        var state = _reducer.Reduce(start, new KeyPressed("v")).State;
+        var atEnd = _reducer.Reduce(start, new KeyPressed("G")).State;
+        var state = _reducer.Reduce(atEnd, new KeyPressed("v")).State;
 
-        Report("list 10k rows, Visual mode j/k + frame", TimeKeys(state, ["j", "j", "k"]));
+        Report("list 10k rows, Visual mode with the anchor at the end, k/j + frame", TimeKeys(state, ["k", "k", "j"]));
     }
 
     [MeasurementTheory]
