@@ -247,6 +247,50 @@ public sealed class JiraTransportSchedulingTests
         Assert.Null(probe.During);
     }
 
+    [Fact]
+    public async Task GivenServiceUnavailableWithShortRetryAfter_WhenRetrying_ThenRateLimitedUntilStaysNull()
+    {
+        var probe = new WaitProbe();
+        using var fixture = new TransportFixture(options => options with { Delay = (_, _) => probe.Record() });
+        probe.Transport = fixture.Transport;
+        fixture.Handler.Script(
+            HttpMethod.Get,
+            MyselfPath,
+            new FakeResponse(
+                HttpStatusCode.ServiceUnavailable,
+                Headers: new Dictionary<string, string> { ["Retry-After"] = "2" }));
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.Null(probe.During);
+    }
+
+    [Fact]
+    public async Task GivenServiceUnavailableWithRetryAfter_WhenRetrying_ThenRateLimitedUntilIsSetDuringTheWait()
+    {
+        var clock = new FixedClock(new DateTimeOffset(2026, 11, 1, 12, 0, 0, default));
+        var probe = new WaitProbe();
+        using var fixture = new TransportFixture(options => options with { Clock = clock, Delay = (_, _) => probe.Record() });
+        var seen = fixture.Transport;
+        probe.Transport = seen;
+        var changes = 0;
+        seen.RateLimitWaitChanged += () => changes++;
+        fixture.Handler.Script(
+            HttpMethod.Get,
+            MyselfPath,
+            new FakeResponse(
+                HttpStatusCode.ServiceUnavailable,
+                Headers: new Dictionary<string, string> { ["Retry-After"] = "12" }));
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        await SendAsync(fixture, JiraRequest.Get(MyselfPath));
+
+        Assert.Equal(clock.GetUtcNow() + TimeSpan.FromSeconds(12), probe.During);
+        Assert.Null(seen.RateLimitedUntil);
+        Assert.Equal(2, changes);
+    }
+
     private sealed class WaitProbe
     {
         public JiraTransport? Transport { get; set; }
