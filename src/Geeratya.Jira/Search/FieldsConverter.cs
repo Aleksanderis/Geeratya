@@ -84,7 +84,7 @@ internal sealed class FieldsConverter : JsonConverter<SearchWire.Fields>
     /// </summary>
     private static int CopyName(ref Utf8JsonReader reader, scoped Span<char> buffer)
     {
-        if (reader.ValueSpan.Length > buffer.Length || reader.ValueIsEscaped)
+        if (reader.ValueSpan.Length > buffer.Length || reader.ValueIsEscaped || reader.HasValueSequence)
         {
             return -1;
         }
