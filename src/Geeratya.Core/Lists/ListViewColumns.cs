@@ -31,10 +31,9 @@ public static class ListViewColumns
     /// </summary>
     public static ListColumns ForBacklog(TabState tab, int innerWidth)
     {
-        var points = tab.Rows.Any(row => row.Estimate is not null);
-        var epic = tab.Rows.Any(row => row.Epic is not null);
+        var flags = tab.Columns.GetFlags(tab);
 
-        return ListColumns.For(innerWidth, tab.KeyWidth, false, points, epic);
+        return ListColumns.For(innerWidth, tab.KeyWidth, false, flags.HasEstimate, flags.HasEpic);
     }
 
     /// <summary>

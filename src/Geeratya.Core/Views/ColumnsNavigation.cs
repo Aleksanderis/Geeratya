@@ -275,7 +275,7 @@ public static partial class ColumnsNavigation
             return moved;
         }
 
-        var index = IndexOfKey(tab.Rows, issue.Key);
+        var index = tab.Columns.IndexOfKey(tab, issue.Key);
 
         // A row listed from an expanded parent is not a loaded row: only the key follows, so the cursor stays on it.
         if (index < 0)

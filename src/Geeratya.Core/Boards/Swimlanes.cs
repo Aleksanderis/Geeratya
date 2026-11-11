@@ -99,7 +99,7 @@ public static class Swimlanes
             return null;
         }
 
-        var index = lanes.ToList().IndexOf(current);
+        var index = IndexOfLane(lanes, current);
 
         return lanes[((index + direction) % lanes.Count + lanes.Count) % lanes.Count];
     }
@@ -217,5 +217,18 @@ public static class Swimlanes
         }
 
         return string.IsNullOrWhiteSpace(epic.Summary) ? epic.Key : $"{epic.Key} {epic.Summary}";
+    }
+
+    private static int IndexOfLane(IReadOnlyList<SwimlaneLane> lanes, SwimlaneLane lane)
+    {
+        for (var index = 0; index < lanes.Count; index++)
+        {
+            if (lanes[index].Equals(lane))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 }

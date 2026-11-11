@@ -29,9 +29,14 @@ public static class BacklogSections
 
     /// <summary>
     /// The layout of the tab. Sprints from the sprint list that have no row yet show as empty sections; a sprint seen
-    /// only on a row shows with the name and state of that row.
+    /// only on a row shows with the name and state of that row. Memoized on the tab (<see cref="ColumnsMemo"/>).
     /// </summary>
     public static BacklogLayout Build(TabState tab)
+    {
+        return tab.Columns.GetBacklog(tab, Compute);
+    }
+
+    private static BacklogLayout Compute(TabState tab)
     {
         var sections = new List<SectionDraft>();
         var rows = tab.Rows;
