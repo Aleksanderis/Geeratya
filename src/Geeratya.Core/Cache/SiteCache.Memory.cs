@@ -29,7 +29,7 @@ public sealed partial class SiteCache
     {
         if (removeViews)
         {
-            DeleteViewFiles();
+            DeleteViewFiles(locked: true);
         }
 
         foreach (var key in removed)

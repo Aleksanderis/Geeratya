@@ -6,7 +6,9 @@ using System.Text.Json;
 using Geeratya.Core.Adf;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 using Geeratya.Core.Tests.Adf;
+using Geeratya.Core.Tests.Fakes;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
@@ -38,6 +40,36 @@ public sealed class IssueCacheTests : IDisposable
 
         Assert.Single(notices);
         Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task GivenASlowBatchFlush_WhenAnIssueIsReadFromDisk_ThenTheReadFinishesBeforeTheBatchDoes()
+    {
+        var folder = Path.Combine(_root, "p");
+
+        using (var seed = new SiteCache(folder))
+        {
+            seed.PutIssue(new CachedIssue(Detail("A-9", null), _saved));
+            seed.Flush();
+        }
+
+        var replacer = new SlowFileReplacer(TimeSpan.FromMilliseconds(150));
+        using var cache = new SiteCache(folder, file: new AtomicFile(replacer));
+
+        for (var index = 0; index < 6; index++)
+        {
+            cache.Put(new CacheKey(ViewSourceKind.Jql, $"project = P{index}"), new CachedView([], null, _saved));
+        }
+
+        var flush = Task.Run(cache.Flush);
+        await replacer.FirstWrite.Task;
+        var read = await Task.Run(() => cache.GetIssue("A-9"));
+        var flushDone = flush.IsCompleted;
+        await flush;
+
+        // The disk lock is taken per file: the read slips in between two writes, not after all six.
+        Assert.False(flushDone);
+        Assert.NotNull(read);
     }
 
     [Fact]

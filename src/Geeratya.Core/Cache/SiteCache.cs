@@ -49,10 +49,12 @@ public sealed partial class SiteCache : IDisposable
     private readonly long _maxDiskBytes;
     private readonly object _memoryLock = new();
     private readonly object _diskLock = new();
+    private readonly object _flushGate = new();
     private readonly Dictionary<CacheKey, MemoryEntry<CachedView>> _views = [];
     private readonly Dictionary<CacheKey, CachedView> _pending = [];
     private readonly Dictionary<string, MemoryEntry<CachedIssue>> _issues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, CachedIssue> _pendingIssues = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _used = [];
     private readonly HashSet<string> _removedIssues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Timer _timer;
     private long _stamp;
@@ -61,6 +63,10 @@ public sealed partial class SiteCache : IDisposable
     private int _viewsRemovedEpoch;
     private bool _failureReported;
     private bool _readProblemReported;
+
+    // Bytes written since the last full listing of the folder (an upper bound: a replaced file counts twice);
+    // -1 until the first listing.
+    private long _diskBytesEstimate = -1;
 
     public SiteCache(
         string folder,
@@ -116,6 +122,7 @@ public sealed partial class SiteCache : IDisposable
             if (_views.TryGetValue(key, out var entry))
             {
                 entry.Stamp = ++_stamp;
+                _used.Add(ViewFileName(key));
 
                 return entry.Value;
             }
@@ -175,6 +182,7 @@ public sealed partial class SiteCache : IDisposable
             if (_issues.TryGetValue(issueKey, out var entry))
             {
                 entry.Stamp = ++_stamp;
+                _used.Add(IssueFileName(issueKey));
 
                 return entry.Value;
             }
@@ -261,7 +269,9 @@ public sealed partial class SiteCache : IDisposable
     /// </summary>
     public void Flush()
     {
-        lock (_diskLock)
+        // One flush at a time (so an older batch never lands after a newer one); the disk lock is taken per file, so
+        // a read waits behind one file, not behind the whole batch.
+        lock (_flushGate)
         {
             Dictionary<CacheKey, CachedView> batch;
             List<CachedIssue> issues;
@@ -296,7 +306,9 @@ public sealed partial class SiteCache : IDisposable
 
             foreach (var key in removed)
             {
-                DeleteQuietly(Path.Combine(_folder, IssueFileName(key)));
+                var path = Path.Combine(_folder, IssueFileName(key));
+
+                WithDisk(() => DeleteQuietly(path));
             }
 
             WriteAll(batch, issues);
@@ -305,7 +317,7 @@ public sealed partial class SiteCache : IDisposable
 
     /// <summary>
     /// Drops the memory part and any pending write at once, without waiting for file work in progress (the UI
-    /// thread calls it on a profile switch). A batch already being written may still finish; the disk stays.
+    /// thread calls it on a profile switch). The batch being written stops after the file in progress; the disk stays.
     /// Pending removals (an issue that is gone, removed views) are not lost: they are deleted on a pool thread,
     /// the returned task completes when that is done. A cache opened later for the same folder has its own disk
     /// lock, so the two can overlap briefly; at worst that costs one stale hit or one lost page. Not awaited at
