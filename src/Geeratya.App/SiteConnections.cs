@@ -112,6 +112,7 @@ public sealed class SiteConnections : IDisposable
         CancellationToken cancellationToken)
     {
         int generation;
+        RetiredConnection retired;
 
         lock (_lock)
         {
@@ -121,8 +122,11 @@ public sealed class SiteConnections : IDisposable
                 return Task.FromResult<ConnectionFailed?>(null);
             }
 
-            generation = Replace(profile);
+            retired = Replace(profile);
+            generation = _generation;
         }
+
+        retired.DisposeOnThreadPool();
 
         if (profile is null)
         {
@@ -186,21 +190,30 @@ public sealed class SiteConnections : IDisposable
     /// <summary>Closes the connection of <paramref name="profile"/> if it is the connected one.</summary>
     public void Drop(Profile profile)
     {
+        RetiredConnection? retired = null;
+
         lock (_lock)
         {
             if (profile == _profile)
             {
-                Replace(null);
+                retired = Replace(null);
             }
         }
+
+        retired?.DisposeOnThreadPool();
     }
 
     public void Dispose()
     {
+        RetiredConnection retired;
+
         lock (_lock)
         {
-            Replace(null);
+            retired = Replace(null);
         }
+
+        // Shutdown: nothing is left to keep responsive, but the lock is free by now.
+        retired.Dispose();
     }
 
     private async Task<ConnectionFailed?> ConnectAsync(
@@ -251,12 +264,14 @@ public sealed class SiteConnections : IDisposable
             return new ConnectionFailed(profile, BadSiteMessage);
         }
 
+        var resolver = CreateResolver(profile, transport);
+
         lock (_lock)
         {
             if (generation == _generation)
             {
                 _transport = transport;
-                _kinds = CreateResolver(profile, transport);
+                _kinds = resolver;
                 _fields = new SiteFields(new FieldClient(transport));
                 _cutoffs = new DoneCutoffReader(new BoardViewClient(transport), _clock);
                 transport.RateLimitWaitChanged += () => OnRateLimitWaitChanged(generation, transport);
@@ -265,6 +280,7 @@ public sealed class SiteConnections : IDisposable
             }
         }
 
+        // Not current any more: nobody else holds it, and this continuation is already off the UI thread.
         transport.Dispose();
 
         return null;
@@ -310,7 +326,10 @@ public sealed class SiteConnections : IDisposable
         }
     }
 
-    private int Replace(Profile? profile)
+    // Swaps the fields (the caller holds the lock) and hands back what has to be disposed, which the caller does after
+    // leaving the lock: disposing closes sockets and cancels requests in flight, whose continuations may run on the
+    // disposing thread, and every reader of Current or Generation waits on the lock meanwhile.
+    private RetiredConnection Replace(Profile? profile)
     {
         var old = _transport;
         var oldCutoffs = _cutoffs;
@@ -323,11 +342,8 @@ public sealed class SiteConnections : IDisposable
         _failedProfile = null;
         _generation++;
 
-        // Last: disposing cancels requests in flight, and their continuations may run right here (same thread, inside
-        // the lock). The generation has to be the new one by then, or such a reply would be posted as current.
-        old?.Dispose();
-        oldCutoffs?.Dispose();
-
-        return _generation;
+        // The generation is the new one before anything is disposed, or a reply cancelled by the disposal would be
+        // posted as current.
+        return new RetiredConnection(old, oldCutoffs);
     }
 }
