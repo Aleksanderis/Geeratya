@@ -299,7 +299,7 @@ Remaining gap to M1 (about 9 MB, 0.9 KB a row): not attributed to one change. Th
 
 ## Issue detail with 1000 comments (#929)
 
-The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, like `ColumnsMemo` on a tab): the comment rows of the Comments pane (one entry, keyed by the `Comments` list reference, inner width, cut, expanded ids, order and load state) and the ADF lines of the description and of each comment body per width. A j/k in Comments, a scroll at a pane edge, Ctrl-d and a fold or expand of one comment no longer re-render every comment; a new comment page, a refresh or a resize still does, once. A collapsed comment is still rendered whole and then cut (the cut needs the line count); only the repeat is saved.
+The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, like `ColumnsMemo` on a tab): the comment rows of the Comments pane (one entry, keyed by the `Comments` list reference, inner width, cut, expanded ids, order and load state) and the ADF lines of the description and of each comment body per width. A j/k in Comments, a scroll at a pane edge, Ctrl-d and a fold or expand of one comment no longer re-render every comment; a new comment page, a refresh or a resize still does, once. A collapsed comment is still rendered whole and then cut in this first version (#950 changes that, see below).
 
 `GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter DetailCommentsMeasurements --logger "console;verbosity=detailed"`: 1000 comments of 12 list items each (`DetailPaging.MaxComments`), one key through the reducer and `FrameBuilder.BuildStyled` at 120x36, JIT, 200 samples after 20 warm-up keys, loaded Linux machine (other agents building), so absolute values are upper bounds.
 
@@ -309,11 +309,26 @@ The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, 
 | Ctrl-d / Ctrl-u in Comments | 14.0 / 25.7 | 4.1 / 6.8 |
 | Ctrl-j / Ctrl-k between panes | 7.5 / 11.7 | 1.0 / 1.4 |
 
-The remaining few milliseconds of a comment key are the document layout (every comment row is still copied into the pane's content and the id list) and the frame; #930 follows with that part.
+The remaining few milliseconds of a comment key are the document layout and the frame; #950 (below) removed the id copy.
+
+### Collapsed comments wrap only their visible lines (#950)
+
+A collapsed comment used to be rendered whole and then cut. `AdfRenderer.RenderHead` now stops after the first top-level block (or list item of a top-level bullet or ordered list) that takes the output past the cut, and `DetailRenderMemo.Head` keeps it per width and limit (a document that fits is also stored as the whole rendering). The `... N more lines` note is a lazy `CommentRow` (`ICommentRowSource`): the hidden-line count wraps the rest of the body when the row is first read (the cursor reaches it, the window shows it, or the comment expands), not when the rows are built. The note only stays lazy when it fits one row (`LongText.NoteFitsOneRow`); otherwise the comment is rendered whole as before. The comment id list of the document is made once per row list (`DetailRenderMemo.IdsOf`) instead of a LINQ copy per key, and `FollowedCommentsRow` walks back from the cursor row instead of `ToList().IndexOf`.
+
+`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter DetailCommentsMeasurements ...` (same setup as above, loaded machine, two runs each, median ms):
+
+| Case | Before | After |
+|---|---|---|
+| First build of 1000 comment rows (fresh memo) | 10.2 to 14.0 | 4.9 to 5.5 |
+| j / k in Comments + frame | 4.7 to 6.1 | 4.5 to 4.7 |
+| Ctrl-d / Ctrl-u in Comments + frame | 3.9 to 5.3 | 3.4 to 3.9 |
+| Ctrl-j / Ctrl-k between panes + frame | 0.43 to 0.48 | 0.39 to 0.41 |
+
+The per-key difference is inside the noise of a loaded machine: #929 already memoized the rows, and the id copy this change removes was small next to the frame. The measured win is the first build (opening an issue, a resize, a refresh). Not measured: memory (a cut comment keeps only its head lines until its note is read). Still O(all rows) per key: `MoveInComments` collects the stop rows (`Enumerable.Range(...).Where(IsStop)`); at 1000 comments that is a few microseconds and was left alone. Rows are read on the UI thread only (reducer and frame), which `DetailRenderMemo` relies on (its dictionaries are not thread-safe).
 
 ## Per-key row work on large tabs (#930)
 
-The Scrum backlog layout (`BacklogSections.Build`, about 15 callers, 2 to 3 builds per key plus one per frame), the "has estimate / has epic" column flags (`ListViewColumns.ForBacklog`, a scan of every row per frame when no row has a value), the Visual anchor lookup (`RowSelection.VisualRange`, a linear `IndexOf` per key and frame), `RowSelection.Count` (built a key list for the range) and `ColumnsNavigation.Follow` (a linear key search per card move) all did O(all rows) work per key. Now `ColumnsMemo` (on `TabState`, dropped with the tab) holds the backlog layout keyed by reference on `Rows`, `Sprints` and `CollapsedSections`, the two flags keyed on `Rows`, and one key-to-index dictionary keyed on `Rows` (first row wins, case-insensitive, used by the Visual anchor and `Follow`); `Count` counts the range without allocating; `Swimlanes.Step` no longer copies the lane list. `DetailReducer.Comments` is left to #950.
+The Scrum backlog layout (`BacklogSections.Build`, about 15 callers, 2 to 3 builds per key plus one per frame), the "has estimate / has epic" column flags (`ListViewColumns.ForBacklog`, a scan of every row per frame when no row has a value), the Visual anchor lookup (`RowSelection.VisualRange`, a linear `IndexOf` per key and frame), `RowSelection.Count` (built a key list for the range) and `ColumnsNavigation.Follow` (a linear key search per card move) all did O(all rows) work per key. Now `ColumnsMemo` (on `TabState`, dropped with the tab) holds the backlog layout keyed by reference on `Rows`, `Sprints` and `CollapsedSections`, the two flags keyed on `Rows`, and one key-to-index dictionary keyed on `Rows` (first row wins, case-insensitive, used by the Visual anchor and `Follow`); `Count` counts the range without allocating; `Swimlanes.Step` no longer copies the lane list. `DetailReducer.Comments` was left to #950 (below).
 
 Bench: `HotPathMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter HotPathMeasurements`), 10 000 rows, 120x36, 2500 timed keys after 500 warm-up, Release JIT, same machine back to back:
 

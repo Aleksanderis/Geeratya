@@ -19,6 +19,8 @@ public sealed class DetailRenderMemo
     private const int EntriesPerDocument = 4;
 
     private readonly Dictionary<RenderKey, AdfRendering> _renderings = [];
+    private readonly Dictionary<HeadKey, AdfHead> _heads = [];
+    private IdsEntry? _ids;
     private RowsEntry? _rows;
 
     /// <summary>
@@ -54,17 +56,79 @@ public sealed class DetailRenderMemo
             return known;
         }
 
+        var rendering = AdfRenderer.Render(document, width);
+
+        Store(key, rendering, documents);
+
+        return rendering;
+    }
+
+    /// <summary>How many whole renderings are kept (tests check that a cut comment keeps none until its note is read).</summary>
+    public int WholeRenderings => _renderings.Count;
+
+    private void Store(RenderKey key, AdfRendering rendering, int documents)
+    {
         // A refresh brings new documents, so the old entries go once there are more than a few widths of them.
         if (_renderings.Count > Math.Max(MinEntries, documents * EntriesPerDocument))
         {
             _renderings.Clear();
         }
 
-        var rendering = AdfRenderer.Render(document, width);
-
         _renderings[key] = rendering;
+    }
 
-        return rendering;
+    /// <summary>
+    /// The start of the rendering of <paramref name="document"/> (<see cref="AdfRenderer.RenderHead"/>), once per
+    /// width and line limit; <c>Complete</c> is false when the document has more than <paramref name="maxLines"/> lines.
+    /// </summary>
+    public AdfHead Head(AdfDocument document, int width, int maxLines, int documents)
+    {
+        var key = new HeadKey(document, width, maxLines);
+
+        if (_heads.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        if (_heads.Count > Math.Max(MinEntries, documents * EntriesPerDocument))
+        {
+            _heads.Clear();
+        }
+
+        var head = AdfRenderer.RenderHead(document, width, maxLines);
+
+        _heads[key] = head;
+
+        // A document that fits the limit was rendered whole: keep it for Rendering instead of laying it out again.
+        if (head.Complete)
+        {
+            Store(new RenderKey(document, width), head.Rendering, documents);
+        }
+
+        return head;
+    }
+
+    /// <summary>
+    /// The comment id of every one of <paramref name="rows"/> (null for rows of no comment), made once per row list:
+    /// the list is the one <see cref="Rows"/> returns, so a key that changes no rows copies nothing.
+    /// </summary>
+    public IReadOnlyList<string?> IdsOf(IReadOnlyList<CommentRow> rows)
+    {
+        if (_ids is { } last && ReferenceEquals(last.Rows, rows))
+        {
+            return last.Ids;
+        }
+
+        var ids = new string?[rows.Count];
+
+        for (var index = 0; index < ids.Length; index++)
+        {
+            ids[index] = rows[index].Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null;
+        }
+
+        _ids = new IdsEntry(rows, ids);
+
+        return ids;
     }
 
     /// <summary>The memo is a cache, not state: two details that differ only in it are equal.</summary>
@@ -77,6 +141,21 @@ public sealed class DetailRenderMemo
     public override int GetHashCode()
     {
         return 0;
+    }
+
+    private sealed record IdsEntry(IReadOnlyList<CommentRow> Rows, IReadOnlyList<string?> Ids);
+
+    private readonly record struct HeadKey(AdfDocument Document, int Width, int Lines)
+    {
+        public bool Equals(HeadKey other)
+        {
+            return ReferenceEquals(Document, other.Document) && Width == other.Width && Lines == other.Lines;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RuntimeHelpers.GetHashCode(Document), Width, Lines);
+        }
     }
 
     private readonly record struct RenderKey(AdfDocument Document, int Width)

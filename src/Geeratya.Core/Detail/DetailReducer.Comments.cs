@@ -86,6 +86,19 @@ internal static partial class DetailReducer
         return offset + detail.Cursor - document.Sections[section];
     }
 
+    /// <summary>The first row of comment <paramref name="id"/>, found by walking back from its row <paramref name="from"/>.</summary>
+    private static int FirstRowOf(IReadOnlyList<string?> ids, int from, string id)
+    {
+        var first = from;
+
+        while (first > 0 && ids[first - 1] == id)
+        {
+            first--;
+        }
+
+        return first;
+    }
+
     /// <summary>
     /// The row the cursor goes to after the comment list changed: the same line of the same comment as before, so a
     /// comment added above, one removed or one that grew does not move the cursor onto another comment. The old row
@@ -101,7 +114,7 @@ internal static partial class DetailReducer
             return row;
         }
 
-        var offset = old - document.CommentRowIds.ToList().IndexOf(id);
+        var offset = old - FirstRowOf(document.CommentRowIds, old, id);
         var rows = DetailZoom.CommentRowsOf(detail, width);
         var header = CommentRows.HeaderOf(rows, id);
 

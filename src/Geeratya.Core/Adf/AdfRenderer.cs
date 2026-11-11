@@ -30,4 +30,26 @@ public static class AdfRenderer
 
         return new AdfRendering(lines, effectiveWidth);
     }
+
+    /// <summary>
+    /// Lays out only as much of the document as <paramref name="maxLines" /> needs: stops after the first block (or
+    /// list item of a top-level list) that takes the output past it. <c>Complete</c> is false when something was left
+    /// out, so the document has more than <paramref name="maxLines" /> lines; the lines returned are then the start of
+    /// the full rendering. A document that crosses the limit only in its last block or item is complete, and a
+    /// complete result equals <see cref="Render" />.
+    /// </summary>
+    public static AdfHead RenderHead(AdfDocument document, int width, int maxLines)
+    {
+        var effectiveWidth = Math.Max(1, width);
+        var lines = new List<StyledLine>();
+        var context = new RenderContext(effectiveWidth, TextRole.Body, 0);
+        var cut = AdfBlockRenderer.RenderBlocks(document.Content, context, false, lines, maxLines);
+
+        if (!cut && document.IsTruncated)
+        {
+            lines.Add(StyledLine.Of(AdfMarkers.Truncated, TextRole.Muted));
+        }
+
+        return new AdfHead(new AdfRendering(lines, effectiveWidth), !cut);
+    }
 }

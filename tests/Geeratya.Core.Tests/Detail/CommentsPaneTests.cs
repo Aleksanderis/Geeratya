@@ -267,7 +267,7 @@ public class CommentsPaneTests
     }
 
     [Fact]
-    public void GivenCutRows_WhenExpandingAComment_ThenItsBodyLinesAreTheOnesRenderedBefore()
+    public void GivenCutRows_WhenExpandingAComment_ThenItsBodyLinesAreTheTextShownBefore()
     {
         var detail = DetailOf([Comment("1", 8)]);
         var cut = DetailZoom.CommentRowsOf(detail, 80);
@@ -275,7 +275,7 @@ public class CommentsPaneTests
         var expanded = DetailZoom.CommentRowsOf(detail with { Expanded = ["comment:1"] }, 80);
 
         Assert.NotSame(cut, expanded);
-        Assert.Same(cut[1].Line, expanded[1].Line);
+        Assert.Equal(cut[1].Line.PlainText, expanded[1].Line.PlainText);
         Assert.Contains("item 1", expanded[1].Line.PlainText);
     }
 

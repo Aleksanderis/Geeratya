@@ -99,16 +99,26 @@ public static class CommentRows
         var indent = Math.Min(threaded.Depth * IndentWidth, room);
         var inner = outer - indent;
         var expanded = detail.Expanded.Contains($"comment:{comment.Id}");
-        var body = BodyOf(comment, inner, memo, detail.Comments.Count);
-        var cuttable = body.Count > bodyLines;
+        var limit = new LongTextLimit(bodyLines, inner, ZoomHint: bodyLines == BodyLines);
         var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
+        var source = new BodySource(comment, inner, memo, detail.Comments.Count);
+
+        // A cut comment needs only its first lines wrapped; the count in the note is made when the row is read.
+        if (!expanded && comment.Body.Content.Count > 0 && LongText.NoteFitsOneRow(limit)
+            && source.Head(bodyLines) is { } head)
+        {
+            AddCut(rows, index, indent, new CutBody(head, source, limit), target, Bar(comment, detail, inner));
+
+            return;
+        }
+
+        var body = source.Whole();
+        var cuttable = body.Count > bodyLines;
         var header = target with { Expands = cuttable && !expanded, Collapses = cuttable && expanded };
 
         rows.Add(new CommentRow(Indented(Bar(comment, detail, inner), indent), header, true, index));
 
         var content = new PanelContent();
-
-        var limit = new LongTextLimit(bodyLines, inner, ZoomHint: bodyLines == BodyLines);
 
         LongText.Add(content, body, target, expanded, limit);
 
@@ -136,16 +146,63 @@ public static class CommentRows
         return new StyledLine([new StyledSpan(guide, TextRole.Border), .. line.Spans]);
     }
 
-    private static List<StyledLine> BodyOf(IssueComment comment, int inner, DetailRenderMemo? memo, int documents)
+    private static void AddCut(
+        List<CommentRow> rows,
+        int index,
+        int indent,
+        CutBody body,
+        DetailTarget target,
+        StyledLine bar)
     {
-        if (comment.Body.Content.Count == 0)
+        var (head, source, limit) = body;
+
+        rows.Add(new CommentRow(Indented(bar, indent), target with { Expands = true }, true, index));
+
+        for (var line = 0; line < limit.Lines; line++)
         {
-            return [StyledLine.Of(EmptyCommentText, TextRole.Muted)];
+            rows.Add(new CommentRow(Indented(head[line], indent), target, false, index));
         }
 
-        var rendering = memo?.Rendering(comment.Body, inner, documents) ?? AdfRenderer.Render(comment.Body, inner);
+        rows.Add(new CommentRow(new CutNote(source, limit, indent), target with { Expands = true, Note = true }, false, index));
+        rows.Add(new CommentRow(StyledLine.Empty, null, false, index));
+    }
 
-        return [.. rendering.Lines];
+    private sealed record CutBody(IReadOnlyList<StyledLine> Head, BodySource Source, LongTextLimit Limit);
+
+    /// <summary>
+    /// The wrapped body of one comment: whole, or only its start. Reads go through the render memo, which is not
+    /// thread-safe: rows are read on the UI thread only (reducer and frame).
+    /// </summary>
+    private sealed class BodySource(IssueComment comment, int inner, DetailRenderMemo? memo, int documents)
+    {
+        public IReadOnlyList<StyledLine> Whole()
+        {
+            if (comment.Body.Content.Count == 0)
+            {
+                return [StyledLine.Of(EmptyCommentText, TextRole.Muted)];
+            }
+
+            return (memo?.Rendering(comment.Body, inner, documents) ?? AdfRenderer.Render(comment.Body, inner)).Lines;
+        }
+
+        /// <summary>The first lines when the body has more than <paramref name="lines"/>, null when it does not.</summary>
+        public IReadOnlyList<StyledLine>? Head(int lines)
+        {
+            var head = memo?.Head(comment.Body, inner, lines, documents) ?? AdfRenderer.RenderHead(comment.Body, inner, lines);
+
+            return head.Complete ? null : head.Rendering.Lines;
+        }
+    }
+
+    /// <summary>The note row of a cut comment: how many lines are hidden is counted when the row is read.</summary>
+    private sealed class CutNote(BodySource source, LongTextLimit limit, int indent) : ICommentRowSource
+    {
+        public StyledLine Resolve()
+        {
+            var hidden = source.Whole().Count - limit.Lines;
+
+            return hidden <= 0 ? StyledLine.Empty : Indented(LongText.CollapsedNote(hidden, limit) ?? StyledLine.Empty, indent);
+        }
     }
 
     /// <summary>The header bar: author left, time and <c>edited</c> right, one tint across the inner width.</summary>
