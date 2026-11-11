@@ -80,6 +80,7 @@ public sealed class BoardKindStore
             }
 
             File.Delete(PathOf(profile));
+            AtomicFile.DeleteStrayTemporaries(PathOf(profile));
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {

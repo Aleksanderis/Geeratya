@@ -13,7 +13,6 @@ public sealed class SettingsStore
 {
     public const string FileName = "settings.json";
 
-
     private const string EmptyObject = "{\n}\n";
 
     private static readonly byte[] _byteOrderMark = Encoding.UTF8.GetPreamble();

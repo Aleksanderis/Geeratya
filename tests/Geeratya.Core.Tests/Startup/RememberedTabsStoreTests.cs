@@ -104,7 +104,9 @@ public sealed class RememberedTabsStoreTests : IDisposable
         var text = File.ReadAllText(Path.Combine(store.FolderOf(_work), RememberedTabsStore.FileName));
         Assert.DoesNotContain("atlassian", text);
         Assert.DoesNotContain("me@work.test", text);
-        Assert.False(File.Exists(Path.Combine(store.FolderOf(_work), $"{RememberedTabsStore.FileName}.tmp")));
+        Assert.Equal(
+            [RememberedTabsStore.FileName],
+            Directory.GetFiles(store.FolderOf(_work)).Select(Path.GetFileName));
     }
 
     [Fact]

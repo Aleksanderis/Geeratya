@@ -70,6 +70,21 @@ public sealed class BoardKindStoreTests : IDisposable
     }
 
     [Fact]
+    public void GivenAStrayTemporaryFile_WhenDeleting_ThenTheFolderIsRemoved()
+    {
+        var store = new BoardKindStore(_directory);
+
+        store.Save(_work, 1, BoardKind.Scrum);
+
+        var path = Directory.GetFiles(_directory, BoardKindStore.FileName, SearchOption.AllDirectories).Single();
+
+        File.WriteAllText($"{path}.1234.abcd.tmp", "half");
+        store.Delete(_work);
+
+        Assert.Empty(Directory.GetFileSystemEntries(_directory));
+    }
+
+    [Fact]
     public void GivenAFailingWrite_WhenSaving_ThenNoTemporaryFileIsLeftAndTheErrorPropagates()
     {
         var store = new BoardKindStore(_directory);

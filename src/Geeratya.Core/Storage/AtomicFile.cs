@@ -28,7 +28,7 @@ public sealed class AtomicFile
     /// <summary>Writes the text as UTF-8 without a byte order mark.</summary>
     /// <param name="path">The target file; its folder must exist.</param>
     /// <param name="text">The new content.</param>
-    /// <param name="prepare">Called with the temporary path once it is written, before the replace (permissions).</param>
+    /// <param name="prepare">Called with the new empty temporary path, before content is written (permissions).</param>
     public void WriteAllText(string path, string text, Action<string>? prepare = null)
     {
         WriteAllBytes(path, _utf8WithoutBom.GetBytes(text), prepare);
@@ -46,12 +46,13 @@ public sealed class AtomicFile
 
         try
         {
-            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite))
             {
+                // Before any content is written, so a restricted file never holds data with default permissions.
+                prepare?.Invoke(temporary);
                 write(stream);
             }
 
-            prepare?.Invoke(temporary);
             ReplaceWithRetry(temporary, path);
         }
         catch
@@ -95,6 +96,32 @@ public sealed class AtomicFile
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // A temporary file held by a scanner is left behind; the next write uses a new name.
+        }
+    }
+
+    /// <summary>
+    /// Removes temporary files that a killed process or a scanner left next to <paramref name="path"/>, so removing a
+    /// profile can delete its folder. Errors are ignored.
+    /// </summary>
+    public static void DeleteStrayTemporaries(string path)
+    {
+        var folder = Path.GetDirectoryName(path);
+
+        if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var stray in Directory.EnumerateFiles(folder, $"{Path.GetFileName(path)}.*{TemporarySuffix}"))
+            {
+                DeleteQuietly(stray);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A folder that cannot be listed has nothing to delete.
         }
     }
 

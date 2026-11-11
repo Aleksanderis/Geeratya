@@ -67,6 +67,7 @@ public sealed class HistoryStore
             }
 
             File.Delete(PathOf(profile));
+            AtomicFile.DeleteStrayTemporaries(PathOf(profile));
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {
