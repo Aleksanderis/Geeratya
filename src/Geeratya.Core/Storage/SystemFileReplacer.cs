@@ -1,31 +1,24 @@
 namespace Geeratya.Core.Storage;
 
 /// <summary>
-/// The real replace and a thread sleep. On Windows an existing target is swapped with <c>File.Replace</c>, not
-/// <c>File.Move</c>: a move over a file that another handle has open fails with access denied even when that handle
-/// allows deleting (<c>FileShare.Delete</c>), while the replace succeeds and the reader keeps reading the old
-/// content. A target that does not exist yet, and every other system (where a rename replaces the target atomically
-/// whatever is open), uses a move.
+/// The real replace and a thread sleep. The temporary file is moved over the target. On Windows a move over a file
+/// that another handle has open fails with access denied even when that handle allows deleting
+/// (<c>FileShare.Delete</c>); then <c>File.Replace</c> is used, which succeeds and leaves the reader reading the old
+/// content. The move comes first because it is the lighter call and behaves well when two instances write the same
+/// target at once. Other systems replace the target atomically whatever is open and only use the move.
 /// </summary>
 public sealed class SystemFileReplacer : IFileReplacer
 {
     public void Replace(string temporary, string target)
     {
-        if (OperatingSystem.IsWindows() && File.Exists(target))
+        try
         {
-            try
-            {
-                File.Replace(temporary, target, destinationBackupFileName: null);
-
-                return;
-            }
-            catch (FileNotFoundException) when (File.Exists(temporary))
-            {
-                // The target was deleted between the check and the replace (another instance); create it instead.
-            }
+            File.Move(temporary, target, overwrite: true);
         }
-
-        File.Move(temporary, target, overwrite: true);
+        catch (UnauthorizedAccessException) when (OperatingSystem.IsWindows() && File.Exists(target))
+        {
+            File.Replace(temporary, target, destinationBackupFileName: null);
+        }
     }
 
     public void Pause(TimeSpan duration)
