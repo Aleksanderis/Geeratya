@@ -20,11 +20,6 @@ internal static class IssueSummaryMapper
     private static readonly IReadOnlyList<IssueSprint> _noSprints = [];
     private static readonly IReadOnlyList<IssueSubtask> _noSubtasks = [];
 
-    private const string IdProperty = "id";
-    private const string KeyProperty = "key";
-    private const string StatusCategoryProperty = "statusCategory";
-    private const string NameProperty = "name";
-    private const string StateProperty = "state";
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
@@ -81,7 +76,7 @@ internal static class IssueSummaryMapper
     }
 
     /// <summary>
-    /// The sprints of the Sprint field: an array of objects, <c>null</c> for none. Entries without an id are skipped
+    /// The sprints of the Sprint field of an issue read whole (detail): an array of objects, <c>null</c> for none. Entries without an id are skipped
     /// and a field of another shape gives an empty list.
     /// </summary>
     internal static IReadOnlyList<IssueSprint> MapSprints(Dictionary<string, JsonElement>? extra, string? fieldId)
@@ -96,12 +91,12 @@ internal static class IssueSummaryMapper
 
         foreach (var entry in field.EnumerateArray())
         {
-            if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(IdProperty, out var id)
+            if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(WireNames.Id, out var id)
                 && id.ValueKind == JsonValueKind.Number && id.TryGetInt64(out var sprintId))
             {
-                var state = SprintMapper.ParseState(TextOf(entry, StateProperty));
+                var state = SprintMapper.ParseState(TextOf(entry, WireNames.State));
 
-                result.Add(new IssueSprint(sprintId, TextOf(entry, NameProperty), state));
+                result.Add(new IssueSprint(sprintId, TextOf(entry, WireNames.Name), state));
             }
         }
 
@@ -109,55 +104,74 @@ internal static class IssueSummaryMapper
     }
 
     /// <summary>
-    /// The sub-task stubs of the <c>subtasks</c> field; entries without a key are skipped and a missing or odd field
-    /// gives an empty list.
+    /// The sprints of a search row's Sprint field: entries without an id were dropped while reading and a field of
+    /// another shape gives an empty list.
     /// </summary>
-    internal static List<IssueSubtask> MapSubtasks(
-        Dictionary<string, JsonElement>? extra,
-        Dictionary<string, string> pool)
+    internal static IReadOnlyList<IssueSprint> MapSprints(Dictionary<string, ExtraValue>? extra, string? fieldId)
     {
-        var result = new List<IssueSubtask>();
-
-        if (extra is null || !extra.TryGetValue(IssueFields.Subtasks, out var field)
-            || field.ValueKind != JsonValueKind.Array)
+        if (fieldId is null || extra is null || !extra.TryGetValue(fieldId, out var field)
+            || field.Sprints is not { } wire)
         {
-            return result;
+            return _noSprints;
         }
 
-        foreach (var entry in field.EnumerateArray())
+        var result = new List<IssueSprint>(wire.Count);
+
+        foreach (var entry in wire)
         {
-            if (entry.ValueKind == JsonValueKind.Object && TextOf(entry, KeyProperty) is { Length: > 0 } key)
-            {
-                result.Add(MapSubtask(entry, key, pool));
-            }
+            result.Add(new IssueSprint(entry.Id, entry.Name ?? string.Empty, SprintMapper.ParseState(entry.State)));
         }
 
         return result;
     }
 
-    private static IssueSubtask MapSubtask(JsonElement entry, string key, Dictionary<string, string> pool)
+    /// <summary>
+    /// The sub-task stubs of the <c>subtasks</c> field (entries without a key were dropped while reading); a missing
+    /// or odd field gives an empty list.
+    /// </summary>
+    internal static List<IssueSubtask> MapSubtasks(
+        Dictionary<string, ExtraValue>? extra,
+        Dictionary<string, string> pool)
     {
-        var stub = ObjectOf(entry, IssueFields.FieldsProperty);
-        var status = ObjectOf(stub, IssueFields.Status);
-        var category = TextOf(ObjectOf(status, StatusCategoryProperty), KeyProperty);
+        var result = new List<IssueSubtask>();
 
-        return new IssueSubtask(
-            key,
-            TextOf(stub, IssueFields.Summary),
-            new IssueStatus(
-                TextOf(status, IdProperty),
-                Share(TextOf(status, NameProperty), pool) ?? string.Empty,
-                category.Length > 0 ? category : UndefinedCategoryKey),
-            TextOf(ObjectOf(stub, IssueFields.IssueType), NameProperty));
+        if (extra is null || !extra.TryGetValue(IssueFields.Subtasks, out var field) || field.Subtasks is not { } wire)
+        {
+            return result;
+        }
+
+        foreach (var entry in wire)
+        {
+            result.Add(new IssueSubtask(
+                entry.Key,
+                entry.Fields?.Summary ?? string.Empty,
+                MapStatus(entry.Fields?.Status, pool),
+                entry.Fields?.IssueType?.Name ?? string.Empty));
+        }
+
+        return result;
     }
 
-    private static JsonElement ObjectOf(JsonElement element, string property) =>
-        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value)
-            && value.ValueKind == JsonValueKind.Object
-            ? value
-            : default;
+    /// <summary>The first candidate estimate field of a search row that holds a number; null when none does.</summary>
+    internal static double? MapEstimate(Dictionary<string, ExtraValue>? extra, IReadOnlyList<string>? fieldIds)
+    {
+        if (extra is null || fieldIds is null)
+        {
+            return null;
+        }
 
-    /// <summary>The first candidate estimate field that holds a number; null when none does.</summary>
+        foreach (var fieldId in fieldIds)
+        {
+            if (extra.TryGetValue(fieldId, out var field) && field.Number is { } value)
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The first candidate estimate field of an issue read whole (detail) that holds a number.</summary>
     internal static double? MapEstimate(Dictionary<string, JsonElement>? extra, IReadOnlyList<string>? fieldIds)
     {
         if (extra is null || fieldIds is null)
