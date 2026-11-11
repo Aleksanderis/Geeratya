@@ -49,7 +49,8 @@ public sealed record BlockOrderRowChange(
             return tab.Rows;
         }
 
-        var rest = tab.Rows.Where(row => !IsMember(row.Key)).ToList();
+        var members = new HashSet<string>(Keys, StringComparer.OrdinalIgnoreCase);
+        var rest = tab.Rows.Where(row => !members.Contains(row.Key)).ToList();
         var at = IndexOf(rest, ReferenceKey);
 
         rest.InsertRange(Before ? at : at + 1, block);
@@ -64,12 +65,19 @@ public sealed record BlockOrderRowChange(
             return tab.Rows;
         }
 
+        var position = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0; index < OriginalOrder.Count; index++)
+        {
+            position.TryAdd(OriginalOrder[index], index);
+        }
+
         var slots = new List<int>();
         var known = new List<IssueSummary>();
 
         for (var index = 0; index < tab.Rows.Count; index++)
         {
-            if (IndexOf(OriginalOrder, tab.Rows[index].Key) >= 0)
+            if (position.ContainsKey(tab.Rows[index].Key))
             {
                 slots.Add(index);
                 known.Add(tab.Rows[index]);
@@ -78,7 +86,7 @@ public sealed record BlockOrderRowChange(
 
         var copy = new List<IssueSummary>(tab.Rows);
 
-        known.Sort((left, right) => IndexOf(OriginalOrder, left.Key).CompareTo(IndexOf(OriginalOrder, right.Key)));
+        known.Sort((left, right) => position[left.Key].CompareTo(position[right.Key]));
 
         for (var index = 0; index < slots.Count; index++)
         {
@@ -119,23 +127,22 @@ public sealed record BlockOrderRowChange(
     private List<IssueSummary> Block(IReadOnlyList<IssueSummary> rows)
     {
         var block = new List<IssueSummary>();
+        var byKey = new Dictionary<string, IssueSummary>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in rows)
+        {
+            byKey.TryAdd(row.Key, row);
+        }
 
         foreach (var key in Keys)
         {
-            var index = IndexOf(rows, key);
-
-            if (index >= 0)
+            if (byKey.TryGetValue(key, out var row))
             {
-                block.Add(rows[index]);
+                block.Add(row);
             }
         }
 
         return block;
-    }
-
-    private bool IsMember(string key)
-    {
-        return Keys.Contains(key, StringComparer.OrdinalIgnoreCase);
     }
 
     private static int IndexOf(IReadOnlyList<IssueSummary> rows, string key)
@@ -143,19 +150,6 @@ public sealed record BlockOrderRowChange(
         for (var index = 0; index < rows.Count; index++)
         {
             if (string.Equals(rows[index].Key, key, StringComparison.OrdinalIgnoreCase))
-            {
-                return index;
-            }
-        }
-
-        return -1;
-    }
-
-    private static int IndexOf(IReadOnlyList<string> keys, string key)
-    {
-        for (var index = 0; index < keys.Count; index++)
-        {
-            if (string.Equals(keys[index], key, StringComparison.OrdinalIgnoreCase))
             {
                 return index;
             }

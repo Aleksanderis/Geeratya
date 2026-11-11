@@ -303,3 +303,18 @@ Bench: `HotPathMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Gee
 | List, plain nav (control) | 0.32 / 0.65 | 0.32 / 0.64 |
 
 The key dictionary is built on first use after each row-list change (10 000 hashed inserts), so a refresh followed by one card move or Visual key costs a little more than the old single scan; every later key is a lookup. Follow now matches keys ignoring case (Jira keys are upper-case, so nothing changes in practice). Memory: one 10 000-entry key dictionary and one layout per tab, built on first use and replaced with the rows; RSS delta not measured.
+
+## Bulk write merging (#931)
+
+Merging a bulk write into the rows did O(rows x keys) case-insensitive compares per step: `Plan` (one row search per key), `Patch`/rollback (one pass over every row per change), `MapRows`/`MapStubs`, `Holds`, `MarkStale`, `WriteMerge.KeepHeldRows` (a `Where` closure per incoming row, `RemovedKeys.Contains` per row), `WriteRemoval`, `RowSelection.Without` and the `BlockOrderRowChange` sort (linear `IndexOf` in the comparer). Now each call builds one case-insensitive `HashSet` or key dictionary (changes by key, running changes by key, original positions) and every row does a lookup; `Plan` finds all rows in one pass; `Patch` and rollback map the rows once for all changes (the order part still runs per change and reads keys only). Same results, including the order several changes on one key are applied in.
+
+Bench: `BulkWriteMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter BulkWriteMeasurements --logger "console;verbosity=detailed"`), a `SprintMoveRequest` of 1000 marked rows on a 10 000-row list tab, 30 timed runs after 5 warm-up, Release JIT, reducer only (no frame), same machine back to back:
+
+| Step | Before median / p95 (ms) | After median / p95 (ms) |
+|---|---|---|
+| Start (plan, optimistic patch) | 101.41 / 116.50 | 1.15 / 6.54 |
+| Settle (`WriteSucceeded` with 1000 re-read rows) | 47.62 / 65.78 | 0.54 / 1.10 |
+| Failure (rollback of 1000 changes) | 89.59 / 97.37 | 0.85 / 1.37 |
+| Load merge (`KeepHeldRows`, 10 000 incoming rows, write running) | 17.71 / 28.62 | 0.64 / 1.54 |
+
+Memory: a few short-lived key sets and dictionaries (about the size of the bulk) per call; nothing is kept between calls.
