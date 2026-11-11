@@ -321,9 +321,9 @@ public static partial class WriteReducer
 
         for (var index = 0; index < rows.Count; index++)
         {
-            var mapped = keys.Contains(rows[index].Key)
-                ? map(rows[index])
-                : MapStubs(rows[index], keys, map);
+            // A parent and its sub-task can both be in the bulk: the row and its stubs are both mapped.
+            var own = keys.Contains(rows[index].Key) ? map(rows[index]) : rows[index];
+            var mapped = MapStubs(own, keys, map);
 
             if (ReferenceEquals(mapped, rows[index]))
             {
