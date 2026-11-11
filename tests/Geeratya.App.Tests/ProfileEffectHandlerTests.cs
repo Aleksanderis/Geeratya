@@ -170,6 +170,41 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenProfileFileSaveAndTokenDeleteFail_WhenAdding_ThenMessageSaysTheTokenStays()
+    {
+        var store = new FakeSecretStore(failsOnDelete: true);
+        var handler = CreateWithBlockedProfileFile(store);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        var failed = Assert.IsType<ProfileOperationFailed>(outcome);
+
+        Assert.Contains("stays in the secret store", failed.Message);
+        Assert.DoesNotContain("hunter2", failed.Message);
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveFailsAfterKeyChange_WhenUpdating_ThenTheNewKeyTokenIsDeleted()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+        var edited = new Profile("work", "https://other.atlassian.net", _work.Email);
+        var update = new UpdateProfileEffect(
+            _work,
+            edited,
+            new SecretText("hunter2-secret"),
+            ProfileCatalog.Empty.With(edited),
+            false);
+
+        var outcome = await handler.RunAsync(update, CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.False(store.Secrets.ContainsKey(edited.CredentialKey));
+    }
+
+    [Fact]
     public async Task GivenProfileFileSaveFailsAndKeyIsShared_WhenAdding_ThenTheSharedTokenStays()
     {
         var store = new FakeSecretStore();
