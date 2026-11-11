@@ -3,14 +3,16 @@ using Geeratya.Core.Storage;
 namespace Geeratya.Core.Tests.Fakes;
 
 /// <summary>
-/// A slow disk: every replace takes <c>delay</c> and tells the test which target it is writing, so a test can act
-/// while a batch is in progress.
+/// A slow disk: every replace takes <c>delay</c>. <see cref="FirstWrite"/> completes when the first one starts, so a
+/// test can act while a batch is in progress.
 /// </summary>
-public sealed class SlowFileReplacer(TimeSpan delay, Action<string> onReplace) : IFileReplacer
+public sealed class SlowFileReplacer(TimeSpan delay) : IFileReplacer
 {
+    public TaskCompletionSource FirstWrite { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     public void Replace(string temporary, string target)
     {
-        onReplace(target);
+        FirstWrite.TrySetResult();
         Thread.Sleep(delay);
         File.Move(temporary, target, overwrite: true);
     }

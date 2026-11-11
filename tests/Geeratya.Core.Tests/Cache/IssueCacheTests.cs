@@ -53,11 +53,8 @@ public sealed class IssueCacheTests : IDisposable
             seed.Flush();
         }
 
-        SiteCache? reader = null;
-        Task<CachedIssue?>? read = null;
-        var replacer = new SlowFileReplacer(TimeSpan.FromMilliseconds(150), _ => read ??= Task.Run(() => reader!.GetIssue("A-9")));
+        var replacer = new SlowFileReplacer(TimeSpan.FromMilliseconds(150));
         using var cache = new SiteCache(folder, file: new AtomicFile(replacer));
-        reader = cache;
 
         for (var index = 0; index < 6; index++)
         {
@@ -65,18 +62,14 @@ public sealed class IssueCacheTests : IDisposable
         }
 
         var flush = Task.Run(cache.Flush);
-        while (read is null)
-        {
-            await Task.Delay(10);
-        }
-
-        await read;
+        await replacer.FirstWrite.Task;
+        var read = await Task.Run(() => cache.GetIssue("A-9"));
         var flushDone = flush.IsCompleted;
         await flush;
 
         // The disk lock is taken per file: the read slips in between two writes, not after all six.
         Assert.False(flushDone);
-        Assert.NotNull(await read);
+        Assert.NotNull(read);
     }
 
     [Fact]
