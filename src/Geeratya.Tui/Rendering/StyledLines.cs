@@ -51,7 +51,8 @@ public static class StyledLines
     }
 
     // A line that is already exactly `width` columns with no empty span is returned as is: it is the common case for
-    // a line that an earlier stage of the frame build has fitted, and refitting it would only copy it.
+    // a line that an earlier stage of the frame build has fitted, and refitting it would only copy it. (A trailing span of only zero-width characters after the full width is kept
+    // rather than dropped; it draws nothing.)
     private static bool IsExactly(StyledLine line, int width)
     {
         var used = 0;

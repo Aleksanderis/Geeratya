@@ -37,7 +37,12 @@ public static class DisplayWidth
     {
         if (text.AsSpan().IndexOfAnyExceptInRange(' ', '~') < 0)
         {
-            return text.Length <= width ? text : width <= 0 ? string.Empty : text[..width];
+            if (text.Length <= width)
+            {
+                return text;
+            }
+
+            return width <= 0 ? string.Empty : text[..width];
         }
 
         var used = 0;

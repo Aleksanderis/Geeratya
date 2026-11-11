@@ -325,7 +325,7 @@ Memory: a few short-lived key sets and dictionaries (about the size of the bulk)
 
 | What | Method | Before | After |
 |---|---|---|---|
-| Frame build (`FrameBuilder.BuildStyled`) at 120x40, list, 10 000 rows loaded, bytes allocated per frame | `HotPathMeasurements.ListOf10kRows_AllocationPerFrameAt120x40` (`GC.GetAllocatedBytesForCurrentThread`, 200 warm-up and 500 timed frames, Release JIT) | 810 243 | 247 221 |
-| Nav key + frame, same list, median / p95 ms | `HotPathMeasurements.ListOf10kRows_NavKeyThroughReducerAndFrame` | 0.34 / 0.72 | 0.29 / 0.42 |
+| Frame build (`FrameBuilder.BuildStyled`) at 120x40, list, 10 000 rows loaded, bytes allocated per frame | `HotPathMeasurements.ListOf10kRows_AllocationPerFrameAt120x40` (`GC.GetAllocatedBytesForCurrentThread`, 200 warm-up and 500 timed frames, Release JIT) | 805 000 to 808 000 (3 runs) | 238 000 to 263 000 (3 runs; one other machine run read 129 000, so the counter varies between machines, the before figure does not) |
+| Nav key + frame, same list, median / p95 ms | `HotPathMeasurements.ListOf10kRows_NavKeyThroughReducerAndFrame` | 0.34 / 0.72 | 0.13 to 0.29 / 0.27 to 0.42 (timing noisy, machine load) |
 
 Not done here (registered as #962): `ListBodyRenderer` mark `HashSet`, `FlashLabelsOf` dictionary with flash off, `Palette.Resolve` contrast memo, `ShellScreen.Render` list copy, the Windows `Asciified` pass.
