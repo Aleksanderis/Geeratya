@@ -157,7 +157,8 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             _application?.Dispose();
         }
 
-        // The callbacks of the cancelled work run on the thread pool, not inline here (#926).
+        // The callbacks of the cancelled work run on the thread pool, not inline here (#926); they only cancel linked
+        // sources, so the flushes below do not wait for them.
         _ = _shutdown.CancelAsync();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();

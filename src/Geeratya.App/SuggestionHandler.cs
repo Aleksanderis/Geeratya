@@ -73,7 +73,8 @@ public sealed class SuggestionHandler
 
     // Cancelling runs the callbacks and continuations of the lookup (debounce wait, transport wait): off the calling
     // thread, which is the UI thread. A replaced source is disposed here, once it has been cancelled; a lookup that
-    // ends on its own disposes its source itself (see Forget).
+    // runs to its end while still the pending one disposes its source itself (see Forget). A source whose lookup never
+    // starts stays pending until the tab's next lookup or Cancel, which disposes it.
     private static async Task RetireAsync(CancellationTokenSource old)
     {
         try
