@@ -303,3 +303,9 @@ Bench: `HotPathMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Gee
 | List, plain nav (control) | 0.32 / 0.65 | 0.32 / 0.64 |
 
 The key dictionary is built on first use after each row-list change (10 000 hashed inserts), so a refresh followed by one card move or Visual key costs a little more than the old single scan; every later key is a lookup. Follow now matches keys ignoring case (Jira keys are upper-case, so nothing changes in practice). Memory: one 10 000-entry key dictionary and one layout per tab, built on first use and replaced with the rows; RSS delta not measured.
+
+## Unchanged refreshes and the cache flush (#935)
+
+A timed refresh that returns the same issues (same keys in order, each with the same `Updated`) keeps the tab's `Rows` and `KeyWidth` references (so the layout memos of #930 survive and no `KeepSelection` or key-width pass runs) and emits no `WriteCacheEffect` (no serialization, no write, no eviction check every 60 s per tab). `SiteCache.Flush` serializes before taking the disk lock and holds it per file; eviction lists the folder only when a running byte estimate passes the cap, and orders by last use (reads touch the file time).
+
+Measured (temporary xUnit test, not committed; Release JIT, Linux, page-cache warm): flushing one 100-row view among 150 cache files, median 0.26 ms / p95 0.33 ms before, 0.20 / 0.27 after (the folder scan is gone; the saving grows with folder size and cold disks). Lock hold: a six-view flush used to keep the disk lock for the whole batch; a cache read now waits for one file (test with a 150 ms per-file replacer: the read finishes before the batch does). The reducer cost of a refresh page is below 0.2 ms either way; the gain is the skipped downstream work (memo rebuilds, redraw, cache write), checked by reference-equality tests rather than timed.
