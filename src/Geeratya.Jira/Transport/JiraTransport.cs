@@ -227,11 +227,15 @@ public sealed partial class JiraTransport : IDisposable
             // then wait for ever. The abandoned call ends with the handler or the connection; nothing waits for it.
             using var response = await _client.SendAsync(message, timeout.Token).WaitAsync(timeout.Token);
             RecordRateLimit(response);
-            var body = await response.Content.ReadAsStringAsync(timeout.Token).WaitAsync(timeout.Token);
 
-            return response.IsSuccessStatusCode
-                ? ParseBody(body, resultInfo, request.AllowsEmptyBody)
-                : JiraResults.Failure<T>(MapFailure(response, body));
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await ResponseBody.ReadErrorAsync(response.Content, timeout.Token);
+
+                return JiraResults.Failure<T>(MapFailure(response, errorBody));
+            }
+
+            return await ReadSuccessAsync(response, resultInfo, request.AllowsEmptyBody, timeout.Token);
         }
         catch (OperationCanceledException) when (lease.IsAbandoned && !cancellationToken.IsCancellationRequested)
         {
@@ -277,13 +281,43 @@ public sealed partial class JiraTransport : IDisposable
         return message;
     }
 
-    private JiraResult<T> ParseBody<T>(string body, JsonTypeInfo<T>? resultInfo, bool allowsEmptyBody)
+    private async Task<JiraResult<T>> ReadSuccessAsync<T>(
+        HttpResponseMessage response,
+        JsonTypeInfo<T>? resultInfo,
+        bool allowsEmptyBody,
+        CancellationToken cancellationToken)
     {
-        if (resultInfo is null || (allowsEmptyBody && string.IsNullOrWhiteSpace(body)))
+        if (resultInfo is null)
         {
             return JiraResults.Success<T>(default!);
         }
 
+        // Calls that may answer with no body are small: read them as text to tell empty from JSON.
+        if (allowsEmptyBody)
+        {
+            var text = await ResponseBody.ReadSmallAsync(response.Content, cancellationToken);
+
+            return string.IsNullOrWhiteSpace(text)
+                ? JiraResults.Success<T>(default!)
+                : ParseText(text, resultInfo);
+        }
+
+        try
+        {
+            var value = await ResponseBody.ReadJsonAsync(response.Content, resultInfo, cancellationToken);
+
+            return value is null
+                ? Fail<T>(JiraErrorKind.InvalidResponse, "Jira returned an empty response.")
+                : JiraResults.Success(value);
+        }
+        catch (JsonException)
+        {
+            return Fail<T>(JiraErrorKind.InvalidResponse, "Jira returned a response that could not be read.");
+        }
+    }
+
+    private JiraResult<T> ParseText<T>(string body, JsonTypeInfo<T> resultInfo)
+    {
         try
         {
             var value = JsonSerializer.Deserialize(body, resultInfo);

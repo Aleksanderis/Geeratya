@@ -161,6 +161,47 @@ public sealed class JiraTransportTests
     }
 
     [Fact]
+    public async Task GivenHugeErrorBody_WhenGetting_ThenErrorIsMappedFromItsFirstBytesOnly()
+    {
+        using var fixture = new TransportFixture();
+        var body = $"<html><body>Bad gateway {new string('x', 2 * 1024 * 1024)} tail-marker</body></html>";
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.WithStatus(HttpStatusCode.BadRequest, body));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(JiraErrorKind.BadRequest, result.Error.Kind);
+        Assert.True(result.Error.Message.Length < 1024);
+        Assert.DoesNotContain("tail-marker", result.Error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenTruncatedSuccessBody_WhenGetting_ThenResultIsInvalidResponse()
+    {
+        using var fixture = new TransportFixture();
+        var json = MyselfJson();
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(json[..(json.Length / 2)]));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(JiraErrorKind.InvalidResponse, result.Error.Kind);
+    }
+
+    [Fact]
+    public async Task GivenSuccessBodyWithNonAsciiText_WhenGetting_ThenItIsDecodedFromUtf8()
+    {
+        using var fixture = new TransportFixture();
+        var json = MyselfJson().Replace("Test User 1", "Zoë 😀 日本", StringComparison.Ordinal);
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(json));
+
+        var result = await new JiraUserClient(fixture.Transport).GetMyselfAsync(CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Zoë 😀 日本", result.Value.DisplayName);
+    }
+
+    [Fact]
     public async Task GivenServerErrorWithoutRetryAfter_WhenGetting_ThenBackoffGrowsExponentially()
     {
         using var fixture = new TransportFixture();

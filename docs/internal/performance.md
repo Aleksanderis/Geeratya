@@ -88,6 +88,17 @@ Stacked lanes (#891): several lanes' columns are drawn at once, each from its ow
 
 Method: a temporary xUnit test (not committed) repeated the 24 issues of `search/search-rows-gcm.json` to 10 000, 5 warm-up and 20 timed runs on a noisy machine. Real pages are tens of issues, so this is far below a millisecond per page. Not measured: the Native AOT figure (no caller is wired into the app yet), the saving of sharing repeated names within a page (a dictionary lookup per string, simple and proportional to data size, kept unmeasured per the performance skill), and reading the body as a stream instead of a string (transport, unchanged). Re-measure on AOT when the first view loads search results.
 
+#### Response bodies read as UTF-8, not as a string (#934)
+
+The transport used to call `ReadAsStringAsync` and `JsonSerializer.Deserialize(string)`: a UTF-8 to UTF-16 copy per page (twice the bytes, on the large object heap above about 42 K characters) that the parser then transcoded back. A success body is now deserialized straight from the response stream (`ResponseBody.ReadJsonAsync`, `DeserializeAsync`, still under `WaitAsync` and the operation deadline); an error body is read up to 8 KB (`ResponseBody.MaxErrorBodyBytes`) and the rest dropped. Calls that may answer with no body (`AllowsEmptyBody`: rank, sprint move) still read their small body as text.
+
+| Path | Binary | Dataset | Before | After |
+|---|---|---|---|---|
+| `JiraSearchClient.SearchAsync`, 100 rows | .NET 10 Release JIT | `search-rows-gcm.json` issues repeated to 100 rows (176 KB), fake handler, 15 runs | 3.2 ms median, 920 KB allocated | 2.8 ms, 566 KB |
+| same, 5000 rows | same | repeated to 5000 rows (8.9 MB) | 60.6 ms, 54.8 MB | 29.6 ms, 28.1 MB |
+
+Method: a temporary xUnit test (not committed) ran 3 warm-up and 15 timed searches, allocation from `GC.GetTotalAllocatedBytes(true)` around each call, before and after on the same machine (noisy). The fake handler's own body copy is included in both. Not done here (registered separately): the per-issue `JsonElement` extension data in `SearchWire.Fields.Extra` and the per-page string intern pool.
+
 ### ADF parsing (#68)
 
 | Path | Binary | Dataset | Median | p95 |
