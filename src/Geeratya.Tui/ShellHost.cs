@@ -157,7 +157,8 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             _application?.Dispose();
         }
 
-        _shutdown.Cancel();
+        // The callbacks of the cancelled work run on the thread pool, not inline here (#926).
+        _ = _shutdown.CancelAsync();
         _profiles.Caches.FlushAll();
         _effects.FlushTabs();
         _watchdog.Disarm();
