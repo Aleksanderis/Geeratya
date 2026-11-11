@@ -116,6 +116,34 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenProfileFileSaveFails_WhenRemoving_ThenTheTokenIsKept()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+
+        await store.SetAsync(_work.CredentialKey, "hunter2-secret", CancellationToken.None);
+
+        var outcome = await handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, ProfileCatalog.Empty, WasActive: false),
+            CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.True(store.Secrets.ContainsKey(_work.CredentialKey));
+    }
+
+    [Fact]
+    public async Task GivenTokenDeleteFails_WhenRemoving_ThenProfileIsRemovedAndMessageSaysTokenLeft()
+    {
+        var fixture = Create(new FakeSecretStore(failsOnDelete: true));
+
+        var outcome = await fixture.Handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, ProfileCatalog.Empty, WasActive: false),
+            CancellationToken.None);
+
+        Assert.Contains("token could not be deleted", Assert.IsType<ProfilesChanged>(outcome).Message);
+    }
+
+    [Fact]
     public async Task GivenSaveEffect_WhenRunning_ThenActiveProfileIsPersisted()
     {
         var fixture = Create(new FakeSecretStore());

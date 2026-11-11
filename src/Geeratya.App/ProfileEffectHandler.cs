@@ -182,18 +182,32 @@ public sealed class ProfileEffectHandler : ILocalEffectHandler
 
     private async Task<Command> RemoveAsync(RemoveProfileEffect remove, CancellationToken cancellationToken)
     {
+        _services.Store.Save(remove.Catalog);
+
+        var tokenLeft = false;
+
         if (remove.DeleteToken)
         {
-            await _services.Tokens.Store.DeleteAsync(remove.Profile.CredentialKey, cancellationToken);
+            try
+            {
+                await _services.Tokens.Store.DeleteAsync(remove.Profile.CredentialKey, cancellationToken);
+            }
+            catch (SecretStoreException)
+            {
+                tokenLeft = true;
+            }
         }
-
-        _services.Store.Save(remove.Catalog);
 
         var cacheDeleted = _services.Caches.Delete(remove.Profile);
 
         DeleteHistory(remove.Profile);
 
         var message = RemovedMessage(remove);
+
+        if (tokenLeft)
+        {
+            message = $"{message} Its token could not be deleted from the secret store.";
+        }
 
         return new ProfilesChanged(remove.Catalog, cacheDeleted ? message : $"{message} {CacheLeftMessage}");
     }
