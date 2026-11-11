@@ -73,6 +73,29 @@ public sealed class UiStallMonitorTests : IDisposable
         Assert.Empty(_report.Lines);
     }
 
+    [Fact]
+    public void GivenAWallClockJump_WhenTheLoopKeepsBeating_ThenNoStallIsReported()
+    {
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        _monitor.Beat();
+        _clock.JumpWallClock(TimeSpan.FromHours(6));
+        _monitor.Check();
+        _clock.JumpWallClock(TimeSpan.FromHours(-9));
+        _monitor.Check();
+
+        Assert.Empty(_report.Lines);
+    }
+
+    [Fact]
+    public void GivenAWallClockJump_WhenTheLoopReallyStops_ThenTheStallIsMeasuredWithoutTheJump()
+    {
+        _clock.Advance(TimeSpan.FromSeconds(6));
+        _clock.JumpWallClock(TimeSpan.FromHours(6));
+        _monitor.Check();
+
+        Assert.Equal(["stalled 6 none"], _report.Lines);
+    }
+
     public void Dispose()
     {
         _monitor.Dispose();

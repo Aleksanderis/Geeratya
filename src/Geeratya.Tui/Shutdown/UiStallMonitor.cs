@@ -3,7 +3,10 @@ namespace Geeratya.Tui.Shutdown;
 /// <summary>
 /// Notices a UI thread that stopped turning its loop, from a timer on another thread, and reports it with the last
 /// work it was seen starting. The loop turns about 25 times a second even when idle, so a few seconds without a beat
-/// is a stall (#883). While an outside editor owns the terminal no loop runs: <see cref="Suspend"/> covers it.
+/// is a stall (#883). Time is measured with the monotonic timestamp, not the wall clock, so a clock change never
+/// shows up as a stall; the Linux monotonic clock stops while the machine sleeps, so a sleep is not one either.
+/// Other systems may still count sleep as time (not verified, #941). While an outside editor owns the terminal no
+/// loop runs: <see cref="Suspend"/> covers it (#940).
 /// </summary>
 public sealed class UiStallMonitor : IDisposable
 {
@@ -25,7 +28,7 @@ public sealed class UiStallMonitor : IDisposable
         _clock = clock;
         _report = report;
         _threshold = threshold;
-        _lastBeat = clock.GetUtcNow().UtcTicks;
+        _lastBeat = clock.GetTimestamp();
     }
 
     /// <summary>Starts the periodic check.</summary>
@@ -37,7 +40,7 @@ public sealed class UiStallMonitor : IDisposable
     /// <summary>The UI thread is alive (a loop iteration).</summary>
     public void Beat()
     {
-        Volatile.Write(ref _lastBeat, _clock.GetUtcNow().UtcTicks);
+        Volatile.Write(ref _lastBeat, _clock.GetTimestamp());
     }
 
     /// <summary>Names the work the UI thread starts, so a stall can say what it was doing.</summary>
@@ -98,8 +101,8 @@ public sealed class UiStallMonitor : IDisposable
         _timer = null;
     }
 
-    private TimeSpan Since(long ticks)
+    private TimeSpan Since(long timestamp)
     {
-        return TimeSpan.FromTicks(_clock.GetUtcNow().UtcTicks - ticks);
+        return _clock.GetElapsedTime(timestamp);
     }
 }

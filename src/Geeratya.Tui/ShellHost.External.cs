@@ -33,7 +33,9 @@ public sealed partial class ShellHost
         {
             if (!_held.TryHold(work))
             {
-                _application!.Invoke(work);
+                var application = _application;
+
+                _uiGate.TryInvoke(() => application!.Invoke(work));
             }
         }
     }
