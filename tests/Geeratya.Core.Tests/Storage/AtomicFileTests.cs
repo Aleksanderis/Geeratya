@@ -65,6 +65,30 @@ public sealed class AtomicFileTests : IDisposable
     }
 
     [Fact]
+    public void GivenTheTargetVanishesUnderTheReplace_WhenWriting_ThenItIsRetriedAndWritten()
+    {
+        var path = Path.Combine(_directory, "state.json");
+        var replacer = new LockedFileReplacer(_ => true, failures: 1, new FileNotFoundException("The target vanished."));
+
+        new AtomicFile(replacer).WriteAllText(path, "content");
+
+        Assert.Equal("content", File.ReadAllText(path));
+        Assert.Equal(2, replacer.Attempts);
+        Assert.Equal([path], Directory.GetFileSystemEntries(_directory));
+    }
+
+    [Fact]
+    public void GivenTheTemporaryFileIsGone_WhenWriting_ThenItFailsAtOnceWithoutRetrying()
+    {
+        var path = Path.Combine(_directory, "state.json");
+        var replacer = new TemporaryDeletingFileReplacer();
+
+        Assert.Throws<FileNotFoundException>(() => new AtomicFile(replacer).WriteAllText(path, "x"));
+
+        Assert.Equal(1, replacer.Attempts);
+    }
+
+    [Fact]
     public void GivenAMissingFolder_WhenWriting_ThenItFailsAtOnceWithoutRetrying()
     {
         var replacer = new LockedFileReplacer(_ => false, failures: 0);
