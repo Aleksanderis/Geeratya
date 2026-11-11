@@ -76,6 +76,15 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         Report("scrum backlog 10k rows, 21 sections, nav key + frame", TimeKeys(Active(tab), ["Ctrl-d", "j"]));
     }
 
+    [MeasurementFact]
+    public void ListOf10kRows_VisualModeJkThroughReducerAndFrame()
+    {
+        var start = Active(Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false));
+        var state = _reducer.Reduce(start, new KeyPressed("v")).State;
+
+        Report("list 10k rows, Visual mode j/k + frame", TimeKeys(state, ["j", "j", "k"]));
+    }
+
     [MeasurementTheory]
     [InlineData(false, "board 10k cards, nav key + frame")]
     [InlineData(true, "board 10k cards with sub-tasks under parents, nav key + frame")]

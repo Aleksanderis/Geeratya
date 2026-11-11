@@ -19,7 +19,7 @@ public static class RowSelection
         }
 
         var cursor = Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1);
-        var anchor = IndexOf(tab, tab.VisualAnchor);
+        var anchor = tab.Columns.IndexOfKey(tab, tab.VisualAnchor);
         var from = anchor < 0 ? cursor : anchor;
 
         return new RowRange(Math.Min(from, cursor), Math.Max(from, cursor));
@@ -36,7 +36,7 @@ public static class RowSelection
             return tab.Marks.Count;
         }
 
-        return VisualRange(tab) is { } range ? RangeKeys(tab, range).Count : 0;
+        return VisualRange(tab) is { } range ? CountInRange(tab, range) : 0;
     }
 
     /// <summary>The issue keys a write acts on: the marks, else the Visual range, else the cursor row.</summary>
@@ -65,6 +65,26 @@ public static class RowSelection
         }
 
         return [tab.Rows[Math.Clamp(tab.Selected, 0, tab.Rows.Count - 1)].Key];
+    }
+
+    private static int CountInRange(TabState tab, RowRange range)
+    {
+        if (!BacklogSections.Applies(tab) || tab.CollapsedSections.Count == 0)
+        {
+            return range.Length;
+        }
+
+        var count = 0;
+
+        for (var index = range.First; index <= range.Last; index++)
+        {
+            if (!tab.CollapsedSections.Contains(BacklogSections.KeyOf(tab.Rows[index])))
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /// <summary>
@@ -147,18 +167,5 @@ public static class RowSelection
     private static bool Contains(IEnumerable<string> keys, string key)
     {
         return keys.Contains(key, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static int IndexOf(TabState tab, string key)
-    {
-        for (var index = 0; index < tab.Rows.Count; index++)
-        {
-            if (string.Equals(tab.Rows[index].Key, key, StringComparison.OrdinalIgnoreCase))
-            {
-                return index;
-            }
-        }
-
-        return -1;
     }
 }

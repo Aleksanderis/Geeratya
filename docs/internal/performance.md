@@ -278,3 +278,17 @@ The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, 
 | Ctrl-j / Ctrl-k between panes | 7.5 / 11.7 | 1.0 / 1.4 |
 
 The remaining few milliseconds of a comment key are the document layout (every comment row is still copied into the pane's content and the id list) and the frame; #930 follows with that part.
+
+## Per-key row work on large tabs (#930)
+
+The Scrum backlog layout (`BacklogSections.Build`, about 15 callers, 2 to 3 builds per key plus one per frame), the "has estimate / has epic" column flags (`ListViewColumns.ForBacklog`, a scan of every row per frame when no row has a value), the Visual anchor lookup (`RowSelection.VisualRange`, a linear `IndexOf` per key and frame), `RowSelection.Count` (built a key list for the range) and `ColumnsNavigation.Follow` (a linear key search per card move) all did O(all rows) work per key. Now `ColumnsMemo` (on `TabState`, dropped with the tab) holds the backlog layout keyed by reference on `Rows`, `Sprints` and `CollapsedSections`, the two flags keyed on `Rows`, and one key-to-index dictionary keyed on `Rows` (first row wins, case-insensitive, used by the Visual anchor and `Follow`); `Count` counts the range without allocating; `Swimlanes.Step` no longer copies the lane list. `DetailReducer.Comments` is left to #950.
+
+Bench: `HotPathMeasurements` (`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter HotPathMeasurements`), 10 000 rows, 120x36, 2500 timed keys after 500 warm-up, Release JIT, same machine back to back:
+
+| Path | Before median / p95 (ms) | After median / p95 (ms) |
+|---|---|---|
+| Scrum backlog, 21 sections, no estimates (`Ctrl-d`, `j`) | 0.79 / 1.30 | 0.33 / 0.62 |
+| List in Visual mode (`j`, `j`, `k`), anchor on row 0 | 0.37 / 0.82 | 0.36 / 0.79 |
+| List, plain nav (control) | 0.32 / 0.65 | 0.32 / 0.64 |
+
+The Visual bench anchors on the first row, the best case for the old linear search, so it shows no gain; the saving grows with the anchor's distance from the top (not measured, proportional to row count). Memory: one 10 000-entry key dictionary and one layout per tab, built on first use and replaced with the rows; RSS delta not measured.
