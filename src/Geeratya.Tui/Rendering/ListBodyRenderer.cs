@@ -25,8 +25,6 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string NoOpenSprintHint = "Plan one in the backlog (:backlog).";
     private const string TruncatedText = "Load more stopped at 10 000 rows.";
     private const string CouldNotLoadMore = "Could not load more: ";
-    private static readonly Dictionary<int, FlashLabel> _noFlash = [];
-
     private const string KeyTitle = "Key";
     private const string TypeTitle = "T";
     private const string SummaryTitle = "Summary";
@@ -38,6 +36,8 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string EpicTitle = "Epic";
     private const string Unassigned = "-";
     private const string UnknownGlyph = "?";
+
+    private static readonly Dictionary<int, FlashLabel> _noFlash = [];
 
     public bool AppliesTo(AppState state)
     {

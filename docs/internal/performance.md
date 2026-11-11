@@ -359,7 +359,9 @@ Memory: a few short-lived key sets and dictionaries (about the size of the bulk)
 
 | What | Method | Before | After |
 |---|---|---|---|
-| Frame build at 120x40, list, 10 000 rows, bytes per frame (no marks) | `ListOf10kRows_AllocationPerFrameAt120x40` | 137 000 to 139 000 (3 runs) | 138 000 to 166 000 (3 runs; unchanged: the plain case allocates nothing in these spots, run-to-run variation is tiering) |
+| Frame build at 120x40, list, 10 000 rows, bytes per frame (no marks) | `ListOf10kRows_AllocationPerFrameAt120x40` | 137 000 to 139 000 (3 runs) | 138 000 to 166 000 (3 runs; unchanged within the run-to-run spread: the saved empty flash dictionary is about 80 bytes) |
 | Same with 500 marks | `ListOf10kRowsWith500Marks_AllocationPerFrameAt120x40` | 214 000 to 236 000 (3 runs) | 200 000 to 261 000 (3 runs; the counter varies by about 25 000 between runs on this machine, so the saving of one 500-key set is within noise) |
 
-The numbers above are what was measured; the gain is a handful of allocations per frame (a set of the marks, a dictionary, a list copy) and the contrast arithmetic per tinted span, which does not show in bytes. Tests: `MarkSetTests`, `ThemeReadableTests`.
+The no-marks "before" is far below the #932 table above because #933 (frame built once per loop iteration) and later changes moved the baseline; both columns here were measured on the same checkout and machine.
+
+The contrast memo, the `ShellScreen` list and `Asciified` changes have no timing measurement: they are kept because they remove arithmetic and copies for nothing in return, not because a number shows a gain. The numbers above are what was measured; the gain is a handful of allocations per frame (a set of the marks, a dictionary, a list copy) and the contrast arithmetic per tinted span, which does not show in bytes. Tests: `MarkSetTests`, `ThemeReadableTests`.

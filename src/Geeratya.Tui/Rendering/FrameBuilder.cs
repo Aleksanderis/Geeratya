@@ -285,7 +285,7 @@ public static class FrameBuilder
             var span = line.Spans[index];
             var text = Bracketed(span);
 
-            if (ReferenceEquals(text, span.Text) || text == span.Text)
+            if (text == span.Text)
             {
                 continue;
             }

@@ -59,22 +59,7 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
     {
         var state = Active(Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false));
 
-        for (var index = 0; index < 200; index++)
-        {
-            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
-        }
-
-        const int frames = 500;
-        var before = GC.GetAllocatedBytesForCurrentThread();
-
-        for (var index = 0; index < frames; index++)
-        {
-            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
-        }
-
-        var perFrame = (GC.GetAllocatedBytesForCurrentThread() - before) / frames;
-
-        output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"list 10k rows, 120x40 frame build: {perFrame} bytes allocated per frame"));
+        ReportAllocationPerFrame("list 10k rows", state);
     }
 
     [MeasurementFact]
@@ -83,22 +68,7 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         var tab = Tab(ViewLayout.List, ViewSourceKind.Jql, withParents: false);
         var state = Active(tab with { Marks = [.. tab.Rows.Take(500).Select(row => row.Key)] });
 
-        for (var index = 0; index < 200; index++)
-        {
-            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
-        }
-
-        const int frames = 500;
-        var before = GC.GetAllocatedBytesForCurrentThread();
-
-        for (var index = 0; index < frames; index++)
-        {
-            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
-        }
-
-        var perFrame = (GC.GetAllocatedBytesForCurrentThread() - before) / frames;
-
-        output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"list 10k rows, 500 marks, 120x40 frame build: {perFrame} bytes allocated per frame"));
+        ReportAllocationPerFrame("list 10k rows, 500 marks", state);
     }
 
     [MeasurementFact]
@@ -254,6 +224,26 @@ public sealed class HotPathMeasurements(ITestOutputHelper output)
         }
 
         return samples;
+    }
+
+    private void ReportAllocationPerFrame(string label, AppState state)
+    {
+        for (var index = 0; index < 200; index++)
+        {
+            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
+        }
+
+        const int frames = 500;
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        for (var index = 0; index < frames; index++)
+        {
+            FrameBuilder.BuildStyled(state, Width, 40, _keymap);
+        }
+
+        var perFrame = (GC.GetAllocatedBytesForCurrentThread() - before) / frames;
+
+        output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"{label}, 120x40 frame build: {perFrame} bytes allocated per frame"));
     }
 
     private void Report(string label, List<double> samples)
