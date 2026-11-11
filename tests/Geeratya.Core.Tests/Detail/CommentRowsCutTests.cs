@@ -1,9 +1,9 @@
 using Geeratya.Core.Adf;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Text;
+using Geeratya.Core.Views;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Comments.Models;
-using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Detail;
@@ -33,7 +33,6 @@ public class CommentRowsCutTests
         var shared = Math.Min(limit, head.LineCount);
 
         Assert.True(complete || full.LineCount > limit);
-        Assert.True(full.LineCount > limit || complete);
         Assert.Equal(PlainOf(full.Lines.Take(shared)), PlainOf(head.Lines.Take(shared)));
 
         if (complete)
@@ -96,10 +95,60 @@ public class CommentRowsCutTests
 
         var rows = CommentRows.Build(DetailOf(document), Width, CommentRows.BodyLines, memo);
 
-        var head = memo.Head(document, Width, CommentRows.BodyLines, 1).Rendering;
-
-        Assert.True(head.LineCount < AdfRenderer.Render(document, Width).LineCount);
         Assert.Equal(6, rows.Count);
+        Assert.Equal(0, memo.WholeRenderings);
+
+        _ = rows[4].Line;
+
+        Assert.Equal(1, memo.WholeRenderings);
+    }
+
+    [Fact]
+    public void GivenAWideEnoughPane_WhenBuildingCutRows_ThenTheyEqualTheRowsOfAnUncutBuild()
+    {
+        const int width = Width;
+        var document = Paragraphs(30);
+        var detail = DetailOf(document);
+
+        var lazy = CommentRows.Build(detail, width, CommentRows.BodyLines, new DetailRenderMemo());
+        var eager = CommentRows.Build(detail with { Expanded = ["comment:1"] }, width);
+
+        Assert.Equal(CommentRows.BodyLines + 3, lazy.Count);
+
+        for (var row = 0; row < CommentRows.BodyLines + 1; row++)
+        {
+            Assert.Equal(eager[row].Line.PlainText, lazy[row].Line.PlainText);
+            Assert.Equal(eager[row].Comment, lazy[row].Comment);
+        }
+
+        Assert.All(lazy.Skip(1).Take(CommentRows.BodyLines), row => Assert.False(row.IsStop));
+        Assert.True(lazy[0].IsStop);
+        Assert.True(lazy[0].Target!.Expands);
+        Assert.Contains("more lines", lazy[^2].Line.PlainText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenAPaneTooNarrowForTheNote_WhenBuildingCutRows_ThenTheBodyIsRenderedWholeAsBefore()
+    {
+        var memo = new DetailRenderMemo();
+
+        var rows = CommentRows.Build(DetailOf(Paragraphs(30)), 20, CommentRows.BodyLines, memo);
+
+        Assert.Equal(1, memo.WholeRenderings);
+        Assert.Equal(CommentRows.BodyLines + 1, rows.Count(row => row.Comment == 0 && row.Target is not null && !row.Target.Note) );
+        Assert.Contains(rows, row => row.Target is { Note: true });
+    }
+
+    [Fact]
+    public void GivenARowMadeOfASource_WhenReadingTwice_ThenTheSourceRunsOnce()
+    {
+        var memo = new DetailRenderMemo();
+        var rows = CommentRows.Build(DetailOf(Paragraphs(30)), Width, CommentRows.BodyLines, memo);
+
+        var first = rows[4].Line;
+
+        Assert.Same(first, rows[4].Line);
+        Assert.Equal(1, memo.WholeRenderings);
     }
 
     [Fact]

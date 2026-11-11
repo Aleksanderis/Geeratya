@@ -19,8 +19,8 @@ public sealed class DetailRenderMemo
     private const int EntriesPerDocument = 4;
 
     private readonly Dictionary<RenderKey, AdfRendering> _renderings = [];
-    private readonly Dictionary<HeadKey, (AdfRendering Rendering, bool Complete)> _heads = [];
-    private (IReadOnlyList<CommentRow> Rows, IReadOnlyList<string?> Ids)? _ids;
+    private readonly Dictionary<HeadKey, AdfHead> _heads = [];
+    private IdsEntry? _ids;
     private RowsEntry? _rows;
 
     /// <summary>
@@ -56,24 +56,32 @@ public sealed class DetailRenderMemo
             return known;
         }
 
+        var rendering = AdfRenderer.Render(document, width);
+
+        Store(key, rendering, documents);
+
+        return rendering;
+    }
+
+    /// <summary>How many whole renderings are kept (tests check that a cut comment keeps none until its note is read).</summary>
+    public int WholeRenderings => _renderings.Count;
+
+    private void Store(RenderKey key, AdfRendering rendering, int documents)
+    {
         // A refresh brings new documents, so the old entries go once there are more than a few widths of them.
         if (_renderings.Count > Math.Max(MinEntries, documents * EntriesPerDocument))
         {
             _renderings.Clear();
         }
 
-        var rendering = AdfRenderer.Render(document, width);
-
         _renderings[key] = rendering;
-
-        return rendering;
     }
 
     /// <summary>
     /// The start of the rendering of <paramref name="document"/> (<see cref="AdfRenderer.RenderHead"/>), once per
     /// width and line limit; <c>Complete</c> is false when the document has more than <paramref name="maxLines"/> lines.
     /// </summary>
-    public (AdfRendering Rendering, bool Complete) Head(AdfDocument document, int width, int maxLines, int documents)
+    public AdfHead Head(AdfDocument document, int width, int maxLines, int documents)
     {
         var key = new HeadKey(document, width, maxLines);
 
@@ -92,9 +100,9 @@ public sealed class DetailRenderMemo
         _heads[key] = head;
 
         // A document that fits the limit was rendered whole: keep it for Rendering instead of laying it out again.
-        if (head.Complete && !_renderings.ContainsKey(new RenderKey(document, width)))
+        if (head.Complete)
         {
-            _renderings[new RenderKey(document, width)] = head.Rendering;
+            Store(new RenderKey(document, width), head.Rendering, documents);
         }
 
         return head;
@@ -118,7 +126,7 @@ public sealed class DetailRenderMemo
             ids[index] = rows[index].Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null;
         }
 
-        _ids = (rows, ids);
+        _ids = new IdsEntry(rows, ids);
 
         return ids;
     }
@@ -134,6 +142,8 @@ public sealed class DetailRenderMemo
     {
         return 0;
     }
+
+    private sealed record IdsEntry(IReadOnlyList<CommentRow> Rows, IReadOnlyList<string?> Ids);
 
     private readonly record struct HeadKey(AdfDocument Document, int Width, int Lines)
     {

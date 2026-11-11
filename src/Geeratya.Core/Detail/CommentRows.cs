@@ -107,7 +107,7 @@ public static class CommentRows
         if (!expanded && comment.Body.Content.Count > 0 && LongText.NoteFitsOneRow(limit)
             && source.Head(bodyLines) is { } head)
         {
-            AddCut(rows, index, indent, (head, source, limit), (target, Bar(comment, detail, inner)));
+            AddCut(rows, index, indent, new CutBody(head, source, limit), target, Bar(comment, detail, inner));
 
             return;
         }
@@ -150,11 +150,11 @@ public static class CommentRows
         List<CommentRow> rows,
         int index,
         int indent,
-        (IReadOnlyList<StyledLine> Head, BodySource Source, LongTextLimit Limit) body,
-        (DetailTarget Target, StyledLine Bar) header)
+        CutBody body,
+        DetailTarget target,
+        StyledLine bar)
     {
         var (head, source, limit) = body;
-        var (target, bar) = header;
 
         rows.Add(new CommentRow(Indented(bar, indent), target with { Expands = true }, true, index));
 
@@ -167,7 +167,12 @@ public static class CommentRows
         rows.Add(new CommentRow(StyledLine.Empty, null, false, index));
     }
 
-    /// <summary>The wrapped body of one comment: whole, or only its start.</summary>
+    private sealed record CutBody(IReadOnlyList<StyledLine> Head, BodySource Source, LongTextLimit Limit);
+
+    /// <summary>
+    /// The wrapped body of one comment: whole, or only its start. Reads go through the render memo, which is not
+    /// thread-safe: rows are read on the UI thread only (reducer and frame).
+    /// </summary>
     private sealed class BodySource(IssueComment comment, int inner, DetailRenderMemo? memo, int documents)
     {
         public IReadOnlyList<StyledLine> Whole()
@@ -183,10 +188,9 @@ public static class CommentRows
         /// <summary>The first lines when the body has more than <paramref name="lines"/>, null when it does not.</summary>
         public IReadOnlyList<StyledLine>? Head(int lines)
         {
-            var (rendering, complete) = memo?.Head(comment.Body, inner, lines, documents)
-                ?? AdfRenderer.RenderHead(comment.Body, inner, lines);
+            var head = memo?.Head(comment.Body, inner, lines, documents) ?? AdfRenderer.RenderHead(comment.Body, inner, lines);
 
-            return complete ? null : rendering.Lines;
+            return head.Complete ? null : head.Rendering.Lines;
         }
     }
 
@@ -197,7 +201,7 @@ public static class CommentRows
         {
             var hidden = source.Whole().Count - limit.Lines;
 
-            return Indented(LongText.CollapsedNote(hidden, limit) ?? StyledLine.Empty, indent);
+            return hidden <= 0 ? StyledLine.Empty : Indented(LongText.CollapsedNote(hidden, limit) ?? StyledLine.Empty, indent);
         }
     }
 

@@ -38,7 +38,7 @@ public static class AdfRenderer
     /// the full rendering. A document that crosses the limit only in its last block or item is complete, and a
     /// complete result equals <see cref="Render" />.
     /// </summary>
-    public static (AdfRendering Rendering, bool Complete) RenderHead(AdfDocument document, int width, int maxLines)
+    public static AdfHead RenderHead(AdfDocument document, int width, int maxLines)
     {
         var effectiveWidth = Math.Max(1, width);
         var lines = new List<StyledLine>();
@@ -50,6 +50,6 @@ public static class AdfRenderer
             lines.Add(StyledLine.Of(AdfMarkers.Truncated, TextRole.Muted));
         }
 
-        return (new AdfRendering(lines, effectiveWidth), !cut);
+        return new AdfHead(new AdfRendering(lines, effectiveWidth), !cut);
     }
 }

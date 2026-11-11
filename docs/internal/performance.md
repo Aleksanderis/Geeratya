@@ -303,7 +303,7 @@ The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, 
 | Ctrl-d / Ctrl-u in Comments | 14.0 / 25.7 | 4.1 / 6.8 |
 | Ctrl-j / Ctrl-k between panes | 7.5 / 11.7 | 1.0 / 1.4 |
 
-The remaining few milliseconds of a comment key are the document layout (every comment row is still copied into the pane's content and the id list) and the frame; #930 follows with that part.
+The remaining few milliseconds of a comment key are the document layout and the frame; #950 (below) removed the id copy.
 
 ### Collapsed comments wrap only their visible lines (#950)
 
@@ -318,7 +318,7 @@ A collapsed comment used to be rendered whole and then cut. `AdfRenderer.RenderH
 | Ctrl-d / Ctrl-u in Comments + frame | 3.9 to 5.3 | 3.4 to 3.9 |
 | Ctrl-j / Ctrl-k between panes + frame | 0.43 to 0.48 | 0.39 to 0.41 |
 
-The per-key gain is small because #929 already memoized the rows; the win is the first build (opening an issue, a resize, a refresh) and the memory of 1000 comments (head lines only until read). The remaining per-key cost is the pane copying the visible rows and the frame (#930).
+The per-key difference is inside the noise of a loaded machine: #929 already memoized the rows, and the id copy this change removes was small next to the frame. The measured win is the first build (opening an issue, a resize, a refresh). Not measured: memory (a cut comment keeps only its head lines until its note is read). Still O(all rows) per key: `MoveInComments` collects the stop rows (`Enumerable.Range(...).Where(IsStop)`); at 1000 comments that is a few microseconds and was left alone. Rows are read on the UI thread only (reducer and frame), which `DetailRenderMemo` relies on (its dictionaries are not thread-safe).
 
 ## Per-key row work on large tabs (#930)
 

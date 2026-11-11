@@ -3,7 +3,7 @@ using Geeratya.Core.Text;
 namespace Geeratya.Core.Detail;
 
 /// <summary>Produces the styled row of a <see cref="CommentRow"/> when it is first read (see <see cref="CommentRow"/>).</summary>
-public interface ICommentRowSource
+internal interface ICommentRowSource
 {
     /// <summary>The styled row.</summary>
     StyledLine Resolve();
@@ -14,7 +14,7 @@ public interface ICommentRowSource
 /// <c>… N more lines</c> note is made when it is first read, so a layout that shows a window of the rows
 /// wraps the hidden lines of the comments in that window only (#950).
 /// </summary>
-public sealed record CommentRow
+public sealed class CommentRow
 {
     private readonly ICommentRowSource? _source;
     private StyledLine? _line;
@@ -37,7 +37,7 @@ public sealed record CommentRow
     /// <param name="target">What Enter and the comment keys act on, null for a plain row.</param>
     /// <param name="isStop">Whether the cursor can rest on the row.</param>
     /// <param name="comment">The index of the comment the row belongs to, -1 for the footer.</param>
-    public CommentRow(ICommentRowSource source, DetailTarget? target, bool isStop, int comment)
+    internal CommentRow(ICommentRowSource source, DetailTarget? target, bool isStop, int comment)
     {
         _source = source;
         Target = target;
