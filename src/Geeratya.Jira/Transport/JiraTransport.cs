@@ -142,7 +142,7 @@ public sealed class JiraTransport : IDisposable
             AutomaticDecompression = DecompressionMethods.All,
 
             // Reduces the chance of reusing a connection that died while the app sat idle: connections are retired
-            // early and HTTP/2 pings detect a dead one. The WaitAsync deadline is what guarantees the request ends.
+            // early and HTTP/2 pings (requests ask for HTTP/2 or lower) detect a dead one. The WaitAsync deadline is what guarantees the request ends.
             PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
             ConnectTimeout = TimeSpan.FromSeconds(10),
@@ -175,6 +175,14 @@ public sealed class JiraTransport : IDisposable
         if (error.RetryAfter > _options.MaxWait)
         {
             return false;
+        }
+
+        // A timeout is the signature of a pooled connection that died while the app sat idle (sleep, VPN or NAT
+        // change). One more try usually lands on a new connection; a second timeout is real. Only reads: a write
+        // may have landed.
+        if (error.Kind == JiraErrorKind.Timeout)
+        {
+            return request.IsIdempotent && attempt == 0;
         }
 
         if (!request.IsIdempotent)
@@ -326,7 +334,12 @@ public sealed class JiraTransport : IDisposable
 
     private HttpRequestMessage CreateMessage(JiraRequest request)
     {
-        var message = new HttpRequestMessage(request.Method, $"{_siteBase}{request.Path}");
+        var message = new HttpRequestMessage(request.Method, $"{_siteBase}{request.Path}")
+        {
+            // Ask for HTTP/2 (Jira Cloud offers it) so the handler's keep-alive pings run; plain HTTP/1.1 has none.
+            Version = HttpVersion.Version20,
+            VersionPolicy = HttpVersionPolicy.RequestVersionOrLower,
+        };
         message.Headers.Authorization = new AuthenticationHeaderValue("Basic", _authorization);
         message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(JsonMediaType));
         message.Headers.UserAgent.ParseAdd(_options.UserAgent);
