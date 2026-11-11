@@ -503,6 +503,32 @@ public class ViewRefreshTests
     }
 
     [Fact]
+    public void GivenBoardRefreshGathering_WhenAPageArrivesLate_ThenTheDeadlineStartsAgainFromThatPage()
+    {
+        var state = LoadedBoard();
+        var id = state.Session.Tabs[0].Id;
+        var tick = _reducer.Reduce(state, new Tick(_start + TimeSpan.FromSeconds(60)));
+        var stamped = _reducer.Reduce(tick.State, new Tick(_start + TimeSpan.FromSeconds(61)));
+        // The load deadline is 150 s of silence: 140 s after the stamp is inside it, 149 s after the new page too.
+        var nearLimit = _start + TimeSpan.FromSeconds(61 + 140);
+
+        var gathering = _reducer.Reduce(
+            stamped.State,
+            new ViewPageLoaded(
+                id,
+                stamped.State.Session.Tabs[0].RequestId,
+                Page(2, new PageCursor("r2"), 10),
+                nearLimit));
+        var restamped = _reducer.Reduce(gathering.State, new Tick(nearLimit + TimeSpan.FromSeconds(1)));
+        var stillWaiting = _reducer.Reduce(restamped.State, new Tick(nearLimit + TimeSpan.FromSeconds(149)));
+        var expired = _reducer.Reduce(stillWaiting.State, new Tick(nearLimit + TimeSpan.FromSeconds(151)));
+
+        Assert.Null(Assert.IsType<Loading>(gathering.State.Session.Tabs[0].Load).Since);
+        Assert.IsType<Loading>(stillWaiting.State.Session.Tabs[0].Load);
+        Assert.IsType<Failed>(expired.State.Session.Tabs[0].Load);
+    }
+
+    [Fact]
     public void GivenBoardRefreshGathering_WhenALaterPageFails_ThenOldRowsStayAndPendingRowsAreDropped()
     {
         var state = LoadedBoard();

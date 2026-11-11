@@ -25,6 +25,7 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
     private readonly object _postedLock = new();
     private readonly TaskCompletionSource _cachePosted = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly List<IDisposable> _disposables = [];
+    private BlockingPermissions? _blocker;
     private NetworkRunner? _runner;
     private SiteConnections? _connections;
 
@@ -89,8 +90,39 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
         Assert.IsType<ViewPageLoaded>(Assert.Single(Snapshot()));
     }
 
+    [Fact]
+    public async Task GivenCacheReadStuckBehindADiskLock_WhenOpening_ThenTheNetworkLoadStartsAndTheCacheRowsPostLater()
+    {
+        var blocker = new BlockingPermissions();
+
+        _blocker = blocker;
+
+        var cache = SecondStartCache(blocker);
+        var handler = await HandlerAsync(connected: true, replyGate: null);
+        var other = new CachedView([Issue(3)], null, DateTimeOffset.UnixEpoch);
+
+        cache.Put(new CacheKey(ViewSourceKind.Jql, "project = B"), other);
+
+        var flush = Task.Run(cache.Flush);
+
+        await blocker.Entered.WaitAsync(TimeSpan.FromSeconds(30));
+        await handler.StartAsync(Open(), cache).WaitAsync(TimeSpan.FromSeconds(30));
+
+        Assert.IsType<ViewPageLoaded>(Assert.Single(Snapshot()));
+
+        blocker.Release();
+        await _cachePosted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await flush;
+
+        var after = Snapshot();
+        Assert.IsType<ViewPageLoaded>(after[0]);
+        Assert.Equal(["A-1", "A-2"], Assert.IsType<ViewCacheLoaded>(after[1]).View.Rows.Select(row => row.Key));
+    }
+
     public void Dispose()
     {
+        // A failed test must not leave the flush holding the cache's disk lock, or disposing the cache would hang.
+        _blocker?.Release();
         _runner?.Dispose();
         _connections?.Dispose();
 
@@ -142,7 +174,7 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
     }
 
     /// <summary>A cache object that reads what an earlier run wrote to disk: the "second start".</summary>
-    private SiteCache SecondStartCache()
+    private SiteCache SecondStartCache(IFilePermissions? permissions = null)
     {
         var folder = Path.Combine(_root, "p");
 
@@ -152,7 +184,9 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
             earlier.Flush();
         }
 
-        var cache = new SiteCache(folder);
+        var cache = permissions is null
+            ? new SiteCache(folder)
+            : new SiteCache(folder, permissions, TimeSpan.FromHours(1));
 
         _disposables.Add(cache);
 
@@ -192,6 +226,30 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
         lock (_postedLock)
         {
             return [.. _posted];
+        }
+    }
+
+    /// <summary>Holds the cache's disk lock (a flush creating its folder) until released, like a stuck disk.</summary>
+    private sealed class BlockingPermissions : IFilePermissions
+    {
+        private readonly TaskCompletionSource _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task Entered => _entered.Task;
+
+        public void CreateDirectory(string path)
+        {
+            _entered.TrySetResult();
+            _gate.Task.Wait();
+        }
+
+        public void RestrictFile(string path)
+        {
+        }
+
+        public void Release()
+        {
+            _gate.TrySetResult();
         }
     }
 }
