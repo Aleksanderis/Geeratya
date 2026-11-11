@@ -30,6 +30,7 @@ public sealed class ShellScreen : Window
     private DateTimeOffset _now = DateTimeOffset.UtcNow;
     private IReadOnlyList<OverlayRegion> _regions = [];
     private OverlayRegion? _rowMenuMarker;
+    private bool _dirty;
 
     public ShellScreen(
         KeymapTable keymap,
@@ -69,10 +70,29 @@ public sealed class ShellScreen : Window
     public int BodyHeight => FrameBuilder.BodyHeight(_size.Height);
 
     /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test.</summary>
-    public IReadOnlyList<OverlayRegion> OverlayRegions => _regions;
+    public IReadOnlyList<OverlayRegion> OverlayRegions
+    {
+        get
+        {
+            BuildFrame();
+
+            return _regions;
+        }
+    }
 
     /// <summary>The cells of the row menu marker drawn last, null when none shows.</summary>
-    public OverlayRegion? RowMenuMarker => _rowMenuMarker;
+    public OverlayRegion? RowMenuMarker
+    {
+        get
+        {
+            BuildFrame();
+
+            return _rowMenuMarker;
+        }
+    }
+
+    /// <summary>How many frames were built; a burst of commands in one loop iteration builds one (#933).</summary>
+    public int FramesBuilt { get; private set; }
 
     /// <summary>The terminal width, which issue details are laid out for.</summary>
     public int BodyColumns => Math.Max(0, _size.Width);
@@ -86,10 +106,30 @@ public sealed class ShellScreen : Window
         Render(_state, _now);
     }
 
+    /// <summary>
+    /// Takes the state to show and schedules a draw. The frame itself is built once, when the draw (or a hit test)
+    /// needs it, so several commands in one loop iteration cost one build.
+    /// </summary>
     public void Render(AppState state, DateTimeOffset now)
     {
         _state = state;
         _now = now;
+        _dirty = true;
+        SetNeedsDraw();
+    }
+
+    /// <summary>Builds the frame of the latest state when it changed since the last build; does nothing otherwise.</summary>
+    public void BuildFrame()
+    {
+        if (!_dirty)
+        {
+            return;
+        }
+
+        _dirty = false;
+
+        var state = _state;
+        var now = _now;
 
         if (state.Settings.TransparentBackground != _transparent)
         {
@@ -120,7 +160,14 @@ public sealed class ShellScreen : Window
 
         _body.SetLines(lines.ToList());
         _status.SetLines([StyledRuns.Resolve(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine), _theme, _colors)]);
-        SetNeedsDraw();
+        FramesBuilt++;
+    }
+
+    protected override bool OnDrawingContent(DrawContext? context)
+    {
+        BuildFrame();
+
+        return base.OnDrawingContent(context);
     }
 
     private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)
