@@ -3,6 +3,7 @@ using System.Text.Json;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Jira.Issues;
 

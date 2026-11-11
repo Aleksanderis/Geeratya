@@ -4,6 +4,7 @@ using Geeratya.Jira.Paging;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Jira.Search;
 

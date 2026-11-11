@@ -2,6 +2,7 @@ using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Paging;
 using Geeratya.Jira.Search;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Jira.Boards;
 

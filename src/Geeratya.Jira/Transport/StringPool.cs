@@ -1,8 +1,8 @@
-namespace Geeratya.Jira.Search;
+namespace Geeratya.Jira.Transport;
 
 /// <summary>
 /// Shares equal short strings (status, type, priority and project names, assignees) across the pages and refreshes of
-/// one connection, so repeated results do not each hold their own copy. Owned by a <see cref="Transport.JiraTransport"/>
+/// one connection, so repeated results do not each hold their own copy. Owned by a <see cref="JiraTransport"/>
 /// (never static), thread-safe, and bounded: when it holds <see cref="Capacity"/> entries it is emptied and fills
 /// again, which only costs some sharing for a while. Values longer than <see cref="MaxLength"/> are not pooled.
 /// </summary>
