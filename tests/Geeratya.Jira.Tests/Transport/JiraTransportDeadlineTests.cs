@@ -59,8 +59,10 @@ public sealed class JiraTransportDeadlineTests
             PreemptBackgroundAfter = TimeSpan.FromMilliseconds(50),
         });
         var never = new TaskCompletionSource();
-        fixture.Handler.Script(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()) with { Gate = never.Task });
-        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()));
+
+        // Every reply hangs: the waiting call may get the slot when the first call's deadline frees it, and must
+        // still end at its own deadline.
+        fixture.Handler.Serve(HttpMethod.Get, MyselfPath, FakeResponse.Ok(MyselfJson()) with { Gate = never.Task });
 
         var hung = SendAsync(fixture, JiraRequest.Get(MyselfPath));
         await fixture.Handler.WaitForInFlightAsync(1);
