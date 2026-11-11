@@ -349,4 +349,17 @@ Memory: a few short-lived key sets and dictionaries (about the size of the bulk)
 | Frame build (`FrameBuilder.BuildStyled`) at 120x40, list, 10 000 rows loaded, bytes allocated per frame | `HotPathMeasurements.ListOf10kRows_AllocationPerFrameAt120x40` (`GC.GetAllocatedBytesForCurrentThread`, 200 warm-up and 500 timed frames, Release JIT) | 805 000 to 808 000 (3 runs) | 238 000 to 263 000 (3 runs; one other machine run read 129 000, so the counter varies between machines, the before figure does not) |
 | Nav key + frame, same list, median / p95 ms | `HotPathMeasurements.ListOf10kRows_NavKeyThroughReducerAndFrame` | 0.34 / 0.72 | 0.13 to 0.29 / 0.27 to 0.42 (timing noisy, machine load) |
 
-Not done here (registered as #962): `ListBodyRenderer` mark `HashSet`, `FlashLabelsOf` dictionary with flash off, `Palette.Resolve` contrast memo, `ShellScreen.Render` list copy, the Windows `Asciified` pass.
+### Small frame-build allocations (#962)
+
+- `MarkSet.Of` keeps the case-insensitive set of a tab's marks per mark-list instance (the list is replaced, never edited, when marks change), so the list, backlog and columns renderers no longer build a `HashSet` every frame.
+- `FlashLabelsOf` returns one shared empty dictionary while flash jump is off.
+- `Theme.IsReadable` keeps the tint-contrast answer per theme and (own, ground, minimum), so `Palette.Resolve` stops calling `Contrast.Ratio` (a `Math.Pow` per channel) for every tinted span.
+- `ShellScreen.Render` resolves header and body into one pre-sized list instead of `Concat`, `Select` and `ToList`; `Asciified` (Windows classic console) reuses a line none of whose spans change, and `Glyphs.ToAscii` scans the text with a loop instead of `All`.
+- `StyledFrame.PlainLines` and `AnsiFrameWriter` are not on the per-frame path (`--print-frame` and screenshots), left as they are.
+
+| What | Method | Before | After |
+|---|---|---|---|
+| Frame build at 120x40, list, 10 000 rows, bytes per frame (no marks) | `ListOf10kRows_AllocationPerFrameAt120x40` | 137 000 to 139 000 (3 runs) | 138 000 to 166 000 (3 runs; unchanged: the plain case allocates nothing in these spots, run-to-run variation is tiering) |
+| Same with 500 marks | `ListOf10kRowsWith500Marks_AllocationPerFrameAt120x40` | 214 000 to 236 000 (3 runs) | 200 000 to 261 000 (3 runs; the counter varies by about 25 000 between runs on this machine, so the saving of one 500-key set is within noise) |
+
+The numbers above are what was measured; the gain is a handful of allocations per frame (a set of the marks, a dictionary, a list copy) and the contrast arithmetic per tinted span, which does not show in bytes. Tests: `MarkSetTests`, `ThemeReadableTests`.
