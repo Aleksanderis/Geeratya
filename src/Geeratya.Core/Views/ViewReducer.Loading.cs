@@ -230,7 +230,7 @@ public static partial class ViewReducer
             && held.Updated == fresh.Updated
             && held.Status == fresh.Status
             && held.Parent == fresh.Parent
-            && held.Estimate == fresh.Estimate
+            && Equals(held.Estimate, fresh.Estimate)
             && held.IsListed == fresh.IsListed
             && held.Sprints.SequenceEqual(fresh.Sprints)
             && held.Subtasks.SequenceEqual(fresh.Subtasks);
