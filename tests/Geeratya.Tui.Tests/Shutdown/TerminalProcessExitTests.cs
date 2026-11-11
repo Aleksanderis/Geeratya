@@ -28,7 +28,7 @@ public sealed class TerminalProcessExitTests : IDisposable
 
         exit.EndProcess();
 
-        Assert.Equal([$"release after {TerminalProcessExit.ResetSequences.Length} reset chars"], _events);
+        Assert.Equal([$"release after {TerminalProcessExit.ResetSequences}"], _events);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class TerminalProcessExitTests : IDisposable
 
         public void Release()
         {
-            _events.Add($"release after {_output.ToString().Length} reset chars");
+            _events.Add($"release after {_output}");
         }
     }
 
