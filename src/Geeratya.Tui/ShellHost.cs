@@ -222,7 +222,7 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
             await _effects.WaitForWritesAsync(_quitWait, CancellationToken.None);
         }
 
-        _application!.Invoke(_application.RequestStop);
+        InvokeGuarded(() => _application?.RequestStop());
     }
 
     /// <summary>Thread-safe entry for background work: runs the reducer on the UI thread.</summary>

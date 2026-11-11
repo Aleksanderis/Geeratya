@@ -21,6 +21,7 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     public static readonly TimeSpan KillDeadline = TimeSpan.FromSeconds(2);
 
     private static readonly TimeSpan _restoreWait = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan _writeWait = TimeSpan.FromMilliseconds(400);
 
     private readonly ApplicationUiThread _uiThread;
     private readonly TextWriter _output;
@@ -51,6 +52,7 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     {
         if (Interlocked.Exchange(ref _started, 1) == 0)
         {
+            // Started with the exit, so the restore wait (up to 1 s) counts against the 2 s.
             _killTimer = _clock.CreateTimer(Kill, null, KillDeadline, Timeout.InfiniteTimeSpan);
         }
 
@@ -74,7 +76,9 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     private void Restore()
     {
         _gate.Close();
-        WriteReset();
+
+        // A stuck terminal write must not keep the application from being disposed, so it gets its own short wait.
+        Task.Run(WriteReset).Wait(_writeWait);
         _uiThread.Release();
     }
 

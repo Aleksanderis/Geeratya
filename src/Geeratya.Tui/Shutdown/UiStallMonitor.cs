@@ -5,8 +5,8 @@ namespace Geeratya.Tui.Shutdown;
 /// work it was seen starting. The loop turns about 25 times a second even when idle, so a few seconds without a beat
 /// is a stall (#883). Time is measured with the monotonic timestamp, not the wall clock, so a clock change never
 /// shows up as a stall; the Linux monotonic clock stops while the machine sleeps, so a sleep is not one either.
-/// Other systems may still count sleep as time (not verified, #941). While an outside editor owns the terminal no
-/// loop runs: <see cref="Suspend"/> covers it (#940).
+/// Other systems may still count sleep as time (not verified, #941). Changed in #940. While an outside editor owns the terminal no
+/// loop runs: <see cref="Suspend"/> covers it.
 /// </summary>
 public sealed class UiStallMonitor : IDisposable
 {

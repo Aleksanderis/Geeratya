@@ -1,7 +1,7 @@
 namespace Geeratya.Tui.Shutdown;
 
 /// <summary>
-/// Guards every hand-off of work to the UI thread from other threads (timers, Jira replies, drag scrolling). Once the
+/// Guards the hand-off of work to the UI thread from other threads (timers, Jira replies, drag scrolling, quit). Once the
 /// application is going away (<see cref="Close"/>), work is dropped; a call that still races with the disposal and
 /// throws is swallowed, because an exception on a timer or pool thread would abort the process with a stack trace
 /// instead of a clean exit (#940).
@@ -32,9 +32,7 @@ public sealed class UiInvokeGate
 
             return true;
         }
-        catch (Exception exception) when (exception is ObjectDisposedException
-            or InvalidOperationException
-            or NullReferenceException)
+        catch (Exception exception) when (exception is ObjectDisposedException or InvalidOperationException)
         {
             return false;
         }

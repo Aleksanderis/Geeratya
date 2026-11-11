@@ -33,10 +33,19 @@ public sealed partial class ShellHost
         {
             if (!_held.TryHold(work))
             {
-                var application = _application;
-
-                _uiGate.TryInvoke(() => application!.Invoke(work));
+                InvokeGuarded(work);
             }
+        }
+    }
+
+    // Dropped when the application is not there yet, going away or already disposed (#940).
+    private void InvokeGuarded(Action work)
+    {
+        var application = _application;
+
+        if (application is not null)
+        {
+            _uiGate.TryInvoke(() => application.Invoke(work));
         }
     }
 

@@ -36,14 +36,7 @@ public sealed class TerminalReset
             return true;
         }
 
-        try
-        {
-            return _probe.OutputSequencesEnabled();
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or ObjectDisposedException)
-        {
-            return false;
-        }
+        return _probe.OutputSequencesEnabled();
     }
 
     private sealed class AlwaysEnabledProbe : IConsoleModeProbe
