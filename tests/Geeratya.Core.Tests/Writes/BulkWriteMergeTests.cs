@@ -91,6 +91,57 @@ public class BulkWriteMergeTests
         Assert.Equal("Fresh stub", row.Subtasks[0].Summary);
     }
 
+    [Fact]
+    public void GivenTwoChangesOnOneKey_WhenStartedAndFailed_ThenBothAreKeptInOrderAndRolledBack()
+    {
+        var state = Loaded(5);
+
+        var started = Start(state, ["A-2", "a-2"]);
+
+        var operation = Assert.Single(started.Session.Operations);
+        Assert.Equal(2, operation.Undo.Count);
+        Assert.Equal([_sprint], started.Session.Tabs[0].Rows[1].Sprints);
+
+        var failure = new WriteError(WriteErrorKind.Validation, 400, "no", [], []);
+        var failed = _reducer.Reduce(started, new WriteFailed(operation.Id, _now, failure)).State;
+
+        Assert.All(failed.Session.Tabs[0].Rows, row => Assert.Empty(row.Sprints));
+    }
+
+    [Fact]
+    public void GivenIssueInTwoTabs_WhenPlanned_ThenTheFirstTabsRowDecidesTheUndo()
+    {
+        var state = Loaded(3);
+        var first = state.Session.Tabs[0];
+        var older = new IssueSprint(5, "Sprint 5", SprintState.Future);
+        var secondRows = first.Rows.Select(row => row with { Sprints = [older] }).ToArray();
+        var second = first with { Id = new TabId(2), Rows = secondRows };
+        var both = state with { Session = state.Session with { Tabs = [first, second] } };
+
+        var started = Start(both, ["A-1"]);
+
+        var change = Assert.IsType<SprintRowChange>(Assert.Single(Assert.Single(started.Session.Operations).Undo));
+        Assert.Empty(change.Before);
+        Assert.Equal([_sprint], started.Session.Tabs[0].Rows[0].Sprints);
+        Assert.Equal([_sprint], started.Session.Tabs[1].Rows[0].Sprints);
+    }
+
+    [Fact]
+    public void GivenTwoOperationsRunning_WhenAWriteHitsTheSecondOnesKey_ThenTheBusyTextIsThatOperationsAndNothingStarts()
+    {
+        var change = new FieldChange(FormFieldIds.Summary, FormFieldKind.Text, FormValue.OfText("New title"));
+        var editing = _reducer.Reduce(Loaded(5), new WriteRequested(new TabId(1), new EditRequest("A-1", [change]), _now)).State;
+        var running = Start(editing, ["A-2", "A-3"]);
+
+        var blockedOnMove = Start(running, ["A-5", "a-3"]);
+        var blockedOnEdit = Start(running, ["A-4", "A-1"]);
+
+        Assert.Equal("a-3 is busy (moving)", blockedOnMove.Message);
+        Assert.Equal("A-1 is busy (editing)", blockedOnEdit.Message);
+        Assert.Equal(2, blockedOnMove.Session.Operations.Count);
+        Assert.Equal(2, blockedOnEdit.Session.Operations.Count);
+    }
+
     private static AppState WithStub(AppState state)
     {
         var tab = state.Session.Tabs[0];
