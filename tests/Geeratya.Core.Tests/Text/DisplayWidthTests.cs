@@ -105,4 +105,65 @@ public class DisplayWidthTests
     {
         Assert.Equal(0, DisplayWidth.Of(new Rune(codePoint)));
     }
+
+    [Theory]
+    [InlineData("abc", 5, "abc")]
+    [InlineData("abc", 3, "abc")]
+    [InlineData("abc", 2, "ab")]
+    [InlineData("abc", 0, "")]
+    [InlineData("abc", -1, "")]
+    [InlineData("", 4, "")]
+    [InlineData("a b~", 3, "a b")]
+    public void GivenAsciiText_WhenFitting_ThenItIsCutByCharacters(string text, int width, string expected)
+    {
+        Assert.Equal(expected, DisplayWidth.Fit(text, width));
+    }
+
+    [Fact]
+    public void GivenAsciiTextThatFits_WhenFitting_ThenTheSameStringIsReturned()
+    {
+        var text = new string('x', 40);
+
+        Assert.Same(text, DisplayWidth.Fit(text, 40));
+        Assert.Same(text, DisplayWidth.Fit(text, 80));
+    }
+
+    [Theory]
+    [InlineData("日本語", 4, "日本")]
+    [InlineData("日本語", 5, "日本")]
+    [InlineData("日本語", 1, "")]
+    [InlineData("a日b", 2, "a")]
+    [InlineData("a日b", 3, "a日")]
+    [InlineData("🚀🚀", 3, "🚀")]
+    [InlineData("ab🚀", 3, "ab")]
+    [InlineData("🇱🇹x", 2, "🇱🇹")]
+    [InlineData("🇱🇹x", 1, "")]
+    [InlineData("👨‍👩‍👧x", 3, "👨‍👩‍👧x")]
+    [InlineData("👨‍👩‍👧x", 2, "👨‍👩‍👧")]
+    [InlineData("❤️y", 2, "❤️")]
+    [InlineData("éa", 1, "é")]
+    [InlineData("éa", 2, "éa")]
+    [InlineData("e\u0301e\u0301", 1, "e\u0301")]
+    [InlineData("e\u0301e\u0301", 2, "e\u0301e\u0301")]
+    [InlineData("ab\tc", 3, "ab\tc")]
+    public void GivenWideEmojiOrCombiningText_WhenFitting_ThenACharacterIsNeverSplit(string text, int width, string expected)
+    {
+        Assert.Equal(expected, DisplayWidth.Fit(text, width));
+    }
+
+    [Theory]
+    [InlineData("日本語abc")]
+    [InlineData("e\u0301x🚀y👨‍👩‍👧z")]
+    [InlineData("tab\there")]
+    [InlineData("plain ascii text")]
+    public void GivenAnyWidth_WhenFitting_ThenResultNeverExceedsWidthAndIsAPrefix(string text)
+    {
+        for (var width = 0; width <= DisplayWidth.Of(text) + 2; width++)
+        {
+            var fitted = DisplayWidth.Fit(text, width);
+
+            Assert.True(DisplayWidth.Of(fitted) <= width);
+            Assert.StartsWith(fitted, text, StringComparison.Ordinal);
+        }
+    }
 }
