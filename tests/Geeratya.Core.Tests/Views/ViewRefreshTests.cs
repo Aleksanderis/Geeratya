@@ -509,6 +509,7 @@ public class ViewRefreshTests
         var id = state.Session.Tabs[0].Id;
         var tick = _reducer.Reduce(state, new Tick(_start + TimeSpan.FromSeconds(60)));
         var stamped = _reducer.Reduce(tick.State, new Tick(_start + TimeSpan.FromSeconds(61)));
+        // The load deadline is 150 s of silence: 140 s after the stamp is inside it, 149 s after the new page too.
         var nearLimit = _start + TimeSpan.FromSeconds(61 + 140);
 
         var gathering = _reducer.Reduce(

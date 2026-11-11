@@ -25,6 +25,7 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
     private readonly object _postedLock = new();
     private readonly TaskCompletionSource _cachePosted = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly List<IDisposable> _disposables = [];
+    private BlockingPermissions? _blocker;
     private NetworkRunner? _runner;
     private SiteConnections? _connections;
 
@@ -93,6 +94,9 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
     public async Task GivenCacheReadStuckBehindADiskLock_WhenOpening_ThenTheNetworkLoadStartsAndTheCacheRowsPostLater()
     {
         var blocker = new BlockingPermissions();
+
+        _blocker = blocker;
+
         var cache = SecondStartCache(blocker);
         var handler = await HandlerAsync(connected: true, replyGate: null);
         var other = new CachedView([Issue(3)], null, DateTimeOffset.UnixEpoch);
@@ -117,6 +121,8 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
 
     public void Dispose()
     {
+        // A failed test must not leave the flush holding the cache's disk lock, or disposing the cache would hang.
+        _blocker?.Release();
         _runner?.Dispose();
         _connections?.Dispose();
 
@@ -243,7 +249,7 @@ public sealed class ViewLoadHandlerCacheTests : ICommandSink, IDisposable
 
         public void Release()
         {
-            _gate.SetResult();
+            _gate.TrySetResult();
         }
     }
 }
