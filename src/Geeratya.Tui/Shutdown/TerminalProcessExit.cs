@@ -23,7 +23,7 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     private static readonly TimeSpan _restoreWait = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan _writeWait = TimeSpan.FromMilliseconds(400);
 
-    private readonly ApplicationUiThread _uiThread;
+    private readonly IApplicationRelease _application;
     private readonly TextWriter _output;
     private readonly UiInvokeGate _gate;
     private readonly TerminalReset _reset;
@@ -33,14 +33,14 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     private ITimer? _killTimer;
 
     public TerminalProcessExit(
-        ApplicationUiThread uiThread,
+        IApplicationRelease application,
         TextWriter output,
         UiInvokeGate gate,
         TerminalReset reset,
         IProcessEnder ender,
         TimeProvider? clock = null)
     {
-        _uiThread = uiThread;
+        _application = application;
         _output = output;
         _gate = gate;
         _reset = reset;
@@ -82,7 +82,7 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
 
         try
         {
-            _uiThread.Release();
+            _application.Release();
         }
         catch (ObjectDisposedException)
         {

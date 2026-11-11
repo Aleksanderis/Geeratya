@@ -1,3 +1,4 @@
+using Geeratya.Tui.Shutdown;
 using Terminal.Gui.App;
 
 namespace Geeratya.Tui;
@@ -6,7 +7,7 @@ namespace Geeratya.Tui;
 /// The UI thread of a Terminal.Gui application. Until <see cref="Attach"/> is called, or after
 /// <see cref="Detach"/>, no loop owns the screen and work runs inline on the caller.
 /// </summary>
-public sealed class ApplicationUiThread : IUiThread
+public sealed class ApplicationUiThread : IUiThread, IApplicationRelease
 {
     private volatile IApplication? _application;
 

@@ -13,6 +13,23 @@ public sealed class TerminalProcessExitTests : IDisposable
     private readonly StringWriter _output = new();
     private readonly UiInvokeGate _gate = new();
     private readonly List<TerminalProcessExit> _exits = [];
+    private readonly List<string> _events = [];
+    private readonly RecordingRelease _release;
+
+    public TerminalProcessExitTests()
+    {
+        _release = new RecordingRelease(_events, _output);
+    }
+
+    [Fact]
+    public void GivenEnding_WhenRestoring_ThenTheResetSequencesAreWrittenBeforeTheApplicationIsReleased()
+    {
+        var exit = CreateExit(OperatingSystemKind.Linux, true);
+
+        exit.EndProcess();
+
+        Assert.Equal([$"release after {TerminalProcessExit.ResetSequences.Length} reset chars"], _events);
+    }
 
     [Fact]
     public async Task GivenExitThatBlocks_WhenTheDeadlinePasses_ThenTheProcessIsKilled()
@@ -94,7 +111,7 @@ public sealed class TerminalProcessExitTests : IDisposable
     private TerminalProcessExit CreateExit(OperatingSystemKind system, bool sequencesEnabled)
     {
         var exit = new TerminalProcessExit(
-            new ApplicationUiThread(),
+            _release,
             _output,
             _gate,
             new TerminalReset(system, new FixedProbe(sequencesEnabled)),
@@ -104,6 +121,23 @@ public sealed class TerminalProcessExitTests : IDisposable
         _exits.Add(exit);
 
         return exit;
+    }
+
+    private sealed class RecordingRelease : IApplicationRelease
+    {
+        private readonly List<string> _events;
+        private readonly StringWriter _output;
+
+        public RecordingRelease(List<string> events, StringWriter output)
+        {
+            _events = events;
+            _output = output;
+        }
+
+        public void Release()
+        {
+            _events.Add($"release after {_output.ToString().Length} reset chars");
+        }
     }
 
     private sealed class FixedProbe : IConsoleModeProbe
