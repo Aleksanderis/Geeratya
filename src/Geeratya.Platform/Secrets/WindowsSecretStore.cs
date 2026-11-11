@@ -11,7 +11,6 @@ public sealed partial class WindowsSecretStore : ISecretStore
     private const string TargetPrefix = "geeratya:";
     private const uint GenericCredential = 1;
     private const uint PersistLocalMachine = 2;
-    private const int ErrorNotFound = 1168;
 
     public bool IsAvailable => true;
 
@@ -21,6 +20,9 @@ public sealed partial class WindowsSecretStore : ISecretStore
 
         if (!CredRead(TargetPrefix + key, GenericCredential, 0, out var buffer))
         {
+            // Only "no such credential" means "no token saved"; any other error is a broken or locked vault.
+            CredentialManagerErrors.ThrowUnlessNotFound(Marshal.GetLastPInvokeError(), "read");
+
             return Task.FromResult<string?>(null);
         }
 
@@ -62,9 +64,7 @@ public sealed partial class WindowsSecretStore : ISecretStore
 
             if (!CredWrite(ref credential, 0))
             {
-                var error = Marshal.GetLastPInvokeError();
-
-                throw new SecretStoreException($"Credential Manager could not store the token (error {error}).");
+                CredentialManagerErrors.Throw(Marshal.GetLastPInvokeError(), "store");
             }
 
             return Task.FromResult(true);
@@ -81,15 +81,19 @@ public sealed partial class WindowsSecretStore : ISecretStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!CredDelete(TargetPrefix + key, GenericCredential, 0) && Marshal.GetLastPInvokeError() != ErrorNotFound)
+        if (!CredDelete(TargetPrefix + key, GenericCredential, 0))
         {
-            throw new SecretStoreException("Credential Manager could not remove the token.");
+            CredentialManagerErrors.ThrowUnlessNotFound(Marshal.GetLastPInvokeError(), "remove");
         }
 
         return Task.CompletedTask;
     }
 
-    [LibraryImport("advapi32.dll", EntryPoint = "CredReadW", StringMarshalling = StringMarshalling.Utf16)]
+    [LibraryImport(
+        "advapi32.dll",
+        EntryPoint = "CredReadW",
+        SetLastError = true,
+        StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CredRead(string target, uint type, uint flags, out IntPtr credential);
 

@@ -15,12 +15,7 @@ public sealed class TerminalProgramRunner : ITerminalProgramRunner
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken)
     {
-        var startInfo = new ProcessStartInfo(program) { UseShellExecute = false };
-
-        foreach (var argument in arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
+        var startInfo = CreateStartInfo(program, arguments);
 
         using var process = Start(startInfo);
 
@@ -36,6 +31,29 @@ public sealed class TerminalProgramRunner : ITerminalProgramRunner
         }
 
         return process.ExitCode;
+    }
+
+    private static ProcessStartInfo CreateStartInfo(string program, IReadOnlyList<string> arguments)
+    {
+        if (OperatingSystem.IsWindows() && WindowsProgramResolver.IsBatchFile(program))
+        {
+            // A batch file cannot be started directly; cmd.exe runs it and needs its own quoting, so the argument
+            // string is built by hand.
+            return new ProcessStartInfo("cmd.exe")
+            {
+                UseShellExecute = false,
+                Arguments = CmdCommandLine.Build(program, arguments),
+            };
+        }
+
+        var startInfo = new ProcessStartInfo(program) { UseShellExecute = false };
+
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        return startInfo;
     }
 
     private static void KillQuietly(Process process)
