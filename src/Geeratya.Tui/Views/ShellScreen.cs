@@ -140,11 +140,27 @@ public sealed class ShellScreen : Window
         _regions = frame.Regions;
         _rowMenuMarker = frame.RowMenuMarker;
         var faint = _glyphs != GlyphSet.Ascii;
-        var lines = frame.Header.Concat(frame.Body).Select(line => StyledRuns.Resolve(line, _theme, _colors, faint));
 
-        _body.SetLines(lines.ToList());
+        _body.SetLines(ResolveLines(frame, faint));
         _status.SetLines([StyledRuns.Resolve(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine), _theme, _colors)]);
         FramesBuilt++;
+    }
+
+    private List<IReadOnlyList<StyledRun>> ResolveLines(StyledFrame frame, bool faint)
+    {
+        var lines = new List<IReadOnlyList<StyledRun>>(frame.Header.Count + frame.Body.Count);
+
+        foreach (var line in frame.Header)
+        {
+            lines.Add(StyledRuns.Resolve(line, _theme, _colors, faint));
+        }
+
+        foreach (var line in frame.Body)
+        {
+            lines.Add(StyledRuns.Resolve(line, _theme, _colors, faint));
+        }
+
+        return lines;
     }
 
     private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)

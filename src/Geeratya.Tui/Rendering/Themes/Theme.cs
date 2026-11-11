@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace Geeratya.Tui.Rendering.Themes;
 
 /// <summary>
@@ -18,6 +20,7 @@ public sealed class Theme
 
     private readonly IReadOnlyDictionary<PaletteRole, PaletteEntry> _entries;
     private readonly Rgb? _overlayBackground;
+    private readonly ConcurrentDictionary<ReadableKey, bool> _readable = new();
 
     public Theme(
         string name,
@@ -79,6 +82,20 @@ public sealed class Theme
         return Rgb.Blend(color, ScrimBackground, DimAmount);
     }
 
+    /// <summary>
+    /// Whether <paramref name="own"/> reaches the contrast <paramref name="minimum"/> on <paramref name="ground"/>;
+    /// the answer is kept per theme (the ratio costs a power per channel and the same pairs recur on every frame).
+    /// </summary>
+    public bool IsReadable(Rgb own, Rgb ground, double minimum)
+    {
+        return _readable.GetOrAdd(new ReadableKey(own, ground, minimum), IsReadableUncached);
+    }
+
+    private static bool IsReadableUncached(ReadableKey key)
+    {
+        return Contrast.Ratio(key.Own, key.Ground) >= key.Minimum;
+    }
+
     private static double ChooseDimAmount(IReadOnlyDictionary<ThemeColor, Rgb> colors, Rgb scrim)
     {
         var muted = colors[ThemeColor.Muted];
@@ -108,4 +125,6 @@ public sealed class Theme
     {
         return _entries[role];
     }
+
+    private readonly record struct ReadableKey(Rgb Own, Rgb Ground, double Minimum);
 }

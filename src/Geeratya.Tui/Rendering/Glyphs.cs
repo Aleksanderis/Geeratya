@@ -62,7 +62,7 @@ public sealed class Glyphs
     /// </summary>
     public static string ToAscii(string text)
     {
-        if (text.All(static character => character < 0x80 || !_asciiOf.ContainsKey(character)))
+        if (!NeedsAscii(text))
         {
             return text;
         }
@@ -76,6 +76,19 @@ public sealed class Glyphs
     public static Glyphs For(GlyphSet set)
     {
         return set == GlyphSet.Ascii ? _ascii : _unicode;
+    }
+
+    private static bool NeedsAscii(string text)
+    {
+        foreach (var character in text)
+        {
+            if (character >= 0x80 && _asciiOf.ContainsKey(character))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Dictionary<char, char> BuildAsciiMap()

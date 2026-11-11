@@ -37,7 +37,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string Unassigned = "-";
     private const string UnknownGlyph = "?";
 
-    private static readonly HashSet<string> _noMarks = [];
+    private static readonly Dictionary<int, FlashLabel> _noFlash = [];
 
     public bool AppliesTo(AppState state)
     {
@@ -76,7 +76,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var first = FirstRow(tab);
         var busy = BusyMarks.Keys(state);
         var range = RowSelection.VisualRange(tab);
-        var marks = tab.Marks.Count == 0 ? _noMarks : new HashSet<string>(tab.Marks, StringComparer.OrdinalIgnoreCase);
+        var marks = MarkSet.Of(tab.Marks);
 
         var flash = FlashLabelsOf(state, tab, inner, area);
 
@@ -131,14 +131,16 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
     private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner, int area)
     {
+        if (state.FlashJump is not { Text.Length: > 0 } flash)
+        {
+            return _noFlash;
+        }
+
         var labels = new Dictionary<int, FlashLabel>();
 
-        if (state.FlashJump is { Text.Length: > 0 } flash)
+        foreach (var label in FlashLabeler.Compute(tab, flash.Text, inner, area))
         {
-            foreach (var label in FlashLabeler.Compute(tab, flash.Text, inner, area))
-            {
-                labels[label.Row] = label;
-            }
+            labels[label.Row] = label;
         }
 
         return labels;
