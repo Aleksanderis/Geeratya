@@ -92,7 +92,7 @@ public class BulkWriteMergeTests
     }
 
     [Fact]
-    public void GivenTwoChangesOnOneKey_WhenStartedAndFailed_ThenBothAreKeptInOrderAndRolledBack()
+    public void GivenTwoChangesOnOneKey_WhenStartedAndFailed_ThenBothAreKeptAndRolledBack()
     {
         var state = Loaded(5);
 
@@ -127,17 +127,20 @@ public class BulkWriteMergeTests
     }
 
     [Fact]
-    public void GivenTwoOperationsRunning_WhenAWriteHitsTheSecondOnesKey_ThenTheBusyTextIsThatOperationsAndNothingStarts()
+    public void GivenTwoOperationsRunning_WhenWriteHitsOneKey_ThenBusyTextNamesThatOperation()
     {
         var change = new FieldChange(FormFieldIds.Summary, FormFieldKind.Text, FormValue.OfText("New title"));
-        var editing = _reducer.Reduce(Loaded(5), new WriteRequested(new TabId(1), new EditRequest("A-1", [change]), _now)).State;
+        var edit = new WriteRequested(new TabId(1), new EditRequest("A-1", [change]), _now);
+        var editing = _reducer.Reduce(Loaded(5), edit).State;
         var running = Start(editing, ["A-2", "A-3"]);
 
         var blockedOnMove = Start(running, ["A-5", "a-3"]);
         var blockedOnEdit = Start(running, ["A-4", "A-1"]);
+        var blockedOnBoth = Start(running, ["A-3", "A-1"]);
 
         Assert.Equal("a-3 is busy (moving)", blockedOnMove.Message);
         Assert.Equal("A-1 is busy (editing)", blockedOnEdit.Message);
+        Assert.Equal("A-1 is busy (editing)", blockedOnBoth.Message);
         Assert.Equal(2, blockedOnMove.Session.Operations.Count);
         Assert.Equal(2, blockedOnEdit.Session.Operations.Count);
     }
