@@ -36,7 +36,7 @@ public sealed partial class JiraTransport
 
             var wait = WaitBeforeRetry(result.Error, attempt);
 
-            // A rate-limit wait, or any wait long enough to be seen (a 5xx or network failure with a Retry-After),
+            // A rate-limit wait, or any wait long enough to be seen (a 5xx with a Retry-After; a network failure has no response, so none),
             // is published for the banner. The plain exponential back-off is at most 2 s (0.5 s doubling, three
             // retries), shorter than one banner tick, so it stays unpublished.
             if (result.Error.Kind == JiraErrorKind.RateLimited || wait > _visibleWait)

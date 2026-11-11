@@ -16,8 +16,9 @@ public sealed partial class JiraTransport : IDisposable
 {
     private const string JsonMediaType = "application/json";
     private const int MaxBackoffExponent = 10;
-    private static readonly TimeSpan _visibleWait = TimeSpan.FromSeconds(2);
     private const string AbandonedMessage = "Abandoned for a user request; no reply from Jira in time.";
+
+    private static readonly TimeSpan _visibleWait = TimeSpan.FromSeconds(2);
 
     private readonly JiraConnection _connection;
     private readonly string _authorization;
