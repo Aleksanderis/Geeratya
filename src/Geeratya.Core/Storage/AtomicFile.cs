@@ -9,8 +9,8 @@ namespace Geeratya.Core.Storage;
 /// with an <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> (or a
 /// <see cref="FileNotFoundException"/> when the target vanishes under a concurrent replace and the temporary file still
 /// exists); the replace is retried a few times with a short backoff (20, 40, 80 and 160 ms) before the last error is
-/// thrown. Readers use
-/// <see cref="ReadAllText"/> / <see cref="OpenRead"/>, which share with writers and with a replace or delete.
+/// thrown. Readers use <see cref="ReadAllText"/> /
+/// <see cref="OpenRead"/>, which share with writers and with a replace or delete.
 /// </summary>
 public sealed class AtomicFile
 {

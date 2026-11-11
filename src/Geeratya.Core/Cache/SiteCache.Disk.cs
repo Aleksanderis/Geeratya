@@ -85,6 +85,11 @@ public sealed partial class SiteCache
                     return keyed.View;
                 }
             }
+            catch (FileNotFoundException)
+            {
+                // Another instance replaced or removed the file after the existence check: a miss, not a problem.
+                return null;
+            }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 ReportReadProblem(exception);
@@ -130,6 +135,11 @@ public sealed partial class SiteCache
 
                     return issue;
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                // Another instance replaced or removed the file after the existence check: a miss, not a problem.
+                return null;
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
