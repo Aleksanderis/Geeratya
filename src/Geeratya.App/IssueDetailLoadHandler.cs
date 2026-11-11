@@ -33,12 +33,16 @@ public sealed class IssueDetailLoadHandler
     /// </summary>
     public async Task StartAsync(Effect effect, SiteCache? cache = null)
     {
+        var local = Task.CompletedTask;
+
         if (cache is not null && effect is LoadIssueDetailEffect opening)
         {
-            // Off the UI thread and without a connection; posted before the network reply or failure, as for views.
-            await _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
+            // Off the UI thread and without a connection. The network load waits for it only briefly (a cache read
+            // stuck on slow disk I/O must not hold the request back); the reducer drops a late cached copy.
+            local = _runner.StartLocal(opening.Tab.Value, token => ReadCache(opening, cache, token));
         }
 
+        await NetworkRunner.AwaitCacheReadAsync(local);
         await StartNetwork(effect, cache);
     }
 
@@ -78,7 +82,13 @@ public sealed class IssueDetailLoadHandler
         long requestId,
         Func<JiraServices, CancellationToken, Task<Command?>> work)
     {
-        return _runner.Start(scope, work, () => Failure(tab, requestId, NoConnectionMessage));
+        // Request 0 (the quiet side reads) has nothing waiting on it: a fault posts nothing, never a failure that
+        // would match whichever load has no request in flight.
+        return _runner.Start(
+            scope,
+            work,
+            () => Failure(tab, requestId, NoConnectionMessage),
+            exception => requestId == 0 ? null : Failure(tab, requestId, FaultMessage(exception)));
     }
 
     private Func<JiraServices, CancellationToken, Task<Command?>> IssueAsync(
@@ -187,6 +197,11 @@ public sealed class IssueDetailLoadHandler
 
             return new IssueChildrenLoaded(effect.Tab, effect.RequestId, result.Value, _clock.GetUtcNow());
         };
+    }
+
+    private static string FaultMessage(Exception exception)
+    {
+        return $"Loading failed unexpectedly ({exception.GetType().Name}).";
     }
 
     private static IssueDetailFailed Failure(TabId tab, long requestId, string message)

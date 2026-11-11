@@ -41,7 +41,7 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
 
     public ScriptedJiraHandler Reply(HttpStatusCode status, string body, Task? gate = null)
     {
-        _replies.Enqueue(new ScriptedReply(status, body, gate, null));
+        _replies.Enqueue(new ScriptedReply(status, body, gate, null, null));
 
         return this;
     }
@@ -49,14 +49,22 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
     /// <summary>Queues the next reply to a gateway request (see <see cref="GatewayRequests"/>).</summary>
     public ScriptedJiraHandler Gateway(HttpStatusCode status, string body)
     {
-        _gatewayReplies.Enqueue(new ScriptedReply(status, body, null, null));
+        _gatewayReplies.Enqueue(new ScriptedReply(status, body, null, null, null));
+
+        return this;
+    }
+
+    /// <summary>Queues a request that throws <paramref name="exception"/> instead of answering.</summary>
+    public ScriptedJiraHandler Throw(Exception exception)
+    {
+        _replies.Enqueue(new ScriptedReply(HttpStatusCode.OK, string.Empty, null, null, exception));
 
         return this;
     }
 
     public ScriptedJiraHandler RateLimit(string retryAfter)
     {
-        _replies.Enqueue(new ScriptedReply((HttpStatusCode)429, string.Empty, null, retryAfter));
+        _replies.Enqueue(new ScriptedReply((HttpStatusCode)429, string.Empty, null, retryAfter, null));
 
         return this;
     }
@@ -86,6 +94,11 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
         if (!_replies.TryDequeue(out var reply))
         {
             return new HttpResponseMessage(HttpStatusCode.NotFound);
+        }
+
+        if (reply.Failure is not null)
+        {
+            throw reply.Failure;
         }
 
         if (reply.Gate is not null)
@@ -133,5 +146,10 @@ public sealed class ScriptedJiraHandler : HttpMessageHandler
         public string Body { get; } = body;
     }
 
-    private sealed record ScriptedReply(HttpStatusCode Status, string Body, Task? Gate, string? RetryAfter);
+    private sealed record ScriptedReply(
+        HttpStatusCode Status,
+        string Body,
+        Task? Gate,
+        string? RetryAfter,
+        Exception? Failure);
 }

@@ -40,17 +40,22 @@ public sealed partial class ViewLoadHandler
     /// <summary>
     /// Starts the load and returns at once with the task that ends when it is posted (or dropped). An opening load
     /// first answers from <paramref name="cache"/> (off the UI thread, no connection needed) and only then asks
-    /// Jira, so the cached rows are always posted before any reply or failure. Without a connection the tab is told
-    /// so instead of loading forever.
+    /// Jira. The cache read gets <see cref="NetworkRunner.CacheReadWait"/> to post first (so cached rows normally
+    /// precede any reply); a read stuck on slow disk I/O does not hold the request back, and the reducer drops cached
+    /// rows that arrive after the reply. Without a connection, or when the load throws, the tab
+    /// is told so instead of loading forever.
     /// </summary>
     public async Task StartAsync(LoadViewPageEffect effect, SiteCache? cache = null)
     {
+        var local = Task.CompletedTask;
+
         // The cache holds the board as a whole, so a load narrowed by quick filters never reads it.
         if (cache is not null && effect.Reason == LoadReason.Open && effect.Cursor is null && effect.ExtraJql is null)
         {
-            await _runner.StartLocal(effect.Tab.Value, token => ReadCache(effect, cache, token));
+            local = _runner.StartLocal(effect.Tab.Value, token => ReadCache(effect, cache, token));
         }
 
+        await NetworkRunner.AwaitCacheReadAsync(local);
         await StartNetwork(effect);
     }
 
@@ -102,7 +107,8 @@ public sealed partial class ViewLoadHandler
             return _runner.StartReporting(
                 effect.Tab.Value,
                 (services, report, token) => BoardAsync(services, effect, report, token),
-                () => Failure(effect, NoConnectionMessage));
+                () => Failure(effect, NoConnectionMessage),
+                exception => Faulted(effect, exception));
         }
 
         if (jql is null)
@@ -116,7 +122,13 @@ public sealed partial class ViewLoadHandler
         return _runner.StartReporting(
             effect.Tab.Value,
             (services, report, token) => SearchAsync(services, effect, jql, report, token),
-            () => Failure(effect, NoConnectionMessage));
+            () => Failure(effect, NoConnectionMessage),
+            exception => Faulted(effect, exception));
+    }
+
+    private ViewLoadFailed Faulted(LoadViewPageEffect effect, Exception exception)
+    {
+        return Failure(effect, $"Loading failed unexpectedly ({exception.GetType().Name}).");
     }
 
     private static ViewCacheLoaded? ReadCache(LoadViewPageEffect effect, SiteCache cache, CancellationToken token)

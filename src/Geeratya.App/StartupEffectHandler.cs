@@ -36,6 +36,12 @@ public sealed class StartupEffectHandler : ILocalEffectHandler
         return Task.FromResult(Run(effect));
     }
 
+    /// <summary>A tabs file that cannot be read starts the session with no remembered tabs.</summary>
+    public Command? Faulted(Effect effect, Exception exception)
+    {
+        return effect is LoadTabsEffect load ? new TabsLoaded(load.Profile, RememberedTabs.Empty) : null;
+    }
+
     /// <summary>The reply of a read effect, or null when the effect is not one.</summary>
     public Command? Run(Effect effect)
     {

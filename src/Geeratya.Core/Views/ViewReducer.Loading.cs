@@ -61,7 +61,9 @@ public static partial class ViewReducer
         List<Effect> effects)
     {
         var requestId = state.Sequence + 1;
-        var gathering = tab with { PendingRows = gathered, RequestId = requestId };
+        // A page arrived: the deadline measures silence, so it starts again (the next tick stamps it).
+        var progress = loading with { Since = null };
+        var gathering = tab with { PendingRows = gathered, RequestId = requestId, Load = progress };
 
         effects.Add(
             new LoadViewPageEffect(
@@ -256,6 +258,12 @@ public static partial class ViewReducer
     private static bool IsOverCap(int count, PageCursor? next)
     {
         return count > ViewPaging.MaxRowsPerTab || (count == ViewPaging.MaxRowsPerTab && next is not null);
+    }
+
+    /// <summary>A failure of a tab's load that is not a page-expired restart (the deadline's timeout).</summary>
+    internal static AppState FailLoad(AppState state, ViewLoadFailed failed)
+    {
+        return LoadFailed(state, failed, []);
     }
 
     private static AppState LoadFailed(AppState state, ViewLoadFailed failed, List<Effect> effects)

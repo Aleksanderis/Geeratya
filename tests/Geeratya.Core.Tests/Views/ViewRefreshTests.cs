@@ -70,7 +70,10 @@ public class ViewRefreshTests
         var second = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(120)));
 
         Assert.Empty(second.Effects);
-        Assert.Same(first.State, second.State);
+        var third = _reducer.Reduce(second.State, new Tick(_start + TimeSpan.FromSeconds(121)));
+        Assert.Equal(first.State.Session.Tabs[0].RequestId, second.State.Session.Tabs[0].RequestId);
+        Assert.Empty(third.Effects);
+        Assert.Same(second.State, third.State);
     }
 
     [Fact]
@@ -354,14 +357,45 @@ public class ViewRefreshTests
     }
 
     [Fact]
-    public void GivenManualRefresh_WhenALoadIsInFlight_ThenNothingStarts()
+    public void GivenManualRefresh_WhenALoadIsInFlight_ThenItRestartsUnderANewRequestId()
     {
         var tick = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
+        var stuck = tick.State.Session.Tabs[0];
 
-        var result = _reducer.Reduce(tick.State, new RefreshRequested(tick.State.Session.Tabs[0].Id));
+        var result = _reducer.Reduce(tick.State, new RefreshRequested(stuck.Id));
 
-        Assert.Same(tick.State, result.State);
-        Assert.Empty(result.Effects);
+        var effect = Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects));
+        Assert.NotEqual(stuck.RequestId, effect.RequestId);
+        Assert.False(effect.Background);
+        Assert.Equal(effect.RequestId, result.State.Session.Tabs[0].RequestId);
+    }
+
+    [Fact]
+    public void GivenLoadingTab_WhenTickPassesTheDeadline_ThenTheTabFailsWithATimeout()
+    {
+        var first = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
+        var seen = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(61)));
+        var early = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(149)));
+
+        var late = _reducer.Reduce(early.State, new Tick(_start + TimeSpan.FromSeconds(61) + TimeSpan.FromSeconds(150)));
+
+        Assert.IsType<Loading>(early.State.Session.Tabs[0].Load);
+        var failed = Assert.IsType<Failed>(late.State.Session.Tabs[0].Load);
+        Assert.Equal(JiraErrorKind.Timeout, failed.Kind);
+        Assert.Empty(late.Effects);
+    }
+
+    [Fact]
+    public void GivenTabFailedByTheDeadline_WhenTheRefreshKeyIsPressed_ThenItLoadsAgain()
+    {
+        var first = _reducer.Reduce(Loaded(3), new Tick(_start + TimeSpan.FromSeconds(60)));
+        var seen = _reducer.Reduce(first.State, new Tick(_start + TimeSpan.FromSeconds(61)));
+        var failed = _reducer.Reduce(seen.State, new Tick(_start + TimeSpan.FromSeconds(300)));
+
+        var result = _reducer.Reduce(failed.State, new RefreshRequested(failed.State.Session.Tabs[0].Id));
+
+        Assert.IsType<LoadViewPageEffect>(Assert.Single(result.Effects));
+        Assert.IsType<Loading>(result.State.Session.Tabs[0].Load);
     }
 
     [Fact]
