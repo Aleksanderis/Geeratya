@@ -50,6 +50,7 @@ public class ShellScreenFrameTests : IDisposable
         _screen.Render(AppState.Initial, DateTimeOffset.UtcNow);
         _screen.Render(AppState.Initial, DateTimeOffset.UtcNow);
 
+        _screen.BuildFrame();
         _ = _screen.OverlayRegions;
         _ = _screen.RowMenuMarker;
 

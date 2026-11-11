@@ -94,7 +94,9 @@ public sealed partial class ShellHost
             return context;
         }
 
-        return context with { Regions = _screen!.OverlayRegions, RowMenuMarker = _screen.RowMenuMarker };
+        _screen!.BuildFrame();
+
+        return context with { Regions = _screen.OverlayRegions, RowMenuMarker = _screen.RowMenuMarker };
     }
 
     // The held button moved: the range follows the pointer; outside the body a timer keeps moving the cursor.

@@ -69,27 +69,11 @@ public sealed class ShellScreen : Window
     /// <summary>The rows the frame gives the body: where overlays (the Confirm dialog) are placed.</summary>
     public int BodyHeight => FrameBuilder.BodyHeight(_size.Height);
 
-    /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test.</summary>
-    public IReadOnlyList<OverlayRegion> OverlayRegions
-    {
-        get
-        {
-            BuildFrame();
-
-            return _regions;
-        }
-    }
+    /// <summary>The clickable rectangles of the overlay drawn last, for the mouse hit test (call <see cref="BuildFrame"/> first for the latest state).</summary>
+    public IReadOnlyList<OverlayRegion> OverlayRegions => _regions;
 
     /// <summary>The cells of the row menu marker drawn last, null when none shows.</summary>
-    public OverlayRegion? RowMenuMarker
-    {
-        get
-        {
-            BuildFrame();
-
-            return _rowMenuMarker;
-        }
-    }
+    public OverlayRegion? RowMenuMarker => _rowMenuMarker;
 
     /// <summary>How many frames were built; a burst of commands in one loop iteration builds one (#933).</summary>
     public int FramesBuilt { get; private set; }
