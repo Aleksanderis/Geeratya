@@ -62,7 +62,7 @@ public sealed class ProfileEffectHandler : ILocalEffectHandler
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return new ProfileOperationFailed(
-                $"Could not write the profiles file: {exception.Message} (a token stored for this profile stays in the secret store)");
+                $"Could not write the profiles file: {exception.Message}");
         }
         catch (OperationCanceledException)
         {
@@ -81,9 +81,63 @@ public sealed class ProfileEffectHandler : ILocalEffectHandler
             add.Token.Reveal(),
             cancellationToken);
 
-        _services.Store.Save(add.Catalog);
+        var failure = await SaveRollingBackAsync(add.Catalog, add.Profile, stored);
+
+        if (failure is not null)
+        {
+            return failure;
+        }
 
         return new ProfilesChanged(add.Catalog, AddedMessage(add, stored));
+    }
+
+    /// <summary>
+    /// Saves the catalog. When the file cannot be written and a token was just stored under the profile's key, the
+    /// token would belong to no profile, so it is deleted again unless another profile of the catalog uses the same
+    /// key. Returns the failure to report, or null when the catalog was saved.
+    /// </summary>
+    private async Task<ProfileOperationFailed?> SaveRollingBackAsync(
+        ProfileCatalog catalog,
+        Profile profile,
+        bool tokenStored)
+    {
+        try
+        {
+            _services.Store.Save(catalog);
+
+            return null;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            var left = tokenStored && !await TryDeleteOrphanTokenAsync(catalog, profile);
+            var hint = left ? " (a token stored for this profile stays in the secret store)" : string.Empty;
+
+            return new ProfileOperationFailed($"Could not write the profiles file: {exception.Message}{hint}");
+        }
+    }
+
+    /// <summary>True when no orphan token is left: deleted, or kept because another profile shares the key.</summary>
+    private async Task<bool> TryDeleteOrphanTokenAsync(ProfileCatalog catalog, Profile profile)
+    {
+        var key = profile.CredentialKey;
+
+        if (catalog.Profiles.Any(other => other.Name != profile.Name && other.CredentialKey == key))
+        {
+            return true;
+        }
+
+        using var timeout = new CancellationTokenSource(_testTimeout);
+
+        try
+        {
+            await _services.Tokens.Store.DeleteAsync(key, timeout.Token);
+
+            return true;
+        }
+        catch (Exception exception) when (exception is SecretStoreException or OperationCanceledException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -182,7 +236,13 @@ public sealed class ProfileEffectHandler : ILocalEffectHandler
             stored = await store.SetAsync(update.New.CredentialKey, token, cancellationToken);
         }
 
-        _services.Store.Save(update.Catalog);
+        var rollback = stored && token is not null && keyChanged;
+        var failure = await SaveRollingBackAsync(update.Catalog, update.New, rollback);
+
+        if (failure is not null)
+        {
+            return failure;
+        }
 
         var leftover = string.Empty;
 

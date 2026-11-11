@@ -154,6 +154,38 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenProfileFileSaveFails_WhenAdding_ThenNoOrphanTokenStaysInTheStore()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        var failed = Assert.IsType<ProfileOperationFailed>(outcome);
+
+        Assert.Empty(store.Secrets);
+        Assert.DoesNotContain("hunter2", failed.Message);
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveFailsAndKeyIsShared_WhenAdding_ThenTheSharedTokenStays()
+    {
+        var store = new FakeSecretStore();
+        var twin = new Profile("twin", _work.SiteUrl, _work.Email);
+        var handler = CreateWithBlockedProfileFile(store);
+        var catalog = ProfileCatalog.Empty.With(twin).With(_work);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), catalog),
+            CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.True(store.Secrets.ContainsKey(_work.CredentialKey));
+    }
+
+    [Fact]
     public async Task GivenActiveProfileRemoved_WhenRunning_ThenMessageNamesTheNewActiveProfile()
     {
         var handler = Create(new FakeSecretStore()).Handler;
@@ -254,6 +286,22 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     private static EnvironmentReader Environment(string value)
     {
         return new EnvironmentReader(name => name == TokenProvider.EnvironmentVariable ? value : null);
+    }
+
+    private ProfileEffectHandler CreateWithBlockedProfileFile(FakeSecretStore store)
+    {
+        Directory.CreateDirectory(_directory);
+
+        var blocked = Path.Combine(_directory, "file");
+
+        File.WriteAllText(blocked, "x");
+
+        return new ProfileEffectHandler(new ProfileServices(
+            new ProfileStore(Path.Combine(blocked, "inner")),
+            new TokenProvider(store, new EnvironmentReader(_ => null)),
+            new SiteCaches(Path.Combine(_directory, "cache")),
+            new HistoryStore(Path.Combine(_directory, "state")),
+            new BoardKindStore(Path.Combine(_directory, "state"))));
     }
 
     private Fixture Create(FakeSecretStore store, EnvironmentReader? environment = null)
