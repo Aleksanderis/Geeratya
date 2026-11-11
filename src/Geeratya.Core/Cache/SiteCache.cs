@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Geeratya.Core.Storage;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Cache;
@@ -28,7 +29,6 @@ public sealed partial class SiteCache : IDisposable
     private const string ViewFilePrefix = "view-";
     private const string IssueFilePrefix = "issue-";
     private const string FileExtension = ".json";
-    private const string TemporaryExtension = ".tmp";
     private const int NameHashLength = 32;
 
     // An ADF description nests up to 64 levels, two JSON levels each; the default depth limit (64) is too low.
@@ -44,6 +44,7 @@ public sealed partial class SiteCache : IDisposable
 
     private readonly string _folder;
     private readonly IFilePermissions _permissions;
+    private readonly AtomicFile _file;
     private readonly TimeSpan _debounce;
     private readonly long _maxDiskBytes;
     private readonly object _memoryLock = new();
@@ -65,8 +66,10 @@ public sealed partial class SiteCache : IDisposable
         string folder,
         IFilePermissions? permissions = null,
         TimeSpan? debounce = null,
-        long maxDiskBytes = DefaultMaxDiskBytes)
+        long maxDiskBytes = DefaultMaxDiskBytes,
+        AtomicFile? file = null)
     {
+        _file = file ?? new AtomicFile();
         _folder = folder;
         _permissions = permissions ?? PlainFilePermissions.Instance;
         _debounce = debounce ?? _defaultDebounce;

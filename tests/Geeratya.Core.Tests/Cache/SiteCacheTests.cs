@@ -1,5 +1,6 @@
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 using Geeratya.Core.Tests.Fakes;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
@@ -292,6 +293,68 @@ public sealed class SiteCacheTests : IDisposable
     }
 
     [Fact]
+    public void GivenOneViewFileStaysLocked_WhenFlushed_ThenTheOtherEntriesOfTheBatchAreStillWritten()
+    {
+        var folder = Path.Combine(_root, "p");
+        var lockedKey = new CacheKey(ViewSourceKind.Jql, "locked");
+        var otherKey = new CacheKey(ViewSourceKind.Jql, "other");
+        var lockedName = SiteCache.ViewFileName(lockedKey);
+        var replacer = new LockedFileReplacer(
+            target => Path.GetFileName(target) == lockedName,
+            int.MaxValue);
+        var notices = new List<string>();
+
+        using (var cache = new SiteCache(folder, file: new AtomicFile(replacer)))
+        {
+            cache.WriteFailed += notices.Add;
+            cache.Put(lockedKey, new CachedView([Issue(1)], null, _saved));
+            cache.Put(otherKey, new CachedView([Issue(2)], null, _saved));
+            cache.Flush();
+        }
+
+        using var fresh = new SiteCache(folder);
+        Assert.Equal("A-2", fresh.Get(otherKey)!.Rows[0].Key);
+        Assert.Null(fresh.Get(lockedKey));
+        Assert.Single(notices);
+        Assert.DoesNotContain(Directory.GetFiles(folder), path => path.EndsWith(".tmp", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAViewFileIsBrieflyLocked_WhenFlushed_ThenItIsWrittenAfterARetry()
+    {
+        var folder = Path.Combine(_root, "p");
+        var replacer = new LockedFileReplacer(_ => true, failures: 1);
+        var notices = new List<string>();
+
+        using (var cache = new SiteCache(folder, file: new AtomicFile(replacer)))
+        {
+            cache.WriteFailed += notices.Add;
+            cache.Put(_key, new CachedView([Issue(1)], null, _saved));
+            cache.Flush();
+        }
+
+        using var fresh = new SiteCache(folder);
+        Assert.Equal("A-1", fresh.Get(_key)!.Rows[0].Key);
+        Assert.Empty(notices);
+    }
+
+    [Fact]
+    public void GivenTwoCachesOnOneFolder_WhenBothFlushTheSameView_ThenNeitherWriteFails()
+    {
+        var folder = Path.Combine(_root, "p");
+        var notices = new List<string>();
+        using var first = new SiteCache(folder);
+        using var second = new SiteCache(folder);
+        first.WriteFailed += notices.Add;
+        second.WriteFailed += notices.Add;
+
+        FlushBoth(first, second);
+
+        Assert.Empty(notices);
+        Assert.Single(Directory.GetFiles(folder));
+    }
+
+    [Fact]
     public void GivenTwoProfilesOnOneSite_WhenCaching_ThenTheyUseDifferentFoldersAndNeverSeeEachOther()
     {
         using var caches = new SiteCaches(_root);
@@ -427,6 +490,22 @@ public sealed class SiteCacheTests : IDisposable
         if (Directory.Exists(_root))
         {
             Directory.Delete(_root, true);
+        }
+    }
+
+    private static void FlushBoth(SiteCache first, SiteCache second)
+    {
+        Parallel.Invoke(
+            () => PutAndFlush(first, 1),
+            () => PutAndFlush(second, 2));
+    }
+
+    private static void PutAndFlush(SiteCache cache, int number)
+    {
+        for (var round = 0; round < 20; round++)
+        {
+            cache.Put(_key, new CachedView([Issue(number)], null, _saved));
+            cache.Flush();
         }
     }
 

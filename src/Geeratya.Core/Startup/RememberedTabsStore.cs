@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.Startup;
 
@@ -14,17 +15,18 @@ public sealed class RememberedTabsStore
 {
     public const string FileName = "tabs.json";
 
-    private const string TemporarySuffix = ".tmp";
     private const string BadSuffix = ".bad";
 
     private readonly string _root;
     private readonly IFilePermissions _permissions;
+    private readonly AtomicFile _file;
     private readonly object _lock = new();
 
-    public RememberedTabsStore(string root, IFilePermissions? permissions = null)
+    public RememberedTabsStore(string root, IFilePermissions? permissions = null, AtomicFile? file = null)
     {
         _root = root;
         _permissions = permissions ?? PlainFilePermissions.Instance;
+        _file = file ?? new AtomicFile();
     }
 
     /// <summary>The folder of a profile's file (it may not exist yet).</summary>
@@ -70,6 +72,7 @@ public sealed class RememberedTabsStore
             }
 
             File.Delete(PathOf(profile));
+            AtomicFile.DeleteStrayTemporaries(PathOf(profile));
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {
@@ -87,7 +90,7 @@ public sealed class RememberedTabsStore
                 return RememberedTabs.Empty;
             }
 
-            var tabs = JsonSerializer.Deserialize(File.ReadAllText(path), StartupJsonContext.Default.RememberedTabs);
+            var tabs = JsonSerializer.Deserialize(AtomicFile.ReadAllText(path), StartupJsonContext.Default.RememberedTabs);
 
             return tabs?.Items is null ? RememberedTabs.Empty : tabs.Normalized();
         }
@@ -107,21 +110,11 @@ public sealed class RememberedTabsStore
     private void Write(string path, RememberedTabs tabs)
     {
         var folder = Path.GetDirectoryName(path)!;
-        var temporary = $"{path}{TemporarySuffix}";
 
         _permissions.CreateDirectory(folder);
-
-        try
-        {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(tabs, StartupJsonContext.Default.RememberedTabs));
-            _permissions.RestrictFile(temporary);
-            File.Move(temporary, path, overwrite: true);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            File.Delete(temporary);
-
-            throw;
-        }
+        _file.WriteAllText(
+            path,
+            JsonSerializer.Serialize(tabs, StartupJsonContext.Default.RememberedTabs),
+            _permissions.RestrictFile);
     }
 }

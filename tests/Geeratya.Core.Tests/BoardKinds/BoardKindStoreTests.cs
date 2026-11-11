@@ -78,7 +78,7 @@ public sealed class BoardKindStoreTests : IDisposable
 
         var path = Directory.GetFiles(_directory, BoardKindStore.FileName, SearchOption.AllDirectories).Single();
 
-        File.WriteAllText($"{path}.tmp", "half");
+        File.WriteAllText($"{path}.1234.abcd.tmp", "half");
         store.Delete(_work);
 
         Assert.Empty(Directory.GetFileSystemEntries(_directory));
@@ -100,7 +100,7 @@ public sealed class BoardKindStoreTests : IDisposable
 
         // Windows reports a directory in the way as UnauthorizedAccessException, Linux as IOException.
         Assert.True(error is IOException or UnauthorizedAccessException, $"Unexpected: {error}");
-        Assert.False(File.Exists($"{path}.tmp"));
+        Assert.Equal([path], Directory.GetFileSystemEntries(Path.GetDirectoryName(path)!));
     }
 
     public void Dispose()

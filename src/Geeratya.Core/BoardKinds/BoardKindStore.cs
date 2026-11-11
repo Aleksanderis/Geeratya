@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 using Geeratya.Jira.Sprints.Models;
 
 namespace Geeratya.Core.BoardKinds;
@@ -15,19 +16,20 @@ public sealed class BoardKindStore
 {
     public const string FileName = "board-kinds.json";
 
-    private const string TemporarySuffix = ".tmp";
     private const string ScrumName = "scrum";
     private const string KanbanName = "kanban";
 
     private readonly string _root;
     private readonly IFilePermissions _permissions;
+    private readonly AtomicFile _file;
     private readonly object _lock = new();
     private readonly HashSet<string> _removed = [];
 
-    public BoardKindStore(string root, IFilePermissions? permissions = null)
+    public BoardKindStore(string root, IFilePermissions? permissions = null, AtomicFile? file = null)
     {
         _root = root;
         _permissions = permissions ?? PlainFilePermissions.Instance;
+        _file = file ?? new AtomicFile();
     }
 
     public IReadOnlyDictionary<long, BoardKind> Load(Profile profile)
@@ -61,7 +63,7 @@ public sealed class BoardKindStore
     }
 
     /// <summary>
-    /// Deletes the profile's file (and a stray temp file) and its folder when that is left empty. Later saves for the
+    /// Deletes the profile's file and its folder when that is left empty. Later saves for the
     /// profile are ignored until it is loaded again.
     /// </summary>
     public void Delete(Profile profile)
@@ -78,7 +80,7 @@ public sealed class BoardKindStore
             }
 
             File.Delete(PathOf(profile));
-            File.Delete($"{PathOf(profile)}{TemporarySuffix}");
+            AtomicFile.DeleteStrayTemporaries(PathOf(profile));
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {
@@ -120,7 +122,7 @@ public sealed class BoardKindStore
         {
             if (File.Exists(path))
             {
-                var file = JsonSerializer.Deserialize(File.ReadAllText(path), BoardKindJsonContext.Default.BoardKindFile);
+                var file = JsonSerializer.Deserialize(AtomicFile.ReadAllText(path), BoardKindJsonContext.Default.BoardKindFile);
 
                 if (file?.Boards is not null)
                 {
@@ -144,33 +146,11 @@ public sealed class BoardKindStore
     private void Write(string path, BoardKindFile file)
     {
         var folder = Path.GetDirectoryName(path)!;
-        var temporary = $"{path}{TemporarySuffix}";
 
         _permissions.CreateDirectory(folder);
-
-        try
-        {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(file, BoardKindJsonContext.Default.BoardKindFile));
-            _permissions.RestrictFile(temporary);
-            File.Move(temporary, path, overwrite: true);
-        }
-        catch
-        {
-            DeleteQuietly(temporary);
-
-            throw;
-        }
-    }
-
-    private static void DeleteQuietly(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // Best effort: the write failure is the error worth reporting.
-        }
+        _file.WriteAllText(
+            path,
+            JsonSerializer.Serialize(file, BoardKindJsonContext.Default.BoardKindFile),
+            _permissions.RestrictFile);
     }
 }

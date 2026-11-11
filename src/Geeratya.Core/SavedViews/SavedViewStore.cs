@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geeratya.Core.Cache;
 using Geeratya.Core.Profiles;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.SavedViews;
 
@@ -15,17 +16,18 @@ public sealed class SavedViewStore
 {
     public const string FileName = "saved-views.json";
 
-    private const string TemporarySuffix = ".tmp";
     private const string BadSuffix = ".bad";
 
     private readonly string _root;
     private readonly IFilePermissions _permissions;
+    private readonly AtomicFile _file;
     private readonly object _lock = new();
 
-    public SavedViewStore(string root, IFilePermissions? permissions = null)
+    public SavedViewStore(string root, IFilePermissions? permissions = null, AtomicFile? file = null)
     {
         _root = root;
         _permissions = permissions ?? PlainFilePermissions.Instance;
+        _file = file ?? new AtomicFile();
     }
 
     /// <summary>The folder of a profile's file (it may not exist yet).</summary>
@@ -76,6 +78,7 @@ public sealed class SavedViewStore
             }
 
             File.Delete(PathOf(profile));
+            AtomicFile.DeleteStrayTemporaries(PathOf(profile));
 
             if (!Directory.EnumerateFileSystemEntries(folder).Any())
             {
@@ -93,7 +96,7 @@ public sealed class SavedViewStore
                 return SavedViewList.Empty;
             }
 
-            var views = JsonSerializer.Deserialize(File.ReadAllText(path), SavedViewsJsonContext.Default.SavedViewList);
+            var views = JsonSerializer.Deserialize(AtomicFile.ReadAllText(path), SavedViewsJsonContext.Default.SavedViewList);
 
             return views?.Normalized() ?? SavedViewList.Empty;
         }
@@ -113,21 +116,11 @@ public sealed class SavedViewStore
     private void Write(string path, SavedViewList views)
     {
         var folder = Path.GetDirectoryName(path)!;
-        var temporary = $"{path}{TemporarySuffix}";
 
         _permissions.CreateDirectory(folder);
-
-        try
-        {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(views, SavedViewsJsonContext.Default.SavedViewList));
-            _permissions.RestrictFile(temporary);
-            File.Move(temporary, path, overwrite: true);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            File.Delete(temporary);
-
-            throw;
-        }
+        _file.WriteAllText(
+            path,
+            JsonSerializer.Serialize(views, SavedViewsJsonContext.Default.SavedViewList),
+            _permissions.RestrictFile);
     }
 }

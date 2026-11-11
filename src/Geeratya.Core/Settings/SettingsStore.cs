@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Geeratya.Core.Storage;
 
 namespace Geeratya.Core.Settings;
 
@@ -11,8 +12,6 @@ namespace Geeratya.Core.Settings;
 public sealed class SettingsStore
 {
     public const string FileName = "settings.json";
-
-    private const string TemporarySuffix = ".tmp";
 
     private const string EmptyObject = "{\n}\n";
 
@@ -25,13 +24,15 @@ public sealed class SettingsStore
     };
 
     private readonly string _path;
+    private readonly AtomicFile _file;
     private readonly Lock _gate = new();
 
     private bool _baselineKnown;
     private string? _baseline;
 
-    public SettingsStore(string configurationDirectory)
+    public SettingsStore(string configurationDirectory, AtomicFile? file = null)
     {
+        _file = file ?? new AtomicFile();
         _path = Path.Combine(configurationDirectory, FileName);
     }
 
@@ -109,7 +110,7 @@ public sealed class SettingsStore
 
     private byte[]? ReadBytes()
     {
-        return File.Exists(_path) ? File.ReadAllBytes(_path) : null;
+        return File.Exists(_path) ? AtomicFile.ReadAllBytes(_path) : null;
     }
 
     private void RememberBaseline(byte[]? bytes)
@@ -308,7 +309,7 @@ public sealed class SettingsStore
         return File.ResolveLinkTarget(_path, returnFinalTarget: true)?.FullName ?? _path;
     }
 
-    private static void WriteThroughTemporaryFile(string target, byte[] content)
+    private void WriteThroughTemporaryFile(string target, byte[] content)
     {
         var directory = Path.GetDirectoryName(target);
 
@@ -317,20 +318,7 @@ public sealed class SettingsStore
             Directory.CreateDirectory(directory);
         }
 
-        var temporary = $"{target}{TemporarySuffix}";
-
-        try
-        {
-            File.WriteAllBytes(temporary, content);
-            KeepPermissions(target, temporary);
-            File.Move(temporary, target, overwrite: true);
-        }
-        catch
-        {
-            File.Delete(temporary);
-
-            throw;
-        }
+        _file.WriteAllBytes(target, content, temporary => KeepPermissions(target, temporary));
     }
 
     /// <summary>Best effort: the new file gets the mode of the one it replaces (Unix only).</summary>
