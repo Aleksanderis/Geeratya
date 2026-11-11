@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
@@ -26,17 +25,20 @@ public sealed class ExternalEditor : IExternalEditor
     private readonly ITerminalProgramRunner _runner;
     private readonly string _folder;
     private readonly WindowsProgramResolver _resolver;
+    private readonly TimeProvider _time;
 
     public ExternalEditor(
         OperatingSystemKind operatingSystem,
         EnvironmentReader environment,
         ITerminalProgramRunner runner,
         string? folder = null,
-        IFileProbe? fileProbe = null)
+        IFileProbe? fileProbe = null,
+        TimeProvider? time = null)
     {
         _operatingSystem = operatingSystem;
         _environment = environment;
         _runner = runner;
+        _time = time ?? TimeProvider.System;
         _folder = folder ?? Path.GetTempPath();
         _resolver = new WindowsProgramResolver(environment, fileProbe ?? new FileProbe());
     }
@@ -56,7 +58,7 @@ public sealed class ExternalEditor : IExternalEditor
         {
             await WriteAsync(path, text, cancellationToken);
 
-            var started = Stopwatch.GetTimestamp();
+            var started = _time.GetTimestamp();
             var program = _operatingSystem == OperatingSystemKind.Windows ? _resolver.Resolve(command[0]) : command[0];
             var exit = await _runner.RunAsync(program, [.. command.Skip(1), path], cancellationToken);
 
@@ -103,7 +105,7 @@ public sealed class ExternalEditor : IExternalEditor
             && WindowsProgramResolver.IsBatchFile(program)
             && result.Error is null
             && result.Text is null
-            && Stopwatch.GetElapsedTime(started) < _detachedThreshold;
+            && _time.GetElapsedTime(started) < _detachedThreshold;
     }
 
     private string? Configured()

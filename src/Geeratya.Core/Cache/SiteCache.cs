@@ -68,6 +68,11 @@ public sealed partial class SiteCache : IDisposable
     // -1 until the first listing.
     private long _diskBytesEstimate = -1;
 
+    // Reads that wait for the disk lock. A monitor is not fair: a flush that releases the lock after one file and
+    // takes it again for the next can win every time, so a read would wait behind the whole batch. The flush
+    // lets waiting reads in first (see YieldToReads).
+    private int _readsWaiting;
+
     public SiteCache(
         string folder,
         IFilePermissions? permissions = null,

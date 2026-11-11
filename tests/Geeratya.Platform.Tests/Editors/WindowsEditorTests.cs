@@ -112,12 +112,31 @@ public sealed class WindowsEditorTests : IDisposable
     [Fact]
     public async Task GivenAnEditorThatReturnsAtOnceWithoutChange_WhenEditingOnWindows_ThenTheResultSaysToWait()
     {
-        var editor = Create(new FakeFileProbe($@"{VisualCode}\code.cmd"), ("EDITOR", "code"), ("PATH", VisualCode));
+        var editor = Create(
+            new FakeFileProbe($@"{VisualCode}\code.cmd"),
+            new SteppingTimeProvider(TimeSpan.FromMilliseconds(10)),
+            ("EDITOR", "code"),
+            ("PATH", VisualCode));
 
         var result = await editor.EditAsync("old", CancellationToken.None);
 
         Assert.Null(result.Text);
         Assert.Contains("--wait", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenABatchEditorThatTakesLongWithoutChange_WhenEditingOnWindows_ThenItIsJustUnchanged()
+    {
+        var editor = Create(
+            new FakeFileProbe($@"{VisualCode}\code.cmd"),
+            new SteppingTimeProvider(TimeSpan.FromSeconds(30)),
+            ("EDITOR", "code"),
+            ("PATH", VisualCode));
+
+        var result = await editor.EditAsync("old", CancellationToken.None);
+
+        Assert.Null(result.Text);
+        Assert.Null(result.Error);
     }
 
     [Fact]
@@ -157,8 +176,16 @@ public sealed class WindowsEditorTests : IDisposable
 
     private ExternalEditor Create(FakeFileProbe probe, params (string Name, string Value)[] variables)
     {
+        return Create(probe, new SteppingTimeProvider(TimeSpan.FromMilliseconds(10)), variables);
+    }
+
+    private ExternalEditor Create(
+        FakeFileProbe probe,
+        TimeProvider time,
+        params (string Name, string Value)[] variables)
+    {
         var environment = new EnvironmentReader(name => variables.FirstOrDefault(pair => pair.Name == name).Value);
 
-        return new ExternalEditor(OperatingSystemKind.Windows, environment, _runner, _folder.FullName, probe);
+        return new ExternalEditor(OperatingSystemKind.Windows, environment, _runner, _folder.FullName, probe, time);
     }
 }

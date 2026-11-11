@@ -351,7 +351,9 @@ public sealed class SiteCacheTests : IDisposable
         FlushBoth(first, second);
 
         Assert.Empty(notices);
-        Assert.Single(Directory.GetFiles(folder));
+        var names = string.Join(" | ", Directory.GetFiles(folder).Select(Path.GetFileName));
+
+        Assert.True(Directory.GetFiles(folder).Length == 1, names);
     }
 
     [Fact]

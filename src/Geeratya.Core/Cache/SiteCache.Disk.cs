@@ -6,6 +6,8 @@ namespace Geeratya.Core.Cache;
 
 public sealed partial class SiteCache
 {
+    private const int MaxYields = 50;
+
     // `locked`: the caller already holds the disk lock (a discard after disposal), so the files are deleted directly.
     private void DeleteViewFiles(bool locked = false)
     {
@@ -32,6 +34,8 @@ public sealed partial class SiteCache
     /// <summary>Runs one file operation under the disk lock, unless the cache was disposed meanwhile.</summary>
     private void WithDisk(Action operation)
     {
+        YieldToReads();
+
         lock (_diskLock)
         {
             if (!IsDisposed())
@@ -57,8 +61,12 @@ public sealed partial class SiteCache
     {
         var path = Path.Combine(_folder, ViewFileName(key));
 
+        Interlocked.Increment(ref _readsWaiting);
+
         lock (_diskLock)
         {
+            Interlocked.Decrement(ref _readsWaiting);
+
             if (IsDisposed() || !File.Exists(path))
             {
                 return null;
@@ -99,8 +107,12 @@ public sealed partial class SiteCache
     {
         var path = Path.Combine(_folder, IssueFileName(issueKey));
 
+        Interlocked.Increment(ref _readsWaiting);
+
         lock (_diskLock)
         {
+            Interlocked.Decrement(ref _readsWaiting);
+
             if (IsDisposed() || !File.Exists(path))
             {
                 return null;
@@ -250,6 +262,8 @@ public sealed partial class SiteCache
         // Serialized before the lock, and held for this one file only: a cache read waits for at most one write.
         var bytes = JsonSerializer.SerializeToUtf8Bytes(file, typeInfo);
 
+        YieldToReads();
+
         lock (_diskLock)
         {
             if (IsDisposed())
@@ -259,6 +273,16 @@ public sealed partial class SiteCache
 
             _file.Write(path, stream => stream.Write(bytes), _permissions.RestrictFile);
             AddWritten(bytes.Length);
+        }
+    }
+
+    // Before each file step of a flush: a read that is already waiting for the disk lock gets it first. Bounded, so a
+    // steady stream of reads cannot hold a flush (the one at exit included) back for long.
+    private void YieldToReads()
+    {
+        for (var attempt = 0; attempt < MaxYields && Volatile.Read(ref _readsWaiting) > 0; attempt++)
+        {
+            Thread.Sleep(1);
         }
     }
 
