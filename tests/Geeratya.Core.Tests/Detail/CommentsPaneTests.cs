@@ -236,6 +236,50 @@ public class CommentsPaneTests
     }
 
     [Fact]
+    public void GivenManyComments_WhenMovingThroughThem_ThenTheRowsAreNotBuiltAgain()
+    {
+        var comments = Enumerable.Range(1, 30).Select(number => Comment(number.ToString(), 8)).ToArray();
+        var state = ToComments(Opened(comments));
+        var before = DetailZoom.CommentRowsOf(Top(state), Document(state).Width);
+
+        state = Press(Press(Press(state, "j").State, "j").State, "k").State;
+
+        Assert.Same(before, DetailZoom.CommentRowsOf(Top(state), Document(state).Width));
+    }
+
+    [Fact]
+    public void GivenBuiltRows_WhenACommentIsExpandedOrTheCommentsChange_ThenTheRowsAreBuiltAgain()
+    {
+        var detail = DetailOf([Comment("1", 8), Comment("2", 8)]);
+        var rows = DetailZoom.CommentRowsOf(detail, 80);
+
+        Assert.Same(rows, DetailZoom.CommentRowsOf(detail with { Cursor = 3 }, 80));
+
+        var expanded = DetailZoom.CommentRowsOf(detail with { Expanded = ["comment:1"] }, 80);
+        var refreshed = DetailZoom.CommentRowsOf(detail with { Comments = [Comment("1", 8)] }, 80);
+        var narrower = DetailZoom.CommentRowsOf(detail, 60);
+
+        Assert.NotSame(rows, expanded);
+        Assert.True(expanded.Count > rows.Count);
+        Assert.Contains(refreshed, row => row.IsStop && row.Target is { Value: "1" });
+        Assert.DoesNotContain(refreshed, row => row.Target is { Value: "2" });
+        Assert.NotSame(rows, narrower);
+    }
+
+    [Fact]
+    public void GivenCutRows_WhenExpandingAComment_ThenItsBodyLinesAreTheOnesRenderedBefore()
+    {
+        var detail = DetailOf([Comment("1", 8)]);
+        var cut = DetailZoom.CommentRowsOf(detail, 80);
+
+        var expanded = DetailZoom.CommentRowsOf(detail with { Expanded = ["comment:1"] }, 80);
+
+        Assert.NotSame(cut, expanded);
+        Assert.Same(cut[1].Line, expanded[1].Line);
+        Assert.Contains("item 1", expanded[1].Line.PlainText);
+    }
+
+    [Fact]
     public void GivenManyComments_WhenPressingG_ThenTheCursorIsOnTheLastCommentAndThePaneEndsThere()
     {
         var comments = Enumerable.Range(1, 30).Select(number => Comment(number.ToString(), 8)).ToArray();

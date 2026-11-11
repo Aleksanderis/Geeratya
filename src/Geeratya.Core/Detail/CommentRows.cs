@@ -33,7 +33,15 @@ public static class CommentRows
 
     private static readonly TimeSpan _editedAfter = TimeSpan.FromMinutes(1);
 
-    public static IReadOnlyList<CommentRow> Build(DetailState detail, int inner, int bodyLines = BodyLines)
+    /// <param name="detail">The issue whose comments are laid out.</param>
+    /// <param name="inner">The inner width of the pane.</param>
+    /// <param name="bodyLines">The body lines a comment is cut after.</param>
+    /// <param name="memo">Where the rendered bodies are kept between builds; null renders them every time.</param>
+    public static IReadOnlyList<CommentRow> Build(
+        DetailState detail,
+        int inner,
+        int bodyLines = BodyLines,
+        DetailRenderMemo? memo = null)
     {
         var rows = new List<CommentRow>();
 
@@ -41,7 +49,7 @@ public static class CommentRows
 
         for (var index = 0; index < threads.Count; index++)
         {
-            AddComment(rows, threads[index], index, detail, inner, bodyLines);
+            AddComment(rows, threads[index], index, new CommentContext(detail, inner, bodyLines, memo));
         }
 
         AddFooter(rows, detail);
@@ -77,20 +85,21 @@ public static class CommentRows
         return end;
     }
 
+    private sealed record CommentContext(DetailState Detail, int Outer, int CutAfter, DetailRenderMemo? Memo);
+
     private static void AddComment(
         List<CommentRow> rows,
         ThreadedComment threaded,
         int index,
-        DetailState detail,
-        int outer,
-        int bodyLines)
+        CommentContext context)
     {
+        var (detail, outer, bodyLines, memo) = context;
         var comment = threaded.Comment;
         var room = Math.Max(0, outer - MinThreadedWidth) / IndentWidth * IndentWidth;
         var indent = Math.Min(threaded.Depth * IndentWidth, room);
         var inner = outer - indent;
         var expanded = detail.Expanded.Contains($"comment:{comment.Id}");
-        var body = BodyOf(comment, inner);
+        var body = BodyOf(comment, inner, memo, detail.Comments.Count);
         var cuttable = body.Count > bodyLines;
         var target = new DetailTarget(DetailTargetKind.Comment, comment.Id);
         var header = target with { Expands = cuttable && !expanded, Collapses = cuttable && expanded };
@@ -127,14 +136,16 @@ public static class CommentRows
         return new StyledLine([new StyledSpan(guide, TextRole.Border), .. line.Spans]);
     }
 
-    private static List<StyledLine> BodyOf(IssueComment comment, int inner)
+    private static List<StyledLine> BodyOf(IssueComment comment, int inner, DetailRenderMemo? memo, int documents)
     {
         if (comment.Body.Content.Count == 0)
         {
             return [StyledLine.Of(EmptyCommentText, TextRole.Muted)];
         }
 
-        return [.. AdfRenderer.Render(comment.Body, inner).Lines];
+        var rendering = memo?.Rendering(comment.Body, inner, documents) ?? AdfRenderer.Render(comment.Body, inner);
+
+        return [.. rendering.Lines];
     }
 
     /// <summary>The header bar: author left, time and <c>edited</c> right, one tint across the inner width.</summary>
