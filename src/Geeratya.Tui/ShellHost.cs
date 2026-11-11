@@ -283,6 +283,10 @@ public sealed partial class ShellHost : ICommandSink, IDisposable
     private void OnIteration(object? sender, EventArgs<IApplication?> eventArgs)
     {
         _stalls?.Beat();
+
+        // One build per iteration, before the draw pass: the children of the screen are judged for drawing before
+        // their parent's own draw step runs, so a build inside it would show the previous state (#933).
+        _screen?.BuildFrame();
         _application?.Driver?.SetCursorNeedsUpdate(false);
     }
 

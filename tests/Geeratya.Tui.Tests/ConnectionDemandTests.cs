@@ -2,6 +2,7 @@ using Geeratya.Core.Profiles;
 
 namespace Geeratya.Tui.Tests;
 
+[Trait("Os", "Independent")]
 public class ConnectionDemandTests
 {
     private static readonly Profile _profile = new("dev", "https://dev.example.net", "me@example.net");

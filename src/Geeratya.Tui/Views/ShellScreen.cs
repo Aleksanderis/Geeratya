@@ -126,8 +126,6 @@ public sealed class ShellScreen : Window
             return;
         }
 
-        _dirty = false;
-
         var state = _state;
         var now = _now;
 
@@ -148,6 +146,8 @@ public sealed class ShellScreen : Window
             _glyphs,
             state.Settings.LabelCaps && _colors != ColorSupport.None);
 
+        _dirty = false;
+
         if (frame is null)
         {
             return;
@@ -161,13 +161,6 @@ public sealed class ShellScreen : Window
         _body.SetLines(lines.ToList());
         _status.SetLines([StyledRuns.Resolve(frame.StatusStyled ?? StyledLine.Of(frame.StatusLine), _theme, _colors)]);
         FramesBuilt++;
-    }
-
-    protected override bool OnDrawingContent(DrawContext? context)
-    {
-        BuildFrame();
-
-        return base.OnDrawingContent(context);
     }
 
     private void OnViewportChanged(object? sender, DrawEventArgs eventArgs)
