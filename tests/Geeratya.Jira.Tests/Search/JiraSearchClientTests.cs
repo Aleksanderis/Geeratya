@@ -421,6 +421,54 @@ public sealed class JiraSearchClientTests
         Assert.Null(last.NextStartAt);
     }
 
+    [Fact]
+    public async Task GivenOddExtraFieldShapesAndFieldOrder_WhenSearching_ThenRowsMapWithoutErrorsAndKeepWhatIsUsable()
+    {
+        const string body = """
+            {"issues":[{"id":"1","key":"X-1","fields":{
+              "customfield_10016":"not a number",
+              "customfield_10020":[7,{"id":"x","name":"odd"},{"id":11,"name":"Sprint 11","state":"active","boardId":1},null],
+              "updated":"2026-11-01T17:48:14.940+0200",
+              "subtasks":[{"key":"X-2","fields":{"summary":"Sub","status":{"id":"3","name":"Done","statusCategory":{"key":"done"}},"issuetype":{"name":"Sub-task"}}},{"id":"9"},"junk"],
+              "customfield_10099":{"deep":[1,2,{"a":null}]},
+              "summary":"Order shuffled",
+              "labels":["a","b"],
+              "issuetype":{"id":"5","name":"Story","hierarchyLevel":0,"subtask":false,"iconUrl":"u"},
+              "assignee":null,
+              "priority":{"name":"High"},
+              "status":{"id":"1","name":"Open","statusCategory":{"key":"new"}},
+              "project":{"key":"X"},
+              "parent":{"key":"X-0","fields":{"summary":"Epic","issuetype":{"hierarchyLevel":1}}}}},
+              {"id":"2","key":"X-2","fields":{"customfield_10016":5.5,"customfield_10020":null}}],
+             "isLast":true}
+            """;
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.Ok(body));
+        var extras = new IssueExtraFields("customfield_10020", ["customfield_10016"]) { IncludeSubtasks = true };
+
+        var query = new IssueSearchQuery("project = X") { Extras = extras };
+
+        var result = await Client(fixture).SearchAsync(query, null, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var first = result.Value.Items[0];
+        Assert.Equal("Order shuffled", first.Summary);
+        Assert.Equal("High", first.Priority);
+        Assert.Equal(["a", "b"], first.Labels);
+        Assert.Equal("X-0", first.Parent?.Key);
+        Assert.True(first.Parent?.IsEpic);
+        Assert.Null(first.Estimate);
+        Assert.Equal(11, Assert.Single(first.Sprints).Id);
+        var subtask = Assert.Single(first.Subtasks);
+        Assert.Equal("X-2", subtask.Key);
+        Assert.Equal("Sub", subtask.Summary);
+        Assert.Equal("done", subtask.Status.CategoryKey);
+        Assert.Equal("Sub-task", subtask.TypeName);
+        var second = result.Value.Items[1];
+        Assert.Equal(5.5, second.Estimate);
+        Assert.Empty(second.Sprints);
+    }
+
     private static Task<JiraResult<IssuePage>> FirstPageAsync(TransportFixture fixture, string jql) =>
         Client(fixture).SearchAsync(new IssueSearchQuery(jql), null, CancellationToken.None);
 

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Geeratya.Jira.Search;
@@ -13,6 +12,7 @@ internal static class SearchWire
 
     internal sealed record Issue(string? Id, string? Key, Fields? Fields);
 
+    [JsonConverter(typeof(FieldsConverter))]
     internal sealed record Fields(
         string? Summary,
         Status? Status,
@@ -24,9 +24,11 @@ internal static class SearchWire
         string? Updated,
         Project? Project)
     {
-        /// <summary>The fields not named above: the site-specific ones a request added (Sprint, estimate).</summary>
-        [JsonExtensionData]
-        public Dictionary<string, JsonElement>? Extra { get; set; }
+        /// <summary>
+        /// The fields not named above that a request added (Sprint, estimate, sub-tasks), reduced to typed values by
+        /// <see cref="FieldsConverter"/>; null when the row has none.
+        /// </summary>
+        public Dictionary<string, ExtraValue>? Extra { get; init; }
     }
 
     internal sealed record Status(string? Id, string? Name, StatusCategory? StatusCategory);
