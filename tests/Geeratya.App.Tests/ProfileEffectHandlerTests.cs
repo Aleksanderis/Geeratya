@@ -116,6 +116,34 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenProfileFileSaveFails_WhenRemoving_ThenTheTokenIsKept()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+
+        await store.SetAsync(_work.CredentialKey, "hunter2-secret", CancellationToken.None);
+
+        var outcome = await handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, ProfileCatalog.Empty, WasActive: false),
+            CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.True(store.Secrets.ContainsKey(_work.CredentialKey));
+    }
+
+    [Fact]
+    public async Task GivenTokenDeleteFails_WhenRemoving_ThenProfileIsRemovedAndMessageSaysTokenLeft()
+    {
+        var fixture = Create(new FakeSecretStore(failsOnDelete: true));
+
+        var outcome = await fixture.Handler.RunAsync(
+            new RemoveProfileEffect(_work, DeleteToken: true, ProfileCatalog.Empty, WasActive: false),
+            CancellationToken.None);
+
+        Assert.Contains("token could not be deleted", Assert.IsType<ProfilesChanged>(outcome).Message);
+    }
+
+    [Fact]
     public async Task GivenSaveEffect_WhenRunning_ThenActiveProfileIsPersisted()
     {
         var fixture = Create(new FakeSecretStore());
@@ -151,6 +179,73 @@ public sealed class ProfileEffectHandlerTests : IDisposable
             CancellationToken.None);
 
         Assert.IsType<ProfileOperationFailed>(outcome);
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveFails_WhenAdding_ThenNoOrphanTokenStaysInTheStore()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        var failed = Assert.IsType<ProfileOperationFailed>(outcome);
+
+        Assert.Empty(store.Secrets);
+        Assert.DoesNotContain("hunter2", failed.Message);
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveAndTokenDeleteFail_WhenAdding_ThenMessageSaysTheTokenStays()
+    {
+        var store = new FakeSecretStore(failsOnDelete: true);
+        var handler = CreateWithBlockedProfileFile(store);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), ProfileCatalog.Empty.With(_work)),
+            CancellationToken.None);
+
+        var failed = Assert.IsType<ProfileOperationFailed>(outcome);
+
+        Assert.Contains("stays in the secret store", failed.Message);
+        Assert.DoesNotContain("hunter2", failed.Message);
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveFailsAfterKeyChange_WhenUpdating_ThenTheNewKeyTokenIsDeleted()
+    {
+        var store = new FakeSecretStore();
+        var handler = CreateWithBlockedProfileFile(store);
+        var edited = new Profile("work", "https://other.atlassian.net", _work.Email);
+        var update = new UpdateProfileEffect(
+            _work,
+            edited,
+            new SecretText("hunter2-secret"),
+            ProfileCatalog.Empty.With(edited),
+            false);
+
+        var outcome = await handler.RunAsync(update, CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.False(store.Secrets.ContainsKey(edited.CredentialKey));
+    }
+
+    [Fact]
+    public async Task GivenProfileFileSaveFailsAndKeyIsShared_WhenAdding_ThenTheSharedTokenStays()
+    {
+        var store = new FakeSecretStore();
+        var twin = new Profile("twin", _work.SiteUrl, _work.Email);
+        var handler = CreateWithBlockedProfileFile(store);
+        var catalog = ProfileCatalog.Empty.With(twin).With(_work);
+
+        var outcome = await handler.RunAsync(
+            new AddProfileEffect(_work, new SecretText("hunter2-secret"), catalog),
+            CancellationToken.None);
+
+        Assert.IsType<ProfileOperationFailed>(outcome);
+        Assert.True(store.Secrets.ContainsKey(_work.CredentialKey));
     }
 
     [Fact]
@@ -254,6 +349,22 @@ public sealed class ProfileEffectHandlerTests : IDisposable
     private static EnvironmentReader Environment(string value)
     {
         return new EnvironmentReader(name => name == TokenProvider.EnvironmentVariable ? value : null);
+    }
+
+    private ProfileEffectHandler CreateWithBlockedProfileFile(FakeSecretStore store)
+    {
+        Directory.CreateDirectory(_directory);
+
+        var blocked = Path.Combine(_directory, "file");
+
+        File.WriteAllText(blocked, "x");
+
+        return new ProfileEffectHandler(new ProfileServices(
+            new ProfileStore(Path.Combine(blocked, "inner")),
+            new TokenProvider(store, new EnvironmentReader(_ => null)),
+            new SiteCaches(Path.Combine(_directory, "cache")),
+            new HistoryStore(Path.Combine(_directory, "state")),
+            new BoardKindStore(Path.Combine(_directory, "state"))));
     }
 
     private Fixture Create(FakeSecretStore store, EnvironmentReader? environment = null)
