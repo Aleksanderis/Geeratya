@@ -4,7 +4,7 @@ namespace Geeratya.Tui.Shutdown;
 
 /// <summary>
 /// Gives the terminal back and ends the process. The reset sequences are written first (while the console is still in
-/// the mode the application set up) and the application is disposed after them, on a separate task that is waited on
+/// the mode the application set up) and the application is disposed after them, on a separate thread that is waited on
 /// for a second at most: either can block when the terminal or the UI thread is the thing that is stuck. A last-resort
 /// timer kills the process if <c>Environment.Exit</c> itself blocks, for example on a ProcessExit handler waiting for
 /// a lock the stuck thread holds (#940).
@@ -56,14 +56,10 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
             _killTimer = _clock.CreateTimer(Kill, null, KillDeadline, Timeout.InfiniteTimeSpan);
         }
 
-        try
-        {
-            Task.Run(Restore).Wait(_restoreWait);
-        }
-        catch (Exception exception) when (exception is AggregateException or ObjectDisposedException)
-        {
-            // Nothing more can be done for the terminal; leaving matters more.
-        }
+        var restorer = new Thread(Restore) { IsBackground = true };
+
+        restorer.Start();
+        restorer.Join(_restoreWait);
 
         _ender.ExitWithCode(ExitCode);
     }
@@ -77,9 +73,21 @@ public sealed class TerminalProcessExit : IProcessExit, IDisposable
     {
         _gate.Close();
 
-        // A stuck terminal write must not keep the application from being disposed, so it gets its own short wait.
-        Task.Run(WriteReset).Wait(_writeWait);
-        _uiThread.Release();
+        // A stuck terminal write must not keep the application from being disposed, so it gets its own short wait, on
+        // a thread of its own (a busy or cold thread pool must not eat into that wait).
+        var writer = new Thread(WriteReset) { IsBackground = true };
+
+        writer.Start();
+        writer.Join(_writeWait);
+
+        try
+        {
+            _uiThread.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Nothing more can be done for the terminal; leaving matters more.
+        }
     }
 
     private void WriteReset()
