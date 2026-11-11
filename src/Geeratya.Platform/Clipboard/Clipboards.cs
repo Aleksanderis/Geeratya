@@ -16,11 +16,17 @@ public static class Clipboards
         IProcessRunner processRunner,
         TextWriter? terminal)
     {
-        return new ChainedClipboard(
-        [
-            new ProcessClipboard(operatingSystem, environment, processRunner),
-            new Osc52Clipboard(terminal),
-        ]);
+        var chain = new List<IClipboard>();
+
+        if (operatingSystem == OperatingSystemKind.Windows && OperatingSystem.IsWindows())
+        {
+            chain.Add(new NativeWindowsClipboard(new Win32ClipboardApi()));
+        }
+
+        chain.Add(new ProcessClipboard(operatingSystem, environment, processRunner));
+        chain.Add(new Osc52Clipboard(terminal));
+
+        return new ChainedClipboard(chain);
     }
 
     /// <summary>

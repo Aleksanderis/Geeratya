@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Geeratya.Platform.Directories;
 using Geeratya.Platform.Processes;
@@ -18,22 +19,26 @@ public sealed class ExternalEditor : IExternalEditor
     private const UnixFileMode PrivateFileMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
 
     private static readonly UTF8Encoding _utf8 = new(false);
+    private static readonly TimeSpan _detachedThreshold = TimeSpan.FromSeconds(1);
 
     private readonly OperatingSystemKind _operatingSystem;
     private readonly EnvironmentReader _environment;
     private readonly ITerminalProgramRunner _runner;
     private readonly string _folder;
+    private readonly WindowsProgramResolver _resolver;
 
     public ExternalEditor(
         OperatingSystemKind operatingSystem,
         EnvironmentReader environment,
         ITerminalProgramRunner runner,
-        string? folder = null)
+        string? folder = null,
+        IFileProbe? fileProbe = null)
     {
         _operatingSystem = operatingSystem;
         _environment = environment;
         _runner = runner;
         _folder = folder ?? Path.GetTempPath();
+        _resolver = new WindowsProgramResolver(environment, fileProbe ?? new FileProbe());
     }
 
     public async Task<ExternalEditResult> EditAsync(string text, CancellationToken cancellationToken)
@@ -51,9 +56,22 @@ public sealed class ExternalEditor : IExternalEditor
         {
             await WriteAsync(path, text, cancellationToken);
 
-            var exit = await _runner.RunAsync(command[0], [.. command.Skip(1), path], cancellationToken);
+            var started = Stopwatch.GetTimestamp();
+            var program = _operatingSystem == OperatingSystemKind.Windows ? _resolver.Resolve(command[0]) : command[0];
+            var exit = await _runner.RunAsync(program, [.. command.Skip(1), path], cancellationToken);
 
-            return exit == 0 ? await ReadAsync(path, text, cancellationToken) : Exited(command[0], exit);
+            if (exit != 0)
+            {
+                return Exited(command[0], exit);
+            }
+
+            var result = await ReadAsync(path, text, cancellationToken);
+
+            return IsDetached(program, result, started) ? ExternalEditResult.Failed(DetachedMessage(command[0])) : result;
+        }
+        catch (NotSupportedException)
+        {
+            return ExternalEditResult.Failed($"'{command[0]}' cannot be started with these characters in its command");
         }
         catch (ProgramNotFoundException)
         {
@@ -67,6 +85,25 @@ public sealed class ExternalEditor : IExternalEditor
         {
             Remove(path);
         }
+    }
+
+    private static string DetachedMessage(string program)
+    {
+        var advice = $"set the editor to wait, for example EDITOR=\"{program} --wait\"";
+
+        return $"'{program}' returned at once and the text is unchanged; if it opens its window and exits, {advice}";
+    }
+
+    // A batch-file editor that hands the file to a running instance and exits (the VS Code shim without --wait)
+    // returns within a moment with the file untouched; nobody edits text that fast. Executables (vim, notepad) are
+    // left alone: opening and quitting them at once is an ordinary cancel.
+    private bool IsDetached(string program, ExternalEditResult result, long started)
+    {
+        return _operatingSystem == OperatingSystemKind.Windows
+            && WindowsProgramResolver.IsBatchFile(program)
+            && result.Error is null
+            && result.Text is null
+            && Stopwatch.GetElapsedTime(started) < _detachedThreshold;
     }
 
     private string? Configured()
