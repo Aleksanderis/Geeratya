@@ -155,7 +155,7 @@ public sealed class SprintClient(JiraTransport transport)
         var result = await transport.SendAsync(request, SprintJsonContext.Default.IssuePage, cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(BoardMapper.MapIssues(result.Value))
+            ? JiraResults.Success(BoardMapper.MapIssues(result.Value, transport.Strings))
             : JiraResults.Failure<IssuePage>(result.Error);
     }
 

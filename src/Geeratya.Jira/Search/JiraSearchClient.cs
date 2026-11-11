@@ -38,7 +38,7 @@ public sealed class JiraSearchClient(JiraTransport transport)
             return JiraResults.Failure<IssuePage>(ExpireCursor(result.Error, cursor));
         }
 
-        return JiraResults.Success(IssueSummaryMapper.MapPage(result.Value, query.Extras));
+        return JiraResults.Success(IssueSummaryMapper.MapPage(result.Value, transport.Strings, query.Extras));
     }
 
     /// <summary>The approximate number of matches, good for an "about N" label only.</summary>

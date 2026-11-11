@@ -97,7 +97,7 @@ The transport used to call `ReadAsStringAsync` and `JsonSerializer.Deserialize(s
 | `JiraSearchClient.SearchAsync`, 100 rows | .NET 10 Release JIT | `search-rows-gcm.json` issues repeated to 100 rows (176 KB), fake handler, 15 runs | 3.2 ms median, 920 KB allocated | 4.6 ms, 388 KB |
 | same, 5000 rows | same | repeated to 5000 rows (8.9 MB) | 60.6 ms, 54.8 MB | 61.7 ms, 19.3 MB |
 
-Method: a temporary xUnit test (not committed) ran 3 warm-up and 15 timed searches, allocation from `GC.GetTotalAllocatedBytes(true)` around each call, before and after on the same machine (noisy). The fake handler's own body copy is included in both. Allocation is the result (about 65 percent less at 5000 rows, and no UTF-16 string); the time is within noise: an earlier run with whole-body buffering still on read 30 ms, this one 62 ms, against the same 61 ms before, and the in-memory fake has no network wait to overlap with parsing. Not done here (registered separately): the per-issue `JsonElement` extension data in `SearchWire.Fields.Extra` (done in #955, below) and the per-page string intern pool.
+Method: a temporary xUnit test (not committed) ran 3 warm-up and 15 timed searches, allocation from `GC.GetTotalAllocatedBytes(true)` around each call, before and after on the same machine (noisy). The fake handler's own body copy is included in both. Allocation is the result (about 65 percent less at 5000 rows, and no UTF-16 string); the time is within noise: an earlier run with whole-body buffering still on read 30 ms, this one 62 ms, against the same 61 ms before, and the in-memory fake has no network wait to overlap with parsing. Not done here (registered separately): the per-issue `JsonElement` extension data in `SearchWire.Fields.Extra` (done in #955, below).
 
 #### Typed extra fields instead of `JsonElement` extension data (#955)
 
@@ -113,6 +113,12 @@ A first version that only swapped the extension data for typed values but deseri
 | same, 100 rows, sub-tasks requested | same | repeated to 100 rows (222 KB) | 0.5 ms, 518 KB | 0.5 ms, 416 KB |
 
 Method as above (temporary xUnit test, 3 warm-up and 15 timed calls, `GC.GetTotalAllocatedBytes(true)`, noisy machine, the board path because it shares `SearchWire.Issue` with `/search/jql`). Allocation is the result: it falls 18 to 20 percent. The time at 5000 rows (70.4 to 36.3 ms) is partly noise and inconclusive; the 100-row timings are unchanged.
+
+#### String pool scoped to the connection (#956)
+
+`IssueSummaryMapper` used to build a string pool per page, so the status, type, priority, project and assignee names were copied again on every page and refresh. `StringPool` (an instance, never static) is now owned by the `JiraTransport` and handed to the mappers by the search, board, sprint and issue clients, so the pool lives and dies with the connection (switching profiles drops it). It is thread-safe (one lock; pages map on whichever thread loaded them), skips values over 128 characters and is bounded at 4096 entries (worst case about 1 MB retained for the life of the transport): when full it is emptied and fills again, which only costs sharing for a while. The search time was not re-measured: the added work is one uncontended lock per pooled string, next to the dictionary lookup the per-page pool already did.
+
+Measured by counting distinct string instances (deterministic, unlike a heap delta, which was noise-dominated at this size) across 10 pages of 1000 rows with 7 pooled strings per row (status name and category, type, priority, project key, assignee id and name; 20 assignees, one status, one type): per-page pool (the old behaviour) 450 instances, 4620 chars, about 19 KB; connection pool 45 instances, 462 chars, about 2 KB. The saving is the repeated names only, and grows with pages and refreshes; the cost is one uncontended lock and one lookup per pooled string, the same lookup the per-page dictionary did.
 
 ### ADF parsing (#68)
 

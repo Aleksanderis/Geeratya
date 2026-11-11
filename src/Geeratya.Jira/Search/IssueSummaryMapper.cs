@@ -4,13 +4,15 @@ using Geeratya.Jira.Paging;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints;
+using Geeratya.Jira.Transport;
 
 namespace Geeratya.Jira.Search;
 
 /// <summary>
 /// Maps the wire shape of a search page to <see cref="IssuePage"/>. Pure and tolerant: a missing or unknown field
 /// becomes a neutral value, never an exception. Repeated names (status, type, priority, project, assignee) are
-/// shared within a page so a 10k-issue result does not hold 10k copies.
+/// shared through the connection's <see cref="StringPool"/> so a 10k-issue result, or the next page and refresh, does not hold
+/// a copy per row.
 /// </summary>
 internal static class IssueSummaryMapper
 {
@@ -23,20 +25,22 @@ internal static class IssueSummaryMapper
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
-    public static IssuePage MapPage(SearchWire.Response response, IssueExtraFields? extras = null)
+    public static IssuePage MapPage(SearchWire.Response response, StringPool pool, IssueExtraFields? extras = null)
     {
-        var items = MapIssues(response.Issues, extras);
+        var items = MapIssues(response.Issues, pool, extras);
         var next = HasNext(response) ? new PageCursor(response.NextPageToken!) : null;
 
         return new IssuePage(items, next, null);
     }
 
     /// <summary>Maps a list of wire issues; null gives an empty list.</summary>
-    public static List<IssueSummary> MapIssues(List<SearchWire.Issue>? wire, IssueExtraFields? extras = null)
+    public static List<IssueSummary> MapIssues(
+        List<SearchWire.Issue>? wire,
+        StringPool pool,
+        IssueExtraFields? extras = null)
     {
         wire ??= [];
         var items = new List<IssueSummary>(wire.Count);
-        var pool = new Dictionary<string, string>(StringComparer.Ordinal);
 
         for (var index = 0; index < wire.Count; index++)
         {
@@ -51,7 +55,7 @@ internal static class IssueSummaryMapper
 
     private static IssueSummary MapIssue(
         SearchWire.Issue issue,
-        Dictionary<string, string> pool,
+        StringPool pool,
         IssueExtraFields? extras)
     {
         var fields = issue.Fields;
@@ -62,12 +66,12 @@ internal static class IssueSummaryMapper
             fields?.Summary ?? string.Empty,
             MapStatus(fields?.Status, pool),
             MapType(fields?.IssueType, pool),
-            Share(fields?.Priority?.Name, pool),
+            pool.Share(fields?.Priority?.Name),
             MapAssignee(fields?.Assignee, pool),
             fields?.Labels is { Count: > 0 } labels ? labels : [],
             MapParent(fields?.Parent),
             ParseTimestamp(fields?.Updated),
-            Share(fields?.Project?.Key, pool) ?? string.Empty)
+            pool.Share(fields?.Project?.Key) ?? string.Empty)
         {
             Sprints = MapSprints(fields?.Extra, extras?.SprintFieldId),
             Estimate = MapEstimate(fields?.Extra, extras?.EstimateFieldIds),
@@ -131,7 +135,7 @@ internal static class IssueSummaryMapper
     /// </summary>
     internal static List<IssueSubtask> MapSubtasks(
         Dictionary<string, ExtraValue>? extra,
-        Dictionary<string, string> pool)
+        StringPool pool)
     {
         var result = new List<IssueSubtask>();
 
@@ -197,20 +201,20 @@ internal static class IssueSummaryMapper
             ? value.GetString() ?? string.Empty
             : string.Empty;
 
-    internal static IssueStatus MapStatus(SearchWire.Status? status, Dictionary<string, string> pool) =>
+    internal static IssueStatus MapStatus(SearchWire.Status? status, StringPool pool) =>
         new(
             status?.Id ?? string.Empty,
-            Share(status?.Name, pool) ?? string.Empty,
-            Share(status?.StatusCategory?.Key, pool) ?? UndefinedCategoryKey);
+            pool.Share(status?.Name) ?? string.Empty,
+            pool.Share(status?.StatusCategory?.Key) ?? UndefinedCategoryKey);
 
-    internal static IssueTypeSummary MapType(SearchWire.IssueType? type, Dictionary<string, string> pool) =>
+    internal static IssueTypeSummary MapType(SearchWire.IssueType? type, StringPool pool) =>
         new(
             type?.Id ?? string.Empty,
-            Share(type?.Name, pool) ?? string.Empty,
+            pool.Share(type?.Name) ?? string.Empty,
             type?.HierarchyLevel ?? 0,
             type?.Subtask ?? false);
 
-    internal static IssueAssignee? MapAssignee(SearchWire.Assignee? assignee, Dictionary<string, string> pool)
+    internal static IssueAssignee? MapAssignee(SearchWire.Assignee? assignee, StringPool pool)
     {
         if (assignee is null)
         {
@@ -218,8 +222,8 @@ internal static class IssueSummaryMapper
         }
 
         return new IssueAssignee(
-            Share(assignee.AccountId, pool) ?? string.Empty,
-            Share(assignee.DisplayName, pool) ?? string.Empty);
+            pool.Share(assignee.AccountId) ?? string.Empty,
+            pool.Share(assignee.DisplayName) ?? string.Empty);
     }
 
     private static IssueParent? MapParent(SearchWire.Parent? parent)
@@ -232,23 +236,6 @@ internal static class IssueSummaryMapper
         var isEpic = parent.Stub?.IssueType?.HierarchyLevel == IssueDetail.EpicHierarchyLevel;
 
         return new IssueParent(key, parent.Stub?.Summary, isEpic);
-    }
-
-    internal static string? Share(string? value, Dictionary<string, string> pool)
-    {
-        if (value is null)
-        {
-            return null;
-        }
-
-        if (pool.TryGetValue(value, out var shared))
-        {
-            return shared;
-        }
-
-        pool[value] = value;
-
-        return value;
     }
 
     /// <summary>Jira writes the offset without a colon (<c>+0200</c>); an unreadable value gives null.</summary>
