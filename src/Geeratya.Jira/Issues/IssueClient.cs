@@ -32,7 +32,7 @@ public sealed class IssueClient(JiraTransport transport)
         var result = await transport.SendAsync(request, IssueJsonContext.Default.Issue, cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(IssueDetailMapper.Map(result.Value, extras))
+            ? JiraResults.Success(IssueDetailMapper.Map(result.Value, transport.Strings, extras))
             : JiraResults.Failure<IssueDetail>(result.Error);
     }
 

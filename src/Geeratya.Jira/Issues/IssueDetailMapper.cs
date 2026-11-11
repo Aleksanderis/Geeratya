@@ -12,10 +12,9 @@ namespace Geeratya.Jira.Issues;
 /// </summary>
 internal static class IssueDetailMapper
 {
-    public static IssueDetail Map(IssueWire.Issue issue, IssueExtraFields? extras = null)
+    public static IssueDetail Map(IssueWire.Issue issue, StringPool pool, IssueExtraFields? extras = null)
     {
         var fields = issue.Fields;
-        var pool = new Dictionary<string, string>(StringComparer.Ordinal);
 
         return new IssueDetail(
             issue.Id ?? string.Empty,
@@ -23,13 +22,13 @@ internal static class IssueDetailMapper
             fields?.Summary ?? string.Empty,
             IssueSummaryMapper.MapStatus(fields?.Status, pool),
             IssueSummaryMapper.MapType(fields?.IssueType, pool),
-            IssueSummaryMapper.Share(fields?.Priority?.Name, pool),
+            pool.Share(fields?.Priority?.Name),
             IssueSummaryMapper.MapAssignee(fields?.Assignee, pool),
             IssueSummaryMapper.MapAssignee(fields?.Reporter, pool),
             fields?.Labels is { Count: > 0 } labels ? labels : [],
             IssueSummaryMapper.ParseTimestamp(fields?.Created),
             IssueSummaryMapper.ParseTimestamp(fields?.Updated),
-            IssueSummaryMapper.Share(fields?.Project?.Key, pool) ?? string.Empty,
+            pool.Share(fields?.Project?.Key) ?? string.Empty,
             MapDescription(fields?.Description),
             MapStub(fields?.Parent, pool),
             MapStubs(fields?.Subtasks, pool),
@@ -73,7 +72,7 @@ internal static class IssueDetailMapper
         return document.Content.Count == 0 ? null : document;
     }
 
-    private static IssueStub? MapStub(IssueWire.Stub? stub, Dictionary<string, string> pool)
+    private static IssueStub? MapStub(IssueWire.Stub? stub, StringPool pool)
     {
         if (stub?.Key is not { Length: > 0 } key)
         {
@@ -89,7 +88,7 @@ internal static class IssueDetailMapper
             IssueSummaryMapper.MapType(fields?.IssueType, pool));
     }
 
-    private static List<IssueStub> MapStubs(List<IssueWire.Stub>? wire, Dictionary<string, string> pool)
+    private static List<IssueStub> MapStubs(List<IssueWire.Stub>? wire, StringPool pool)
     {
         var result = new List<IssueStub>(wire?.Count ?? 0);
 
@@ -104,7 +103,7 @@ internal static class IssueDetailMapper
         return result;
     }
 
-    private static List<IssueLink> MapLinks(List<IssueWire.Link>? wire, Dictionary<string, string> pool)
+    private static List<IssueLink> MapLinks(List<IssueWire.Link>? wire, StringPool pool)
     {
         var result = new List<IssueLink>(wire?.Count ?? 0);
 
@@ -123,7 +122,7 @@ internal static class IssueDetailMapper
     /// Only the other issue is present: <c>outwardIssue</c> means "this issue &lt;outward text&gt; other",
     /// <c>inwardIssue</c> means "this issue &lt;inward text&gt; other". A link with neither is dropped.
     /// </summary>
-    private static IssueLink? MapLink(IssueWire.Link? link, Dictionary<string, string> pool)
+    private static IssueLink? MapLink(IssueWire.Link? link, StringPool pool)
     {
         if (link is null)
         {
@@ -159,7 +158,7 @@ internal static class IssueDetailMapper
 
     private static List<IssueAttachment> MapAttachments(
         List<IssueWire.Attachment?>? wire,
-        Dictionary<string, string> pool)
+        StringPool pool)
     {
         var result = new List<IssueAttachment>(wire?.Count ?? 0);
 
@@ -173,7 +172,7 @@ internal static class IssueDetailMapper
             result.Add(new IssueAttachment(
                 attachment.Id ?? string.Empty,
                 attachment.Filename ?? string.Empty,
-                IssueSummaryMapper.Share(attachment.MimeType, pool) ?? string.Empty,
+                pool.Share(attachment.MimeType) ?? string.Empty,
                 attachment.Size ?? 0,
                 IssueSummaryMapper.ParseTimestamp(attachment.Created),
                 IssueSummaryMapper.MapAssignee(attachment.Author, pool),

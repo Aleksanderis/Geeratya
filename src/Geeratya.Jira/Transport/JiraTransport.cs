@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
+using Geeratya.Jira.Search;
+
 namespace Geeratya.Jira.Transport;
 
 /// <summary>
@@ -54,6 +56,12 @@ public sealed partial class JiraTransport : IDisposable
     }
 
     public JiraConnection Connection => _connection;
+
+    /// <summary>
+    /// Shares repeated names in mapped issues across this connection's pages and refreshes; dropped with the
+    /// transport when the profile is switched.
+    /// </summary>
+    internal StringPool Strings { get; } = new();
 
     /// <summary>
     /// When a request is waiting for the Jira rate limit (an exhausted budget or a <c>Retry-After</c>), the latest

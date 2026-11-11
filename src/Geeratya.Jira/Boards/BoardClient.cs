@@ -169,7 +169,7 @@ public sealed class BoardClient(JiraTransport transport)
         var result = await transport.SendAsync(request, BoardJsonContext.Default.IssuePage, cancellationToken);
 
         return result.IsSuccess
-            ? JiraResults.Success(BoardMapper.MapIssues(result.Value, query.Extras))
+            ? JiraResults.Success(BoardMapper.MapIssues(result.Value, transport.Strings, query.Extras))
             : JiraResults.Failure<IssuePage>(result.Error);
     }
 
