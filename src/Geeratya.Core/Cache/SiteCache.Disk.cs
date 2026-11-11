@@ -57,8 +57,12 @@ public sealed partial class SiteCache
     {
         var path = Path.Combine(_folder, ViewFileName(key));
 
+        Interlocked.Increment(ref _readsWaiting);
+
         lock (_diskLock)
         {
+            Interlocked.Decrement(ref _readsWaiting);
+
             if (IsDisposed() || !File.Exists(path))
             {
                 return null;
@@ -99,8 +103,12 @@ public sealed partial class SiteCache
     {
         var path = Path.Combine(_folder, IssueFileName(issueKey));
 
+        Interlocked.Increment(ref _readsWaiting);
+
         lock (_diskLock)
         {
+            Interlocked.Decrement(ref _readsWaiting);
+
             if (IsDisposed() || !File.Exists(path))
             {
                 return null;
@@ -250,6 +258,8 @@ public sealed partial class SiteCache
         // Serialized before the lock, and held for this one file only: a cache read waits for at most one write.
         var bytes = JsonSerializer.SerializeToUtf8Bytes(file, typeInfo);
 
+        YieldToReads();
+
         lock (_diskLock)
         {
             if (IsDisposed())
@@ -259,6 +269,15 @@ public sealed partial class SiteCache
 
             _file.Write(path, stream => stream.Write(bytes), _permissions.RestrictFile);
             AddWritten(bytes.Length);
+        }
+    }
+
+    // Between two files of a batch: a read that is already waiting for the disk lock gets it before the next write.
+    private void YieldToReads()
+    {
+        while (Volatile.Read(ref _readsWaiting) > 0)
+        {
+            Thread.Sleep(1);
         }
     }
 
