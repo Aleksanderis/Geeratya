@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Geeratya.Jira.Search;
 
 /// <summary>
@@ -21,4 +19,4 @@ internal sealed record ExtraSubtask(string Key, ExtraSubtaskFields? Fields);
 internal sealed record ExtraSubtaskFields(
     string? Summary,
     SearchWire.Status? Status,
-    [property: JsonPropertyName(IssueFields.IssueType)] SearchWire.IssueType? IssueType);
+    SearchWire.IssueType? IssueType);

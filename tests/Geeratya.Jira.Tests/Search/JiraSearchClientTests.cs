@@ -469,6 +469,35 @@ public sealed class JiraSearchClientTests
         Assert.Empty(second.Sprints);
     }
 
+    [Fact]
+    public async Task GivenLongEscapedAndWrongTypedFields_WhenSearching_ThenRowsMapAndBadShapesAreIgnored()
+    {
+        var longName = new string('x', 300);
+        var body = """
+            {"issues":[{"id":"1","key":"X-1","fields":{
+              "LONGNAME":"ignored",
+              "\u0073ummary":"Escaped name",
+              "hierarchyLevel":"nope",
+              "issuetype":{"id":5,"name":"Story","hierarchyLevel":"zero","subtask":"no"},
+              "status":"Open",
+              "priority":["High"],
+              "labels":"a",
+              "customfield_10016":3}}],
+             "isLast":true}
+            """.Replace("LONGNAME", longName, StringComparison.Ordinal);
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(HttpMethod.Get, SearchPath, FakeResponse.Ok(body));
+        var query = new IssueSearchQuery("project = X") { Extras = new IssueExtraFields(null, ["customfield_10016"]) };
+
+        var result = await Client(fixture).SearchAsync(query, null, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var row = Assert.Single(result.Value.Items);
+        Assert.Equal("Escaped name", row.Summary);
+        Assert.Equal(3, row.Estimate);
+        Assert.Empty(row.Labels);
+    }
+
     private static Task<JiraResult<IssuePage>> FirstPageAsync(TransportFixture fixture, string jql) =>
         Client(fixture).SearchAsync(new IssueSearchQuery(jql), null, CancellationToken.None);
 

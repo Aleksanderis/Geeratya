@@ -10,14 +10,6 @@ namespace Geeratya.Jira.Search;
 /// </summary>
 internal static class WireObjectReader
 {
-    private const string IdProperty = "id";
-    private const string NameProperty = "name";
-    private const string KeyProperty = "key";
-    private const string StatusCategoryProperty = "statusCategory";
-    private const string HierarchyLevelProperty = "hierarchyLevel";
-    private const string SubtaskProperty = "subtask";
-    private const string AccountIdProperty = "accountId";
-    private const string DisplayNameProperty = "displayName";
 
     public static string? ReadText(ref Utf8JsonReader reader)
     {
@@ -66,17 +58,17 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(IdProperty))
+            if (reader.ValueTextEquals(WireNames.Id))
             {
                 reader.Read();
                 id = ReadText(ref reader);
             }
-            else if (reader.ValueTextEquals(NameProperty))
+            else if (reader.ValueTextEquals(WireNames.Name))
             {
                 reader.Read();
                 name = ReadText(ref reader);
             }
-            else if (reader.ValueTextEquals(StatusCategoryProperty))
+            else if (reader.ValueTextEquals(WireNames.StatusCategory))
             {
                 reader.Read();
                 category = ReadKey(ref reader);
@@ -104,23 +96,23 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(IdProperty))
+            if (reader.ValueTextEquals(WireNames.Id))
             {
                 reader.Read();
                 id = ReadText(ref reader);
             }
-            else if (reader.ValueTextEquals(NameProperty))
+            else if (reader.ValueTextEquals(WireNames.Name))
             {
                 reader.Read();
                 name = ReadText(ref reader);
             }
-            else if (reader.ValueTextEquals(HierarchyLevelProperty))
+            else if (reader.ValueTextEquals(WireNames.HierarchyLevel))
             {
                 reader.Read();
                 level = reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var number) ? number : null;
                 SkipScalarMismatch(ref reader);
             }
-            else if (reader.ValueTextEquals(SubtaskProperty))
+            else if (reader.ValueTextEquals(WireNames.Subtask))
             {
                 reader.Read();
                 isSubtask = reader.TokenType is JsonTokenType.True or JsonTokenType.False ? reader.GetBoolean() : null;
@@ -146,7 +138,7 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(NameProperty))
+            if (reader.ValueTextEquals(WireNames.Name))
             {
                 reader.Read();
                 name = ReadText(ref reader);
@@ -172,12 +164,12 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(AccountIdProperty))
+            if (reader.ValueTextEquals(WireNames.AccountId))
             {
                 reader.Read();
                 accountId = ReadText(ref reader);
             }
-            else if (reader.ValueTextEquals(DisplayNameProperty))
+            else if (reader.ValueTextEquals(WireNames.DisplayName))
             {
                 reader.Read();
                 displayName = ReadText(ref reader);
@@ -202,7 +194,7 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(KeyProperty))
+            if (reader.ValueTextEquals(WireNames.Key))
             {
                 reader.Read();
                 key = ReadText(ref reader);
@@ -228,7 +220,7 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(KeyProperty))
+            if (reader.ValueTextEquals(WireNames.Key))
             {
                 reader.Read();
                 key = ReadText(ref reader);
@@ -338,7 +330,7 @@ internal static class WireObjectReader
 
         while (NextProperty(ref reader))
         {
-            if (reader.ValueTextEquals(KeyProperty))
+            if (reader.ValueTextEquals(WireNames.Key))
             {
                 reader.Read();
                 key = ReadText(ref reader);

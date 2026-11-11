@@ -16,7 +16,7 @@ internal static class SearchWire
     internal sealed record Fields(
         string? Summary,
         Status? Status,
-        [property: JsonPropertyName(IssueFields.IssueType)] IssueType? IssueType,
+        IssueType? IssueType,
         Priority? Priority,
         Assignee? Assignee,
         List<string>? Labels,
@@ -41,11 +41,11 @@ internal static class SearchWire
 
     internal sealed record Assignee(string? AccountId, string? DisplayName);
 
-    internal sealed record Parent(string? Key, [property: JsonPropertyName(IssueFields.FieldsProperty)] ParentStub? Stub);
+    internal sealed record Parent(string? Key, ParentStub? Stub);
 
     internal sealed record ParentStub(
         string? Summary,
-        [property: JsonPropertyName(IssueFields.IssueType)] IssueType? IssueType);
+        IssueType? IssueType);
 
     internal sealed record Project(string? Key);
 

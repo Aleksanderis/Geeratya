@@ -20,9 +20,6 @@ internal static class IssueSummaryMapper
     private static readonly IReadOnlyList<IssueSprint> _noSprints = [];
     private static readonly IReadOnlyList<IssueSubtask> _noSubtasks = [];
 
-    private const string IdProperty = "id";
-    private const string NameProperty = "name";
-    private const string StateProperty = "state";
     private const string TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fffzzz";
     private const int OffsetWithoutColonLength = 5;
 
@@ -94,12 +91,12 @@ internal static class IssueSummaryMapper
 
         foreach (var entry in field.EnumerateArray())
         {
-            if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(IdProperty, out var id)
+            if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty(WireNames.Id, out var id)
                 && id.ValueKind == JsonValueKind.Number && id.TryGetInt64(out var sprintId))
             {
-                var state = SprintMapper.ParseState(TextOf(entry, StateProperty));
+                var state = SprintMapper.ParseState(TextOf(entry, WireNames.State));
 
-                result.Add(new IssueSprint(sprintId, TextOf(entry, NameProperty), state));
+                result.Add(new IssueSprint(sprintId, TextOf(entry, WireNames.Name), state));
             }
         }
 

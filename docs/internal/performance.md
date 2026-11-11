@@ -101,7 +101,7 @@ Method: a temporary xUnit test (not committed) ran 3 warm-up and 15 timed search
 
 #### Typed extra fields instead of `JsonElement` extension data (#955)
 
-`SearchWire.Fields` kept every property it did not name (the Sprint and estimate custom fields, `subtasks`, and every `customfield_*: null` Jira adds) as a `JsonElement` in a `[JsonExtensionData]` dictionary, one `JsonDocument` buffer per value. `SearchWire.Fields` now has a converter (`FieldsConverter`) that reads the row once with a `Utf8JsonReader`: the fixed fields through hand-written readers (`WireObjectReader`), and each other field reduced on the spot to an `ExtraValue` (a number, sprint entries, sub-task stubs) or skipped. Property names are compared as UTF-8 and copied to a stack buffer, so only kept fields allocate a name. Field ids stay resolved per site: the converter does not know them, it keeps every number and every array of objects with a numeric `id` or a `key`, and the mapper picks by id.
+`SearchWire.Fields` kept every property it did not name (the Sprint and estimate custom fields, `subtasks`, and every `customfield_*: null` Jira adds) as a `JsonElement` in a `[JsonExtensionData]` dictionary, one `JsonDocument` buffer per value. `SearchWire.Fields` now has a converter (`FieldsConverter`) that reads the row once with a `Utf8JsonReader`: the fixed fields through hand-written readers (`WireObjectReader`), and each other field reduced on the spot to an `ExtraValue` (a number, sprint entries, sub-task stubs) or skipped. Property names are compared as UTF-8 and copied to a stack buffer, so only kept fields get a name, and those names are interned (a bounded static cache), so a row allocates no key string. Field ids stay resolved per site: the converter does not know them, it keeps every number and every array of objects with a numeric `id` or a `key`, and the mapper picks by id.
 
 A first version that only swapped the extension data for typed values but deserialized the nested objects with `JsonSerializer.Deserialize(ref reader, typeInfo)` allocated more than before (24.6 MB against 22.0 MB at 5000 rows): each nested call costs a read state. The hand-written readers removed that.
 
@@ -112,7 +112,7 @@ A first version that only swapped the extension data for typed values but deseri
 | same, 5000 rows, sub-tasks requested | same | `boards/rows-gtm-issues-subtasks.json` repeated to 5000 rows (11 MB) | 36.5 ms, 25.4 MB | 31.9 ms, 20.4 MB |
 | same, 100 rows, sub-tasks requested | same | repeated to 100 rows (222 KB) | 0.5 ms, 518 KB | 0.5 ms, 416 KB |
 
-Method as above (temporary xUnit test, 3 warm-up and 15 timed calls, `GC.GetTotalAllocatedBytes(true)`, noisy machine, the board path because it shares `SearchWire.Issue` with `/search/jql`). Allocation falls 18 to 20 percent; the time gain at 5000 rows is partly noise but repeated runs stayed below the old figure.
+Method as above (temporary xUnit test, 3 warm-up and 15 timed calls, `GC.GetTotalAllocatedBytes(true)`, noisy machine, the board path because it shares `SearchWire.Issue` with `/search/jql`). Allocation is the result: it falls 18 to 20 percent. The time at 5000 rows (70.4 to 36.3 ms) is partly noise and inconclusive; the 100-row timings are unchanged.
 
 ### ADF parsing (#68)
 

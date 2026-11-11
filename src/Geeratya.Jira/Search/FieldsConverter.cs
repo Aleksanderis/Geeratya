@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,10 +13,10 @@ namespace Geeratya.Jira.Search;
 internal sealed class FieldsConverter : JsonConverter<SearchWire.Fields>
 {
     private const int NameBufferLength = 128;
-    private const string IdProperty = "id";
-    private const string NameProperty = "name";
-    private const string StateProperty = "state";
-    private const string KeyProperty = "key";
+    private const int MaxCachedNames = 512;
+
+    /// <summary>Interned names of the kept extra fields (a site has a handful), so a row allocates no key string.</summary>
+    private static readonly ConcurrentDictionary<string, string> _names = new(StringComparer.Ordinal);
 
     public override SearchWire.Fields Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -137,10 +138,10 @@ internal sealed class FieldsConverter : JsonConverter<SearchWire.Fields>
 
         while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
         {
-            var isId = reader.ValueTextEquals(IdProperty);
-            var isName = reader.ValueTextEquals(NameProperty);
-            var isState = reader.ValueTextEquals(StateProperty);
-            var isKey = reader.ValueTextEquals(KeyProperty);
+            var isId = reader.ValueTextEquals(WireNames.Id);
+            var isName = reader.ValueTextEquals(WireNames.Name);
+            var isState = reader.ValueTextEquals(WireNames.State);
+            var isKey = reader.ValueTextEquals(WireNames.Key);
             var isFields = reader.ValueTextEquals(IssueFields.FieldsProperty);
             reader.Read();
 
@@ -176,6 +177,20 @@ internal sealed class FieldsConverter : JsonConverter<SearchWire.Fields>
         }
     }
 
+    private static string InternName(ReadOnlySpan<char> name)
+    {
+        var lookup = _names.GetAlternateLookup<ReadOnlySpan<char>>();
+
+        if (lookup.TryGetValue(name, out var known))
+        {
+            return known;
+        }
+
+        var text = name.ToString();
+
+        return _names.Count < MaxCachedNames ? _names.GetOrAdd(text, text) : text;
+    }
+
     /// <summary>The values of one row while its properties are read, in any order.</summary>
     private sealed class FieldValues
     {
@@ -203,7 +218,7 @@ internal sealed class FieldsConverter : JsonConverter<SearchWire.Fields>
         {
             if (value is not null)
             {
-                (Extra ??= [])[name.ToString()] = value;
+                (Extra ??= [])[InternName(name)] = value;
             }
         }
 
