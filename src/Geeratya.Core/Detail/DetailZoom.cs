@@ -23,6 +23,6 @@ public static class DetailZoom
     {
         var inner = Panel.InnerWidth(DetailLayout.PaneWidth(detail, width));
 
-        return CommentRows.Build(detail, inner, BodyLines(detail));
+        return detail.Render.Rows(detail, inner, BodyLines(detail));
     }
 }

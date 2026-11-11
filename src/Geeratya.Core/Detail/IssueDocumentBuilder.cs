@@ -245,7 +245,9 @@ public static class IssueDocumentBuilder
         }
         else
         {
-            content.AddRange(AdfRenderer.Render(detail.Issue.Description, inner).Lines);
+            var description = detail.Issue.Description;
+
+            content.AddRange(detail.Render.Rendering(description, inner, detail.Comments.Count).Lines);
         }
 
         var panel = new PanelContent();
@@ -373,7 +375,7 @@ public static class IssueDocumentBuilder
         int? viewport,
         IReadOnlyList<CommentRow>? known)
     {
-        var rows = known ?? CommentRows.Build(detail, inner, DetailZoom.BodyLines(detail));
+        var rows = known ?? detail.Render.Rows(detail, inner, DetailZoom.BodyLines(detail));
         var ids = rows.Select(row => row.Target is { Kind: DetailTargetKind.Comment } target ? target.Value : null).ToList();
         var content = new PanelContent();
         var heading = new StyledSpan(CommentsHeading(detail), TextRole.Heading);

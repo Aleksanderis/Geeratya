@@ -264,3 +264,17 @@ Reproduced at `main` `97b6b6b` (Native AOT, `SCENARIO=list scripts/measure.sh`, 
 Fix: `IssueSummaryMapper` maps sub-tasks only when the request asked for them (`IncludeSubtasks`), and every row without sprints or sub-tasks now shares one static empty list (a test asserts the instances are the same). Same method, same fake, 5 to 8 runs per binary run back to back: 68 MB before, 60 MB after the sub-task gate (p95 64), and 59 MB (p95 60) with the shared empty lists (final build, re-measured after review: 68 / 71 for the old binary, 59 / 60 for the fix, 8 runs each). Key-to-frame and open-list times did not move (35 and 36 ms, first page 119 ms). Test: `GivenSubtaskStubsInTheReplyButNoSubtaskExtra_WhenMapping_ThenRowsHoldNoSubtasks`.
 
 Remaining gap to M1 (about 9 MB, 0.9 KB a row): not attributed to one change. The row record gained fields since M1 (`Sprints`, `Subtasks`, `IsListed`, `Estimate`, parent stubs), the state keeps the rows in the tab list and a memoised grouped copy for the columns layout, and the Terminal.Gui and theme setup grew with the start screen and picker. Decision: accepted. The figure is bounded by the 10 000-row cap per tab, 59 MB is well under any budget the project has set (none for memory), and finding the rest needs a heap profile of a native AOT process, which is not available cheaply here (no `dotnet-gcdump` for AOT). A heap-level profile is worth doing only if a user reports memory pressure.
+
+## Issue detail with 1000 comments (#929)
+
+The issue detail memoizes what it renders (`DetailRenderMemo` on `DetailState`, like `ColumnsMemo` on a tab): the comment rows of the Comments pane (one entry, keyed by the `Comments` list reference, inner width, cut, expanded ids, order and load state) and the ADF lines of the description and of each comment body per width. A j/k in Comments, a scroll at a pane edge, Ctrl-d and a fold or expand of one comment no longer re-render every comment; a new comment page, a refresh or a resize still does, once. A collapsed comment is still rendered whole and then cut (the cut needs the line count); only the repeat is saved.
+
+`GEERATYA_BENCH=1 dotnet test -c Release tests/Geeratya.Tui.Tests --filter DetailCommentsMeasurements --logger "console;verbosity=detailed"`: 1000 comments of 12 list items each (`DetailPaging.MaxComments`), one key through the reducer and `FrameBuilder.BuildStyled` at 120x36, JIT, 200 samples after 20 warm-up keys, loaded Linux machine (other agents building), so absolute values are upper bounds.
+
+| Key | Before median / p95 (ms) | After median / p95 (ms) |
+|---|---|---|
+| j / k in Comments | 14.6 / 23.6 | 5.8 / 10.4 |
+| Ctrl-d / Ctrl-u in Comments | 14.0 / 25.7 | 4.1 / 6.8 |
+| Ctrl-j / Ctrl-k between panes | 7.5 / 11.7 | 1.0 / 1.4 |
+
+The remaining few milliseconds of a comment key are the document layout (every comment row is still copied into the pane's content and the id list) and the frame; #930 follows with that part.

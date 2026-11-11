@@ -67,6 +67,9 @@ public sealed record DetailState(
     DateTimeOffset? IssueSavedAt = null,
     IReadOnlyList<RowChange>? HeldChanges = null)
 {
+    /// <summary>What this issue has rendered, a cache shared by the copies of the state (<see cref="DetailRenderMemo"/>).</summary>
+    public DetailRenderMemo Render { get; init; } = new();
+
     /// <summary>The board's name for the estimate field (for example "Story Points"); null shows "Estimate".</summary>
     public string? EstimateLabel { get; init; }
 
