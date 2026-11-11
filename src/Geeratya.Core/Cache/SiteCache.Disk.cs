@@ -6,18 +6,38 @@ namespace Geeratya.Core.Cache;
 
 public sealed partial class SiteCache
 {
-    private void DeleteViewFiles()
+    // `locked`: the caller already holds the disk lock (a discard after disposal), so the files are deleted directly.
+    private void DeleteViewFiles(bool locked = false)
     {
         try
         {
             foreach (var path in Directory.EnumerateFiles(_folder, $"{ViewFilePrefix}*{FileExtension}"))
             {
-                DeleteQuietly(path);
+                if (locked)
+                {
+                    DeleteQuietly(path);
+                }
+                else
+                {
+                    WithDisk(() => DeleteQuietly(path));
+                }
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // A folder that cannot be listed (or does not exist yet) has nothing to delete.
+        }
+    }
+
+    /// <summary>Runs one file operation under the disk lock, unless the cache was disposed meanwhile.</summary>
+    private void WithDisk(Action operation)
+    {
+        lock (_diskLock)
+        {
+            if (!IsDisposed())
+            {
+                operation();
+            }
         }
     }
 
@@ -52,6 +72,8 @@ public sealed partial class SiteCache
 
                 if (keyed is not null && keyed.Key == key)
                 {
+                    Touch(path);
+
                     return keyed.View;
                 }
             }
@@ -92,6 +114,8 @@ public sealed partial class SiteCache
 
                 if (issue is not null && string.Equals(issue.Detail.Key, issueKey, StringComparison.OrdinalIgnoreCase))
                 {
+                    Touch(path);
+
                     return issue;
                 }
             }
@@ -126,6 +150,8 @@ public sealed partial class SiteCache
             return;
         }
 
+        TouchUsed();
+
         foreach (var (key, view) in batch)
         {
             TryWriteView(key, view);
@@ -137,6 +163,35 @@ public sealed partial class SiteCache
         }
 
         EvictQuietly();
+    }
+
+    // Eviction goes by file time, so a file read since the last flush is touched: used often means kept.
+    private void TouchUsed()
+    {
+        string[] names;
+
+        lock (_memoryLock)
+        {
+            names = [.. _used];
+            _used.Clear();
+        }
+
+        foreach (var name in names)
+        {
+            WithDisk(() => Touch(Path.Combine(_folder, name)));
+        }
+    }
+
+    private static void Touch(string path)
+    {
+        try
+        {
+            File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A file that cannot be touched keeps its old time; at worst it is evicted a little early.
+        }
     }
 
     // One locked or unwritable file does not stop the rest of the batch; the first failure is reported.
@@ -191,24 +246,60 @@ public sealed partial class SiteCache
 
     private void WriteFile<TFile>(string path, TFile file, JsonTypeInfo<TFile> typeInfo)
     {
-        _file.Write(path, stream => JsonSerializer.Serialize(stream, file, typeInfo), _permissions.RestrictFile);
-    }
+        // Serialized before the lock, and held for this one file only: a cache read waits for at most one write.
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(file, typeInfo);
 
-    /// <summary>Deletes the oldest files until the folder fits the size cap.</summary>
-    private void EvictOldest()
-    {
-        var files = new DirectoryInfo(_folder).GetFiles().OrderBy(file => file.LastWriteTimeUtc).ToList();
-        var total = files.Sum(file => file.Length);
-
-        foreach (var file in files)
+        lock (_diskLock)
         {
-            if (total <= _maxDiskBytes)
+            if (IsDisposed())
             {
-                break;
+                return;
             }
 
-            total -= file.Length;
-            DeleteQuietly(file.FullName);
+            _file.Write(path, stream => stream.Write(bytes), _permissions.RestrictFile);
+            AddWritten(path);
+        }
+    }
+
+    private void AddWritten(string path)
+    {
+        if (_diskBytesEstimate >= 0)
+        {
+            _diskBytesEstimate += new FileInfo(path).Length;
+        }
+    }
+
+    /// <summary>
+    /// Deletes the oldest files until the folder fits the size cap. The folder is listed only when the bytes written
+    /// since the last listing could have pushed it over the cap, so most flushes cost no directory scan.
+    /// </summary>
+    private void EvictOldest()
+    {
+        lock (_diskLock)
+        {
+            if (IsDisposed() || (_diskBytesEstimate >= 0 && _diskBytesEstimate <= _maxDiskBytes))
+            {
+                return;
+            }
+
+            var files = new DirectoryInfo(_folder).GetFiles()
+                .Where(file => !file.Name.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(file => file.LastWriteTimeUtc)
+                .ToList();
+            var total = files.Sum(file => file.Length);
+
+            foreach (var file in files)
+            {
+                if (total <= _maxDiskBytes)
+                {
+                    break;
+                }
+
+                total -= file.Length;
+                DeleteQuietly(file.FullName);
+            }
+
+            _diskBytesEstimate = total;
         }
     }
 

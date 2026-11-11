@@ -593,6 +593,52 @@ public sealed class SiteCacheTests : IDisposable
         Assert.False(read.HasNoEstimation);
     }
 
+    [Fact]
+    public void GivenCacheUnderItsCap_WhenFlushedAgain_ThenTheFolderIsNotListedForEviction()
+    {
+        var folder = Path.Combine(_root, "p");
+        using var cache = new SiteCache(folder, maxDiskBytes: 10 * 1024 * 1024);
+        cache.Put(_key, new CachedView([Issue(1)], null, _saved));
+        cache.Flush();
+        var stray = Path.Combine(folder, "view-old.json");
+        File.WriteAllText(stray, new string('x', 100));
+        File.SetLastWriteTimeUtc(stray, DateTime.UtcNow.AddDays(-30));
+
+        cache.Put(_key, new CachedView([Issue(2)], null, _saved));
+        cache.Flush();
+
+        Assert.True(File.Exists(stray));
+    }
+
+    [Fact]
+    public void GivenCacheOverItsCap_WhenFlushed_ThenTheLeastRecentlyUsedFileGoes()
+    {
+        var folder = Path.Combine(_root, "p");
+        var oftenRead = new CacheKey(ViewSourceKind.Jql, "often read");
+        var neverRead = new CacheKey(ViewSourceKind.Jql, "never read");
+
+        using (var seed = new SiteCache(folder))
+        {
+            seed.Put(oftenRead, new CachedView([Issue(1)], null, _saved));
+            seed.Put(neverRead, new CachedView([Issue(2)], null, _saved));
+            seed.Flush();
+        }
+
+        var oftenPath = Path.Combine(folder, SiteCache.ViewFileName(oftenRead));
+        var neverPath = Path.Combine(folder, SiteCache.ViewFileName(neverRead));
+        File.SetLastWriteTimeUtc(oftenPath, DateTime.UtcNow.AddDays(-2));
+        File.SetLastWriteTimeUtc(neverPath, DateTime.UtcNow.AddDays(-1));
+        var cap = new FileInfo(oftenPath).Length + new FileInfo(neverPath).Length + 10;
+
+        using var cache = new SiteCache(folder, maxDiskBytes: cap);
+        Assert.NotNull(cache.Get(oftenRead));
+        cache.Put(new CacheKey(ViewSourceKind.Jql, "third"), new CachedView([Issue(3)], null, _saved));
+        cache.Flush();
+
+        Assert.True(File.Exists(oftenPath));
+        Assert.False(File.Exists(neverPath));
+    }
+
     private static IssueSummary Issue(int number, bool full = false)
     {
         var status = new IssueStatus("1", "To Do", "new");
