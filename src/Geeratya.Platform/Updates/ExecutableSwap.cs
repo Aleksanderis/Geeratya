@@ -10,6 +10,9 @@ namespace Geeratya.Platform.Updates;
 /// </summary>
 public sealed class ExecutableSwap
 {
+    /// <summary>How old a staged <c>geeratya.new.*.exe</c> must be before a start sweeps it (no update takes this long).</summary>
+    public static readonly TimeSpan StaleStagedAge = TimeSpan.FromHours(1);
+
     private readonly OperatingSystemKind _operatingSystem;
 
     public ExecutableSwap(OperatingSystemKind operatingSystem)
@@ -76,13 +79,16 @@ public sealed class ExecutableSwap
                 TryDelete(leftover);
             }
 
-            // A staged binary that a killed update left behind (#944). One that another update is still writing or
-            // running for its version check is open, so the delete fails quietly; this process's own name is skipped.
+            // A staged binary that a killed update left behind (#944). Another update running now may hold its staged
+            // file closed for a moment between writing, the version check and the swap, so only files older than
+            // StaleStagedAge go; this process's own name is never touched.
             var ownStaged = StagedPath(executable);
+            var staleBefore = DateTime.UtcNow - StaleStagedAge;
 
             foreach (var staged in Directory.EnumerateFiles(folder, $"{name}.new.*{extension}"))
             {
-                if (!string.Equals(staged, ownStaged, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(staged, ownStaged, StringComparison.OrdinalIgnoreCase)
+                    && File.GetLastWriteTimeUtc(staged) < staleBefore)
                 {
                     TryDelete(staged);
                 }

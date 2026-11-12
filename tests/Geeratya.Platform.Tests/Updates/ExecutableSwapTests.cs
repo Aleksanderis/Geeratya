@@ -136,22 +136,35 @@ public sealed class ExecutableSwapTests : IDisposable
     }
 
     [Fact]
-    public void GivenAStagedFileFromAKilledUpdate_WhenRemovingOnWindows_ThenItIsDeletedButNotThisProcesses()
+    public void GivenAStaleStagedFile_WhenRemovingOnWindows_ThenItIsDeletedButNotThisProcessesOrAFreshOne()
     {
         var executable = Path.Combine(_directory.FullName, "geeratya.exe");
+        var stale = DateTime.UtcNow - ExecutableSwap.StaleStagedAge - TimeSpan.FromMinutes(1);
         var killed = Write("geeratya.new.4242.exe", "killed");
         var own = Write(Path.GetFileName(ExecutableSwap.StagedPath(executable)), "staging");
+        var running = Write("geeratya.new.4343.exe", "another update, still going");
         var other = Write("geeratya.newer.txt", "keep");
 
-        new ExecutableSwap(OperatingSystemKind.Linux).RemoveLeftover(executable);
-
-        Assert.True(File.Exists(killed));
-
+        File.SetLastWriteTimeUtc(killed, stale);
+        File.SetLastWriteTimeUtc(own, stale);
         new ExecutableSwap(OperatingSystemKind.Windows).RemoveLeftover(executable);
 
         Assert.False(File.Exists(killed));
         Assert.True(File.Exists(own));
+        Assert.True(File.Exists(running));
         Assert.True(File.Exists(other));
+    }
+
+    [Fact]
+    public void GivenAStaleStagedFile_WhenRemovingOnLinux_ThenItIsLeftAlone()
+    {
+        var executable = Path.Combine(_directory.FullName, "geeratya");
+        var killed = Write("geeratya.new.4242", "killed");
+
+        File.SetLastWriteTimeUtc(killed, DateTime.UtcNow - ExecutableSwap.StaleStagedAge - TimeSpan.FromMinutes(1));
+        new ExecutableSwap(OperatingSystemKind.Linux).RemoveLeftover(executable);
+
+        Assert.True(File.Exists(killed));
     }
 
     [Fact]
