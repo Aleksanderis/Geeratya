@@ -21,7 +21,7 @@ The GitHub organisation `Geeratya` exists (see below) and belongs to the owner's
 | NuGet | flat container `geeratya` | 404: free |
 | AUR | RPC search, `packages/geeratya`, `geeratya-bin` | 0 results, 404: free |
 | Homebrew | formula and cask API `geeratya` | 404: free |
-| winget | `microsoft/winget-pkgs` code search (needs login, so not run); manifest folder `manifests/g/Geeratya` | 404: free by folder. Final check is the winget validation of the first manifest PR |
+| winget | `microsoft/winget-pkgs` code search (needs login, so not run); manifest folder `manifests/g/Geeratya/Geeratya` | 404: free by folder. Final check is the winget validation of the first manifest PR |
 | Domains | DNS lookup and `whois` | `geeratya.com`: no match (whois). `.io`, `.org`: not found (whois). `.dev`, `.app`, `.net`: no DNS record and whois gave no answer, so likely free but not confirmed. A registrar search is the authoritative check and was not done |
 | General web search | "Geeratya", with "trademark", "brand", "software", "Jira terminal client" | No page, product, company or mark. Only near-miss strings (Geertruida, Geeraart, GEARYTE, GEEBS) |
 | Trademark databases | WIPO Global Brand Database, USPTO, EUIPO | These need a browser (script-rendered search forms and blocked automated requests: Justia returned 403), so a real register search was **not** completed. Public aggregator pages found nothing. Treat "no conflict" as probable, not proven |
