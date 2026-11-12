@@ -21,7 +21,7 @@ Bounds from the M1 design (`docs/internal/architecture.md`, "Views and tabs", "C
 
 ## How numbers are taken
 
-`scripts/measure.sh <binary> <fake url> [runs]` (Windows: `measure.ps1`, default scenario only, untested) starts the binary in a private tmux server (private `XDG_*` directories), polls `capture-pane` until the first non-blank frame, then toggles the help overlay with `?` and times each change of the frame. It first times a trivial command (`printf x`) the same way, the "tmux floor", so the cost of tmux and of the polling loop can be read off. Results are the median and p95 over all runs, printed with the load average before and after (Linux only: `/proc/loadavg`); do not trust a run when the load is near the core count. Start FakeJira beside it with the dataset and latency you want to record (`fakejira --issues 10000 --latency-ms 50`). The script seeds an active fake profile for the binary (`docs/internal/testing.md`).
+`scripts/measure.sh <binary> <fake url> [runs]` (Windows: `measure.ps1`, default scenario only, first real run in #941 below) starts the binary in a private tmux server (private `XDG_*` directories), polls `capture-pane` until the first non-blank frame, then toggles the help overlay with `?` and times each change of the frame. It first times a trivial command (`printf x`) the same way, the "tmux floor", so the cost of tmux and of the polling loop can be read off. Results are the median and p95 over all runs, printed with the load average before and after (Linux only: `/proc/loadavg`); do not trust a run when the load is near the core count. Start FakeJira beside it with the dataset and latency you want to record (`fakejira --issues 10000 --latency-ms 50`). The script seeds an active fake profile for the binary (`docs/internal/testing.md`).
 
 The harness measures from outside the process, so it includes process start, the first terminal write and tmux's own capture latency (floor below). Treat differences between runs as signal and absolute values as an upper bound.
 
@@ -386,3 +386,15 @@ Memory: a few short-lived key sets and dictionaries (about the size of the bulk)
 The no-marks "before" is far below the #932 table above because #933 (frame built once per loop iteration) and later changes moved the baseline; both columns here were measured on the same checkout and machine.
 
 The contrast memo, the `ShellScreen` list and `Asciified` changes have no timing measurement: they are kept because they remove arithmetic and copies for nothing in return, not because a number shows a gain. The numbers above are what was measured; the gain is a handful of allocations per frame (a set of the marks, a dictionary, a list copy) and the contrast arithmetic per tinted span, which does not show in bytes. Tests: `MarkSetTests`, `ThemeReadableTests`.
+
+## Windows, psmux (#941)
+
+First real Windows run of `scripts/measure.ps1` (2026-11-12): Windows 11 Pro, Intel i7-14700K (14 cores reported), Native AOT build of `6ada923d` plus #984 stamped `0.3.9`, psmux 120x40, FakeJira `--issues 10000 --latency-ms 50`, 20 sessions with 5 `?` presses each.
+
+| Measure | Median | p95 |
+|---|---|---|
+| psmux floor (pwsh `Write-Host x`) | 495 ms | 524 ms |
+| Cold start to first frame | 64 ms | 88 ms |
+| Key (`?`) to frame | 18 ms | 116 ms |
+
+Reading it: the floor is high because psmux starts the trivial command through pwsh; the binary is started directly, so the cold start is not net of the floor and still sits under the 100 ms budget. The numbers include psmux's polling and conpty, not conhost or Windows Terminal. Still open in #941: conhost and Windows Terminal (local and over SSH), bytes per frame, mouse bursts, wide characters, console classification and exit paths (all need a person at the console).

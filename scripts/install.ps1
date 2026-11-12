@@ -7,7 +7,8 @@
 # user PATH. No admin rights, no telemetry (the only requests go to GitHub). Running it again updates; it does nothing
 # when the installed version is already the wanted one. To pin a version in the one-liner:
 #   $env:GEERATYA_VERSION = '1.2.3'; irm https://raw.githubusercontent.com/Aleksanderis/Geeratya/main/scripts/install.ps1 | iex
-# Uninstall: delete the install folder and remove it from your user PATH (the script prints both).
+# Uninstall: delete geeratya.exe and geeratya.install-source and remove the folder from your user PATH (the script prints
+# both; the default folder also holds the app's State and Cache).
 # Later updates can also run `geeratya update` (the script leaves a geeratya.install-source marker next to the exe).
 # Linux and macOS: use install.sh.
 #
@@ -25,6 +26,7 @@
 function Get-GeeratyaFile([string]$Source, [string]$Destination) {
     # A URL is downloaded; anything else is a local path (tests).
     if ($Source -notmatch '^https?://') {
+        if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) { throw "download failed (not found): $Source." }
         Copy-Item -LiteralPath $Source -Destination $Destination
         return
     }
@@ -173,7 +175,8 @@ function Invoke-GeeratyaInstall {
 
         if ($env:GEERATYA_NO_PATH -ne '1') { Add-ToUserPath $target }
         Write-Host "Geeratya $version installed. Run: geeratya"
-        Write-Host "To uninstall: delete $target and remove it from your user PATH (your profiles and cache are kept; tokens live in the Windows credential store)."
+        # The default folder also holds the app's State and Cache, so the hint names the two files, not the folder (#864).
+        Write-Host "To uninstall: delete geeratya.exe and geeratya.install-source in $target and remove that folder from your user PATH. Profiles stay in $(Join-Path $env:APPDATA 'Geeratya'), state and cache in $(Join-Path $env:LOCALAPPDATA 'Geeratya'), tokens in the Windows credential store; delete those too to remove everything."
     } finally {
         Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
     }
