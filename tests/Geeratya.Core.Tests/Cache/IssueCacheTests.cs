@@ -43,7 +43,7 @@ public sealed class IssueCacheTests : IDisposable
     }
 
     [Fact]
-    public async Task GivenASlowBatchFlush_WhenAnIssueIsReadFromDisk_ThenTheReadFinishesBeforeTheBatchDoes()
+    public void GivenASlowBatchFlush_WhenAnIssueIsReadFromDisk_ThenTheReadFinishesBeforeTheBatchDoes()
     {
         var folder = Path.Combine(_root, "p");
 
@@ -53,7 +53,7 @@ public sealed class IssueCacheTests : IDisposable
             seed.Flush();
         }
 
-        var replacer = new SlowFileReplacer(TimeSpan.FromMilliseconds(150));
+        using var replacer = new SlowFileReplacer(TimeSpan.FromMilliseconds(150));
         using var cache = new SiteCache(folder, file: new AtomicFile(replacer));
 
         for (var index = 0; index < 6; index++)
@@ -61,11 +61,15 @@ public sealed class IssueCacheTests : IDisposable
             cache.Put(new CacheKey(ViewSourceKind.Jql, $"project = P{index}"), new CachedView([], null, _saved));
         }
 
-        var flush = Task.Run(cache.Flush);
-        await replacer.FirstWrite.Task;
-        var read = await Task.Run(() => cache.GetIssue("A-9"));
-        var flushDone = flush.IsCompleted;
-        await flush;
+        // A dedicated thread and a read on the test thread: no thread-pool scheduling, which on a busy Windows runner
+        // started the read only after all six writes.
+        var flush = new Thread(cache.Flush);
+
+        flush.Start();
+        Assert.True(replacer.FirstWrite.Wait(TimeSpan.FromSeconds(10)));
+        var read = cache.GetIssue("A-9");
+        var flushDone = !flush.IsAlive;
+        flush.Join();
 
         // The disk lock is taken per file: the read slips in between two writes, not after all six.
         Assert.False(flushDone);
