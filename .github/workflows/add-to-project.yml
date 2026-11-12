@@ -1,15 +1,13 @@
-# Adds every new or reopened issue and pull request to the owner's cross-repository project
-# "Arbaiten" (https://github.com/users/Aleksanderis/projects/4). The project's built-in auto-add
-# workflow covers only one repository on the free plan (it is used for Gitunia), hence this action.
+# Adds every new or reopened issue to the owner's cross-repository project "Arbaiten"
+# (https://github.com/users/Aleksanderis/projects/4). The project's built-in auto-add workflow covers only
+# one repository on the free plan (it is used for Gitunia), hence this action. Issues only: a card shows its
+# linked PR, and the board's "Pull request linked to issue" workflow moves the issue (owner, 2026-11-12).
 # Secret ADD_TO_PROJECT_PAT: classic personal access token with the `project` and `repo` scopes.
-# pull_request_target so the secret is available for fork PRs too; the job never checks out or runs PR code.
 name: add-to-project
 
 on:
   issues:
     types: [opened, reopened, transferred]
-  pull_request_target:
-    types: [opened, reopened]
 
 permissions: {}
 
