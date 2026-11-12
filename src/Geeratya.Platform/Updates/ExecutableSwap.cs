@@ -52,7 +52,8 @@ public sealed class ExecutableSwap
 
     /// <summary>
     /// Deletes the binaries earlier Windows updates moved aside (<c>geeratya.old*.exe</c>, and the
-    /// <c>geeratya.exe.old</c> that older install scripts left); quiet when there are none or one is in use.
+    /// <c>geeratya.exe.old</c> that older install scripts left) and the staged <c>geeratya.new.*.exe</c> an interrupted
+    /// update left; quiet when there are none or one is in use.
     /// </summary>
     public void RemoveLeftover(string executable)
     {
@@ -73,6 +74,18 @@ public sealed class ExecutableSwap
             foreach (var leftover in Directory.EnumerateFiles(folder, $"{name}.old*{extension}"))
             {
                 TryDelete(leftover);
+            }
+
+            // A staged binary that a killed update left behind (#944). One that another update is still writing or
+            // running for its version check is open, so the delete fails quietly; this process's own name is skipped.
+            var ownStaged = StagedPath(executable);
+
+            foreach (var staged in Directory.EnumerateFiles(folder, $"{name}.new.*{extension}"))
+            {
+                if (!string.Equals(staged, ownStaged, StringComparison.OrdinalIgnoreCase))
+                {
+                    TryDelete(staged);
+                }
             }
         }
     }

@@ -70,3 +70,11 @@ jobs:
       - name: Smoke run (Windows)
         if: runner.os == 'Windows'
         run: ./out/geeratya.exe --version
+
+      # Offline, fake releases on disk; it had never run before #864 and was broken.
+      - name: Install script test (Windows PowerShell 5.1 and pwsh)
+        if: runner.os == 'Windows'
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-install.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pwsh -NoProfile -File scripts/test-install.ps1

@@ -21,7 +21,7 @@ public static class InstallRouteDetector
 
     private const string BrewText = "run `brew upgrade geeratya`";
 
-    private const string WingetText = "run `winget upgrade Aleksanderis.Geeratya`";
+    private const string WingetText = "run `winget upgrade Geeratya.Geeratya`";
 
     /// <summary>The route for <paramref name="install"/>.</summary>
     public static InstallRoute Detect(InstallFacts install)

@@ -52,12 +52,13 @@ public class InstallRouteDetectorTests
     [Fact]
     public void GivenAWingetPath_WhenDetecting_ThenWingetUpgradeIsTheCommand()
     {
-        var path = "C:\\Users\\ann\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Aleksanderis.Geeratya_x\\geeratya.exe";
+        var path = "C:\\Users\\ann\\AppData\\Local\\Microsoft\\WinGet\\Packages\\"
+            + "Geeratya.Geeratya_Microsoft.Winget.Source_8wekyb3d8bbwe\\geeratya.exe";
 
         var route = InstallRouteDetector.Detect(Facts(OperatingSystemKind.Windows, path));
 
         Assert.Equal(InstallRouteKind.PackageManager, route.Kind);
-        Assert.Contains("winget upgrade Aleksanderis.Geeratya", route.Instructions, StringComparison.Ordinal);
+        Assert.Contains("winget upgrade Geeratya.Geeratya", route.Instructions, StringComparison.Ordinal);
     }
 
     [Theory]

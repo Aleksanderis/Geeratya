@@ -136,6 +136,25 @@ public sealed class ExecutableSwapTests : IDisposable
     }
 
     [Fact]
+    public void GivenAStagedFileFromAKilledUpdate_WhenRemovingOnWindows_ThenItIsDeletedButNotThisProcesses()
+    {
+        var executable = Path.Combine(_directory.FullName, "geeratya.exe");
+        var killed = Write("geeratya.new.4242.exe", "killed");
+        var own = Write(Path.GetFileName(ExecutableSwap.StagedPath(executable)), "staging");
+        var other = Write("geeratya.newer.txt", "keep");
+
+        new ExecutableSwap(OperatingSystemKind.Linux).RemoveLeftover(executable);
+
+        Assert.True(File.Exists(killed));
+
+        new ExecutableSwap(OperatingSystemKind.Windows).RemoveLeftover(executable);
+
+        Assert.False(File.Exists(killed));
+        Assert.True(File.Exists(own));
+        Assert.True(File.Exists(other));
+    }
+
+    [Fact]
     public void GivenNoLeftover_WhenRemoving_ThenNothingHappens()
     {
         var executable = Path.Combine(_directory.FullName, "geeratya.exe");

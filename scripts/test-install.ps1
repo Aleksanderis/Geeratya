@@ -10,20 +10,27 @@ $tmp = Join-Path ([IO.Path]::GetTempPath()) ("geeratya-install-test-" + [Guid]::
 [void](New-Item -ItemType Directory -Path $tmp)
 function Fail([string]$Message) { throw "FAIL: $Message" }
 
-# A fake release: <api>\tags\v<version> holds the release JSON, SHA256SUMS lists the zip (the names release.yml produces).
-function New-Release([string]$Version, [string]$Api, [string]$Architecture) {
+# A fake release: <api>\tags\v<version> holds the release JSON with one zip per architecture, SHA256SUMS lists them all
+# (the names release.yml produces). One release carries every architecture, as on GitHub (#864: a release per
+# architecture overwrote the x64 one, so the test had never passed).
+function New-Release([string]$Version, [string]$Api, [string[]]$Architectures) {
     $assets = Join-Path $Api "assets-$Version"
     [void](New-Item -ItemType Directory -Force -Path $assets, (Join-Path $Api 'tags'))
-    $name = "geeratya-$Version-win-$Architecture"
-    $stage = Join-Path $tmp "stage-$name"
-    [void](New-Item -ItemType Directory -Force -Path (Join-Path $stage $name))
-    Set-Content -LiteralPath (Join-Path (Join-Path $stage $name) 'geeratya.exe') -Value "fake exe $Version"
-    $zip = Join-Path $assets "$name.zip"
-    Compress-Archive -Path (Join-Path $stage $name) -DestinationPath $zip
-    $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
     $sums = Join-Path $assets 'SHA256SUMS'
-    Set-Content -LiteralPath $sums -Value "$hash  $name.zip"
-    @{ tag_name = "v$Version"; assets = @(@{ browser_download_url = $zip }, @{ browser_download_url = $sums }) } |
+    $urls = @()
+    $lines = @()
+    foreach ($architecture in $Architectures) {
+        $name = "geeratya-$Version-win-$architecture"
+        $stage = Join-Path $tmp "stage-$name"
+        [void](New-Item -ItemType Directory -Force -Path (Join-Path $stage $name))
+        Set-Content -LiteralPath (Join-Path (Join-Path $stage $name) 'geeratya.exe') -Value "fake exe $Version"
+        $zip = Join-Path $assets "$name.zip"
+        Compress-Archive -Path (Join-Path $stage $name) -DestinationPath $zip
+        $lines += "$((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant())  $name.zip"
+        $urls += @{ browser_download_url = $zip }
+    }
+    Set-Content -LiteralPath $sums -Value $lines
+    @{ tag_name = "v$Version"; assets = @($urls + @{ browser_download_url = $sums }) } |
         ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path (Join-Path $Api 'tags') "v$Version")
 }
 function Set-Latest([string]$Version, [string]$Api) { Copy-Item -LiteralPath (Join-Path (Join-Path $Api 'tags') "v$Version") -Destination (Join-Path $Api 'latest') -Force }
@@ -64,8 +71,7 @@ function Invoke-StubbedInstall([int[]]$Statuses) {
 try {
     $exe = Join-Path (Join-Path $tmp 'bin') 'geeratya.exe'
     $api = Join-Path $tmp 'api'
-    New-Release '1.2.3' $api 'x64'
-    New-Release '1.2.3' $api 'arm64'
+    New-Release '1.2.3' $api 'x64', 'arm64'
     New-Release '1.3.0' $api 'x64'
     Set-Latest '1.2.3' $api
 
@@ -83,6 +89,23 @@ try {
 
     $out = Invoke-Install $api 'x64' 'v1.2.3'
     if ((Get-Content -LiteralPath $exe -Raw).Trim() -ne 'fake exe 1.2.3') { Fail "pinned version not installed: $out" }
+
+    # A copy from an earlier update still runs from geeratya.old.exe (#944): held open, it cannot be deleted, so the
+    # update parks the current binary as geeratya.old.1.exe and removes that. Only Windows locks an open file.
+    if (($PSVersionTable.PSVersion.Major -lt 6) -or $IsWindows) {
+        $bin = Join-Path $tmp 'bin'
+        $running = Join-Path $bin 'geeratya.old.exe'
+        Set-Content -LiteralPath $running -Value 'still running'
+        $lock = [IO.File]::Open($running, 'Open', 'Read', 'None')
+        try {
+            $out = Invoke-Install $api 'x64' '1.3.0'
+            if ((Get-Content -LiteralPath $exe -Raw).Trim() -ne 'fake exe 1.3.0') { Fail "not updated past a running old copy: $out" }
+            if (Test-Path -LiteralPath (Join-Path $bin 'geeratya.old.1.exe')) { Fail 'left the parked binary behind' }
+        } finally { $lock.Dispose() }
+        if ((Get-Content -LiteralPath $running -Raw).Trim() -ne 'still running') { Fail 'touched the running old copy' }
+        Remove-Item -LiteralPath $running
+        $out = Invoke-Install $api 'x64' 'v1.2.3'
+    }
     Expect-Failure { Invoke-Install $api 'x64' '9.9.9' } '*download failed*' 'unknown version accepted'
 
     Remove-Item -LiteralPath $exe
