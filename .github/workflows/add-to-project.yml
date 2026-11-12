@@ -20,3 +20,6 @@ jobs:
         with:
           project-url: https://github.com/users/Aleksanderis/projects/4
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          # Tracking issues never go on the board (owner, 2026-11-12).
+          labeled: tracking
+          label-operator: NOT
