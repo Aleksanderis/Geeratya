@@ -118,7 +118,8 @@ public static partial class FormReducer
     // Up, Down, PageUp and PageDown move the caret between the lines of a paragraph field (the Description editor).
     private static bool InParagraph(FormState form)
     {
-        return form.Fields.Count > 0 && form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)].Kind == FormFieldKind.Paragraph;
+        return form.Fields.Count > 0
+            && form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)].Kind == FormFieldKind.Paragraph;
     }
 
     private static int LinesOf(string action, AppState state)

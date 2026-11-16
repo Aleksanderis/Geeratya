@@ -63,7 +63,7 @@ public readonly record struct PromptText(string Text, int Back)
     /// <summary>
     /// The caret <paramref name="lines"/> lines down (up when negative) in a text with line breaks, in the same
     /// column or at the end of a shorter line. Past the first line it goes to the start of the text, past the last
-    /// to its end, as an editor does. The same value for a text without line breaks and no move.
+    /// to its end, as an editor does. The column counts text units, not display cells, so lines of wide characters land approximately. The same value for a text without line breaks and no move.
     /// </summary>
     public PromptText MoveLines(int lines)
     {
