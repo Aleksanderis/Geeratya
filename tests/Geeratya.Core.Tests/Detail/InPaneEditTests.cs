@@ -291,6 +291,67 @@ public class InPaneEditTests
         Assert.True(end - start <= 6, $"editor is {end - start} lines");
     }
 
+    [Theory]
+    [InlineData(40, 30)] // capped at the screen: 30 rows
+    [InlineData(12, 15)] // the text lines, the key hint and the two frame rows
+    [InlineData(3, 6)] // a short text is as tall as it is, as without the expansion
+    public void GivenAnExpandedDescription_WhenEditing_ThenTheEditorGrowsWithTheTextUpToTheScreen(int lines, int expectedHeight)
+    {
+        var text = string.Join('\n', Enumerable.Range(1, lines).Select(number => $"line {number}"));
+        var longText = Described(string.Join("\n\n", Enumerable.Range(1, 30).Select(number => $"para {number}")));
+        var expanded = Press(OnTarget(Opened(longText), DetailFieldIds.Description), "z", "a");
+        Assert.Equal([DetailFieldIds.Description], Active(expanded.State).Detail[^1].Expanded);
+        var state = Loaded(Press(expanded.State, "Enter"), DescriptionField(text) with { Back = text.Length });
+
+        var document = Build(state, 100, 30);
+
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
+        var height = document.PaneStarts[pane + 1] - document.PaneStarts[pane];
+        Assert.Equal(expectedHeight, height);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditor_WhenPressingUpAndDown_ThenTheCaretMovesBetweenLinesAndTypingLandsThere()
+    {
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField("one\ntwo\nthree"));
+
+        var up = Press(state, "Up", "Up", "X");
+        var down = Press(up.State, "Down", "Down", "Y");
+
+        Assert.Equal("oneX\ntwo\nthree", Active(up.State).Form!.Fields[0].Value.Text);
+        Assert.Equal("oneX\ntwo\nthrYee", Active(down.State).Form!.Fields[0].Value.Text);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditor_WhenPressingCtrlPAndCtrlN_ThenTheCaretMovesBetweenLines()
+    {
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField("one\ntwo"));
+
+        var moved = Press(state, "Ctrl-p", "A", "Ctrl-n", "B");
+
+        Assert.Equal("oneA\ntwoB", Active(moved.State).Form!.Fields[0].Value.Text);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditor_WhenPressingPageUp_ThenTheCaretJumpsHalfAScreenUp()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 60).Select(number => $"line {number}"));
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField(text));
+
+        var moved = Press(state, "PageUp", "X");
+        var back = Press(moved.State, "PageDown", "Y");
+
+        // The viewport is 30 rows, so a page is 15 lines: from the end of line 60 to the end of line 45 and back.
+        Assert.Contains("line 45X\n", Active(moved.State).Form!.Fields[0].Value.Text);
+        Assert.EndsWith("line 60Y", Active(back.State).Form!.Fields[0].Value.Text.Replace("X", string.Empty));
+    }
+
     [Fact]
     public void GivenAZoomedDescription_WhenEditing_ThenTheEditorTakesTheWholeHeight()
     {

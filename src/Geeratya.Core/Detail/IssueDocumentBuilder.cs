@@ -349,12 +349,19 @@ public static class IssueDocumentBuilder
         int? viewportRows)
     {
         var zoomed = detail.Zoomed == PaneIds.Description;
+        var expanded = detail.Expanded.Contains(DetailFieldIds.Description);
         var rows = PaneEdit.EditorRows;
 
         if (viewportRows is { } shown)
         {
             // Zoomed, the editor takes the pane's height; unzoomed, at most the screen minus the frame.
             rows = zoomed ? Math.Max(1, shown - Panel.EdgeRows) : Math.Clamp(shown - Panel.EdgeRows, 1, rows);
+
+            if (expanded && !zoomed)
+            {
+                // An expanded Description (za) stays expanded in the editor (#988): it grows with the text, up to the screen.
+                rows = Math.Clamp(edit.TextRows + 1, rows, Math.Max(rows, shown - Panel.EdgeRows));
+            }
         }
 
         var content = new PanelContent();

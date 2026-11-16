@@ -30,6 +30,9 @@ public sealed record PaneEdit(string Pane, FormState Form)
 
     private FormField Field => Form.Fields[Math.Clamp(Form.Focus, 0, Form.Fields.Count - 1)];
 
+    /// <summary>The lines of the text being edited.</summary>
+    public int TextRows => Field.Value.Text.Count(static character => character == '\n') + 1;
+
     /// <summary>
     /// The edit of the open form when it edits a pane of the issue <paramref name="key"/> in place, else null.
     /// </summary>

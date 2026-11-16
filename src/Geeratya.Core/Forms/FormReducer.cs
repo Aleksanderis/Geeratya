@@ -103,6 +103,9 @@ public static partial class FormReducer
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
             ActionIds.FormBackspace => Edited(Edit(state, tab, form, FormEditor.Backspace), tab.Id),
+            ActionIds.PickerPrevious or ActionIds.PickerNext or ActionIds.EditorPageUp or ActionIds.EditorPageDown
+                when InParagraph(form)
+                => Result(Edit(state, tab, form, field => FormEditor.MoveLines(field, LinesOf(action, state)))),
             null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
             _ when PromptEditing.OperationOf(action) is { } operation
                 => Edited(Edit(state, tab, form, field => FormEditor.Apply(field, operation)), tab.Id),
@@ -110,6 +113,26 @@ public static partial class FormReducer
         };
 
         return Choosing(LeavesField(action) ? Unsuggested(result, tab.Id) : result, tab.Id);
+    }
+
+    // Up, Down, PageUp and PageDown move the caret between the lines of a paragraph field (the Description editor).
+    private static bool InParagraph(FormState form)
+    {
+        return form.Fields.Count > 0
+            && form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)].Kind == FormFieldKind.Paragraph;
+    }
+
+    private static int LinesOf(string action, AppState state)
+    {
+        var page = Math.Max(1, state.ViewportRows / 2);
+
+        return action switch
+        {
+            ActionIds.PickerPrevious => -1,
+            ActionIds.PickerNext => 1,
+            ActionIds.EditorPageUp => -page,
+            _ => page,
+        };
     }
 
     // The navigate state of the edit form (#650): fields are stops, nothing is typed. Enter or i starts editing.
