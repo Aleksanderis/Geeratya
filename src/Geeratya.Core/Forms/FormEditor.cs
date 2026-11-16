@@ -53,6 +53,20 @@ public static class FormEditor
         return WithPrompt(field, Prompt(field).Apply(operation));
     }
 
+    /// <summary>
+    /// Up or down in a paragraph field: the caret moves <paramref name="lines"/> lines (negative is up). Other kinds
+    /// have one line and ignore it.
+    /// </summary>
+    public static FormField MoveLines(FormField field, int lines)
+    {
+        if (!field.IsEditable || field.Kind != FormFieldKind.Paragraph)
+        {
+            return field;
+        }
+
+        return WithPrompt(field, Prompt(field).MoveLines(lines));
+    }
+
     /// <summary>Deletes the last character; in an empty label buffer it removes the last label.</summary>
     public static FormField Backspace(FormField field)
     {

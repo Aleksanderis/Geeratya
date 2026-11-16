@@ -348,7 +348,8 @@ public static class IssueDocumentBuilder
         PaneEdit edit,
         int? viewportRows)
     {
-        var zoomed = detail.Zoomed == PaneIds.Description;
+        // An expanded Description (za) stays as tall as it was when the editor opens (#988), like the zoomed one.
+        var zoomed = detail.Zoomed == PaneIds.Description || detail.Expanded.Contains(DetailFieldIds.Description);
         var rows = PaneEdit.EditorRows;
 
         if (viewportRows is { } shown)

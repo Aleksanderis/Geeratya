@@ -60,6 +60,64 @@ public readonly record struct PromptText(string Text, int Back)
         };
     }
 
+    /// <summary>
+    /// The caret <paramref name="lines"/> lines down (up when negative) in a text with line breaks, in the same
+    /// column or at the end of a shorter line. Past the first line it goes to the start of the text, past the last
+    /// to its end, as an editor does. The same value for a text without line breaks and no move.
+    /// </summary>
+    public PromptText MoveLines(int lines)
+    {
+        var caret = Caret;
+        var column = caret - LineStartOf(caret);
+        var start = LineStartOf(caret);
+
+        for (var step = 0; step < Math.Abs(lines); step++)
+        {
+            if (lines < 0)
+            {
+                if (start == 0)
+                {
+                    return MovedTo(0);
+                }
+
+                start = LineStartOf(start - 1);
+            }
+            else
+            {
+                var end = LineEndOf(start);
+
+                if (end >= Text.Length)
+                {
+                    return MovedTo(Text.Length);
+                }
+
+                start = end + 1;
+            }
+        }
+
+        var target = Math.Min(start + column, LineEndOf(start));
+
+        // A column inside a grapheme moves to its start.
+        return MovedTo(target >= Text.Length ? Text.Length : GraphemeStartAtOrBefore(target));
+    }
+
+    private int GraphemeStartAtOrBefore(int index)
+    {
+        var found = 0;
+
+        foreach (var start in StringInfo.ParseCombiningCharacters(Text))
+        {
+            if (start > index)
+            {
+                break;
+            }
+
+            found = start;
+        }
+
+        return found;
+    }
+
     private PromptText MovedTo(int caret)
     {
         return new PromptText(Text, Text.Length - caret);

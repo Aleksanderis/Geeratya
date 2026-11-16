@@ -141,4 +141,29 @@ public class PromptTextTests
         Assert.Equal("one\nwo\nthree", onTwo.Apply(PromptOperation.LineStart).Apply(PromptOperation.Delete).Text);
         Assert.Equal("one\nt\nthree", new PromptText("one\ntwo\nthree", 8).Apply(PromptOperation.DeleteToEnd).Text);
     }
+
+    [Theory]
+    [InlineData("abc\nde\nfghij", 12, -1, 6)] // end of "fghij" -> column 5 clamps to the end of "de"
+    [InlineData("abc\nde\nfghij", 6, -1, 2)] // end of "de" (column 2) -> column 2 of "abc"
+    [InlineData("abc\nde\nfghij", 1, 1, 5)] // column 1 of "abc" -> column 1 of "de"
+    [InlineData("abc\nde\nfghij", 5, 1, 8)] // column 1 of "de" -> column 1 of "fghij"
+    [InlineData("abc\nde", 5, 1, 6)] // last line: down goes to the end of the text
+    [InlineData("abc\nde", 1, -1, 0)] // first line: up goes to the start
+    [InlineData("abc\nde\nfghij", 1, 2, 8)] // two lines down
+    public void GivenTextWithLines_WhenMovingLines_ThenTheCaretKeepsItsColumnOrClampsToTheLine(string text, int caret, int lines, int expected)
+    {
+        var prompt = new PromptText(text, text.Length - caret).MoveLines(lines);
+
+        Assert.Equal(expected, prompt.Caret);
+        Assert.Equal(text, prompt.Text);
+    }
+
+    [Fact]
+    public void GivenAnEmojiAtTheTargetColumn_WhenMovingLines_ThenTheCaretDoesNotLandInsideIt()
+    {
+        var text = "abc\n\U0001F600\U0001F600";
+        var prompt = new PromptText(text, text.Length - 1).MoveLines(1);
+
+        Assert.Equal(4, prompt.Caret);
+    }
 }

@@ -292,6 +292,52 @@ public class InPaneEditTests
     }
 
     [Fact]
+    public void GivenAnExpandedDescription_WhenEditing_ThenTheEditorKeepsTheTallHeight()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 40).Select(number => $"line {number}"));
+        var longText = Described(string.Join("\n\n", Enumerable.Range(1, 30).Select(number => $"para {number}")));
+        var expanded = Press(OnTarget(Opened(longText), DetailFieldIds.Description), "z", "a");
+        Assert.Equal([DetailFieldIds.Description], Active(expanded.State).Detail[^1].Expanded);
+        var state = Loaded(Press(expanded.State, "Enter"), DescriptionField(text) with { Back = text.Length });
+
+        var document = Build(state, 100, 30);
+
+        var pane = document.SectionIds.ToList().IndexOf(PaneIds.Description);
+        var height = document.PaneStarts[pane + 1] - document.PaneStarts[pane];
+        Assert.True(height > PaneEdit.EditorRows + 4, $"editor is {height} lines");
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditor_WhenPressingUpAndDown_ThenTheCaretMovesBetweenLinesAndTypingLandsThere()
+    {
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField("one\ntwo\nthree"));
+
+        var up = Press(state, "Up", "Up", "X");
+        var down = Press(up.State, "Down", "Down", "Y");
+
+        Assert.Equal("oneX\ntwo\nthree", Active(up.State).Form!.Fields[0].Value.Text);
+        Assert.Equal("oneX\ntwo\nthrYee", Active(down.State).Form!.Fields[0].Value.Text);
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditor_WhenPressingPageUp_ThenTheCaretJumpsHalfAScreenUp()
+    {
+        var text = string.Join('\n', Enumerable.Range(1, 60).Select(number => $"line {number}"));
+        var state = Loaded(
+            Press(OnTarget(Opened(Described("x")), DetailFieldIds.Description), "Enter"),
+            DescriptionField(text));
+
+        var moved = Press(state, "PageUp", "X");
+
+        var edited = Active(moved.State).Form!.Fields[0].Value.Text;
+        Assert.DoesNotContain("line 60X", edited);
+        Assert.Contains("X", edited);
+        Assert.True(edited.IndexOf('X') < text.IndexOf("line 60", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GivenAZoomedDescription_WhenEditing_ThenTheEditorTakesTheWholeHeight()
     {
         var text = string.Join('\n', Enumerable.Range(1, 40).Select(number => $"line {number}"));
