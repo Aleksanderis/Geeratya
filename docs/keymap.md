@@ -61,7 +61,9 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-7` | Go to tab 7 | `tab.go-to.7` | everyday |
 | `Alt-8` | Go to tab 8 | `tab.go-to.8` | everyday |
 | `Alt-9` | Go to tab 9 | `tab.go-to.9` | everyday |
-| `<space>t` | Open the source picker for a new tab | `tab.new` | everyday |
+| `<space>ts` | Change the status of the sub-task under the cursor | `issue.subtask-transition` | everyday |
+| `<space>ta` | Assign the sub-task under the cursor: search people, or unassign | `issue.subtask-assign` | everyday |
+| `<space>tm` | Assign the sub-task under the cursor to me | `issue.subtask-assign-me` | everyday |
 | `Ctrl-t` | Open the source picker for a new tab | `tab.new` | everyday |
 | `Ctrl-w r` | Rename this tab (an empty name restores the source label) | `tab.rename` | everyday |
 | `<space>c` | Close the tab | `tab.close` | everyday |

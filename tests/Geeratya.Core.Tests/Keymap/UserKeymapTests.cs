@@ -97,6 +97,17 @@ public sealed class UserKeymapTests : IDisposable
     }
 
     [Fact]
+    public void GivenAnOldSpaceTRow_WhenMerging_ThenItIsReportedAsShadowingTheSubtaskKeys()
+    {
+        var table = Merge(
+            """{ "bindings": [ { "mode": "normal", "keys": "Space t", "action": "tab.new" } ] }""",
+            out var problems);
+
+        Assert.Contains("would shadow Space t", Assert.Single(problems));
+        Assert.Equal(KeyResolutionKind.Prefix, table.Resolve(InputMode.Normal, "Space", "t").Kind);
+    }
+
+    [Fact]
     public void GivenSequenceShadowingDefaultAndUnbind_WhenMerging_ThenTheNewBindingWins()
     {
         var table = Merge(

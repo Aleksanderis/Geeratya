@@ -131,7 +131,7 @@ public static class FormOpener
     /// <summary><c>issue.assign</c>: the people picker (the form with the searchable Assignee field).</summary>
     public static ReduceResult Assign(AppState state)
     {
-        if (Subject.Of(state, true) is not { } subject)
+        if (Subject.Of(state) is not { } subject)
         {
             return Say(state, NoIssueText);
         }
@@ -144,7 +144,7 @@ public static class FormOpener
     /// <summary><c>issue.assign-me</c>: assigns the shown or selected issue to the account of the profile.</summary>
     public static ReduceResult AssignMe(AppState state, DateTimeOffset at)
     {
-        if (Subject.Of(state, true) is not { } subject)
+        if (Subject.Of(state) is not { } subject)
         {
             return Say(state, NoIssueText);
         }
@@ -231,7 +231,7 @@ public static class FormOpener
         bool DescriptionKnown,
         AdfDocument? Description)
     {
-        public static Subject? Of(AppState state, bool preferSubtask = false)
+        public static Subject? Of(AppState state)
         {
             var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
 
@@ -242,7 +242,7 @@ public static class FormOpener
 
             if (tab.Detail.Count > 0)
             {
-                return OfDetail(tab, tab.Detail[^1], preferSubtask);
+                return OfDetail(tab, tab.Detail[^1]);
             }
 
             var key = BrowserReducer.SelectedKey(state);
@@ -251,13 +251,8 @@ public static class FormOpener
             return row is null ? null : OfRow(tab, row);
         }
 
-        private static Subject? OfDetail(TabState tab, DetailState shown, bool preferSubtask)
+        private static Subject? OfDetail(TabState tab, DetailState shown)
         {
-            if (preferSubtask && DetailReducer.SubtaskUnderCursor(shown) is { } subtask)
-            {
-                return OfSubtask(tab, shown, subtask);
-            }
-
             if (shown.Issue is { } issue)
             {
                 return new Subject(
@@ -274,15 +269,6 @@ public static class FormOpener
             }
 
             return shown.Row is { } row ? OfRow(tab, row) : null;
-        }
-
-        // A sub-task under the cursor: only its key and assignee are known here (the assign paths read nothing else).
-        private static Subject OfSubtask(TabState tab, DetailState shown, string key)
-        {
-            var stub = shown.Issue!.Subtasks.First(candidate => string.Equals(candidate.Key, key, StringComparison.OrdinalIgnoreCase));
-            var row = shown.Children?.FirstOrDefault(child => string.Equals(child.Key, key, StringComparison.OrdinalIgnoreCase));
-
-            return new Subject(tab, stub.Key, stub.Summary, row?.Labels ?? [], row?.Priority, row?.Assignee, shown.Key, null, false, null);
         }
 
         private static Subject OfRow(TabState tab, IssueSummary row)

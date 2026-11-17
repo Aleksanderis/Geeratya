@@ -5,7 +5,6 @@
 │                                           ╭─ <space> ────────────────────────────────────────────────────────────────╮
 │                                           │ Tab                                                                      │
 │                                           │ c         Close the tab                                                  │
-│                                           │ t         Open the source picker for a new tab                           │
 │                                           │ Tab       Previously active tab                                          │
 │                                           │ T         Show a list of open tabs                                       │
 │                                           │ Status                                                                   │
@@ -28,6 +27,7 @@
 │                                           │ z         Zoom the focused pane, or leave the zoom                       │
 │                                           │ More                                                                     │
 │                                           │ m         +comment (4)                                                   │
+│                                           │ t         +issue (3)                                                     │
 │                                           │ i         +issue (6)                                                     │
 │                                           │ s         +sprint (7)                                                    │
 │                                           │ v         +view (6)                                                      │

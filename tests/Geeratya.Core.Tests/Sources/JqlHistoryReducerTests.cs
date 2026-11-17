@@ -60,7 +60,7 @@ public class JqlHistoryReducerTests
     [Fact]
     public void GivenHistoryNotLoaded_WhenThePickerOpens_ThenItIsRequestedForTheProfile()
     {
-        var result = Press(Press(Start(), "Space").State, "t");
+        var result = Press(Start(), "Ctrl-t");
 
         var effect = Assert.Single(result.Effects.OfType<LoadHistoryEffect>());
         Assert.Equal(_work, effect.Profile);
@@ -71,7 +71,7 @@ public class JqlHistoryReducerTests
     {
         var state = WithHistory(Start(), SiteHistory.Empty.WithQuery("a = 1"));
 
-        var result = Press(Press(state, "Space").State, "t");
+        var result = Press(state, "Ctrl-t");
 
         Assert.DoesNotContain(result.Effects, effect => effect is LoadHistoryEffect);
     }
@@ -226,7 +226,7 @@ public class JqlHistoryReducerTests
 
     private AppState OpenPicker(AppState state)
     {
-        return Press(Press(state, "Space").State, "t").State;
+        return Press(state, "Ctrl-t").State;
     }
 
     private AppState Type(AppState state, string text)

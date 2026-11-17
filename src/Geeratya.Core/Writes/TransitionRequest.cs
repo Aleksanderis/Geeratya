@@ -13,9 +13,13 @@ public sealed record TransitionRequest(
     string Key,
     TransitionChoice Choice,
     IReadOnlyList<FieldChange> Changes,
-    bool AskFirst) : WriteRequest
+    bool AskFirst,
+    string? Summary = null) : WriteRequest
 {
     private const string SideEffectWarning = "Jira cannot undo this; the workflow may do more than change the status";
+
+    // The sub-task actions (#994) name the issue by key and summary.
+    private string Label => Summary is null ? Key : $"{Key} ({Summary})";
 
     public override OperationKind Kind => OperationKind.Transition;
 
@@ -23,9 +27,9 @@ public sealed record TransitionRequest(
 
     public override string BusyText => "changing status";
 
-    public override string StartedText => $"Moving {Key} to {Choice.Target.Name}";
+    public override string StartedText => $"Moving {Label} to {Choice.Target.Name}";
 
-    public override string DoneText => $"Moved {Key} to {Choice.Target.Name}";
+    public override string DoneText => $"Moved {Label} to {Choice.Target.Name}";
 
     public override string CheckingText => $"{Key}: not sure the move worked, checking";
 
@@ -34,7 +38,7 @@ public sealed record TransitionRequest(
     public override string ActionText => $"transition {Key}";
 
     public override string? AskText =>
-        AskFirst ? $"Move {Key} to {Choice.Target.Name}? {SideEffectWarning}" : null;
+        AskFirst ? $"Move {Label} to {Choice.Target.Name}? {SideEffectWarning}" : null;
 
     public override string AskLabel => "Move issue";
 

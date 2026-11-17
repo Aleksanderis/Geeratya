@@ -13,14 +13,15 @@ public sealed record TransitionPickTarget(
     string Key,
     IReadOnlyList<string> ColumnStatusIds,
     string? ColumnName,
-    IReadOnlyList<TransitionChoice> Choices) : FormTarget
+    IReadOnlyList<TransitionChoice> Choices,
+    string? Summary = null) : FormTarget
 {
     /// <summary>The id of the one field of the picker.</summary>
     public const string FieldId = "transition";
 
     private const string PickLabel = "Move to";
 
-    public override string Title => ColumnName is null ? $"Change status of {Key}" : $"Move {Key} to {ColumnName}";
+    public override string Title => ColumnName is null ? $"Change status of {Key}{SummaryText}" : $"Move {Key} to {ColumnName}";
 
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
@@ -28,6 +29,8 @@ public sealed record TransitionPickTarget(
     public override string EmptyText => $"No transition is available for {Key}";
 
     public override bool ClosesOnSend => true;
+
+    private string SummaryText => Summary is null ? "" : $" ({Summary})";
 
     /// <summary>True for a move towards a column.</summary>
     public bool IsColumnMove => ColumnStatusIds.Count > 0;
@@ -66,14 +69,14 @@ public sealed record TransitionPickTarget(
     {
         var choice = Chosen(changes);
 
-        return choice is { NeedsForm: true } ? new TransitionFormTarget(Key, choice) : null;
+        return choice is { NeedsForm: true } ? new TransitionFormTarget(Key, choice, Summary) : null;
     }
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
         var choice = Chosen(changes) ?? throw new InvalidOperationException("No transition was picked.");
 
-        return new TransitionRequest(Key, choice, [], choice.AsksFirst);
+        return new TransitionRequest(Key, choice, [], choice.AsksFirst, Summary);
     }
 
     private bool IsInColumn(TransitionChoice choice)

@@ -12,6 +12,10 @@
 │           │               │              board)                                                          │           │
 │           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
 │           │               │   <space>im  Assign the issue to me                                          │           │
+│           │               │   <space>ts  Change the status of the sub-task under the cursor              │           │
+│           │               │   <space>ta  Assign the sub-task under the cursor: search people, or         │           │
+│           │               │              unassign                                                        │           │
+│           │               │   <space>tm  Assign the sub-task under the cursor to me                      │           │
 │           │               │   <space>is  Change the status of the issue                                  │           │
 │           │               │   Alt-l      Move the card to the next column                                │           │
 │           │               │   Alt-h      Move the card to the previous column                            │           │
@@ -26,11 +30,7 @@
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
 │           │               │ Comment                                                                      │           │
 │           │               │   <space>ma  Add a comment to the issue                                      │           │
-│           │               │   <space>me  Edit the comment under the cursor                               │           │
-│           │               │   <space>mr  Reply to the comment under the cursor                           │           │
-│           │               │   <space>md  Delete the comment under the cursor                             │           │
-│           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
-│           │               │ Rank                                                                        ▼│           │
+│           │               │   <space>me  Edit the comment under the cursor                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

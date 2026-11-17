@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │ Comment                                                                     ▲│           │
-│           │   All actions │   <space>ma  Add a comment to the issue                                      │           │
-│           │   Commands    │   <space>me  Edit the comment under the cursor                               │           │
+│           │   Global      │   <space>g   Jump to an issue by key                                        ▲│           │
+│           │   All actions │   <space>sm  Move the selected issues to a sprint                            │           │
+│           │   Commands    │   <space>sb  Move the selected issues to the backlog                         │           │
+│           │               │ Comment                                                                      │           │
+│           │               │   <space>ma  Add a comment to the issue                                      │           │
+│           │               │   <space>me  Edit the comment under the cursor                               │           │
 │           │               │   <space>mr  Reply to the comment under the cursor                           │           │
 │           │               │   <space>md  Delete the comment under the cursor                             │           │
 │           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
@@ -27,10 +30,7 @@
 │           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic,       │           │
 │           │               │              labels)                                                         │           │
 │           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
-│           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
-│           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
-│           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
-│           │               │              weeks, all, or follow Jira)                                    ▼│           │
+│           │               │   zc         Fold the lane to its header row (stacked lanes)                ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

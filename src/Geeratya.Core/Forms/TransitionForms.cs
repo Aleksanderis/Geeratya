@@ -1,5 +1,4 @@
 using Geeratya.Core.Boards;
-using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -22,7 +21,7 @@ public static class TransitionForms
     public static ReduceResult OpenPicker(AppState state)
     {
         var tab = ActiveTab(state);
-        var key = tab is null ? null : KeyUnderCursor(state, tab);
+        var key = tab is null ? null : FormReducer.TargetKey(state, tab);
 
         if (tab is null || key is null)
         {
@@ -32,14 +31,6 @@ public static class TransitionForms
         var target = new TransitionPickTarget(key, [], null, []);
 
         return FormReducer.Reduce(state, new OpenFormRequested(tab.Id, target));
-    }
-
-    // The sub-task under the cursor of an opened issue, else the shown or selected issue (#990).
-    private static string? KeyUnderCursor(AppState state, TabState tab)
-    {
-        return tab.Detail is [.., var shown] && DetailReducer.SubtaskUnderCursor(shown) is { } subtask
-            ? subtask
-            : FormReducer.TargetKey(state, tab);
     }
 
     /// <summary>

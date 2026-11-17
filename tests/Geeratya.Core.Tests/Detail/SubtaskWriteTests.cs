@@ -13,7 +13,7 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Tests.Detail;
 
 /// <summary>
-/// Status and assignee of a sub-task from the parent's detail (#990): the keys act on the sub-task under the cursor, the
+/// Status and assignee of a sub-task from the parent's detail (#990, own `Space t` keys since #994): the keys act on the sub-task under the cursor, the
 /// parent reloads after the write or when it comes back, and the refresh key reads the shown issue again.
 /// </summary>
 [Trait("Os", "Independent")]
@@ -29,11 +29,11 @@ public class SubtaskWriteTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
-    public void GivenTheCursorOnASubtask_WhenPressingTheStatusKey_ThenThePickerOpensForTheSubtask()
+    public void GivenTheCursorOnASubtask_WhenPressingTheSubtaskStatusKey_ThenThePickerOpensForTheSubtask()
     {
         var state = OnLine(Opened(), "A-2");
 
-        var result = Press(state, "Space", "i", "s");
+        var result = Press(state, "Space", "t", "s");
 
         var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
         Assert.Equal("A-2", effect.Target.IssueKey);
@@ -50,20 +50,80 @@ public class SubtaskWriteTests
     }
 
     [Fact]
-    public void GivenTheCursorOnTheHeader_WhenPressingTheStatusKey_ThenThePickerOpensForTheShownIssue()
+    public void GivenTheCursorOnASubtask_WhenPressingTheStatusKey_ThenThePickerOpensForTheShownIssue()
     {
-        var result = Press(Opened(), "Space", "i", "s");
+        var state = OnLine(Opened(), "A-2");
+
+        var result = Press(state, "Space", "i", "s");
 
         var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
         Assert.Equal("A-1", effect.Target.IssueKey);
     }
 
     [Fact]
-    public void GivenTheCursorOnASubtask_WhenPressingTheAssignKey_ThenThePeoplePickerTargetsTheSubtask()
+    public void GivenTheCursorOnASubtask_WhenPressingTheSubtaskStatusKey_ThenThePickerTitleNamesTheSubtask()
+    {
+        var state = OnLine(Opened(), "A-2");
+
+        var result = Press(state, "Space", "t", "s");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Contains("A-2", effect.Target.Title);
+        Assert.Contains("Sub work", effect.Target.Title);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnTheHeader_WhenPressingASubtaskKey_ThenTheStatusLineSaysThereIsNoSubtask()
+    {
+        foreach (var last in new[] { "s", "a", "m" })
+        {
+            var result = Press(Opened(), "Space", "t", last);
+
+            Assert.Equal(SubtaskWrites.NoSubtaskText, result.State.Message);
+            Assert.Empty(result.Effects);
+        }
+    }
+
+    [Fact]
+    public void GivenNoIssueIsOpen_WhenPressingASubtaskKey_ThenTheStatusLineSaysThereIsNoSubtask()
+    {
+        var state = Opened();
+        var closed = Press(state, "Esc").State;
+
+        var result = Press(closed, "Space", "t", "m");
+
+        Assert.Equal(SubtaskWrites.NoSubtaskText, result.State.Message);
+    }
+
+    [Fact]
+    public void GivenAnOpenedIssue_WhenPressingSpaceT_ThenNoSourcePickerOpens()
+    {
+        var result = Press(Opened(), "Space", "t");
+
+        Assert.Null(Active(result.State).Form);
+        Assert.NotEmpty(result.State.PendingKeys);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnASubtask_WhenPressingTheAssignKeys_ThenTheyStillTargetTheShownIssue()
     {
         var state = OnLine(Opened(), "A-2");
 
         var result = Press(state, "Space", "i", "a");
+
+        Assert.Equal("A-1", Active(result.State).Form!.Target.IssueKey);
+
+        var me = Press(state, "Space", "i", "m");
+        var write = Assert.IsType<ExecuteWriteEffect>(Assert.Single(me.Effects, effect => effect is ExecuteWriteEffect));
+        Assert.Equal("A-1", Assert.IsType<AssignRequest>(write.Request).Key);
+    }
+
+    [Fact]
+    public void GivenTheCursorOnASubtask_WhenPressingTheSubtaskAssignKey_ThenThePeoplePickerTargetsTheSubtask()
+    {
+        var state = OnLine(Opened(), "A-2");
+
+        var result = Press(state, "Space", "t", "a");
 
         Assert.Equal("A-2", Active(result.State).Form!.Target.IssueKey);
     }
@@ -73,7 +133,7 @@ public class SubtaskWriteTests
     {
         var state = OnLine(Opened(), "A-2");
 
-        var asked = Press(state, "Space", "i", "m");
+        var asked = Press(state, "Space", "t", "m");
 
         var write = Assert.IsType<ExecuteWriteEffect>(Assert.Single(asked.Effects, effect => effect is ExecuteWriteEffect));
         Assert.Equal("A-2", Assert.IsType<AssignRequest>(write.Request).Key);

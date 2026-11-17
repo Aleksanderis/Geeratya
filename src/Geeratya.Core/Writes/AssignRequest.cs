@@ -3,8 +3,11 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>Assign <paramref name="Key"/> to <paramref name="Assignee"/>, or to nobody when it is null.</summary>
-public sealed record AssignRequest(string Key, IssueAssignee? Assignee) : WriteRequest
+public sealed record AssignRequest(string Key, IssueAssignee? Assignee, string? Summary = null) : WriteRequest
 {
+    // The sub-task actions (#994) name the issue by key and summary.
+    private string Label => Summary is null ? Key : $"{Key} ({Summary})";
+
     public override OperationKind Kind => OperationKind.Assign;
 
     public override IReadOnlyList<string> Keys => [Key];
@@ -12,10 +15,10 @@ public sealed record AssignRequest(string Key, IssueAssignee? Assignee) : WriteR
     public override string BusyText => "assigning";
 
     public override string StartedText =>
-        Assignee is null ? $"Unassigning {Key}" : $"Assigning {Key} to {Assignee.DisplayName}";
+        Assignee is null ? $"Unassigning {Label}" : $"Assigning {Label} to {Assignee.DisplayName}";
 
     public override string DoneText =>
-        Assignee is null ? $"Unassigned {Key}" : $"Assigned {Key} to {Assignee.DisplayName}";
+        Assignee is null ? $"Unassigned {Label}" : $"Assigned {Label} to {Assignee.DisplayName}";
 
     public override string CheckingText => $"{Key}: not sure the assignment worked, checking";
 

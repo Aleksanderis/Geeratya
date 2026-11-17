@@ -154,7 +154,7 @@ public class SavedViewReducerTests
     [Fact]
     public void GivenViewsNotLoaded_WhenThePickerOpens_ThenTheyAreRequestedForTheProfile()
     {
-        var result = Press(Press(Start(), "Space").State, "t");
+        var result = Press(Start(), "Ctrl-t");
 
         Assert.Equal(_work, Assert.Single(result.Effects.OfType<LoadSavedViewsEffect>()).Profile);
     }

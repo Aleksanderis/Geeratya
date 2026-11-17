@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ View ──────────────────────────────────────────────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                                        Status         Assignee        │
-│ No issues match.  ╭─ Commands ─────────────────────────────────────────────────────────── 89/89 ─╮                   │
+│ No issues match.  ╭─ Commands ─────────────────────────────────────────────────────────── 92/92 ─╮                   │
 │ project = A       │ : _                                                                          │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Issue                                                                        │                   │
@@ -15,8 +15,8 @@
 │                   │   Edit the issue title in place (opens the detail from a list or   <space>ie │                   │
 │                   │   Assign the issue: search people, or unassign                     <space>ia │                   │
 │                   │   Assign the issue to me                                           <space>im │                   │
-│                   │   Change the status of the issue                                   <space>is │                   │
-│                   │   Move the card to the next column                                     Alt-l▼│                   │
+│                   │   Change the status of the sub-task under the cursor               <space>ts │                   │
+│                   │   Assign the sub-task under the cursor: search people, or unassig  <space>ta▼│                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ Up/Down move  Enter run  Esc cancel                                          │                   │
 │                   ╰──────────────────────────────────────────────────────────────────────────────╯                   │

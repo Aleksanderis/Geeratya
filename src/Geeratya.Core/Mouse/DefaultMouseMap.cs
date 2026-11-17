@@ -166,6 +166,7 @@ public static class DefaultMouseMap
         const string helpScroll = "scrolls the help page by half a page or to an end; the wheel rows cover the line scroll (the section names are clickable)";
         const string paneClick = "a click inside a pane focuses it; the click rows come with the pane screens (#702, #703)";
         const string tabClick = "a click on tab N (Tabs row)";
+        const string subtaskClick = "a double click on the sub-task row opens it, where the status badge and the assignee click do the same";
 
         var exclusions = new Dictionary<string, string>
         {
@@ -196,6 +197,9 @@ public static class DefaultMouseMap
             [ActionIds.HelpTop] = helpScroll,
             [ActionIds.HelpBottom] = helpScroll,
             [ActionIds.HelpFilter] = "the filter is typed text; the section names are the mouse path",
+            [ActionIds.IssueSubtaskTransition] = subtaskClick,
+            [ActionIds.IssueSubtaskAssign] = subtaskClick,
+            [ActionIds.IssueSubtaskAssignMe] = subtaskClick,
             [ActionIds.PickerOpenNewTab] = "the sprint picker only: a click on a row opens it like Enter, the key adds the new tab",
             [ActionIds.ViewCycleCommandLevel] = "its palette row (click the status line, then the row) runs it",
             [ActionIds.PaneFocusLeft] = paneClick,

@@ -31,9 +31,9 @@ public class SourceReducerTests
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
     [Fact]
-    public void GivenNoSession_WhenPressingSpaceT_ThenThePickerOpensInInsertModeAndAsksForBothLists()
+    public void GivenNoSession_WhenPressingCtrlT_ThenThePickerOpensInInsertModeAndAsksForBothLists()
     {
-        var result = Press(Press(Start(), "Space").State, "t");
+        var result = Press(Start(), "Ctrl-t");
 
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.Equal(PickerScope.All, result.State.Picker!.Scope);
@@ -47,7 +47,7 @@ public class SourceReducerTests
     [Fact]
     public void GivenNoProfile_WhenOpeningThePickerOrACommand_ThenTheMessageSaysToAddOne()
     {
-        var picker = Press(Press(AppState.Initial, "Space").State, "t");
+        var picker = Press(AppState.Initial, "Ctrl-t");
         var board = Run(AppState.Initial, "board gcm");
 
         Assert.Null(picker.State.Picker);
@@ -61,7 +61,7 @@ public class SourceReducerTests
     {
         var state = Loaded(Start());
 
-        var result = Press(Press(state, "Space").State, "t");
+        var result = Press(state, "Ctrl-t");
 
         Assert.DoesNotContain(result.Effects, effect => effect is LoadSourcesEffect);
         Assert.NotNull(result.State.Picker);
@@ -70,11 +70,11 @@ public class SourceReducerTests
     [Fact]
     public void GivenAListIsInFlight_WhenOpeningThePickerAgain_ThenOnlyTheOtherListIsRequested()
     {
-        var first = Press(Press(Start(), "Space").State, "t");
+        var first = Press(Start(), "Ctrl-t");
         var cancelled = Press(first.State, "Esc");
         var boards = _reducer.Reduce(cancelled.State, new BoardsLoaded(_boards));
 
-        var second = Press(Press(boards.State, "Space").State, "t");
+        var second = Press(boards.State, "Ctrl-t");
 
         Assert.DoesNotContain(second.Effects, effect => effect is LoadSourcesEffect);
         Assert.True(second.State.Session.Sources.FiltersLoading);
@@ -83,11 +83,11 @@ public class SourceReducerTests
     [Fact]
     public void GivenAFailedLoad_WhenOpeningThePickerAgain_ThenItIsRetried()
     {
-        var opened = Press(Press(Start(), "Space").State, "t");
+        var opened = Press(Start(), "Ctrl-t");
         var failed = _reducer.Reduce(opened.State, Failure(SourceListKind.Boards, JiraErrorKind.Forbidden));
         var closed = Press(failed.State, "Esc");
 
-        var again = Press(Press(closed.State, "Space").State, "t");
+        var again = Press(closed.State, "Ctrl-t");
 
         var effect = Assert.Single(again.Effects.OfType<LoadSourcesEffect>());
         Assert.True(effect.Boards);
@@ -98,7 +98,7 @@ public class SourceReducerTests
     [Fact]
     public void GivenAFailedBoardsLoad_WhenItIsReported_ThenTheErrorIsKeptAndNotCachedAsLoaded()
     {
-        var opened = Press(Press(Start(), "Space").State, "t");
+        var opened = Press(Start(), "Ctrl-t");
 
         var failed = _reducer.Reduce(opened.State, Failure(SourceListKind.Boards, JiraErrorKind.NotFound));
 
@@ -482,7 +482,7 @@ public class SourceReducerTests
 
     private AppState OpenPicker(AppState state)
     {
-        return Press(Press(state, "Space").State, "t").State;
+        return Press(state, "Ctrl-t").State;
     }
 
     private AppState Type(AppState state, string text)
