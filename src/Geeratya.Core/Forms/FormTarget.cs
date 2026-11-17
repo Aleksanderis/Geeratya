@@ -16,6 +16,9 @@ public abstract record FormTarget
     public abstract string? IssueKey { get; }
 
     /// <summary>The message when the metadata holds nothing to fill in.</summary>
+    /// <summary>The project a person field searches in while the issue does not exist yet (a create form); null otherwise.</summary>
+    public virtual string? SearchProjectKey => null;
+
     public virtual string EmptyText => "Nothing here can be edited";
 
     /// <summary>A submit with no changed field is a valid write (a transition with optional fields).</summary>

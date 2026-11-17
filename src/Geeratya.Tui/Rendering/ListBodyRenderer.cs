@@ -34,7 +34,6 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string SprintTitle = "Sprint";
     private const string PointsTitle = "Pts";
     private const string EpicTitle = "Epic";
-    private const string Unassigned = EmptyValues.Unassigned;
     private const string UnknownGlyph = "?";
 
     private static readonly Dictionary<int, FlashLabel> _noFlash = [];
@@ -289,7 +288,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         var marker = IssueTypeMarker.For(row.IssueType);
         var summary = TextWidth.Pad(row.Summary, columns.Summary);
         var status = StatusText(row.Status, columns.Status, glyphs);
-        var assignee = TextWidth.Pad(row.Assignee?.DisplayName ?? Unassigned, columns.Assignee);
+        var assignee = TextWidth.Pad(ValueText.PersonName(row.Assignee?.DisplayName), columns.Assignee);
 
         var extras = ExtraColumns(row, columns);
 
@@ -306,7 +305,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
             new(" ", TextRole.Body),
             new(marker.ToString(), IssueTypeRole.For(row.IssueType)),
             new($" {summary} ", TextRole.Body),
-            new(status, StatusRole(row.Status)),
+            new(status, ValueText.StatusRole(row.Status)),
         };
 
         if (columns.Assignee > 0)
@@ -396,17 +395,6 @@ public sealed class ListBodyRenderer : IBodyRenderer
             StatusCategoryKeys.Indeterminate => glyphs.InProgress,
             StatusCategoryKeys.Done => glyphs.Done,
             _ => UnknownGlyph,
-        };
-    }
-
-    private static TextRole StatusRole(IssueStatus status)
-    {
-        return status.CategoryKey switch
-        {
-            StatusCategoryKeys.New => TextRole.StatusToDo,
-            StatusCategoryKeys.Indeterminate => TextRole.StatusInProgress,
-            StatusCategoryKeys.Done => TextRole.StatusDone,
-            _ => TextRole.Body,
         };
     }
 

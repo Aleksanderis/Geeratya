@@ -1,5 +1,3 @@
-using System.Globalization;
-using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 
@@ -15,14 +13,6 @@ internal static class DetailsPane
 {
     private const string Title = "Details";
     private const string TransitionNote = "moves via transition";
-    private const string UnassignedName = EmptyValues.Unassigned;
-    private const string UnassignedChip = "[--]";
-    private const string NoPriority = EmptyValues.None;
-    private const string NoLabels = EmptyValues.None;
-    private const string StatusDot = "●";
-    private const string High = "▲";
-    private const string Medium = "=";
-    private const string Low = "▼";
     private const int InitialsCells = 2;
 
     public static void Add(DocumentSink sink, DetailState detail, int width, int inner)
@@ -60,7 +50,7 @@ internal static class DetailsPane
         return fieldId switch
         {
             DetailFieldIds.Status or DetailFieldIds.Sprint or DetailFieldIds.Estimate => true,
-            DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Labels
+            DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Reporter or DetailFieldIds.Labels
                 or DetailFieldIds.Parent or DetailFieldIds.Epic
                 => detail.EditableFields?.Contains(EditId(fieldId)) == true,
             _ => false,
@@ -116,7 +106,7 @@ internal static class DetailsPane
 
     private static string DueText(DateOnly? due)
     {
-        return due is { } date ? date.ToString("O", CultureInfo.InvariantCulture) : EmptyValues.None;
+        return ValueText.Due(due);
     }
 
     // The way into the zoomed Attachments list: a cursor stop of its own, Enter zooms.
@@ -161,9 +151,10 @@ internal static class DetailsPane
             fields.Add(Of(detail, DetailFieldIds.Assignee, "Assignee", PersonValue(header.Assignee)));
         }
 
-        if (header.Reporter is { } reporter)
+        // An empty reporter still gets the row when the edit metadata offers it, so one can be set (as Assignee does).
+        if (header.Reporter is not null || (header.Known && IsEditable(detail, DetailFieldIds.Reporter)))
         {
-            fields.Add(Of(detail, DetailFieldIds.Reporter, "Reporter", PersonValue(reporter)));
+            fields.Add(Of(detail, DetailFieldIds.Reporter, "Reporter", PersonValue(header.Reporter)));
         }
 
         if (header.Known)
@@ -206,7 +197,7 @@ internal static class DetailsPane
 
         var plain = issue.IssueType is { HierarchyLevel: 0, IsSubtask: false };
         var id = plain ? DetailFieldIds.Epic : DetailFieldIds.Parent;
-        var none = new StyledSpan(EmptyValues.None, TextRole.Muted);
+        var none = ValueText.Empty();
 
         fields.Add(new Field(id, FieldBlockSpec.OfValue(plain ? "Epic" : "Parent", [none], true)));
     }
@@ -225,70 +216,24 @@ internal static class DetailsPane
 
     private static List<StyledSpan> StatusValue(IssueStatus status)
     {
-        return
-        [
-            new StyledSpan(StatusDot, StatusRoles.Of(status)),
-            new StyledSpan($" {TextClean.Of(status.Name)}", TextRole.ValueBlock),
-        ];
+        return [.. ValueText.Status(status, TextRole.ValueBlock)];
     }
 
     private static IReadOnlyList<IReadOnlyList<StyledSpan>> PriorityValue(string? priority)
     {
-        if (string.IsNullOrWhiteSpace(priority))
-        {
-            return [[new StyledSpan(NoPriority, TextRole.ValueBlock)]];
-        }
-
-        var tier = PriorityTierOf.Name(priority);
-        var glyph = tier switch
-        {
-            PriorityTier.High => High,
-            PriorityTier.Medium => Medium,
-            PriorityTier.Low => Low,
-            _ => string.Empty,
-        };
-        var role = tier switch
-        {
-            PriorityTier.High => TextRole.Warning,
-            PriorityTier.Low => TextRole.Muted,
-            _ => TextRole.ValueBlock,
-        };
-        var name = TextClean.Of(priority);
-
-        if (glyph.Length == 0)
-        {
-            return [[new StyledSpan(name, TextRole.ValueBlock)]];
-        }
-
-        return [[new StyledSpan(glyph, role), new StyledSpan($" {name}", TextRole.ValueBlock)]];
+        return [ValueText.Priority(priority, TextRole.ValueBlock)];
     }
 
     private static IReadOnlyList<IReadOnlyList<StyledSpan>> PersonValue(string? name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return
-            [
-                [
-                    new StyledSpan(UnassignedChip, TextRole.UnassignedChip),
-                    new StyledSpan($" {UnassignedName}", TextRole.Muted),
-                ],
-            ];
-        }
-
-        var initials = AssigneeInitials.Of(name);
-        var chip = PersonChips.Text(initials, InitialsCells);
-
-        var text = new StyledSpan($" {TextClean.Of(name)}", TextRole.ValueBlock);
-
-        return [[new StyledSpan(chip, PersonChips.For(name)), text]];
+        return [ValueText.Person(name, InitialsCells, TextRole.ValueBlock)];
     }
 
     private static List<IReadOnlyList<StyledSpan>> LabelItems(IReadOnlyList<string> labels)
     {
         if (labels.Count == 0)
         {
-            return [[new StyledSpan(NoLabels, TextRole.Muted)]];
+            return [[ValueText.Empty()]];
         }
 
         var items = new List<IReadOnlyList<StyledSpan>>();

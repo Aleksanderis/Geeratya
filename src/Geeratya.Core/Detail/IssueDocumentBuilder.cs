@@ -1,5 +1,6 @@
 using Geeratya.Core.Adf;
 using Geeratya.Core.Forms;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
@@ -156,7 +157,10 @@ public static class IssueDocumentBuilder
 
         if (header.TypeName.Length > 0)
         {
-            title.Add(new StyledSpan($" · {Clean(header.TypeName)}", TextRole.Muted));
+            var typeRole = detail.Issue is { } shown ? IssueTypeRole.For(shown.IssueType) : TextRole.Muted;
+
+            title.Add(new StyledSpan(" · ", TextRole.Muted));
+            title.Add(new StyledSpan(Clean(header.TypeName), typeRole));
         }
 
         var right = edit is { Pane: PaneIds.Title } ? PaneEdit.Chip() : null;

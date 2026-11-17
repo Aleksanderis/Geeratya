@@ -17,7 +17,6 @@ public static class CardRows
     private const int ChipCells = 4;
     private const int InitialsCells = 2;
     private const int GlyphCells = 2;
-    private const string UnassignedText = "--";
     private const int ChipBrackets = 2;
     private const int MinStatusChip = 5;
     private const string Gap = "  ";
@@ -158,7 +157,7 @@ public static class CardRows
 
         if (glyph.Length > 0 && spare >= GlyphCells + counterCells)
         {
-            spans.Add(new StyledSpan(glyph, PriorityRole(issue.Priority)));
+            spans.Add(new StyledSpan(glyph, ValueText.PriorityRole(issue.Priority)));
             spans.Add(new StyledSpan(Blank, TextRole.Body));
             spare -= GlyphCells;
         }
@@ -175,24 +174,7 @@ public static class CardRows
 
     private static StyledSpan AssigneeChip(IssueSummary issue)
     {
-        var unassigned = issue.Assignee is null || AssigneeInitials.Of(issue.Assignee.DisplayName).Length == 0;
-        var padded = TextWidth.Pad(InitialsOf(issue), InitialsCells);
-
-        return unassigned
-            ? new StyledSpan($"[{padded}]", TextRole.UnassignedChip)
-            : new StyledSpan($" {padded} ", PersonChips.For(issue.Assignee!.DisplayName));
-    }
-
-    private static string InitialsOf(IssueSummary issue)
-    {
-        var initials = issue.Assignee is null ? string.Empty : AssigneeInitials.Of(issue.Assignee.DisplayName);
-
-        if (initials.Length == 0)
-        {
-            return UnassignedText;
-        }
-
-        return TextWidth.Of(initials) > InitialsCells ? TextWidth.Fit(initials, InitialsCells) : initials;
+        return ValueText.PersonChip(issue.Assignee?.DisplayName, InitialsCells);
     }
 
     private static void AddStatus(List<StyledSpan> spans, IssueSummary issue, string estimate, int room)
@@ -230,16 +212,6 @@ public static class CardRows
             PriorityTier.Medium => glyphs.PriorityMedium,
             PriorityTier.Low => glyphs.PriorityLow,
             _ => string.Empty,
-        };
-    }
-
-    private static TextRole PriorityRole(string? priority)
-    {
-        return PriorityTierOf.Name(priority) switch
-        {
-            PriorityTier.High => TextRole.PriorityHigh,
-            PriorityTier.Medium => TextRole.PriorityMedium,
-            _ => TextRole.PriorityLow,
         };
     }
 }

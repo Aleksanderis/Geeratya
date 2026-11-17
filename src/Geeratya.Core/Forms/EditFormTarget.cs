@@ -1,4 +1,5 @@
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
 
@@ -26,7 +27,8 @@ public sealed record EditFormTarget(
     IReadOnlyCollection<string>? ReadOnlyIds = null,
     bool EstimateOnly = false,
     string? EstimateFieldId = null,
-    int? ParentLevel = null) : FormTarget
+    int? ParentLevel = null,
+    IReadOnlyDictionary<string, FieldOption>? People = null) : FormTarget
 {
     public override string Title => $"Edit {Key}";
 

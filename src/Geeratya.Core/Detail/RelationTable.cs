@@ -1,4 +1,3 @@
-using Geeratya.Core.Boards;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Detail;
@@ -16,8 +15,6 @@ internal static class RelationTable
 
     private const int Gap = 2;
     private const int MaxName = 24;
-    private const string UnassignedName = EmptyValues.Unassigned;
-    private const string UnassignedInitials = "--";
 
     /// <summary>
     /// The lines of the table for <paramref name="inner"/> columns; each line opens its row's target.
@@ -87,17 +84,12 @@ internal static class RelationTable
             return;
         }
 
-        var unassigned = string.IsNullOrWhiteSpace(row.Assignee);
-        var initials = unassigned ? UnassignedInitials : AssigneeInitials.Of(row.Assignee!);
-        var chip = unassigned ? $"[{Pad(initials, plan.ChipWidth - 2)}]" : PersonChips.Text(initials, plan.ChipWidth - 2);
-        var chipRole = unassigned ? TextRole.UnassignedChip : PersonChips.For(row.Assignee!);
-
-        spans.Add(new StyledSpan(chip, chipRole));
+        spans.Add(ValueText.PersonChip(row.Assignee, plan.ChipWidth - 2));
 
         if (plan.NameWidth > 0)
         {
-            var name = unassigned ? UnassignedName : TextClean.Of(row.Assignee!);
-            var role = unassigned ? TextRole.Muted : TextRole.Body;
+            var name = ValueText.PersonName(row.Assignee);
+            var role = ValueText.PersonNameRole(row.Assignee, TextRole.Body);
 
             spans.Add(new StyledSpan(" ", TextRole.Body));
             spans.Add(new StyledSpan(Pad(DisplayText.Cut(name, plan.NameWidth), plan.NameWidth), role));
@@ -150,22 +142,12 @@ internal static class RelationTable
 
         private static int InitialsWidth(RelationRow row)
         {
-            if (string.IsNullOrWhiteSpace(row.Assignee))
-            {
-                return UnassignedInitials.Length;
-            }
-
-            return DisplayWidth.Of(AssigneeInitials.Of(row.Assignee));
+            return DisplayWidth.Of(ValueText.Initials(row.Assignee));
         }
 
         private static int NameWidthOf(RelationRow row)
         {
-            if (string.IsNullOrWhiteSpace(row.Assignee))
-            {
-                return UnassignedName.Length;
-            }
-
-            return DisplayWidth.Of(TextClean.Of(row.Assignee));
+            return DisplayWidth.Of(ValueText.PersonName(row.Assignee));
         }
 
         /// <summary>The columns taken by everything but the summary, gaps included.</summary>

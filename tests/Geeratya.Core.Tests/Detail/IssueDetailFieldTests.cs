@@ -208,12 +208,30 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
-    public void GivenFocusOnAReadOnlyField_WhenPressingEnter_ThenTheStatusLineSaysSoAndNothingLoads()
+    public void GivenEditMetadataWithoutTheReporter_WhenPressingEnterOnIt_ThenItIsRefusedAsOnEveryField()
     {
-        var result = Press(OnTarget(Opened(Issue()), DetailFieldIds.Reporter), "Enter");
+        var opened = Opened(Issue());
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["summary"])).State;
 
-        Assert.Equal("Reporter is read-only here.", result.State.Message);
+        var result = Press(OnTarget(loaded, DetailFieldIds.Reporter), "Enter");
+
+        Assert.Equal("Reporter cannot be edited on this issue.", result.State.Message);
         Assert.Empty(result.Effects);
+    }
+
+    [Fact]
+    public void GivenEditMetadataWithTheReporter_WhenPressingEnterOnIt_ThenAPersonDropdownOpensWithTheCurrentReporter()
+    {
+        var opened = Opened(Issue());
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["reporter"])).State;
+
+        var result = Press(OnTarget(loaded, DetailFieldIds.Reporter), "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Equal(FormFieldIds.Reporter, target.OnlyId);
+        Assert.Single(target.Known[FormFieldIds.Reporter].Chosen);
+        Assert.Equal(DetailFieldIds.Reporter, Active(result.State).Form?.Dropdown);
     }
 
     [Fact]

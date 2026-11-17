@@ -1,4 +1,3 @@
-using Geeratya.Core.Boards;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Text;
 
@@ -16,8 +15,6 @@ internal static class CreateFieldBlocks
     private const string FromSelection = "from selection";
     private const string NavigateNote = "[navigate]";
     private const string EditingNote = "[editing]";
-    private const string UnassignedChip = "[--]";
-    private const string UnassignedName = EmptyValues.Unassigned;
     private const int InitialsCells = 2;
     private const int Lead = 1;
     private const int DropdownCells = 2;
@@ -115,13 +112,7 @@ internal static class CreateFieldBlocks
     {
         if (field.Value.Chosen.Count == 0)
         {
-            return
-            [
-                [
-                    new StyledSpan(UnassignedChip, TextRole.UnassignedChip),
-                    new StyledSpan($" {UnassignedName}", TextRole.Muted),
-                ],
-            ];
+            return [ValueText.Person(null, InitialsCells, TextRole.ValueBlock)];
         }
 
         return [.. field.Value.Chosen.Select(id => Person(Clean(FormOverlay.LabelOf(field, id))))];
@@ -129,9 +120,7 @@ internal static class CreateFieldBlocks
 
     private static IReadOnlyList<StyledSpan> Person(string name)
     {
-        var chip = PersonChips.Text(AssigneeInitials.Of(name), InitialsCells);
-
-        return [new StyledSpan(chip, PersonChips.For(name)), new StyledSpan($" {name}", TextRole.ValueBlock)];
+        return ValueText.Person(name, InitialsCells, TextRole.ValueBlock);
     }
 
     private static List<IReadOnlyList<StyledSpan>> ChoiceItems(FormField field)
@@ -153,15 +142,7 @@ internal static class CreateFieldBlocks
             return [Block(name)];
         }
 
-        var tier = PriorityTierOf.Name(name);
-
-        return tier switch
-        {
-            PriorityTier.High => [new StyledSpan("▲", TextRole.Warning), Block($" {name}")],
-            PriorityTier.Medium => [new StyledSpan("=", TextRole.ValueBlock), Block($" {name}")],
-            PriorityTier.Low => [new StyledSpan("▼", TextRole.Muted), Block($" {name}")],
-            _ => [Block(name)],
-        };
+        return ValueText.Priority(name, TextRole.ValueBlock);
     }
 
     private static StyledSpan Block(string text)

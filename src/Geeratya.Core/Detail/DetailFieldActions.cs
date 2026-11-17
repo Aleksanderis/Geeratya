@@ -30,7 +30,7 @@ internal static class DetailFieldActions
             DetailFieldIds.Sprint => SprintMoveActions.OpenPicker(state),
             DetailFieldIds.Parent or DetailFieldIds.Epic
                 => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId),
-            DetailFieldIds.Priority or DetailFieldIds.Labels
+            DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter
                 => Dropdown(FormOpener.EditField(state, fieldId), fieldId),
             DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditInPane(state, fieldId),
             _ => Say(state, $"{Title(fieldId)} is read-only here."),
@@ -40,8 +40,8 @@ internal static class DetailFieldActions
     // The edit metadata is known and does not list the field: nothing opens. Unknown metadata lets the form decide.
     private static bool Refused(AppState state, string fieldId)
     {
-        if (fieldId is not (DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Labels
-            or DetailFieldIds.Parent or DetailFieldIds.Epic))
+        if (fieldId is not (DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Reporter
+            or DetailFieldIds.Labels or DetailFieldIds.Parent or DetailFieldIds.Epic))
         {
             return false;
         }

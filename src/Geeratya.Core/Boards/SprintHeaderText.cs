@@ -1,5 +1,5 @@
 using System.Globalization;
-using Geeratya.Core.Detail;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
 
@@ -11,18 +11,11 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class SprintHeaderText
 {
-    private const string DoneCategory = "done";
-    private const string DateFormat = "d MMM";
 
     /// <summary>The start and end date as <c>3 Nov - 17 Nov</c>; empty when the sprint has no dates.</summary>
     public static string Dates(Sprint sprint)
     {
-        if (sprint.StartDate is not { } start || sprint.EndDate is not { } end)
-        {
-            return string.Empty;
-        }
-
-        return $"{Day(start)} - {Day(end)}";
+        return ValueText.DateRange(sprint.StartDate, sprint.EndDate);
     }
 
     /// <summary>
@@ -71,28 +64,23 @@ public static class SprintHeaderText
             any = true;
             total += points;
 
-            if (row.Status.CategoryKey == DoneCategory)
+            if (row.Status.CategoryKey == StatusCategoryKeys.Done)
             {
                 done += points;
             }
         }
 
-        return any ? $"{Number(done)}/{Number(total)} pts" : string.Empty;
+        return any ? $"{ValueText.Estimate(done)}/{ValueText.Estimate(total)} pts" : string.Empty;
     }
 
     /// <summary>An estimate as shown on a card: <c>5</c>, <c>0.5</c>; empty for none.</summary>
     public static string Estimate(double? points)
     {
-        return points is { } value ? Number(value) : string.Empty;
-    }
-
-    private static string Number(double value)
-    {
-        return EstimateText.Format(value);
+        return ValueText.Estimate(points);
     }
 
     private static string Day(DateTimeOffset date)
     {
-        return date.UtcDateTime.ToString(DateFormat, CultureInfo.InvariantCulture);
+        return ValueText.Day(date);
     }
 }

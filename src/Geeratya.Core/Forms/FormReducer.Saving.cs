@@ -18,15 +18,18 @@ public static partial class FormReducer
         }
 
         var target = (loaded.Target ?? form.Target).Loaded(loaded.Fields);
-        var top = loaded.Fields.Any(field => field.IsEditable) ? null : target.EmptyText;
+        var fields = target is CreateFormTarget
+            ? [.. loaded.Fields.Select(field => PersonField.Prefilled(field, state.Session.Connection))]
+            : loaded.Fields;
+        var top = fields.Any(field => field.IsEditable) ? null : target.EmptyText;
         var filled = form with
         {
             Target = target,
-            Fields = loaded.Fields,
+            Fields = fields,
             IsLoading = false,
             TopError = top,
         };
-        var editable = loaded.Fields.Count(field => field.IsEditable);
+        var editable = fields.Count(field => field.IsEditable);
         var navigable = target is CreateFormTarget && editable > 0;
         var stepped = filled with { Focus = Step(filled, 0), Navigable = navigable };
         var shown = WithQuickRows(state, stepped);
