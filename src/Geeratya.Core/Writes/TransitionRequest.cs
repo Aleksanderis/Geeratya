@@ -31,7 +31,7 @@ public sealed record TransitionRequest(
 
     public override string DoneText => $"Moved {Label} to {Choice.Target.Name}";
 
-    public override string CheckingText => $"{Key}: not sure the move worked, checking";
+    public override string CheckingText => $"{Label}: not sure the move worked, checking";
 
     public override string NotAppliedText => $"{Key}: the move was not applied";
 

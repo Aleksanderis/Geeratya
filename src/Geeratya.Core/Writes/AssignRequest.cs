@@ -20,7 +20,7 @@ public sealed record AssignRequest(string Key, IssueAssignee? Assignee, string? 
     public override string DoneText =>
         Assignee is null ? $"Unassigned {Label}" : $"Assigned {Label} to {Assignee.DisplayName}";
 
-    public override string CheckingText => $"{Key}: not sure the assignment worked, checking";
+    public override string CheckingText => $"{Label}: not sure the assignment worked, checking";
 
     public override string NotAppliedText => $"{Key}: the assignment was not applied";
 

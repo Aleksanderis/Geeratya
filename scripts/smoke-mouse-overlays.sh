@@ -3,7 +3,7 @@
 #   scripts/smoke-mouse-overlays.sh --binary <geeratya>
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
-# source picker row (<space>t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
+# source picker row (Ctrl-t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
 # popup row, a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
 # backlog, checked in the fake's own backlog list), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
@@ -253,8 +253,8 @@ start "$one"
 wait_for "fake: fake@example.com"
 dismiss_start_picker
 
-# Source picker: <space>t, click a row.
-send " t"
+# Source picker: Ctrl-t, click a row.
+tmux -L "$socket" send-keys -t s C-t
 wait_for "Open a view"
 click "Board   GCM board"
 wait_for "In Progress"
