@@ -13,6 +13,9 @@ public static class DiscardPrompts
     /// <summary>The action of the discard question of a field form.</summary>
     public const string FormAction = "form.discard";
 
+    /// <summary>The action of the discard question of the comment editor.</summary>
+    public const string CommentAction = "comment.discard";
+
     /// <summary>True when <paramref name="request"/> is a discard question of an editor.</summary>
     public static bool Is(ConfirmRequest? request)
     {

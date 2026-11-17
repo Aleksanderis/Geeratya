@@ -218,7 +218,7 @@ public static class FieldRows
     private static List<StyledLine> Flow(FormField field, List<IReadOnlyList<StyledSpan>> items, FieldLook look)
     {
         var width = Math.Max(1, look.Width);
-        var gap = field.Kind == FormFieldKind.Labels ? SpaceGap : CommaGap;
+        var gap = field.Kind is FormFieldKind.Labels or FormFieldKind.MultiSelect ? SpaceGap : CommaGap;
         var rows = new List<List<StyledSpan>>();
         var current = new List<StyledSpan>();
         var used = 0;
@@ -275,7 +275,7 @@ public static class FieldRows
             return [new StyledSpan($" {name} ", LabelChips.For(id))];
         }
 
-        if (field.Kind is FormFieldKind.Labels or FormFieldKind.Parent)
+        if (field.Kind is FormFieldKind.Labels or FormFieldKind.Parent or FormFieldKind.MultiSelect)
         {
             return [new StyledSpan($"{ParentOpen}{name}{ParentClose}", look.Role)];
         }

@@ -20,7 +20,7 @@ namespace Geeratya.Core.Comments;
 internal static partial class CommentEditing
 {
     /// <summary>The confirm action that throws the editor text away.</summary>
-    public const string DiscardAction = "comment.discard";
+    public const string DiscardAction = DiscardPrompts.CommentAction;
 
     private const string OpenIssueText = "Open an issue first.";
     private const string NoCommentText = "Put the cursor on a comment first.";

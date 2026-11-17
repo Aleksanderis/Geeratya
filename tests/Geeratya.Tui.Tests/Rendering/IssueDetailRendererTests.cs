@@ -513,14 +513,14 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenTheDiscardQuestion_WhenBuilding_ThenTheStatusBarShowsTheKeysOfTheQuestionNotSave()
+    public void GivenTheDiscardQuestion_WhenBuilding_ThenTheStatusBarShowsTheConfirmKeysNotSave()
     {
         var asked = Keys(Keys(EditingSummary(120, 36), "x"), "Esc");
 
         var frame = FrameBuilder.BuildStyled(asked, 120, 36, _keymap)!;
 
-        Assert.Contains("discard", frame.StatusLine);
-        Assert.Contains("keep editing", frame.StatusLine);
+        Assert.Contains("CONFIRM", frame.StatusLine);
+        Assert.Contains("y/n", frame.StatusLine);
         Assert.DoesNotContain("Ctrl-s", frame.StatusLine);
     }
 

@@ -254,7 +254,7 @@ public class ConfirmOverlayTests
     public void GivenADiscardQuestionOverTheEditor_WhenShrinkingOrClickingOutside_ThenTheEditorGetsItsTextBack()
     {
         var editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of("draft"), string.Empty);
-        var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", "x");
+        var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", DiscardPrompts.CommentAction);
         var state = Open(request) with { ViewportColumns = 80, ViewportBodyHeight = 21, Editor = editor };
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);

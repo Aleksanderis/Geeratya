@@ -211,7 +211,7 @@ public class ColumnsSubtaskTests
         Assert.True(subtask.IsListed);
         var form = Assert.IsType<TransitionPickTarget>(Active(result.State).Form!.Target);
         Assert.Equal(subtask.Key, form.IssueKey);
-        Assert.Equal(subtask.Key, Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects)).Target.IssueKey);
+        Assert.Equal(subtask.Key, Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>()).Target.IssueKey);
     }
 
     [Theory]

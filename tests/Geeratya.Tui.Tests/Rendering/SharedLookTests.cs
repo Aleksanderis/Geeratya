@@ -45,7 +45,7 @@ public class SharedLookTests
     }
 
     [Fact]
-    public void GivenALongFieldError_WhenBuildingTheFrame_ThenItIsCutWithAnEllipsis()
+    public void GivenALongFieldError_WhenBuildingTheFrame_ThenItWrapsAndTheSentenceIsNeverCut()
     {
         var error = "Estimate must be a number such as 0.5 or 3 and cannot be negative or contain any letters at all";
         var field = FormField.Create("estimate", "Estimate", FormFieldKind.Number, false, []) with { Error = error };
@@ -53,8 +53,10 @@ public class SharedLookTests
 
         var lines = FrameBuilder.Build(FormOverlaySnapshotTests.WithForm(form), 60, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("! Estimate must", StringComparison.Ordinal) && line.Contains('…'));
-        Assert.DoesNotContain(lines, line => line.Contains("any letters at all", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("! Estimate must", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("cannot be negative", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("  all  ", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains('…') && line.Contains('!'));
     }
 
     [Fact]

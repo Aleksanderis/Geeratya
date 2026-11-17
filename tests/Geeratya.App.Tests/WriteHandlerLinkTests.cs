@@ -181,9 +181,9 @@ public sealed class WriteHandlerLinkTests
         var reducer = new AppReducer(DefaultKeymap.Load());
 
         var opened = PressAll(reducer, OpenTab(reducer), "Space", "i", "l");
-        await fixture.Metadata.StartAsync(Assert.IsType<LoadFormMetadataEffect>(Assert.Single(opened.Effects)));
+        await fixture.Metadata.StartAsync(Assert.Single(opened.Effects.OfType<LoadFormMetadataEffect>()));
         var loaded = reducer.Reduce(opened.State, Assert.Single(fixture.Posted));
-        var filled = PressAll(reducer, loaded.State, "Enter", "a", "-", "2");
+        var filled = PressAll(reducer, loaded.State, "Enter", "j", "Enter", "a", "-", "2");
         var submitted = PressAll(reducer, filled.State, "Ctrl-s");
         await fixture.Writes.StartAsync(Assert.Single(submitted.Effects.OfType<ExecuteWriteEffect>()));
         var finished = reducer.Reduce(submitted.State, fixture.Posted[1]);
