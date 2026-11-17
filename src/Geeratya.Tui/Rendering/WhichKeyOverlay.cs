@@ -18,6 +18,7 @@ public static class WhichKeyOverlay
     private const int KeyColumn = 10;
     private const int ChromeColumns = 4;
     private const int ColumnGap = 3;
+    private const int FooterRows = 2;
 
     /// <summary>
     /// True when the popup shows for <paramref name="state"/>: Normal mode, keys pending, delay passed, switch on.
@@ -96,9 +97,24 @@ public static class WhichKeyOverlay
 
         var shown = rows.Take(height - 2).ToList();
         var contentWidth = boxWidth - 2;
+        var footer = Footer(keymap);
+
+        // The footer takes two rows (divider and chips) when the list leaves them free (and a row of the view above
+        // the box, as before) and the box is wide enough.
+        if (shown.Count + FooterRows + 2 >= height || TextWidth.Of(footer.PlainText) > contentWidth - 2)
+        {
+            footer = StyledLine.Empty;
+        }
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, KeyNotation.Display(state.PendingKeys)) };
 
         lines.AddRange(shown.Select(row => OverlayBox.Wall(row, contentWidth)));
+
+        if (footer.Spans.Count > 0)
+        {
+            lines.Add(OverlayBox.Divider(boxWidth));
+            lines.Add(OverlayBox.Wall(footer, contentWidth));
+        }
+
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var result = OverlayBox.Backdrop(body);
@@ -167,6 +183,11 @@ public static class WhichKeyOverlay
         }
 
         return result;
+    }
+
+    private static StyledLine Footer(KeymapTable keymap)
+    {
+        return DialogFooter.Line([DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.Cancel, HintLabels.Cancel)]);
     }
 
     private static StyledLine Line(WhichKeyRow row)

@@ -71,4 +71,13 @@ public static class HintLabels
 
     /// <summary>Resets the highlighted setting.</summary>
     public const string Reset = "reset";
+
+    /// <summary>Tab shows the next page of the Help.</summary>
+    public const string Page = "page";
+
+    /// <summary>Starts the filter of the Help.</summary>
+    public const string Filter = "filter";
+
+    /// <summary>Esc drops the half-typed key sequence.</summary>
+    public const string Cancel = "cancel";
 }

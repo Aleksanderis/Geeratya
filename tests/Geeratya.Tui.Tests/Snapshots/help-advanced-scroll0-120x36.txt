@@ -28,9 +28,9 @@
 │           │               │   <space>g   Jump to an issue by key                                         │           │
 │           │               │   <space>sm  Move the selected issues to a sprint                            │           │
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
-│           │               │ Comment                                                                      │           │
-│           │               │   <space>ma  Add a comment to the issue                                      │           │
-│           │               │   <space>me  Edit the comment under the cursor                              ▼│           │
+│           │               │ Comment                                                                     ▼│           │
+│           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
+│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

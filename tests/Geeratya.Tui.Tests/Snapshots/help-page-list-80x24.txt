@@ -16,9 +16,9 @@
 │ │               │              cursor (in a list: the issue key)           │ │
 │ │               │   <space>yy  Copy the key of the issue under the cursor  │ │
 │ │               │   <space>yu  Copy the issue link                         │ │
-│ │               │   <space>ys  Copy the issue key and summary              │ │
-│ │               │   <space>ie  Edit the issue title in place (opens the    │ │
-│ │               │              detail from a list or board)               ▼│ │
+│ │               │   <space>ys  Copy the issue key and summary             ▼│ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

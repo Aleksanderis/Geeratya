@@ -7,8 +7,8 @@
 |         |   Edit the issue                               <space>ie |         |
 |         |   Quit                                            Ctrl-c |         |
 |         +----------------------------------------------------------+         |
-|                                                                              |
-|                                                                              |
+|         | Up/Down move   Enter run   Esc close                     |         |
+|         +----------------------------------------------------------+         |
 |               work: me@work.test on https://work.atlassian.net               |
 |                         ? help   : commands   q back                         |
 |                                                                              |

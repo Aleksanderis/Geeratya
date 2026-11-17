@@ -232,6 +232,17 @@ public sealed partial class AppReducer
             };
         }
 
+        if (state is { ProfileList: not null, Form: null, Confirm: null })
+        {
+            // The list has no text field; j and k move like in the other lists.
+            return text switch
+            {
+                "j" => ProfileReducer.MoveList(state, 1),
+                "k" => ProfileReducer.MoveList(state, -1),
+                _ => state,
+            };
+        }
+
         if (state.Editor is not null)
         {
             return CommentEditing.Type(state, text);

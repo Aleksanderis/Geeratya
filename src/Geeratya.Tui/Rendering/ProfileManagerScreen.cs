@@ -36,6 +36,8 @@ public static class ProfileManagerScreen
     private const int MinListWidth = 26;
     private const int MaxListWidth = 44;
     private const int ButtonRows = 1;
+    private const int FooterRows = 1;
+    private const int FooterMinimumInner = 6;
     private const string ActiveMark = "●";
     private const string ActiveMarkAscii = "*";
     private const string CheckingText = "looking up...";
@@ -61,14 +63,15 @@ public static class ProfileManagerScreen
         var framed = FrameGrid.CanFrame(width, height);
         var inner = framed ? Math.Max(0, height - 2) : height;
         var listRoom = Math.Max(0, listWidth - (framed ? 3 : 0));
-        var area = Math.Max(0, inner - ButtonRows);
+        var footer = inner >= FooterMinimumInner ? FooterRows : 0;
+        var area = Math.Max(0, inner - ButtonRows - footer);
         var first = ListCursor.FirstVisible(selected, profiles.Count, area);
-        var left = ListLines(state, context, selected, first, area, listRoom, inner);
+        var left = ListLines(state, context, selected, first, area, listRoom, inner, footer);
         var right = withDetails ? DetailLines(state, selected, width - listWidth - 1) : [];
 
         if (regions is not null)
         {
-            MarkRegions(regions, framed, width, height, profiles.Count, first, area, listWidth);
+            MarkRegions(regions, framed, width, height, profiles.Count, first, area, listWidth, footer);
         }
 
         if (!framed)
@@ -155,7 +158,8 @@ public static class ProfileManagerScreen
         int first,
         int area,
         int room,
-        int inner)
+        int inner,
+        int footer)
     {
         var profiles = state.Profiles.Profiles;
         var lines = new List<StyledLine>(inner);
@@ -174,7 +178,7 @@ public static class ProfileManagerScreen
             lines.Add(RowLine(profiles[index], state.Profiles.ActiveName, index == selected, mark, room));
         }
 
-        while (lines.Count < inner - ButtonRows)
+        while (lines.Count < inner - ButtonRows - footer)
         {
             lines.Add(StyledLine.Empty);
         }
@@ -184,7 +188,22 @@ public static class ProfileManagerScreen
             lines.Add(ChipButtons.Line(_buttons));
         }
 
+        if (footer > 0)
+        {
+            lines.Add(Footer(context.Keymap));
+        }
+
         return lines;
+    }
+
+    private static StyledLine Footer(KeymapTable keymap)
+    {
+        return DialogFooter.Line(
+        [
+            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Switch),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
+        ]);
     }
 
     private static StyledLine RowLine(Profile profile, string? activeName, bool selected, string mark, int room)
@@ -297,7 +316,8 @@ public static class ProfileManagerScreen
         int count,
         int first,
         int area,
-        int listWidth)
+        int listWidth,
+        int footer)
     {
         var offset = framed ? 1 : 0;
         var left = framed ? 1 : 0;
@@ -314,7 +334,7 @@ public static class ProfileManagerScreen
             offset,
             Enumerable.Range(first, shown));
 
-        var buttonRow = offset + Math.Max(0, (framed ? height - 2 : height) - ButtonRows);
+        var buttonRow = offset + Math.Max(0, (framed ? height - 2 : height) - ButtonRows - footer);
 
         ChipButtons.Mark(regions, buttonRow, left, _buttons);
     }

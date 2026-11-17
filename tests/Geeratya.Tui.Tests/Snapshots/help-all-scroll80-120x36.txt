@@ -28,9 +28,9 @@
 │           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
 │           │               │              screen)                                                         │           │
 │           │               │ Dialogs                                                                      │           │
-│           │               │   Esc        Close help  (q)                                                 │           │
-│           │               │   /          Filter the help by key, title or action id                      │           │
-│           │               │   Tab        Next help section                                              ▼│           │
+│           │               │   Esc        Close help  (q)                                                ▼│           │
+│           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
+│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

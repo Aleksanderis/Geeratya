@@ -30,6 +30,8 @@ public static class HelpOverlay
     private const int ContinuationIndent = 13;
     private const int RowIndent = 2;
     private const int KeyColumn = 10;
+    private const int FooterRows = 2;
+    private const int FooterMinimumBox = 12;
 
     public static bool Applies(AppState state)
     {
@@ -70,7 +72,8 @@ public static class HelpOverlay
         }
 
         var left = (width - boxWidth) / 2;
-        var rows = boxHeight - 2;
+        var footer = boxHeight >= FooterMinimumBox ? FooterRows : 0;
+        var rows = boxHeight - 2 - footer;
         var names = HelpPages.Names(state, keymap);
         var current = HelpPages.Current(state, keymap);
         var inner = boxWidth - 4;
@@ -103,6 +106,12 @@ public static class HelpOverlay
             box.Add(OverlayBox.Wall(new StyledLine(spans), boxWidth - 2, marker));
         }
 
+        if (footer > 0)
+        {
+            box.Add(OverlayBox.Divider(boxWidth));
+            box.Add(OverlayBox.Wall(Footer(keymap, withPages: true), boxWidth - 2));
+        }
+
         box.Add(OverlayBox.Bottom(boxWidth));
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
@@ -120,6 +129,18 @@ public static class HelpOverlay
         }
 
         return result;
+    }
+
+    /// <summary>The footer of the Help and of the Messages screen (Help mode); the page chips only for the Help.</summary>
+    internal static StyledLine Footer(KeymapTable keymap, bool withPages)
+    {
+        return DialogFooter.Line(
+        [
+            DialogFooter.Pair(keymap, InputMode.Help, ActionIds.NavigateDown, ActionIds.NavigateUp, HintLabels.Move),
+            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page) : null,
+            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpFilter, HintLabels.Filter) : null,
+            DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.Close),
+        ]);
     }
 
     private static string TitleText(AppState state, int boxWidth)

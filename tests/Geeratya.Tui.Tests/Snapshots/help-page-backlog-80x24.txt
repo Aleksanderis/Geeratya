@@ -16,9 +16,9 @@
 │ │               │              previous swimlane                           │ │
 │ │               │   za         Expand or collapse sub-tasks of a card, a   │ │
 │ │               │              cut text or a backlog section               │ │
-│ │               │   <space>l   Switch between list and columns             │ │
-│ │               │   <space>vf  Cycle the quick filter of the board (off,   │ │
-│ │               │              then each filter in turn)                  ▼│ │
+│ │               │   <space>l   Switch between list and columns            ▼│ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

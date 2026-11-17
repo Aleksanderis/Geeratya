@@ -110,7 +110,7 @@ There are about 15 places where a target or field id decides behaviour that belo
 - Only the create form has the navigate state. There, `q`, `gg`/`G` and `Ctrl-d`/`Ctrl-u` do nothing. Other forms close on the first Esc, and `j`/`k` type text there.
 - The comment `FormState.Navigable` still says "edit form", which is stale (#762).
 - Esc closes the picker, Jump, Flash and palette in one step even with text typed. In Help and in choice fields, the first Esc clears the filter.
-- `j`/`k` move in Settings, Help, the context menu and create-form navigation. They are text in the picker, Jump and palette, and do nothing in the profile manager (only Up/Down work there).
+- `j`/`k` move in Settings, Help, the context menu and create-form navigation. They are text in the picker, Jump and palette. They also move the highlight in the profile manager (#1005).
 - The profile manager opened from Settings does not return to Settings on Esc.
 - The profile form closes on Esc without asking, even when it has changes.
 - After the transition picker, Esc on the transition fields form closes everything instead of going back to the picker.
@@ -134,7 +134,7 @@ There are about 15 places where a target or field id decides behaviour that belo
 - Errors are `Error` in forms, `Warning` in the profile form and `Stale` (purple) for comment-editor warnings. The profile "test OK" message borrows `StatusDone`.
 - Confirm frames are red for delete, status and sprint complete, and yellow for unlink and rank across sections. "Jira cannot undo this." is yellow in all of them.
 - Borrowed theme slots: Accent carries 9+ meanings, including heading, key, field label, link, focus frame, Task type and In Progress. `Warn` carries typed text, the caret, key labels, warnings and Medium priority. ADF red text maps to `Error`, so it looks like an error.
-- Which-key does not dim the background; every other overlay does.
+- Which-key dims the background like every other overlay (fixed in phase 1).
 - The Details dropdown has no highlighted row until you move.
 - In Settings, the category and the first setting are both highlighted, so it is unclear which pane has focus.
 - With colour off (`NO_COLOR`), field labels, typed text and read-only values look alike. The focused form field has no marker; the `>` mark was removed, but its doc comment still mentions it. Error, Warning and RateLimited differ only by colour.
@@ -145,7 +145,7 @@ There are about 15 places where a target or field id decides behaviour that belo
 - Esc goes by 7 labels: back, close, cancel, close list, clear filter, stop editing and keep editing.
 - Enter goes by about 12: open, switch, move, run, choose, accept, change, keep, nearest, next, save, new line and edit/open.
 - The boxed form says "Tab/Shift-Tab field"; elsewhere it is "Tab field".
-- There are no footers on Help, Messages, the context menu, the profile manager, Flash, the Details dropdown or the create form. These rely on the status bar, and in Minimal mode the status bar drops them.
+- Help, Messages, the context menu, the profile manager and which-key got typed footers in #1005 (shown when the box is tall enough). Flash, the Details dropdown and the create form still have none and rely on the status bar, which Minimal mode drops.
 - Some footer key labels are hardcoded (Settings `j`/`k`/`Enter`/`Esc`, `Ctrl-f`, `?`). Other footers print an empty string when an action has no key.
 - The profile list shows the INSERT badge with no footer hints.
 
@@ -193,6 +193,10 @@ Each component has a pure part in Core (state and behaviour, no terminal) and on
 ### Phase 4 status (#999)
 
 Done: `ListCursor` (replaces the clamp copies in the reducers and the six `FirstVisible` copies in the overlay renderers and the two `PopupFirst` copies; `ListMotion` and `BoardScroll` build on it), `Matcher` (shared by `PaletteFuzzy`, `SuggestionRanker`, the picker, tab list, sprint list and Jump filters), `HintLabels`, `DialogFooter` and `ChipButtons` (footers of the picker, Jump, palette, form, comment editor, profile form and Settings; the profile buttons), the wheel by context with `OverlayWheeled` and the contract tests (`OverlayWheelContractTests`), and the rewritten wheel text in `ux-mouse.md`. Not done, carried by #1005: a click scenario and the `Ctrl-n`/`Ctrl-p` keys for Jump and the palette in the pick-list contract tests (it runs wheel and Up/Down today), the `MouseMapTests` check that fails on map rows that are not wired (the table test checks only that doc and code agree), the `PickList` state and renderer proper (the four popup renderers and the state types are still separate; the contract tests already run one key and wheel scenario over all of them), `j`/`k` in the profile manager, footers for Help, Messages, the context menu, the profile manager and which-key (they rely on the status bar), and the Dialog dimming and frame role by kind.
+
+### Phase 4 status, #1005
+
+Done: `j`/`k` move the profile list (it has no text field; the profile form keeps them as text), typed footers (`DialogFooter`, new labels `Page`, `Filter`, `Cancel`) on Help, Messages, the context menu, the profile manager and which-key, shown only when the box has room (Help and the context menu from 12 rows, the profile manager from 6 inner rows, which-key when the list leaves two rows and one row of the view above). The Dialog dimming and the frame role by kind were already in place (which-key dims, Confirm picks its frame by `ConfirmOverlay.KindOf`). Not done, registered as #1010 and #1011: the `PickList` state and renderer proper, `j`/`k` in the picker, Jump and the palette when there is no text (owner decision: project keys such as `KAN` or `JRA` start with `j` or `k`, so the first letter could no longer be typed), the typed Confirm answer rows, a click scenario and the `MouseMapTests` wiring check.
 
 ## What this audit did not cover
 

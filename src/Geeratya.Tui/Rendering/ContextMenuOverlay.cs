@@ -20,6 +20,8 @@ public static class ContextMenuOverlay
     private const int KeyGap = 2;
     private const int TopGap = 2;
     private const int MinimumItemsForHeaders = 6;
+    private const int FooterRows = 2;
+    private const int FooterMinimumHeight = 12;
 
     /// <summary>
     /// Draws the menu of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).
@@ -42,12 +44,19 @@ public static class ContextMenuOverlay
         var selected = Math.Clamp(menu.Selected, 0, menu.Items.Count - 1);
         var rows = DisplayRows(menu, keymap, selected, boxWidth - 4);
         var selectedRow = rows.FindIndex(row => row.Item == selected);
-        var area = Math.Min(rows.Count, height - 2);
+        var footer = height >= FooterMinimumHeight ? FooterRows : 0;
+        var area = Math.Min(rows.Count, height - 2 - footer);
         var first = area <= 0 || selectedRow < area ? 0 : Math.Min(selectedRow - area + 1, rows.Count - area);
         var contentWidth = boxWidth - 2;
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title) };
 
         lines.AddRange(rows.Skip(first).Take(area).Select(row => OverlayBox.Wall(row.Line, contentWidth)));
+
+        if (footer > 0)
+        {
+            lines.Add(OverlayBox.Divider(boxWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+        }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
 
@@ -100,6 +109,16 @@ public static class ContextMenuOverlay
         }
 
         return rows;
+    }
+
+    private static StyledLine Footer(KeymapTable keymap)
+    {
+        return DialogFooter.Line(
+        [
+            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Run),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
+        ]);
     }
 
     private static StyledLine RowLine(string title, string keys, bool selected, int width)

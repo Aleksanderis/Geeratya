@@ -23,8 +23,6 @@
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
 │                                    ╭─ <space>i ──────────────────────────────────────────────────────────────────────╮
 │                                    │ m         Assign the issue to me                                                │
 │                                    │ a         Assign the issue: search people, or unassign                          │
@@ -32,5 +30,7 @@
 │                                    │ C         Create a sub-task of the selected issue                               │
 │                                    │ c         Create an issue (type picker, then the form)                          │
 │                                    │ e         Edit the issue title in place (opens the detail from a list or board) │
+│                                    ├─────────────────────────────────────────────────────────────────────────────────┤
+│                                    │ Esc cancel                                                                      │
 ╰────────────────────────────────────╰─────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  <space>i                                                                             ? help  : commands  q back

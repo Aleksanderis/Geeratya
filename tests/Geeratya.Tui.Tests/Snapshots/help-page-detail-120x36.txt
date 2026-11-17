@@ -28,9 +28,9 @@
 │ │ │       │                │   <space>yu  Copy the issue link                                            │       │ │ │
 │ │ ╰───────│                │   <space>ys  Copy the issue key and summary                                 │       │ │ │
 │ │         │                │   <space>ie  Edit the issue title in place (opens the detail from a list    │       │ │ │
-│ │         │                │              or board)                                                      │       │ │ │
-│ │         │                │   <space>ia  Assign the issue: search people, or unassign                   │       │ │ │
-│ │         │                │   <space>im  Assign the issue to me                                        ▼│───────╯ │ │
+│ │         │                │              or board)                                                     ▼│       │ │ │
+│ │         ├──────────────────────────────────────────────────────────────────────────────────────────────┤       │ │ │
+│ │         │ j/k move   Tab page   / filter   Esc close                                                   │───────╯ │ │
 │ ╰─────────╰──────────────────────────────────────────────────────────────────────────────────────────────╯─────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
