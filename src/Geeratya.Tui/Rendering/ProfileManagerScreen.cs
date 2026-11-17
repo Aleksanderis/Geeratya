@@ -21,11 +21,16 @@ public static class ProfileManagerScreen
     /// <summary>The narrowest body that shows the details pane next to the list.</summary>
     public const int DetailsMinimumWidth = 60;
 
+    private static readonly ChipButton[] _buttons =
+    [
+        new(AddLabel, MouseTarget.ProfileAddButton),
+        new(EditLabel, MouseTarget.ProfileEditButton),
+    ];
+
     private const string ListTitle = "Profiles";
     private const string DetailsTitle = "Details";
     private const string AddLabel = "Add";
     private const string EditLabel = "Edit";
-    private const int ButtonGap = 3;
     private const int NameColumn = 14;
     private const int LabelColumn = 9;
     private const int MinListWidth = 26;
@@ -176,7 +181,7 @@ public static class ProfileManagerScreen
 
         if (inner > 0)
         {
-            lines.Add(ButtonLine());
+            lines.Add(ChipButtons.Line(_buttons));
         }
 
         return lines;
@@ -201,18 +206,6 @@ public static class ProfileManagerScreen
             new StyledSpan(marker[1..], active ? TextRole.StatusDone : TextRole.Muted),
             new StyledSpan(name, TextRole.Strong),
             new StyledSpan(profile.Email, TextRole.Muted),
-        ]);
-    }
-
-    private static StyledLine ButtonLine()
-    {
-        var gap = new string(' ', ButtonGap);
-
-        return new StyledLine(
-        [
-            new StyledSpan(AddLabel, TextRole.Key),
-            new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(EditLabel, TextRole.Key),
         ]);
     }
 
@@ -323,14 +316,6 @@ public static class ProfileManagerScreen
 
         var buttonRow = offset + Math.Max(0, (framed ? height - 2 : height) - ButtonRows);
 
-        regions.Add(new OverlayRegion(MouseTarget.ProfileAddButton, buttonRow, left, AddLabel.Length, 1, 0));
-        regions.Add(
-            new OverlayRegion(
-                MouseTarget.ProfileEditButton,
-                buttonRow,
-                left + AddLabel.Length + ButtonGap,
-                EditLabel.Length,
-                1,
-                0));
+        ChipButtons.Mark(regions, buttonRow, left, _buttons);
     }
 }

@@ -15,7 +15,7 @@
 │ │ Query                                                                    │ │
 │ │   JQL     text ~ "g"                                                     │ │
 │ │ ──────────────────────────────────────────────────────────────────────── │ │
-│ │ Up/Down choose   Enter open in a new tab   Esc close                     │ │
+│ │ Up/Down move   Enter open in a new tab   Esc close                       │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 │                                                                              │
 │                                                                              │

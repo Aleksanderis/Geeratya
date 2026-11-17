@@ -21,7 +21,7 @@
 │           │ 16 colours here: themes are approximated. Default: auto. The colour theme: a built-in one or │           │
 │           │ a file in the themes folder.                                                                 │           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
-│           │ j/k move  Enter change  Alt-r reset  Esc close                                               │           │
+│           │ j/k move   Enter change   Alt-r reset   Esc close                                            │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 │                                                                                                                      │
 │                                                                                                                      │

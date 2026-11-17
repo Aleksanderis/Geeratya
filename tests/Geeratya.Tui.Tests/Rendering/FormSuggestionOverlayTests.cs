@@ -159,7 +159,7 @@ public class FormSuggestionOverlayTests
     {
         var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), 120, 36, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("choose", StringComparison.Ordinal) && line.Contains("close list"));
+        Assert.Contains(lines, line => line.Contains("move", StringComparison.Ordinal) && line.Contains("choose") && line.Contains("Esc close"));
     }
 
     [Fact]

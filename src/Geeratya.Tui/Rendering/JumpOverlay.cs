@@ -111,7 +111,7 @@ public static class JumpOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -163,13 +163,13 @@ public static class JumpOverlay
         ]);
     }
 
-    private static string FooterText(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap)
     {
-        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
-
-        return $"{up}/{down} choose   {accept} open   {cancel} close";
+        return DialogFooter.Line(
+        [
+            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Open),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
+        ]);
     }
 }

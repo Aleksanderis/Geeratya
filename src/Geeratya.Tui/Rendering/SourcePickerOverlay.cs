@@ -109,7 +109,7 @@ public static class SourcePickerOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap, picker)), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, picker), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -144,31 +144,39 @@ public static class SourcePickerOverlay
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }
 
-    private static string FooterText(KeymapTable keymap, SourcePickerState picker)
+    private static StyledLine Footer(KeymapTable keymap, SourcePickerState picker)
     {
-        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
+        var move = DialogFooter.Pair(
+            keymap,
+            InputMode.Insert,
+            ActionIds.PickerPrevious,
+            ActionIds.PickerNext,
+            HintLabels.Move);
+        var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
+        var newTab = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.PickerOpenNewTab, HintLabels.NewTab);
 
+        return DialogFooter.Line(
+        [
+            move,
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, EnterLabel(picker)),
+            picker is { Scope: PickerScope.Sprints, Sprint.MoveKeys: null } ? newTab : null,
+            close,
+        ]);
+    }
+
+    private static string EnterLabel(SourcePickerState picker)
+    {
         if (picker.Scope == PickerScope.Tabs)
         {
-            return $"{up}/{down} choose   {accept} switch   {cancel} close";
+            return HintLabels.Switch;
         }
 
-        if (picker.Scope == PickerScope.Sprints)
+        if (picker.Scope != PickerScope.Sprints)
         {
-            if (picker.Sprint?.MoveKeys is not null)
-            {
-                return $"{up}/{down} choose   {accept} move   {cancel} close";
-            }
-
-            var newTab = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerOpenNewTab);
-
-            return $"{up}/{down} choose   {accept} open   {newTab} new tab   {cancel} close";
+            return HintLabels.OpenInNewTab;
         }
 
-        return $"{up}/{down} choose   {accept} open in a new tab   {cancel} close";
+        return picker.Sprint?.MoveKeys is not null ? HintLabels.MoveIssues : HintLabels.Open;
     }
 
     private static PickerRows Rows(SourcePickerState picker, SourceLists lists, int width)

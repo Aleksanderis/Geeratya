@@ -18,7 +18,7 @@
 │ Default: auto. The colour theme: a built-in one or a     │
 │ file in the themes folder. Values: auto, dark, light,    │
 ├──────────────────────────────────────────────────────────┤
-│ j/k move  Enter keep  Esc cancel                         │
+│ j/k move   Enter keep   Esc close                        │
 ╰──────────────────────────────────────────────────────────╯
 ╰──────────────────────────────────────────────────────────╯
  NORMAL  Settings: a change applies at once and is saved    

@@ -157,47 +157,6 @@ public static class OverlayBox
     }
 
     /// <summary>
-    /// A footer hint line as chips: each run of text separated by two or more spaces is a key (its first word, bold
-    /// accent) and a label (muted), as <see cref="HintBar"/> draws them.
-    /// </summary>
-    public static StyledLine Hints(string text)
-    {
-        var spans = new List<StyledSpan>();
-        var position = 0;
-
-        while (position < text.Length)
-        {
-            var end = ChipEnd(text, position);
-            var chip = text[position..end];
-            var split = chip.IndexOf(' ', StringComparison.Ordinal);
-
-            if (split < 0)
-            {
-                spans.Add(new StyledSpan(chip, TextRole.Muted));
-            }
-            else
-            {
-                spans.Add(new StyledSpan(chip[..split], TextRole.Key));
-                spans.Add(new StyledSpan(chip[split..], TextRole.Muted));
-            }
-
-            position = end;
-
-            while (position < text.Length && text[position] == ' ')
-            {
-                position++;
-            }
-
-            if (position < text.Length)
-            {
-                spans.Add(new StyledSpan(text[end..position], TextRole.Muted));
-            }
-        }
-
-        return new StyledLine(spans);
-    }
-
-    /// <summary>
     /// The view behind an overlay: every cell muted (the same lines, spans marked <see cref="SpanGround.Dim"/>), so the
     /// box stands out and the view stays readable. A body that is already dim stays as it is.
     /// </summary>
@@ -284,14 +243,6 @@ public static class OverlayBox
 
             row++;
         }
-    }
-
-    // The end of the chip that starts at start: the first run of two or more spaces, or the end of the text.
-    private static int ChipEnd(string text, int start)
-    {
-        var index = text.IndexOf("  ", start, StringComparison.Ordinal);
-
-        return index < 0 ? text.Length : index;
     }
 
     private static StyledLine Grounded(StyledLine line, SpanGround ground)

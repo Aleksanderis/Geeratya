@@ -17,6 +17,13 @@ public static class ProfileFormOverlay
     public const int FieldCount = 4;
 
     private const string AddTitle = "Add profile";
+    private static readonly ChipButton[] _buttons =
+    [
+        new(TestLabel, MouseTarget.ProfileTestButton),
+        new(SaveLabel, MouseTarget.ProfileSaveButton),
+        new(CancelLabel, MouseTarget.ProfileCancelButton),
+    ];
+
     private const string EditTitle = "Edit profile";
     private const string TestLabel = "Test connection";
     private const string SaveLabel = "Save";
@@ -28,7 +35,6 @@ public static class ProfileFormOverlay
     private const int Margin = 4;
     private const int LabelWidth = 13;
     private const int BoxRows = 9;
-    private const int ButtonGap = 3;
     private const char MaskChar = '*';
 
     /// <summary>
@@ -60,8 +66,8 @@ public static class ProfileFormOverlay
         }
 
         lines.Add(OverlayBox.Wall(NoteLine(form), contentWidth));
-        lines.Add(OverlayBox.Wall(ButtonLine(), contentWidth));
-        lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), contentWidth));
+        lines.Add(OverlayBox.Wall(ChipButtons.Line(_buttons), contentWidth));
+        lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var top = (height - lines.Count) / 2;
@@ -193,20 +199,6 @@ public static class ProfileFormOverlay
         return StyledLine.Empty;
     }
 
-    private static StyledLine ButtonLine()
-    {
-        var gap = new string(' ', ButtonGap);
-
-        return new StyledLine(
-        [
-            new StyledSpan(TestLabel, TextRole.Key),
-            new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(SaveLabel, TextRole.Key),
-            new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(CancelLabel, TextRole.Key),
-        ]);
-    }
-
     private static void MarkRegions(List<OverlayRegion>? regions, int top, int left, int boxWidth)
     {
         if (regions is null)
@@ -219,31 +211,17 @@ public static class ProfileFormOverlay
         OverlayBox.Mark(regions, MouseTarget.FormField, top, left, boxWidth, 1, fields);
 
         var buttonRow = top + 1 + FieldCount + 1;
-        var column = left + 2;
-
-        foreach (var (target, label) in Buttons())
-        {
-            var width = TextWidth.Of(label);
-
-            regions.Add(new OverlayRegion(target, buttonRow, column, width, 1, 0));
-            column += width + ButtonGap;
-        }
+        ChipButtons.Mark(regions, buttonRow, left + 2, _buttons);
     }
 
-    private static IEnumerable<(MouseTarget Target, string Label)> Buttons()
+    private static StyledLine Footer(KeymapTable keymap)
     {
-        yield return (MouseTarget.ProfileTestButton, TestLabel);
-        yield return (MouseTarget.ProfileSaveButton, SaveLabel);
-        yield return (MouseTarget.ProfileCancelButton, CancelLabel);
-    }
-
-    private static string FooterText(KeymapTable keymap)
-    {
-        var field = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormFieldNext));
-        var save = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.FormSubmit));
-        var test = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.ProfileTest));
-        var cancel = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.Cancel));
-
-        return $"{field} field  {save} save  {test} test  {cancel} cancel";
+        return DialogFooter.Line(
+        [
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormFieldNext, HintLabels.Field),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.ProfileTest, HintLabels.Test),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
+        ]);
     }
 }

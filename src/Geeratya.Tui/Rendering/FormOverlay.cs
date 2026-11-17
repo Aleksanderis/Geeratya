@@ -179,7 +179,7 @@ public static partial class FormOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(form, keymap)), contentWidth));
+            lines.Add(OverlayBox.Wall(FormFooter.Line(form, keymap), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -225,66 +225,6 @@ public static partial class FormOverlay
         }
 
         return Math.Min(content.FocusStart, end - area);
-    }
-
-    private static string FooterText(FormState form, KeymapTable keymap)
-    {
-        var next = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
-        var previous = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldPrevious);
-        var submit = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormSubmit);
-        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
-
-        if (form.DiscardPending)
-        {
-            var yes = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmYes);
-            var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo);
-
-            return $"{yes} discard   {no}/{cancel} keep editing";
-        }
-
-        if (form.IsChoosingType)
-        {
-            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-            var choose = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-
-            return $"{down}/{up} type   {choose} choose   {cancel} cancel";
-        }
-
-        if (form.Suggest is { Source.Kind: SuggestionKind.Options, Items.Count: > 0 } choice)
-        {
-            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-            var escape = choice.Query.Length == 0 ? "cancel" : "clear filter";
-
-            return $"{down}/{up} choose   {accept} accept   {next}/{previous} field   {cancel} {escape}";
-        }
-
-        if (form.Suggest is { Items.Count: > 0 })
-        {
-            var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-            var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-
-            return $"{down}/{up} choose   {next}/{accept} accept   {cancel} close list";
-        }
-
-        var browser = form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable)
-            ? $"   {keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenBrowser)} browser"
-            : string.Empty;
-
-        var text = $"{next}/{previous} field   {submit} save{browser}   {cancel} cancel";
-
-        if (form.Target is not CreateFormTarget create)
-        {
-            return text;
-        }
-
-        var open = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenAfter);
-        var state = create.OpenAfter ? OpenAfterOnText : OpenAfterOffText;
-
-        return $"{text}   {open} open after: {state}";
     }
 
     private static FormContent Content(FormState form, int valueWidth)
