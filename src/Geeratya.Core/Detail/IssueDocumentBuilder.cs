@@ -152,7 +152,7 @@ public static class IssueDocumentBuilder
             content.AddRange(rows);
         }
 
-        var title = new List<StyledSpan> { new(Clean(detail.Key), TextRole.Key) };
+        var title = new List<StyledSpan> { new(Clean(detail.Key), TextRole.IssueKey) };
 
         if (header.TypeName.Length > 0)
         {

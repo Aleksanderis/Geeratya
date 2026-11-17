@@ -36,8 +36,8 @@ public class ListBodyRendererTests
 
         Assert.StartsWith("project = A · 3 issues", lines[0]);
         Assert.Matches(@"^  Key +T Summary +Status +Assignee", lines[1]);
-        Assert.Matches(@"^  A-1 +T Summary +To Do +-", lines[2]);
-        Assert.Matches(@"^  A-2 +T Summary +To Do +-", lines[3]);
+        Assert.Matches(@"^  A-1 +T Summary +To Do +Unassigned", lines[2]);
+        Assert.Matches(@"^  A-2 +T Summary +To Do +Unassigned", lines[3]);
         Assert.StartsWith("  A-3", lines[4]);
     }
 

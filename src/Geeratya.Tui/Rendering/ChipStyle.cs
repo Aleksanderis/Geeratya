@@ -26,7 +26,7 @@ public static class ChipStyle
         return role switch
         {
             TextRole.Heading or TextRole.Body or TextRole.Selected or TextRole.ChipFocus => TextRole.Muted,
-            TextRole.Strong or TextRole.Key => TextRole.Strong,
+            TextRole.Strong or TextRole.Key or TextRole.IssueKey => TextRole.Strong,
             _ => role,
         };
     }

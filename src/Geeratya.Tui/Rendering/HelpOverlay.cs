@@ -200,7 +200,7 @@ public static class HelpOverlay
         return new StyledLine(
         [
             new StyledSpan(new string(' ', indent), TextRole.Body),
-            new StyledSpan(text[..keyEnd], TextRole.OverlayKey),
+            new StyledSpan(text[..keyEnd], TextRole.Key),
             new StyledSpan(text[keyEnd..], TextRole.Body),
         ]);
     }

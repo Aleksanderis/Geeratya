@@ -37,10 +37,12 @@ public enum TextRole
     Link,
     Quote,
     Selected,
+
+    /// <summary>A keyboard key or button label (footers, hint bar, Help, which-key, palette, menus): bold in the accent colour, one look everywhere.</summary>
     Key,
 
-    /// <summary>A key listed in an overlay (which-key, help): bold in the warn colour, as in Gitunia.</summary>
-    OverlayKey,
+    /// <summary>An issue key (<c>PROJ-12</c>): looks like <see cref="Key"/> today but is its own role, so a key label never changes with it.</summary>
+    IssueKey,
 
     StatusToDo,
     StatusInProgress,

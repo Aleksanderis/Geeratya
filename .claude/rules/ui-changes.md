@@ -25,8 +25,9 @@ Specs start at `docs/internal/ux.md`, which links the parts; the key reference i
 ## Rendering and colour
 
 - Terminal.Gui types stay in `Geeratya.Tui` (`Views`, `Input`); `Rendering` and Core know only styled text frames and renderer-agnostic key events.
-- Key hints and buttons: a row of hints is drawn by `HintBar` (footers by `OverlayBox.Hints`), a clickable chip by `KeyedChip` with its key from `ChipKeys`; new hint rows and buttons do not hand-build key and label segments or bracket buttons (`docs/internal/architecture.md`, "Shared key hints and chips").
+- Key hints and buttons: a row of hints is drawn by `HintBar` and `HintChip` (overlay footers by `OverlayBox.Hints`); a key label always takes the `TextRole.Key` role and an issue key `TextRole.IssueKey`, so no surface invents its own key colour. A shared button and chip helper does not exist yet (planned with `Dialog`, `docs/internal/ui-consistency.md`, phase 4): until then do not add a new way to hand-build key and label segments or bracket buttons, reuse what the neighbouring overlay does (`docs/internal/architecture.md`, "Shared key hints and chips").
 - Screens produce `StyledLine`/`StyledSpan` with a Core `TextRole` (via an `IBodyRenderer`), never colours; `PaletteTable.For` maps roles to palette roles.
+- Typed text is the body role on every surface and the caret is `TextRole.EditCaret`; an empty value reads `EmptyValues.Unassigned` (people) or `EmptyValues.None` and is `Muted`, never drawn as typed text; estimates go through `EstimateText.Format`.
 - Colours are decided in one place: `PaletteTable` and `Palette`. Never hard-code a colour in a view. Contrast is tested (4.5, dividers 3.0).
 - A chip that starts a bar line (mode badge, banner title) starts at column 0. Network states (loading, offline, rate limited, error) have their own palette roles and a visible indicator; a stale view says it is stale.
 - Every colour tier has a path: 24-bit, 16-colour, `NO_COLOR`/`TERM=dumb`, and the ASCII glyph set. Focus and selection never rely on colour alone.

@@ -244,7 +244,7 @@ public class FormOverlaySnapshotTests
         return WithForm(SampleForm());
     }
 
-    private static FormState SampleForm()
+    internal static FormState SampleForm()
     {
         var labels = FormField.Create("labels", "Labels", FormFieldKind.Labels, false, [])
             .WithInitial(FormValue.OfChosen(["backend", "ui"]));

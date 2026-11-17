@@ -16,7 +16,7 @@ internal static class RelationTable
 
     private const int Gap = 2;
     private const int MaxName = 24;
-    private const string UnassignedName = "Unassigned";
+    private const string UnassignedName = EmptyValues.Unassigned;
     private const string UnassignedInitials = "--";
 
     /// <summary>
@@ -41,7 +41,7 @@ internal static class RelationTable
     {
         var spans = new List<StyledSpan>
         {
-            new(Pad(DisplayText.Cut(TextClean.Of(row.Key), plan.KeyWidth), plan.KeyWidth), TextRole.Key),
+            new(Pad(DisplayText.Cut(TextClean.Of(row.Key), plan.KeyWidth), plan.KeyWidth), TextRole.IssueKey),
             new(new string(' ', Gap), TextRole.Body),
         };
         var room = plan.SummaryWidth;

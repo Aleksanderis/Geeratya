@@ -12,12 +12,12 @@ namespace Geeratya.Tui.Rendering;
 internal static class CreateFieldBlocks
 {
     private const string RequiredMark = " *";
-    private const string NoneText = "none";
+    private const string NoneText = EmptyValues.None;
     private const string FromSelection = "from selection";
     private const string NavigateNote = "[navigate]";
     private const string EditingNote = "[editing]";
     private const string UnassignedChip = "[--]";
-    private const string UnassignedName = "Unassigned";
+    private const string UnassignedName = EmptyValues.Unassigned;
     private const int InitialsCells = 2;
     private const int Lead = 1;
     private const int DropdownCells = 2;

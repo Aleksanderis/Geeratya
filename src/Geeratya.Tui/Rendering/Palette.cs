@@ -78,7 +78,7 @@ public static class Palette
                     null,
                     Ansi16Color.Gray,
                     Ansi16Color.Black,
-                    entry.NoColorStyle,
+                    NoColourStyle(entry),
                     KeepsTerminal(theme, entry));
         }
     }
@@ -175,11 +175,18 @@ public static class Palette
         return ground.HasFlag(SpanGround.Dim) ? theme.ScrimBackground : entry.TrueBackground;
     }
 
+    private static RoleStyle NoColourStyle(PaletteEntry entry)
+    {
+        var style = entry.NoColorStyle;
+
+        return style.HasFlag(RoleStyle.NoColorUnderline) ? (style & ~RoleStyle.NoColorUnderline) | RoleStyle.Underline : style;
+    }
+
     // Emphasis, strong, links and quotes must show in the colour tiers too; reverse stays no-colour only, because
     // the colour tiers already give a role its own background.
     private static RoleStyle ColourStyle(PaletteEntry entry)
     {
-        var style = entry.NoColorStyle & ~RoleStyle.Reverse;
+        var style = entry.NoColorStyle & ~RoleStyle.Reverse & ~RoleStyle.NoColorUnderline;
 
         // Reverse plus underline marks a label chip without colour (the underline is the cue on a reversed selected
         // card); the colour tiers have the fill and drop both.

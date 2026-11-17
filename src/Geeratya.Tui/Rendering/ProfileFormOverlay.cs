@@ -128,7 +128,7 @@ public static class ProfileFormOverlay
         var focused = field == form.Field;
         var spans = new List<StyledSpan>
         {
-            new("  ", TextRole.Key),
+            new("  ", TextRole.Body),
             new(TextWidth.Pad(LabelOf(field), LabelWidth), TextRole.Muted),
         };
         var room = Math.Max(0, width - 2 - LabelWidth - 1);
@@ -151,9 +151,9 @@ public static class ProfileFormOverlay
 
         var window = PromptWindow.Of(prompt, room);
 
-        spans.Add(new StyledSpan(window.Before, TextRole.Strong));
-        spans.Add(new StyledSpan(window.Caret, TextRole.Key));
-        spans.Add(new StyledSpan(window.After, TextRole.Strong));
+        spans.Add(new StyledSpan(window.Before, TextRole.Body));
+        spans.Add(new StyledSpan(window.Caret, TextRole.EditCaret));
+        spans.Add(new StyledSpan(window.After, TextRole.Body));
 
         return StyledLines.Fit(new StyledLine(spans), width);
     }

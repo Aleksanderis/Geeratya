@@ -15,10 +15,10 @@ internal static class DetailsPane
 {
     private const string Title = "Details";
     private const string TransitionNote = "moves via transition";
-    private const string UnassignedName = "Unassigned";
+    private const string UnassignedName = EmptyValues.Unassigned;
     private const string UnassignedChip = "[--]";
-    private const string NoPriority = "None";
-    private const string NoLabels = "none";
+    private const string NoPriority = EmptyValues.None;
+    private const string NoLabels = EmptyValues.None;
     private const string StatusDot = "●";
     private const string High = "▲";
     private const string Medium = "=";
@@ -116,7 +116,7 @@ internal static class DetailsPane
 
     private static string DueText(DateOnly? due)
     {
-        return due is { } date ? date.ToString("O", CultureInfo.InvariantCulture) : "none";
+        return due is { } date ? date.ToString("O", CultureInfo.InvariantCulture) : EmptyValues.None;
     }
 
     // The way into the zoomed Attachments list: a cursor stop of its own, Enter zooms.
@@ -206,7 +206,7 @@ internal static class DetailsPane
 
         var plain = issue.IssueType is { HierarchyLevel: 0, IsSubtask: false };
         var id = plain ? DetailFieldIds.Epic : DetailFieldIds.Parent;
-        var none = new StyledSpan("None", TextRole.Muted);
+        var none = new StyledSpan(EmptyValues.None, TextRole.Muted);
 
         fields.Add(new Field(id, FieldBlockSpec.OfValue(plain ? "Epic" : "Parent", [none], true)));
     }

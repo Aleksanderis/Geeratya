@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
@@ -39,7 +40,7 @@ public sealed record SprintTally(
     /// <summary>A number of points as <c>34</c> or <c>0.5</c>.</summary>
     public static string Number(double value)
     {
-        return value.ToString("0.#", CultureInfo.InvariantCulture);
+        return EstimateText.Format(value);
     }
 
     /// <summary><c>1 issue</c>, <c>12 issues</c>.</summary>

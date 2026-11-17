@@ -148,9 +148,9 @@ public static class SourcePickerOverlay
 
     private static StyledLine Prompt(SourcePickerState picker, int contentWidth)
     {
-        var text = PromptSpans.Of(new PromptText(picker.Text, picker.Back), contentWidth - PromptMargin, TextRole.Body);
+        var text = PromptSpans.Of(new PromptText(picker.Text, picker.Back), contentWidth - PromptMargin);
 
-        return new StyledLine([new StyledSpan("> ", TextRole.Key), .. text]);
+        return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }
 
     private static string FooterText(KeymapTable keymap, SourcePickerState picker)

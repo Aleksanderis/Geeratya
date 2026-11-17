@@ -172,7 +172,7 @@ public class HelpPageSnapshotTests
         Assert.Equal(expected, actual);
     }
 
-    private static AppState StateFor(string layout)
+    internal static AppState StateFor(string layout)
     {
         var (source, view) = layout switch
         {

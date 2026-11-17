@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Detail;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
 
@@ -87,7 +88,7 @@ public static class SprintHeaderText
 
     private static string Number(double value)
     {
-        return value.ToString("0.#", CultureInfo.InvariantCulture);
+        return EstimateText.Format(value);
     }
 
     private static string Day(DateTimeOffset date)

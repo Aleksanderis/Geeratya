@@ -21,7 +21,6 @@ public static partial class FormOverlay
     internal const string OpenAfterOffText = "off";
     private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "not editable here";
-    private const string EmptyText = "-";
     private const int MaxBoxWidth = 100;
     private const int WantedBoxWidth = 90;
     private const int WantedValueWidth = 40;
@@ -294,7 +293,7 @@ public static partial class FormOverlay
         var focusStart = 0;
         var focusLength = 0;
 
-        AddNotices(lines, form);
+        AddNotices(lines, form, valueWidth + Indent);
         PadTags(tags, lines.Count, null);
 
         if (form.TypeChoices is { } types)
@@ -378,7 +377,7 @@ public static partial class FormOverlay
         }
     }
 
-    private static void AddNotices(List<StyledLine> lines, FormState form)
+    private static void AddNotices(List<StyledLine> lines, FormState form, int width)
     {
         if (form.IsLoading)
         {
@@ -392,7 +391,7 @@ public static partial class FormOverlay
 
         if (form.TopError is not null)
         {
-            lines.Add(StyledLine.Of($"! {form.TopError}", TextRole.Error));
+            lines.Add(StyledLine.Of(DisplayText.Cut($"! {form.TopError}", width), TextRole.Error));
         }
 
         if (form.DiscardPending)

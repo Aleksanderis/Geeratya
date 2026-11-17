@@ -82,7 +82,7 @@ public class IssueRelationsBuilderTests
         var document = Build(Detail(Epic()));
 
         var line = document.Lines.Single(candidate => candidate.PlainText.Contains("A-18  Write the migration"));
-        Assert.Contains(line.Spans, span => span.Role == TextRole.Key && span.Text == "A-18");
+        Assert.Contains(line.Spans, span => span.Role == TextRole.IssueKey && span.Text == "A-18");
         Assert.Contains(line.Spans, span => span.Role == TextRole.StatusToDo && span.Text.Contains("To Do"));
     }
 

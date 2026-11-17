@@ -119,7 +119,7 @@ public static class PaletteOverlay
     // The query line: the prompt in the accent colour, the typed text (its tail when too long) and a cursor cell.
     private static StyledLine QueryLine(AppState state, int width)
     {
-        var text = PromptSpans.Of(new PromptText(state.PaletteText, state.PaletteBack), Math.Max(1, width - 2), TextRole.Muted);
+        var text = PromptSpans.Of(new PromptText(state.PaletteText, state.PaletteBack), Math.Max(1, width - 2));
 
         return new StyledLine([new StyledSpan(": ", TextRole.Heading), .. text]);
     }
@@ -237,7 +237,7 @@ public static class PaletteOverlay
             new StyledSpan($"{marker} ", TextRole.Muted),
             new StyledSpan(text, titleRole),
             new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(keyText, TextRole.Muted),
+            new StyledSpan(keyText, TextRole.Key),
         ]);
     }
 
