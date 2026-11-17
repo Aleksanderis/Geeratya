@@ -65,6 +65,9 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
     /// </summary>
     public MouseTarget? WheelTarget { get; init; }
 
+    /// <summary>Where the pointer must be for <see cref="WheelTarget"/> to take the wheel.</summary>
+    public WheelScope WheelScope { get; init; } = WheelScope.Screen;
+
     public static MouseContext From(
         AppState state,
         int width,
@@ -82,6 +85,7 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
         var tabs = state.Session.Tabs;
         var active = state.Session.Active;
         var hovered = state.HoveredTab;
+        var wheel = WheelTargetOf(state);
 
         return new MouseContext(width, height, headerRows, overlay, tab is { Detail.Count: > 0 })
         {
@@ -97,23 +101,76 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
             DetailBox = tab is { Detail.Count: > 0 }
                 ? DetailOverlayGeometry.Place(width, Math.Max(0, height - 1 - headerRows))
                 : null,
-            WheelTarget = WheelTargetOf(state),
+            WheelTarget = wheel?.Target,
+            WheelScope = wheel?.Scope ?? WheelScope.Screen,
             ConfirmOpen = state.Mode == InputMode.Confirm && state.Confirm is not null,
         };
     }
 
-    private static MouseTarget? WheelTargetOf(AppState state)
+    private static WheelTargetScope? WheelTargetOf(AppState state)
     {
-        if (state.ContextMenu is not null)
-        {
-            return MouseTarget.ContextMenu;
-        }
-
-        if (state.Mode != InputMode.Help)
+        // A Confirm dialog covers whatever overlay is still open behind it, and takes no wheel.
+        if (state is { Mode: InputMode.Confirm, Confirm: not null })
         {
             return null;
         }
 
-        return state.MessagesOpen ? MouseTarget.MessagesBody : MouseTarget.HelpBody;
+        if (state.ContextMenu is not null)
+        {
+            return new WheelTargetScope(MouseTarget.ContextMenu, WheelScope.Screen);
+        }
+
+        if (state.Mode == InputMode.Help)
+        {
+            return new WheelTargetScope(
+                state.MessagesOpen ? MouseTarget.MessagesBody : MouseTarget.HelpBody,
+                WheelScope.Screen);
+        }
+
+        return OverlayWheelTarget(state);
     }
+
+    private static WheelTargetScope? OverlayWheelTarget(AppState state)
+    {
+        if (state.Mode == InputMode.Command)
+        {
+            return new WheelTargetScope(MouseTarget.PaletteRow, WheelScope.Box);
+        }
+
+        if (state.Jump is not null)
+        {
+            return new WheelTargetScope(MouseTarget.JumpRow, WheelScope.Box);
+        }
+
+        if (state.Picker is not null)
+        {
+            return new WheelTargetScope(MouseTarget.PickerRow, WheelScope.Box);
+        }
+
+        if (state.SettingsScreen is { } screen)
+        {
+            var target = screen.Choice is null ? MouseTarget.SettingsRow : MouseTarget.SettingsChoice;
+
+            return new WheelTargetScope(target, WheelScope.Box);
+        }
+
+        if (state is { ProfileList: not null, Form: null })
+        {
+            return new WheelTargetScope(MouseTarget.ProfileRow, WheelScope.Box);
+        }
+
+        if (state.Editor is { Suggest.Items.Count: > 0 })
+        {
+            return new WheelTargetScope(MouseTarget.EditorChoice, WheelScope.Rows);
+        }
+
+        if (FormReducer.OpenForm(state) is { } form && (form.IsChoosingType || form.Suggest is { Items.Count: > 0 }))
+        {
+            return new WheelTargetScope(MouseTarget.FormChoice, WheelScope.Rows);
+        }
+
+        return null;
+    }
+
+    private sealed record WheelTargetScope(MouseTarget Target, WheelScope Scope);
 }

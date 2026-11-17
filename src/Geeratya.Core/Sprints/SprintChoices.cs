@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Boards;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Sprints.Models;
@@ -24,7 +25,7 @@ public static class SprintChoices
         }
 
         var matching = sprints
-            .Where(sprint => text.Length == 0 || sprint.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Where(sprint => Matcher.Matches(sprint.Name, text))
             .ToList();
 
         var choices = new List<SourceChoice>();

@@ -7,7 +7,7 @@
 | |                                                                          | |
 | |                                                                          | |
 | | ------------------------------------------------------------------------ | |
-| | Ctrl-s send   Enter new line   Esc cancel                                | |
+| | Ctrl-s send   Enter new line   Esc close                                 | |
 | +--------------------------------------------------------------------------+ |
 |                         No profile yet: :profile add                         |
 |                         ? help   : commands   q back                         |

@@ -18,7 +18,7 @@
 │ │   Change the status of the sub-task under the cursor           <space>ts │ │
 │ │   Assign the sub-task under the cursor: search people, or una  <space>ta▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
-│ │ Up/Down move  Enter run  Esc cancel                                      │ │
+│ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND  :                                  Up/Down move  Enter run  Esc cancel

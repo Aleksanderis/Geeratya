@@ -1,6 +1,7 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -60,10 +61,9 @@ public static class JumpReducer
             return state;
         }
 
-        var last = Math.Max(0, JumpRows.For(state, jump).Count - 1);
-        var current = Math.Clamp(jump.Selected, 0, last);
+        var selected = ListCursor.Step(jump.Selected, delta, JumpRows.For(state, jump).Count);
 
-        return state with { Jump = jump with { Selected = Math.Clamp(current + delta, 0, last), Notice = null } };
+        return state with { Jump = jump with { Selected = selected, Notice = null } };
     }
 
     /// <summary>Enter: opens the highlighted row; with no row the notice says why nothing opened.</summary>

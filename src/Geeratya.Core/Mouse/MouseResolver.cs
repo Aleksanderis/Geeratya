@@ -59,7 +59,8 @@ public static class MouseResolver
 
         if (IsOverlayRow(hit.Target))
         {
-            return OverlayClick(hit, gesture, at);
+            // A wheel notch over an overlay never gets here: the open overlay's wheel target took it above.
+            return gesture is MouseGesture.WheelUp or MouseGesture.WheelDown ? _none : OverlayClick(hit, gesture, at);
         }
 
         if (hit.Target == MouseTarget.Tabs)
@@ -103,7 +104,8 @@ public static class MouseResolver
         return placesFirst ? [new PointerPlaced(column, hit.Row, context.Width, action)] : [action];
     }
 
-    // The wheel over an open help, messages or context menu acts on that overlay wherever the pointer is on the screen.
+    // The wheel acts on what is under the pointer (decisions 3 and 7 of the UI consistency audit): help, messages and
+    // the context menu take it anywhere; the other overlays over their box or, for a popup, over its rows only.
     private static IReadOnlyList<Command> Wheeled(
         MouseContext context,
         MouseTarget target,
@@ -112,11 +114,34 @@ public static class MouseResolver
         MouseGesture gesture,
         DateTimeOffset at)
     {
-        var inside = column >= 0 && row >= 0 && column < context.Width && row < context.Height;
+        if (!WheelReaches(context, target, column, row)
+            || DefaultMouseMap.Find(target, gesture) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return _none;
+        }
 
-        return inside && DefaultMouseMap.Find(target, gesture) is { } found && WiredParts.Contains(found.Part)
-            ? [new ActionRequested(found.Action, found.Count, at)]
-            : _none;
+        if (context.WheelScope == WheelScope.Screen)
+        {
+            return [new ActionRequested(found.Action, found.Count, at)];
+        }
+
+        return [new OverlayWheeled(target, gesture == MouseGesture.WheelDown ? found.Count : -found.Count)];
+    }
+
+    private static bool WheelReaches(MouseContext context, MouseTarget target, int column, int row)
+    {
+        if (context.WheelScope == WheelScope.Screen)
+        {
+            return column >= 0 && row >= 0 && column < context.Width && row < context.Height;
+        }
+
+        if (MouseHitTester.Locate(context, column, row) is not { } hit)
+        {
+            return false;
+        }
+
+        return context.WheelScope == WheelScope.Rows ? hit.Target == target : hit.Target != MouseTarget.Backdrop;
     }
 
     /// <summary>

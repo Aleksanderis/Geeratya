@@ -1,5 +1,6 @@
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -75,7 +76,7 @@ public static class HelpOverlay
         var inner = boxWidth - 4;
         var menuCells = Math.Min(names.Max(DisplayWidth.Of) + ActiveMark.Length, Math.Max(1, inner / 2));
         var pageWidth = Math.Max(0, inner - menuCells - MenuGap - Divider.Length - MenuGap);
-        var first = FirstVisible(names.Count, current, rows);
+        var first = ListCursor.FirstVisible(current, names.Count, rows);
         var wrapped = HelpPages.Lines(state, keymap)
             .Skip(state.HelpScroll)
             .SelectMany(line => Wrap(line, pageWidth))
@@ -213,11 +214,5 @@ public static class HelpOverlay
         var missing = cells - line.Spans.Sum(span => DisplayWidth.Of(span.Text));
 
         return missing <= 0 ? line : new StyledLine([.. line.Spans, new StyledSpan(new string(' ', missing), TextRole.Body)]);
-    }
-
-    // The first menu entry shown: the active one stays inside the rows.
-    private static int FirstVisible(int count, int current, int rows)
-    {
-        return rows <= 0 || current < rows ? 0 : Math.Min(current - rows + 1, Math.Max(0, count - rows));
     }
 }

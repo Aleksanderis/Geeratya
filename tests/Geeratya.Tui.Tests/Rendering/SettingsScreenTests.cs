@@ -288,7 +288,7 @@ public class SettingsScreenTests
         Assert.True(result is null || result.State == state);
     }
 
-    private static AppState Sample()
+    internal static AppState Sample()
     {
         var state = AppState.Initial with
         {
@@ -313,7 +313,7 @@ public class SettingsScreenTests
         return state with { SettingsScreen = new SettingsScreenState(index) };
     }
 
-    private static AppState WithThemeList()
+    internal static AppState WithThemeList()
     {
         return Sample() with { SettingsScreen = new SettingsScreenState(0, 0) };
     }

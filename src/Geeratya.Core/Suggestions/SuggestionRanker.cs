@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 
@@ -12,11 +13,6 @@ public static class SuggestionRanker
 {
     /// <summary>The detail of the row that offers the typed text itself as a new value.</summary>
     public const string NewValueDetail = "new";
-
-    private const int ExactScore = 0;
-    private const int PrefixScore = 1;
-    private const int SubstringScore = 1000;
-    private const int ScatteredScore = 100000;
 
     /// <summary>
     /// The best matches (at most <see cref="SuggestionFilter.MaxResults"/>), without those in
@@ -59,62 +55,16 @@ public static class SuggestionRanker
 
     private static int ScoreOf(Suggestion candidate, string query)
     {
-        var best = ScoreOf(candidate.Label, query);
+        var best = Matcher.Rank(candidate.Label, query);
 
         if (candidate.Detail is { Length: > 0 } detail)
         {
-            var other = ScoreOf(detail, query);
+            var other = Matcher.Rank(detail, query);
 
             best = best < 0 || (other >= 0 && other < best) ? other : best;
         }
 
         return best;
-    }
-
-    private static int ScoreOf(string text, string query)
-    {
-        if (string.Equals(text, query, StringComparison.OrdinalIgnoreCase))
-        {
-            return ExactScore;
-        }
-
-        if (text.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return PrefixScore;
-        }
-
-        var at = text.IndexOf(query, StringComparison.OrdinalIgnoreCase);
-
-        if (at >= 0)
-        {
-            return SubstringScore + at;
-        }
-
-        return Scattered(text, query);
-    }
-
-    private static int Scattered(string text, string query)
-    {
-        var first = -1;
-        var position = 0;
-
-        foreach (var wanted in query)
-        {
-            var rest = text.AsSpan(position);
-            var offset = rest.IndexOf(new ReadOnlySpan<char>(in wanted), StringComparison.OrdinalIgnoreCase);
-
-            if (offset < 0)
-            {
-                return -1;
-            }
-
-            var found = position + offset;
-
-            first = first < 0 ? found : first;
-            position = found + 1;
-        }
-
-        return ScatteredScore + (position - first);
     }
 
     private sealed record Scored(Suggestion Candidate, int Score, int Index);

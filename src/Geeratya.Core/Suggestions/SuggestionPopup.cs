@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Jira.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 
@@ -94,9 +95,7 @@ public static class SuggestionPopup
     /// <summary>The cursor moved by <paramref name="delta"/> rows, kept inside the list.</summary>
     public static SuggestionState Moved(SuggestionState state, int delta)
     {
-        var last = Math.Max(0, state.Items.Count - 1);
-
-        return state with { Cursor = Math.Clamp(state.Cursor + delta, 0, last) };
+        return state with { Cursor = ListCursor.Step(state.Cursor, delta, state.Items.Count) };
     }
 
     // A highlight the user moved stays on its row when the reply reorders the list; an untouched one stays on top.

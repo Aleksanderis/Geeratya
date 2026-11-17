@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -63,7 +64,7 @@ public static class PaletteOverlay
             lines = ListLines(rows, selected, boxWidth - 4, gaps: false);
         }
 
-        var first = FirstVisible(lines, area);
+        var first = ListCursor.FirstVisible(lines.FindIndex(line => line.Selected), lines.Count, area);
         var shown = lines.Skip(first).Take(area).ToList();
         var stable = StableRows(state, keymap, boxWidth - 4, area);
 
@@ -90,7 +91,7 @@ public static class PaletteOverlay
         if (footer > 0)
         {
             box.Add(OverlayBox.Divider(boxWidth));
-            box.Add(OverlayBox.Wall(OverlayBox.Hints(FooterText(keymap)), inner));
+            box.Add(OverlayBox.Wall(Footer(keymap), inner));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));
@@ -137,19 +138,14 @@ public static class PaletteOverlay
         return $"{shown.ToString(CultureInfo.InvariantCulture)}/{all.ToString(CultureInfo.InvariantCulture)}";
     }
 
-    private static string FooterText(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap)
     {
-        var up = KeyName(keymap, ActionIds.PickerPrevious);
-        var down = KeyName(keymap, ActionIds.PickerNext);
-        var run = KeyName(keymap, ActionIds.PaletteSubmit);
-        var cancel = KeyName(keymap, ActionIds.Cancel);
-
-        return $"{up}/{down} move  {run} run  {cancel} cancel";
-    }
-
-    private static string KeyName(KeymapTable keymap, string action)
-    {
-        return keymap.FindKeyLabel(InputMode.Command, action) ?? "?";
+        return DialogFooter.Line(
+        [
+            DialogFooter.Pair(keymap, InputMode.Command, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
+            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.PaletteSubmit, HintLabels.Run),
+            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.Cancel, HintLabels.Close),
+        ]);
     }
 
     // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the
@@ -165,19 +161,6 @@ public static class PaletteOverlay
         var count = ListLines(all, 0, width, gaps: true).Count;
 
         return Math.Min(count, area);
-    }
-
-    // The first line to draw: the highlighted row stays in view and, near the top, the first subheader shows.
-    private static int FirstVisible(List<ListLine> lines, int area)
-    {
-        var at = lines.FindIndex(line => line.Selected);
-
-        if (area <= 0 || at < area)
-        {
-            return 0;
-        }
-
-        return Math.Min(at - area + 1, Math.Max(0, lines.Count - area));
     }
 
     private static List<ListLine> ListLines(IReadOnlyList<PaletteRow> rows, int selected, int width, bool gaps)

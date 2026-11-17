@@ -43,14 +43,39 @@ public class OverlayPolishTests
     }
 
     [Fact]
-    public void GivenAFooterText_WhenBuildingHints_ThenKeysAreKeyRoleAndLabelsMutedWithTheGapsKept()
+    public void GivenTypedChips_WhenBuildingAFooter_ThenKeysAreKeyRoleAndLabelsMutedAndUnboundActionsAreSkipped()
     {
-        var line = OverlayBox.Hints("Up/Down move   Enter run  Esc cancel");
+        var line = DialogFooter.Line(
+            [new HintChip("Up/Down", "move"), null, new HintChip("Enter", "run"), new HintChip("Esc", "close")]);
 
         var keys = line.Spans.Where(span => span.Role == TextRole.Key).Select(span => span.Text);
 
-        Assert.Equal("Up/Down move   Enter run  Esc cancel", line.PlainText);
+        Assert.Equal("Up/Down move   Enter run   Esc close", line.PlainText);
         Assert.Equal(["Up/Down", "Enter", "Esc"], keys);
+    }
+
+    [Fact]
+    public void GivenAnActionWithoutAKey_WhenMakingAChip_ThenThereIsNoChipAndNoEmptyKey()
+    {
+        var keymap = DefaultKeymap.Load();
+
+        Assert.Null(DialogFooter.Chip(keymap, InputMode.Insert, "no.such.action", HintLabels.Close));
+        Assert.Null(DialogFooter.Pair(keymap, InputMode.Insert, "no.such.action", "no.other.action", HintLabels.Move));
+        Assert.Equal("Esc", DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close)!.Value.Key);
+    }
+
+    [Fact]
+    public void GivenButtons_WhenDrawingTheRowAndMarkingTheRegions_ThenEachRegionCoversItsLabel()
+    {
+        ChipButton[] buttons = [new("Add", MouseTarget.ProfileAddButton), new("Edit", MouseTarget.ProfileEditButton)];
+        var regions = new List<OverlayRegion>();
+
+        ChipButtons.Mark(regions, 7, 4, buttons);
+        var line = ChipButtons.Line(buttons).PlainText;
+
+        Assert.Equal("Add   Edit", line);
+        Assert.Equal(new OverlayRegion(MouseTarget.ProfileAddButton, 7, 4, 3, 1, 0), regions[0]);
+        Assert.Equal(new OverlayRegion(MouseTarget.ProfileEditButton, 7, 10, 4, 1, 0), regions[1]);
     }
 
     [Fact]

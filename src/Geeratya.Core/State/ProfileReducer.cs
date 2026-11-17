@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Text;
 
@@ -203,9 +204,7 @@ public static partial class ProfileReducer
             return state;
         }
 
-        var last = Math.Max(0, state.Profiles.Profiles.Count - 1);
-
-        var selected = Math.Clamp(ClampedRow(state, list) + delta, 0, last);
+        var selected = ListCursor.Step(ClampedRow(state, list), delta, state.Profiles.Profiles.Count);
 
         return state with { ProfileList = list with { Selected = selected } };
     }

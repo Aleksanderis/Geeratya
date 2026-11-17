@@ -1,3 +1,5 @@
+using Geeratya.Core.Lists;
+
 namespace Geeratya.Core.CommandPalette;
 
 /// <summary>Fuzzy matching of the palette filter against an action's title and id. Pure.</summary>
@@ -34,33 +36,11 @@ public static class PaletteFuzzy
             return IdSubstring - inId;
         }
 
-        if (Spread(filter, title) is { } titleSpread)
+        if (Matcher.Spread(filter, title) is { } titleSpread)
         {
             return TitleSubsequence - titleSpread;
         }
 
-        return Spread(filter, id) is { } idSpread ? IdSubsequence - idSpread : null;
-    }
-
-    // The length of the stretch that holds the filter's letters in order (greedy from the left); null if they do not.
-    private static int? Spread(string filter, string text)
-    {
-        var next = 0;
-        var first = -1;
-        var last = -1;
-
-        for (var index = 0; index < text.Length && next < filter.Length; index++)
-        {
-            if (char.ToUpperInvariant(text[index]) != char.ToUpperInvariant(filter[next]))
-            {
-                continue;
-            }
-
-            first = first < 0 ? index : first;
-            last = index;
-            next++;
-        }
-
-        return next == filter.Length ? last - first + 1 : null;
+        return Matcher.Spread(filter, id) is { } idSpread ? IdSubsequence - idSpread : null;
     }
 }

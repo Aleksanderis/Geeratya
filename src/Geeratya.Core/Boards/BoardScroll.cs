@@ -67,19 +67,8 @@ public static class BoardScroll
         }
 
         var scroll = Math.Clamp(position.Scroll, 0, count - 1);
-        var half = Math.Max(1, Fitting(group, scroll, viewport, cellWidth) / 2);
-
-        var current = Math.Clamp(position.Selected, 0, count - 1);
-
-        var selected = move switch
-        {
-            ListMove.Down => Math.Min(count - 1, current + 1),
-            ListMove.Up => Math.Max(0, current - 1),
-            ListMove.PageDown => Math.Min(count - 1, current + half),
-            ListMove.PageUp => Math.Max(0, current - half),
-            ListMove.Top => 0,
-            _ => count - 1,
-        };
+        var half = ListCursor.Half(Fitting(group, scroll, viewport, cellWidth));
+        var selected = ListCursor.Target(position.Selected, move, 1, count, half);
 
         return Reveal(group, new ListPosition(selected, position.Scroll), viewport, cellWidth);
     }

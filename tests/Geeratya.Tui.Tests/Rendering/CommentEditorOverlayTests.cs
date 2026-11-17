@@ -227,7 +227,7 @@ public class CommentEditorOverlayTests
 
         Assert.Contains("  Olga Other", plain);
         Assert.Contains("  Oleg Two (inactive)", plain);
-        Assert.Contains("Down/Up choose   Tab/Enter accept   Esc close list", plain);
+        Assert.Contains("Up/Down move   Tab/Enter choose   Esc close", plain);
         Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Selected && span.Text.StartsWith("  Oleg")));
     }
 
@@ -303,7 +303,7 @@ public class CommentEditorOverlayTests
         Assert.Contains("╭─ Confirm", text);
     }
 
-    private static CommentEditor EditorWithPopup()
+    internal static CommentEditor EditorWithPopup()
     {
         var rows = new[]
         {

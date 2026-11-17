@@ -2,9 +2,9 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Panes;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;
@@ -189,6 +189,6 @@ public sealed partial class AppReducer
     {
         var count = PaletteRows.Selectable(state, _keymap).Count;
 
-        return state with { PaletteSelected = Math.Clamp(state.PaletteSelected + delta, 0, Math.Max(0, count - 1)) };
+        return state with { PaletteSelected = ListCursor.Step(state.PaletteSelected, delta, count) };
     }
 }

@@ -18,7 +18,7 @@
 │ │   Save this view under a name (opens :view save)               <space>vw │ │
 │ │                                                                          │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
-│ │ Up/Down move  Enter run  Esc cancel                                      │ │
+│ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  COMMAND  :theme:                            Up/Down move  Enter run  Esc cancel

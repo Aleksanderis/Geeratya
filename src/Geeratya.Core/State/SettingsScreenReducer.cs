@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Settings;
 
 namespace Geeratya.Core.State;
@@ -116,6 +117,12 @@ public static class SettingsScreenReducer
         return action == ActionIds.SettingsReset ? Reset(selected.State) : Activate(selected.State);
     }
 
+    /// <summary>A wheel notch: the highlight of the open choice list, else of the rows, moves.</summary>
+    public static ReduceResult Wheeled(AppState state, int rows)
+    {
+        return state.SettingsScreen is null ? new ReduceResult(state, _noEffects) : Move(state, rows);
+    }
+
     /// <summary>A click on a word of the open choice list: it is taken like Enter on it.</summary>
     public static ReduceResult ChoiceClicked(AppState state, int choice)
     {
@@ -135,7 +142,7 @@ public static class SettingsScreenReducer
         {
             var choices = SettingsRows.ChoicesOf(state, setting);
 
-            return Previewed(state, screen with { Choice = Math.Clamp(choice + delta, 0, choices.Count - 1) }, setting);
+            return Previewed(state, screen with { Choice = ListCursor.Step(choice, delta, choices.Count) }, setting);
         }
 
         return Select(state, Selected(state, rows.Count) + delta);

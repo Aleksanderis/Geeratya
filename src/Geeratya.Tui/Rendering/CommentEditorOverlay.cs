@@ -51,7 +51,7 @@ public static class CommentEditorOverlay
 
         var inner = boxWidth - WallColumns;
         var notes = new List<StyledLine>([.. PopupLines(editor, inner), .. Notes(editor, inner)]);
-        var footer = FooterText(keymap, editor);
+        var footer = Footer(keymap, editor);
         var rows = EditorLayout.Rows(editor.Buffer.Text, EditorLayout.Capacity(inner));
         var area = Math.Clamp(height - 2 - notes.Count - FooterHeight, 1, Math.Max(MinimumTextRows, rows.Count));
         var box = BoxLines(editor, rows, notes, footer, boxWidth, area);
@@ -79,24 +79,17 @@ public static class CommentEditorOverlay
             return;
         }
 
-        var first = PopupFirst(popup);
+        var first = FormOverlay.PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, Enumerable.Range(first, shown));
-    }
-
-    private static int PopupFirst(SuggestionState popup)
-    {
-        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-
-        return Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
     }
 
     private static List<StyledLine> BoxLines(
         CommentEditor editor,
         IReadOnlyList<EditorRow> rows,
         List<StyledLine> notes,
-        string footer,
+        StyledLine footer,
         int boxWidth,
         int area)
     {
@@ -109,7 +102,7 @@ public static class CommentEditorOverlay
         lines.AddRange(TextLines(editor, rows, area).Select(line => OverlayBox.Wall(line, contentWidth)));
         lines.AddRange(notes.Select(note => OverlayBox.Wall(note, contentWidth)));
         lines.Add(OverlayBox.Wall(Divider(contentWidth), contentWidth));
-        lines.Add(OverlayBox.Wall(OverlayBox.Hints(footer), contentWidth));
+        lines.Add(OverlayBox.Wall(footer, contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;
@@ -215,7 +208,7 @@ public static class CommentEditorOverlay
 
         var width = Math.Max(1, inner - 2);
         var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-        var first = PopupFirst(popup);
+        var first = FormOverlay.PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         foreach (var index in Enumerable.Range(first, shown))
@@ -262,29 +255,34 @@ public static class CommentEditorOverlay
         }
     }
 
-    private static string PopupFooterText(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, CommentEditor editor)
     {
-        var down = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerNext);
-        var up = keymap.FindKeyLabel(InputMode.Insert, ActionIds.PickerPrevious);
-        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
-        var enter = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-        var close = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
-
-        return $"{down}/{up} choose   {accept}/{enter} accept   {close} close list";
-    }
-
-    private static string FooterText(KeymapTable keymap, CommentEditor editor)
-    {
-        var save = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormSubmit);
-        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
-        var newLine = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-        var verb = editor.IsEdit ? "save" : "send";
+        var move = DialogFooter.Pair(
+            keymap,
+            InputMode.Insert,
+            ActionIds.PickerPrevious,
+            ActionIds.PickerNext,
+            HintLabels.Move);
+        var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
 
         if (editor.Suggest is { Items.Count: > 0 })
         {
-            return PopupFooterText(keymap);
+            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
+            var enter = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
+            var keys = string.Join('/', new[] { accept, enter }.Where(static key => key is { Length: > 0 }));
+
+            return DialogFooter.Line([move, keys.Length == 0 ? null : new HintChip(keys, HintLabels.Choose), close]);
         }
 
-        return $"{save} {verb}   {newLine} new line   {cancel} cancel";
+        return DialogFooter.Line(
+        [
+            DialogFooter.Chip(
+                keymap,
+                InputMode.Insert,
+                ActionIds.FormSubmit,
+                editor.IsEdit ? HintLabels.Save : HintLabels.Send),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.NewLine),
+            close,
+        ]);
     }
 }

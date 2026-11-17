@@ -13,7 +13,7 @@
 │   │   Token        ******************_                                   │   │
 │   │                                                                      │   │
 │   │ Test connection   Save   Cancel                                      │   │
-│   │ Tab field  Ctrl-s save  Alt-t test  Esc cancel                       │   │
+│   │ Tab field   Ctrl-s save   Alt-t test   Esc close                     │   │
 │   ╰──────────────────────────────────────────────────────────────────────╯   │
 │                                                                              │
 │                                                                              │

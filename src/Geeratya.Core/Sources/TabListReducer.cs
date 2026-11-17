@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -53,7 +54,7 @@ public static class TabListReducer
 
         return text.Length == 0
             ? all
-            : all.Where(choice => choice.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
+            : all.Where(choice => Matcher.Matches(choice.Name, text)).ToList();
     }
 
     /// <summary>Closes the list and switches to the highlighted tab; an empty list only says so.</summary>

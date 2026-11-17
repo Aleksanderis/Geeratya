@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
@@ -67,7 +68,7 @@ public static class SettingsScreen
         var entries = Entries(state, rows, selected, wide ? categories[category] : null, room);
         var area = Math.Max(1, Math.Min(height - 2 - Chrome, Wanted(state, rows, categories, wide, room)));
         var top = Math.Max(0, (height - area - Chrome) / 2);
-        var first = FirstVisible(entries, area);
+        var first = ListCursor.FirstVisible(entries.FindLastIndex(static entry => entry.Cursor), entries.Count, area);
         var box = Box(state, context, rows[selected], entries, new Layout(categories, category, wide, boxWidth, area, first));
 
         if (regions is not null)
@@ -137,7 +138,7 @@ public static class SettingsScreen
         }
 
         box.Add(OverlayBox.Divider(boxWidth));
-        box.Add(OverlayBox.Wall(OverlayBox.Hints(HintText(state, context, inner)), boxWidth - 2));
+        box.Add(OverlayBox.Wall(HintLine(state, context, inner), boxWidth - 2));
         box.Add(OverlayBox.Bottom(boxWidth));
 
         return box;
@@ -324,13 +325,6 @@ public static class SettingsScreen
         }
     }
 
-    private static int FirstVisible(List<Entry> entries, int area)
-    {
-        var cursor = entries.FindLastIndex(static entry => entry.Cursor);
-
-        return area <= 0 || cursor < area ? 0 : Math.Min(cursor - area + 1, Math.Max(0, entries.Count - area));
-    }
-
     private static string HelpText(AppState state, SettingsRow row)
     {
         if (state.SettingsScreen?.Preview is { } preview)
@@ -373,34 +367,37 @@ public static class SettingsScreen
         };
     }
 
-    private static string HintText(AppState state, BodyContext context, int inner)
+    private static StyledLine HintLine(AppState state, BodyContext context, int inner)
     {
         var keymap = context.Keymap;
         var down = keymap.FindKeyLabel(InputMode.Normal, ActionIds.NavigateDown) ?? "j";
         var up = keymap.FindKeyLabel(InputMode.Normal, ActionIds.NavigateUp) ?? "k";
         var open = keymap.FindKeyLabel(InputMode.Normal, ActionIds.ItemOpen) ?? "Enter";
-        var reset = keymap.FindKeyLabel(InputMode.Normal, ActionIds.SettingsReset);
         var cancel = keymap.FindKeyLabel(InputMode.Normal, ActionIds.Cancel) ?? "Esc";
         var listOpen = state.SettingsScreen?.Choice is not null;
-        var chips = new List<string> { $"{down}/{up} move", $"{open} {(listOpen ? "keep" : "change")}" };
-
-        if (reset is not null && !listOpen)
+        var chips = new List<HintChip?>
         {
-            chips.Add($"{reset} reset");
+            new HintChip($"{down}/{up}", HintLabels.Move),
+            new HintChip(open, listOpen ? HintLabels.Keep : HintLabels.Change),
+        };
+
+        if (!listOpen)
+        {
+            chips.Add(DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.SettingsReset, HintLabels.Reset));
         }
 
-        chips.Add($"{cancel} {(listOpen ? "cancel" : "close")}");
+        chips.Add(new HintChip(cancel, HintLabels.Close));
 
         // Narrow boxes keep the close chip: drop reset, then move, when the row does not fit.
-        var text = string.Join("  ", chips);
+        var line = DialogFooter.Line(chips);
 
-        while (TextWidth.Of(text) > inner && chips.Count > 2)
+        while (TextWidth.Of(line.PlainText) > inner && chips.Count > 2)
         {
             chips.RemoveAt(chips.Count > 3 ? chips.Count - 2 : 0);
-            text = string.Join("  ", chips);
+            line = DialogFooter.Line(chips);
         }
 
-        return text;
+        return line;
     }
 
     private static void MarkRegions(
