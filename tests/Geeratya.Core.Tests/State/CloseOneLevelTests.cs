@@ -8,9 +8,9 @@ using Geeratya.Core.Panes;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
-using Geeratya.Core.Writes;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -251,7 +251,9 @@ public sealed class CloseOneLevelTests
     [Fact]
     public void GivenTheTransitionFieldsInTheNavigateState_WhenPressingQ_ThenTheStatusPickerReturns()
     {
-        var navigating = WithTab(TransitionFields(), tab => tab with { Form = tab.Form! with { Navigable = true, Navigating = true } });
+        var navigating = WithTab(
+            TransitionFields(),
+            tab => tab with { Form = tab.Form! with { Navigable = true, Navigating = true } });
 
         var result = Press(navigating, "q");
 
@@ -291,6 +293,7 @@ public sealed class CloseOneLevelTests
         var typed = Press(editing, "q");
         var esc = Press(editing, "Esc");
 
+        Assert.NotNull(editing.Editor!.Suggest);
         Assert.EndsWith("oq", typed.State.Editor!.Buffer.Text, StringComparison.Ordinal);
         Assert.Empty(typed.Effects.OfType<QuitEffect>());
         Assert.NotNull(esc.State.Editor);
@@ -331,8 +334,10 @@ public sealed class CloseOneLevelTests
         Assert.Equal(InputMode.Confirm, asked.State.Mode);
         Assert.Contains("1 write is still running", asked.State.Confirm!.Message, StringComparison.Ordinal);
         Assert.Equal(InputMode.Normal, viaEsc.State.Mode);
+        Assert.Null(viaEsc.State.Confirm);
         Assert.Empty(viaEsc.Effects);
         Assert.Equal(InputMode.Normal, viaQ.State.Mode);
+        Assert.Null(viaQ.State.Confirm);
         Assert.Empty(viaQ.Effects);
         Assert.Single(yes.Effects.OfType<QuitEffect>());
     }
@@ -351,7 +356,13 @@ public sealed class CloseOneLevelTests
 
     private static AppState WithRunningWrite(AppState state)
     {
-        var running = new Operation(99, new AssignRequest("A-1", null), state.Session.Tabs[0].Id, OperationPhase.Sending, [], _at);
+        var running = new Operation(
+            99,
+            new AssignRequest("A-1", null),
+            state.Session.Tabs[0].Id,
+            OperationPhase.Sending,
+            [],
+            _at);
 
         return state with { Session = state.Session with { Operations = [running] } };
     }
@@ -376,7 +387,8 @@ public sealed class CloseOneLevelTests
         var opened = Press(Tabbed(), "Space", "i", "s").State;
         var tab = opened.Session.Tabs[0];
         var pick = ((TransitionPickTarget)tab.Form!.Target).With([transition]);
-        var picker = _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, tab.Form.RequestId, pick.Fields(), pick, _at)).State;
+        var loadedPicker = new FormMetadataLoaded(tab.Id, tab.Form.RequestId, pick.Fields(), pick, _at);
+        var picker = _reducer.Reduce(opened, loadedPicker).State;
         var chosen = Press(picker, "Enter").State;
         var form = chosen.Session.Tabs[0].Form!;
         var loaded = new FormMetadataLoaded(tab.Id, form.RequestId, FormFieldMapper.FromTransition([resolution]));
@@ -435,7 +447,8 @@ public sealed class CloseOneLevelTests
             "confirm" => after.Confirm is null && after.Mode == InputMode.Normal,
             "form-navigate" or "form-type-chooser" => tab.Form is null && after.Mode == InputMode.Normal,
             "form-discard-prompt" => tab.Form is { DiscardPending: false } && start.Mode == after.Mode,
-            "messages" or "messages-with-settings" => !after.MessagesOpen && after.Mode == InputMode.Normal,
+            "messages" or "messages-with-settings"
+                => !after.MessagesOpen && !after.MessagesShowSettings && after.Mode == InputMode.Normal,
             _ => false,
         };
     }
