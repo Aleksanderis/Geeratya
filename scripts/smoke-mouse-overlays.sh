@@ -35,6 +35,9 @@ fail() {
   frame >&2 || true
   exit 1
 }
+# The frame without its last line: the status line names the cursor issue ("GEN-1 To Do"), so a search for the text
+# of a row to click or drag must not find it there.
+body() { frame | sed '$d'; }
 dump() { if [ -n "${DUMP:-}" ]; then frame; echo ----; fi; }
 wait_for() {
   local text=$1 start
@@ -67,7 +70,7 @@ send() {
 # <text>. The column is a character count, so it assumes single-width characters before the text (true for the fake's data).
 click() {
   local text=$1 button=${2:-0} line row col prefix seq
-  line=$(frame | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to click"
+  line=$(body | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to click"
   row=${line%%:*}
   line=${line#*:}
   prefix=${line%%"$text"*}
@@ -82,7 +85,7 @@ click() {
 # (SGR; with a third argument a motion event, button 32, goes between), the way a terminal reports a drag of a card.
 drag() {
   local text=$1 shift_by=$2 motion=${3:-} line row col prefix seq
-  line=$(frame | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to drag"
+  line=$(body | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to drag"
   row=${line%%:*}
   line=${line#*:}
   prefix=${line%%"$text"*}
@@ -99,12 +102,12 @@ drag() {
 # <to text> (SGR, with a motion event between), the way a terminal reports a row dragged to another section.
 drag_to() {
   local from=$1 to=$2 line from_row to_row col prefix seq
-  line=$(frame | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
+  line=$(body | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
   from_row=${line%%:*}
   line=${line#*:}
   prefix=${line%%"$from"*}
   col=$((${#prefix} + 2))
-  to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1)
+  to_row=$(body | grep -nF -- "$to" | tail -n 1 | cut -d: -f1)
   [ -n "$to_row" ] || fail "no line with '$to' to drop on"
   printf -v seq '\033[<0;%d;%dM\033[<32;%d;%dM\033[<0;%d;%dm' "$col" "$from_row" "$col" "$to_row" "$col" "$to_row"
   tmux -L "$socket" send-keys -t s -l "$seq"
@@ -116,12 +119,12 @@ drag_to() {
 # (SGR press, then motion with button 32), so the range can be checked while the button is held; release_at releases.
 hold_drag() {
   local from=$1 to=$2 line from_row col prefix seq
-  line=$(frame | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
+  line=$(body | grep -nF -- "$from" | tail -n 1) || fail "no line with '$from' to drag"
   from_row=${line%%:*}
   line=${line#*:}
   prefix=${line%%"$from"*}
   col=$((${#prefix} + 2))
-  if [[ $to =~ ^[0-9]+$ ]]; then to_row=$to; else to_row=$(frame | grep -nF -- "$to" | tail -n 1 | cut -d: -f1); fi
+  if [[ $to =~ ^[0-9]+$ ]]; then to_row=$to; else to_row=$(body | grep -nF -- "$to" | tail -n 1 | cut -d: -f1); fi
   [ -n "$to_row" ] || fail "no line with '$to' to move to"
   printf -v seq '\033[<0;%d;%dM\033[<32;%d;%dM\033[<32;%d;%dM' "$col" "$from_row" "$col" "$from_row" "$col" "$to_row"
   tmux -L "$socket" send-keys -t s -l "$seq"
@@ -186,9 +189,9 @@ dismiss_start_picker
 send ":jql project = GCM|"
 wait_for "issues"
 hold_drag "GEN-1 " "GEN-3 "
-wait_for "3 selected"
+wait_for "VISUAL"
 release_held
-wait_for "3 selected"
+wait_for "VISUAL"
 echo "ok: live range while the button is held, kept on release"
 
 # Auto-scroll: a held button on the status row (below the body) keeps moving the cursor; after the release it stops.
@@ -208,7 +211,7 @@ send ":backlog GEN board|"
 wait_for "Generated Sprint 3"
 drag_to "GEN-14 " "Generated Sprint 3"
 wait_for "Jira has no undo"
-wait_for "Move GEN-14"
+wait_for "(GEN-14," # the live range of the drag (GEN-14 to the end of its sprint) moves, not the row alone (#604)
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Jira has no undo"
 
@@ -235,12 +238,13 @@ for kind in "GCS 6" "GTS 5"; do
   send ":backlog $project board|"
   wait_for "├─ Backlog "
   size=$(frame | grep -F "├─ Backlog " | grep -o "[0-9]* issues" | tr -dc 0-9)
-  key=$(frame | awk '/Seed Sprint 3 / { found = 1; next } found && $2 ~ /^[A-Z]+-[0-9]+$/ { print $2; exit }')
+  # The last row of the sprint: the press row and the live range of the drag are then the same single row.
+  key=$(frame | awk '/Seed Sprint 3 / { found = 1; next } found && /^├/ { exit } found && $2 ~ /^[A-Z]+-[0-9]+$/ { last = $2 } END { print last }')
   [[ $key =~ ^[A-Z]+-[0-9]+$ ]] || fail "no row in Seed Sprint 3 of $project (got '$key')"
   fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
   drag_to "$key " "├─ Backlog "
   wait_for "Jira has no undo"
-  wait_for "Move $key"
+  wait_for "Move $key from sprint" # one row, not a range
   fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
   send "y"
   wait_gone "Jira has no undo"
@@ -276,32 +280,36 @@ echo "ok: gg returned the help to the top"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Help"
 
-# Card drag: a card dragged onto the next column opens the transition form (a drop never writes by itself), with the
-# motion events a terminal sends (they carry the Pressed flag too) and without them. That the click after a release is
-# swallowed is covered by the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
-drag "Story GCM-11" 40 motion
-wait_for "Ctrl-s save"
+# Card drag: a card dragged onto the next column runs the transition like Alt-l: a single matching transition is sent at
+# once (no form; the column titles carry the counts), a move into Done asks first. Done with the motion events a terminal
+# sends (they carry the Pressed flag too) and without them. That the click after a release is swallowed is covered by
+# the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
+drag "GCM-11 " 40 motion
+wait_for "In Progress 5"
+wait_for "To Do 4"
+drag "GCM-11 " 40
+wait_for "Move GCM-11 to Done?" # a move into a done status asks first (the workflow may do more than change the status)
 tmux -L "$socket" send-keys -t s Escape
-wait_gone "Ctrl-s save"
-drag "Story GCM-11" 40
-wait_for "Ctrl-s save"
-tmux -L "$socket" send-keys -t s Escape
-wait_gone "Ctrl-s save"
+wait_gone "Move GCM-11 to Done?"
+wait_for "In Progress 5" # Esc kept the card where it was
+wait_for "Done (14d) 3"
 
 # Create form: the type list row is taken by a click, then a click on another field moves the focus to it.
 send " ic"
 wait_for "Choose the issue type"
 click "│   Task  "
-wait_for "> Summary"
-click "  Description"
-wait_for "> Description"
+wait_for "Create GCM · Task · Summary" # the status line names the focused field
+click "Describe it."
+wait_for "Create GCM · Task · Description"
 tmux -L "$socket" send-keys -t s Escape
-wait_gone "Create Task in GCM"
+wait_for "[navigate]" # the first Esc stops editing, the second closes the untouched form
+tmux -L "$socket" send-keys -t s Escape
+wait_gone "Create · GCM · Task"
 
 # Jump prompt: type a prefix, click a result row.
 send " gGEN-1"
 wait_for "Jump to an issue"
-click "│ > GEN-1  "
+click "│   GEN-1  "
 wait_gone "Jump to an issue"
 wait_for "Reporter"
 
@@ -309,9 +317,10 @@ wait_for "Reporter"
 tmux -L "$socket" send-keys -t s Escape; sleep 0.3
 send ":jql project = GEN|:labels|geer"
 wait_for "geeratya-seed"
+wait_for "Tab/Enter choose" # the suggestion popup is open before the click
 click "geeratya-seed-GCM-backlog-2"
-wait_gone "Tab/Enter accept"
-wait_for "geeratya-seed-GCM-backlog-2"
+wait_for "(remove)" # the label is chosen (the labels popup is a form of its own and stays open for the next one)
+wait_for "[geeratya-seed-GCM-backlog-2]"
 tmux -L "$socket" send-keys -t s Escape
 wait_for "Discard the changes?"
 send "y"
@@ -319,9 +328,9 @@ wait_gone "Edit GEN-1"
 
 # Comment editor: the mention popup row is taken by a click.
 send "jjjj| maThanks @test"
-wait_for "Tab/Enter accept"
+wait_for "Tab/Enter choose"
 click "Test User 3"
-wait_gone "Tab/Enter accept"
+wait_gone "Tab/Enter choose"
 wait_for "Test User 3"
 
 # Profile list: right-click asks to remove (Esc keeps it), click switches.
