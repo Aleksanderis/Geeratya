@@ -2,7 +2,6 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -188,7 +187,7 @@ public static class ContextMenus
     /// <summary>Moves the highlight, clamped to the items.</summary>
     public static ContextMenuState Move(ContextMenuState menu, int delta)
     {
-        return menu with { Selected = ListCursor.Step(menu.Selected, delta, menu.Items.Count) };
+        return menu with { Pick = menu.Pick.Moved(delta, menu.Items.Count) };
     }
 
     private static ContextMenuItem Item(string action)

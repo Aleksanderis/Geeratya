@@ -202,7 +202,7 @@ public class ProfileFormOverlaySnapshotTests
         }
     }
 
-    private static AppState Editing()
+    internal static AppState Editing()
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var catalog = ProfileCatalog.Empty.With(profile);

@@ -1,6 +1,7 @@
 using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Text;
 
@@ -57,9 +58,9 @@ public static class PromptEditing
         if (state.Mode == InputMode.Command)
         {
             var edited = change(new PromptText(state.PaletteText, state.PaletteBack));
-            var selected = edited.Text == state.PaletteText ? state.PaletteSelected : 0;
+            var pick = edited.Text == state.PaletteText ? state.PalettePick : PickList.First;
 
-            return state with { PaletteText = edited.Text, PaletteBack = edited.Back, PaletteSelected = selected };
+            return state with { PaletteText = edited.Text, PaletteBack = edited.Back, PalettePick = pick };
         }
 
         if (state.Jump is { } jump)
@@ -71,7 +72,7 @@ public static class PromptEditing
                 return state with { Jump = jump with { Back = edited.Back } };
             }
 
-            return state with { Jump = new JumpState(edited.Text, 0, null) { Back = edited.Back } };
+            return state with { Jump = new JumpState(edited.Text, PickList.First, null) { Back = edited.Back } };
         }
 
         if (state.FlashJump is { } flash)
@@ -98,6 +99,6 @@ public static class PromptEditing
 
     private static SourcePickerState Changed(SourcePickerState picker, PromptText edited)
     {
-        return picker with { Text = edited.Text, Back = edited.Back, Selected = 0, AutoOpen = false, Notice = null };
+        return picker with { Text = edited.Text, Back = edited.Back, Pick = PickList.First, AutoOpen = false, Notice = null };
     }
 }

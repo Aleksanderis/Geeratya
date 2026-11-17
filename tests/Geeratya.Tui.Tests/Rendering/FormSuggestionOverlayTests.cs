@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -30,7 +31,7 @@ public class FormSuggestionOverlayTests
     [InlineData(40, 10)]
     public void GivenAnOpenPopup_WhenBuildingTheFrame_ThenItMatchesTheSnapshot(int width, int height)
     {
-        var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), width, height, _keymap);
+        var lines = FrameBuilder.Build(WithForm(LabelsForm(PickStatus.Ready)), width, height, _keymap);
         var actual = string.Join('\n', lines) + "\n";
         var name = $"form-suggest-{width}x{height}.txt";
 
@@ -43,7 +44,7 @@ public class FormSuggestionOverlayTests
     [InlineData(40, 10)]
     public void GivenAnOpenPopup_WhenReadingTheRegions_ThenPopupRowsAndFieldRowsAreTagged(int width, int height)
     {
-        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var state = WithForm(LabelsForm(PickStatus.Ready));
         var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
         var choices = RegionProbe.Rows(frame, MouseTarget.FormChoice);
         var fields = RegionProbe.Rows(frame, MouseTarget.FormField);
@@ -58,7 +59,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenAnOpenPopup_WhenClickingASecondRow_ThenTheValueIsTakenLikeEnterOnIt()
     {
-        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var state = WithForm(LabelsForm(PickStatus.Ready));
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.FormChoice).Single(candidate => candidate.Index == 1);
 
@@ -72,7 +73,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenAnOpenPopup_WhenClickingAnotherField_ThenItIsFocusedAndThePopupCloses()
     {
-        var state = WithForm(LabelsForm(SuggestionStatus.Loaded));
+        var state = WithForm(LabelsForm(PickStatus.Ready));
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var row = RegionProbe.Rows(frame, MouseTarget.FormField).First(candidate => candidate.Index == 1);
 
@@ -99,7 +100,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenAPopup_WhenBuildingTheFrame_ThenTheCursorRowIsMarkedAndWideNamesAreNotSplit()
     {
-        var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), 80, 24, _keymap);
+        var lines = FrameBuilder.Build(WithForm(LabelsForm(PickStatus.Ready)), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("日本チーム", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("日本 (new)", StringComparison.Ordinal));
@@ -127,7 +128,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenALoadingLookup_WhenBuildingTheFrame_ThenItSaysSearching()
     {
-        var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loading)), 80, 24, _keymap);
+        var lines = FrameBuilder.Build(WithForm(LabelsForm(PickStatus.Loading)), 80, 24, _keymap);
 
         Assert.Contains(lines, line => line.Contains("searching…", StringComparison.Ordinal));
     }
@@ -135,7 +136,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenAFailedLookup_WhenBuildingTheFrame_ThenItSaysSoAndKeepsTheLoadedRows()
     {
-        var form = LabelsForm(SuggestionStatus.Failed, "offline");
+        var form = LabelsForm(PickStatus.Failed, "offline");
 
         var lines = FrameBuilder.Build(WithForm(form), 100, 24, _keymap);
 
@@ -146,7 +147,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenALoadedEmptyList_WhenBuildingTheFrame_ThenItSaysNoMatch()
     {
-        var form = LabelsForm(SuggestionStatus.Loaded);
+        var form = LabelsForm(PickStatus.Ready);
         var empty = form with { Suggest = form.Suggest! with { Items = [] } };
 
         var lines = FrameBuilder.Build(WithForm(empty), 80, 24, _keymap);
@@ -157,7 +158,7 @@ public class FormSuggestionOverlayTests
     [Fact]
     public void GivenAnOpenPopup_WhenBuildingTheFrame_ThenTheFooterNamesTheKeysOfTheList()
     {
-        var lines = FrameBuilder.Build(WithForm(LabelsForm(SuggestionStatus.Loaded)), 120, 36, _keymap);
+        var lines = FrameBuilder.Build(WithForm(LabelsForm(PickStatus.Ready)), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("move", StringComparison.Ordinal) && line.Contains("choose") && line.Contains("Esc close"));
     }
@@ -178,7 +179,7 @@ public class FormSuggestionOverlayTests
         Assert.DoesNotContain(lines, line => line.Contains("acc-1", StringComparison.Ordinal));
     }
 
-    internal static FormState LabelsForm(SuggestionStatus status, string? error = null)
+    internal static FormState LabelsForm(PickStatus status, string? error = null)
     {
         var labels = FormField.Create("labels", "Labels", FormFieldKind.Labels, false, [])
             .WithInitial(FormValue.OfChosen(["backend"])) with { Entry = "日本" };
@@ -201,7 +202,7 @@ public class FormSuggestionOverlayTests
         var person = FormField.Create("assignee", "Assignee", FormFieldKind.User, false, []) with { Entry = "jo" };
         var users = new[] { new Suggestion("acc-1", "Jo Smith", null, false), new Suggestion("acc-2", "Jon Doe", null, true) };
         var source = new SuggestionSource(SuggestionKind.AssignableUsers, "A-1", []);
-        var popup = new SuggestionState(6, source, "jo", users, users, 0, SuggestionStatus.Loaded, 4, null);
+        var popup = new SuggestionState(6, source, "jo", users, users, 0, PickStatus.Ready, 4, null);
 
         return Base() with { Fields = [.. fillers, person], Focus = 6, Suggest = popup };
     }

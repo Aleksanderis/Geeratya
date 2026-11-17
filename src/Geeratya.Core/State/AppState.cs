@@ -1,8 +1,9 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
-using Geeratya.Core.Menus;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
@@ -146,8 +147,15 @@ public sealed record AppState(
     /// </summary>
     public bool HelpFiltering { get; init; }
 
-    /// <summary>The highlighted row of the command palette, counted over its selectable rows (Command mode).</summary>
-    public int PaletteSelected { get; init; }
+    /// <summary>The highlight of the command palette, counted over its selectable rows (Command mode).</summary>
+    public PickList PalettePick { get; init; }
+
+    /// <summary>The highlighted row of the command palette (<see cref="PalettePick"/>).</summary>
+    public int PaletteSelected
+    {
+        get => PalettePick.Selected;
+        init => PalettePick = PalettePick with { Selected = value };
+    }
 
     /// <summary>The count typed before a key (<c>3</c> in <c>3 Alt-j</c>), 0 when none.</summary>
     public int Count { get; init; }

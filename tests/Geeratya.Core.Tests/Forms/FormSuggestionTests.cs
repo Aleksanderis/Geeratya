@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -57,9 +58,9 @@ public class FormSuggestionTests
 
         Assert.NotEqual(firstId, secondId);
         Assert.DoesNotContain(Popup(late.State).Items, item => item.Label == "stale-label");
-        Assert.Equal(SuggestionStatus.Waiting, Popup(late.State).Status);
+        Assert.Equal(PickStatus.Waiting, Popup(late.State).Status);
         Assert.Contains(Popup(current.State).Items, item => item.Label == "balance");
-        Assert.Equal(SuggestionStatus.Loaded, Popup(current.State).Status);
+        Assert.Equal(PickStatus.Ready, Popup(current.State).Status);
     }
 
     [Fact]
@@ -168,8 +169,8 @@ public class FormSuggestionTests
         var slow = _reducer.Reduce(typed.State, new SuggestionsSlow(tab, id));
         var failed = _reducer.Reduce(slow.State, new SuggestionsFailed(tab, id, "offline"));
 
-        Assert.Equal(SuggestionStatus.Loading, Popup(slow.State).Status);
-        Assert.Equal(SuggestionStatus.Failed, Popup(failed.State).Status);
+        Assert.Equal(PickStatus.Loading, Popup(slow.State).Status);
+        Assert.Equal(PickStatus.Failed, Popup(failed.State).Status);
         Assert.Equal("offline", Popup(failed.State).Error);
         Assert.Contains(Popup(failed.State).Items, item => item.Label == "backend");
     }

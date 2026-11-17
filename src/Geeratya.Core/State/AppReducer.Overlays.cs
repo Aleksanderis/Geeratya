@@ -54,7 +54,7 @@ public sealed partial class AppReducer
             PendingKeys = string.Empty,
             Count = 0,
             PaletteText = string.Empty,
-            PaletteSelected = 0,
+            PalettePick = PickList.First,
             HelpScroll = 0,
             HelpPage = 0,
             HelpFilter = string.Empty,
@@ -189,6 +189,6 @@ public sealed partial class AppReducer
     {
         var count = PaletteRows.Selectable(state, _keymap).Count;
 
-        return state with { PaletteSelected = ListCursor.Step(state.PaletteSelected, delta, count) };
+        return state with { PalettePick = state.PalettePick.Moved(delta, count) };
     }
 }

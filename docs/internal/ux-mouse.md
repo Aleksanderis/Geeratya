@@ -27,7 +27,7 @@ A plain click on a list, a board or an opened issue has no action id: it does wh
 
 ## Table
 
-A test parses this table and checks it against `DefaultMouseMap`; add a row here in the same change that adds a path in code. `ContextMenu` rows are the entries of the right-click menu: each action that has no other path is listed there, so every action a key can run has a mouse path or an entry under "Without a path".
+A test parses this table and checks it against `DefaultMouseMap`; two more check the wiring (`MouseMapTests`: every row of a wired part makes the resolver produce a command, and a row says "Not wired" in this table exactly when its part is not in `WiredParts`; `MouseWiringTests`: every overlay target of a wired row is drawn by some real overlay, and its click gestures resolve on that frame; `OverlayWheelContractTests` clicks and wheels every pick list); add a row here in the same change that adds a path in code. `ContextMenu` rows are the entries of the right-click menu: each action that has no other path is listed there, so every action a key can run has a mouse path or an entry under "Without a path".
 
 | Target | Gesture | Action | Part | Effect |
 |---|---|---|---|---|

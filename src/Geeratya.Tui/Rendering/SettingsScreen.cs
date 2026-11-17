@@ -68,7 +68,7 @@ public static class SettingsScreen
         var entries = Entries(state, rows, selected, wide ? categories[category] : null, room);
         var area = Math.Max(1, Math.Min(height - 2 - Chrome, Wanted(state, rows, categories, wide, room)));
         var top = Math.Max(0, (height - area - Chrome) / 2);
-        var first = ListCursor.FirstVisible(entries.FindLastIndex(static entry => entry.Cursor), entries.Count, area);
+        var first = PickList.WindowAt(entries.FindLastIndex(static entry => entry.Cursor), entries.Count, area).First;
         var box = Box(state, context, rows[selected], entries, new Layout(categories, category, wide, boxWidth, area, first));
 
         if (regions is not null)

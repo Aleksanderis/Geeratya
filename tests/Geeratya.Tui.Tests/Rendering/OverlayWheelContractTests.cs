@@ -1,8 +1,11 @@
+using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
+using Geeratya.Core.Settings;
 using Geeratya.Core.State;
-using Geeratya.Core.Suggestions;
+using Geeratya.Core.Text;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -130,6 +133,85 @@ public class OverlayWheelContractTests
         Assert.Equal(DefaultMouseMap.PopupWheelRows, down.State.SettingsScreen!.Choice);
     }
 
+    [Theory]
+    [MemberData(nameof(BoxUsers))]
+    [MemberData(nameof(PopupUsers))]
+    public void GivenAPickList_WhenClickingTheSecondRow_ThenTheResultIsThatOfHighlightingItAndPressingEnter(string user)
+    {
+        var scenario = Scenario.For(user);
+        var frame = FrameBuilder.BuildStyled(scenario.State, Width, Height, _keymap)!;
+        var second = RegionProbe.Rows(frame, scenario.RowTarget).First(row => row.Index == 1);
+
+        var clicked = RegionProbe.Click(scenario.State, frame, second.Region, MouseGesture.Click);
+        var keyed = new AppReducer(_keymap).Reduce(Scenario.Highlighted(user, scenario.State, 1), new KeyPressed("Enter"));
+
+        Assert.NotNull(clicked);
+        Assert.Equal(Scenario.Outcome(user, keyed), Scenario.Outcome(user, clicked));
+        Assert.NotEqual(
+            Scenario.Outcome(user, new AppReducer(_keymap).Reduce(Scenario.Highlighted(user, scenario.State, 0), new KeyPressed("Enter"))),
+            Scenario.Outcome(user, clicked));
+    }
+
+    [Theory]
+    [MemberData(nameof(BoxUsers))]
+    [MemberData(nameof(PopupUsers))]
+    public void GivenAPickList_WhenHighlightingEachOfItsFirstRows_ThenTheHighlightIsDrawnOnTheRowOfThatRegion(string user)
+    {
+        var scenario = Scenario.For(user);
+        var rows = RegionProbe.Rows(FrameBuilder.BuildStyled(scenario.State, Width, Height, _keymap)!, scenario.RowTarget);
+
+        Assert.True(rows.Count >= 2, $"{user}: fewer than two clickable rows");
+
+        foreach (var row in rows.Take(3))
+        {
+            var state = Scenario.Highlighted(user, scenario.State, row.Index);
+            var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+            var region = RegionProbe.Rows(frame, scenario.RowTarget).First(candidate => candidate.Index == row.Index).Region;
+            var line = frame.Header.Concat(frame.Body).ElementAt(region.Top);
+
+            Assert.True(
+                line.Spans.Any(span => span.Role == TextRole.Selected),
+                $"{user}: row {row.Index} is not the highlighted line at its region");
+        }
+    }
+
+    [Fact]
+    public void GivenTheContextMenu_WhenClickingTheSecondItem_ThenItRunsLikeHighlightingItAndPressingEnter()
+    {
+        var state = ContextMenuOverlayTests.Sample();
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var second = RegionProbe.Rows(frame, MouseTarget.ContextMenu).First(row => row.Index == 1);
+        var reducer = new AppReducer(_keymap);
+
+        var clicked = RegionProbe.Click(state, frame, second.Region, MouseGesture.Click)!;
+        var keyed = reducer.Reduce(state with { ContextMenu = state.ContextMenu! with { Selected = 1 } }, new KeyPressed("Enter"));
+        var first = reducer.Reduce(state with { ContextMenu = state.ContextMenu! with { Selected = 0 } }, new KeyPressed("Enter"));
+
+        Assert.Equal(Scenario.Outcome("menu", keyed), Scenario.Outcome("menu", clicked));
+        Assert.NotEqual(Scenario.Outcome("menu", first), Scenario.Outcome("menu", clicked));
+    }
+
+    [Fact]
+    public void GivenTheSettingsChoiceList_WhenClickingTheSecondWord_ThenItIsTakenLikeEnterOnIt()
+    {
+        var state = SettingsScreenTests.WithThemeList();
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var second = RegionProbe.Rows(frame, MouseTarget.SettingsChoice).First(row => row.Index == 1);
+        var reducer = new AppReducer(_keymap);
+
+        var clicked = RegionProbe.Click(state, frame, second.Region, MouseGesture.Click)!;
+        var keyed = reducer.Reduce(
+            state with { SettingsScreen = state.SettingsScreen! with { Choice = 1 } },
+            new KeyPressed("Enter"));
+        var first = reducer.Reduce(
+            state with { SettingsScreen = state.SettingsScreen! with { Choice = 0 } },
+            new KeyPressed("Enter"));
+
+        Assert.Equal(Scenario.Outcome("choice", keyed), Scenario.Outcome("choice", clicked));
+        Assert.NotEqual(Scenario.Outcome("choice", first), Scenario.Outcome("choice", clicked));
+        Assert.Null(clicked.State.SettingsScreen!.Choice);
+    }
+
     private sealed record Scenario(AppState State, MouseTarget RowTarget, int Down)
     {
         public static Scenario For(string user)
@@ -154,7 +236,7 @@ public class OverlayWheelContractTests
                     DefaultMouseMap.WheelRows),
                 Profiles => new Scenario(ProfileManagerScreenTests.Sample(), MouseTarget.ProfileRow, 1),
                 "form" => new Scenario(
-                    FormSuggestionOverlayTests.WithForm(FormSuggestionOverlayTests.LabelsForm(SuggestionStatus.Loaded)),
+                    FormSuggestionOverlayTests.WithForm(FormSuggestionOverlayTests.LabelsForm(PickStatus.Ready)),
                     MouseTarget.FormChoice,
                     DefaultMouseMap.PopupWheelRows),
                 _ => new Scenario(
@@ -162,6 +244,43 @@ public class OverlayWheelContractTests
                     MouseTarget.EditorChoice,
                     DefaultMouseMap.PopupWheelRows),
             };
+        }
+
+        public static AppState Highlighted(string user, AppState state, int row)
+        {
+            return user switch
+            {
+                "palette" => state with { PaletteSelected = row },
+                "jump" => state with { Jump = state.Jump! with { Selected = row } },
+                "picker" => state with { Picker = state.Picker! with { Selected = row } },
+                "settings" => state with { SettingsScreen = new SettingsScreenState(row) },
+                Profiles => state with { ProfileList = state.ProfileList! with { Selected = row } },
+                "form" => FormSuggestionOverlayTests.WithForm(
+                    FormReducer.OpenForm(state)! with { Suggest = FormReducer.OpenForm(state)!.Suggest! with { Cursor = row } }),
+                _ => state with { Editor = state.Editor! with { Suggest = state.Editor.Suggest! with { Cursor = row } } },
+            };
+        }
+
+        // What a choice leaves behind: the mode, the message, the effects, which overlays stay open, the views, the
+        // chosen values and the editor text, as text so that two outcomes compare by value.
+        public static string Outcome(string user, ReduceResult result)
+        {
+            var state = result.State;
+            var form = FormReducer.OpenForm(state);
+            var parts = new List<string>
+            {
+                state.Mode.ToString(),
+                state.Message ?? string.Empty,
+                string.Join(",", result.Effects.Select(effect => effect.ToString())),
+                $"{state.Jump is null}{state.Picker is null}{state.ProfileList is null}{state.ContextMenu is null}",
+                string.Join(",", state.Session.Tabs.Select(tab => tab.Definition.ToString())),
+                string.Join(",", form?.Fields.SelectMany(field => field.Value.Chosen) ?? []),
+                state.Editor?.Buffer.Text ?? string.Empty,
+                state.SettingsScreen?.Selected.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+                state.Confirm?.ToString() ?? string.Empty,
+            };
+
+            return $"{user}: {string.Join("|", parts)}";
         }
 
         public static int Highlight(string user, AppState state)

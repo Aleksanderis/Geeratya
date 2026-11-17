@@ -1,5 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Views;
@@ -65,17 +66,17 @@ public static class NavigationLevels
     {
         if (state.Mode == InputMode.Command && state.PaletteText.Length > 0)
         {
-            return state with { PaletteText = string.Empty, PaletteBack = 0, PaletteSelected = 0 };
+            return state with { PaletteText = string.Empty, PaletteBack = 0, PalettePick = PickList.First };
         }
 
         if (state.Picker is { Text.Length: > 0 } picker)
         {
-            return state with { Picker = picker with { Text = string.Empty, Back = 0, Selected = 0, Notice = null } };
+            return state with { Picker = picker with { Text = string.Empty, Back = 0, Pick = PickList.First, Notice = null } };
         }
 
         if (state.Jump is { Text.Length: > 0 } jump)
         {
-            return state with { Jump = jump with { Text = string.Empty, Back = 0, Selected = 0, Notice = null } };
+            return state with { Jump = jump with { Text = string.Empty, Back = 0, Pick = PickList.First, Notice = null } };
         }
 
         if (state.FlashJump is { Text.Length: > 0 } flash)

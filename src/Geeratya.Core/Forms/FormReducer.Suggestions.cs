@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
@@ -222,7 +223,7 @@ public static partial class FormReducer
         var rows = field.Value.Chosen.Select(LabelQuickRows.Applied).ToArray();
         var source = new SuggestionSource(SuggestionKind.Labels, null, []);
 
-        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
+        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, PickStatus.Ready, 0, null);
     }
 
     internal static FormState WithQuickRows(AppState state, FormState form)

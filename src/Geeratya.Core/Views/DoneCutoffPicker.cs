@@ -1,6 +1,7 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 
@@ -40,7 +41,7 @@ public static class DoneCutoffPicker
             Mode = InputMode.Command,
             PaletteText = Prefix,
             PaletteBack = 0,
-            PaletteSelected = 0,
+            PalettePick = PickList.First,
         };
 
         return new ReduceResult(opened with { Message = null }, _noEffects);

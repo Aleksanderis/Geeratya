@@ -1,6 +1,7 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -220,7 +221,7 @@ public class CommentEditorOverlayTests
             new Suggestion("acc-2", "Oleg Two", null, true),
         };
         var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
-        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, PickStatus.Ready, 3, null);
 
         var frame = Frame(Editor("hi @ol") with { Suggest = popup }, 80, 24);
         var plain = string.Join('\n', frame.PlainLines());
@@ -260,10 +261,10 @@ public class CommentEditorOverlayTests
     }
 
     [Theory]
-    [InlineData(SuggestionStatus.Loading, "searching…")]
-    [InlineData(SuggestionStatus.Failed, "lookup failed: boom")]
-    [InlineData(SuggestionStatus.Loaded, "No match")]
-    public void GivenAPopupWithoutRows_WhenRendering_ThenTheLookupStateShows(SuggestionStatus status, string expected)
+    [InlineData(PickStatus.Loading, "searching…")]
+    [InlineData(PickStatus.Failed, "lookup failed, showing what is loaded: boom")]
+    [InlineData(PickStatus.Ready, "No match")]
+    public void GivenAPopupWithoutRows_WhenRendering_ThenTheLookupStateShows(PickStatus status, string expected)
     {
         var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
         var popup = new SuggestionState(0, source, "GCM", [], [], 0, status, 3, "boom");
@@ -272,6 +273,18 @@ public class CommentEditorOverlayTests
 
         Assert.Contains(expected, plain);
         Assert.Contains("Ctrl-s send", plain);
+    }
+
+    [Fact]
+    public void GivenAnEmptyFilterWithNoRows_WhenRenderingTheCommentPopup_ThenItSaysNoMatchNotNoMoreValues()
+    {
+        var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
+        var popup = new SuggestionState(0, source, string.Empty, [], [], 0, PickStatus.Ready, 3, null);
+
+        var plain = string.Join('\n', Frame(Editor("#") with { Suggest = popup }, 80, 24).PlainLines());
+
+        Assert.Contains("No match", plain, StringComparison.Ordinal);
+        Assert.DoesNotContain("No more values", plain, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -311,7 +324,7 @@ public class CommentEditorOverlayTests
             new Suggestion("acc-2", "Oleg Two", null, true),
         };
         var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
-        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, PickStatus.Ready, 3, null);
 
         return Editor("hi @ol") with { Suggest = popup };
     }

@@ -1,5 +1,4 @@
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -57,9 +56,9 @@ public static partial class FormReducer
 
         if (form.IsChoosingType)
         {
-            var cursor = ListCursor.Step(form.TypeCursor, rows, form.TypeChoices?.Count ?? 0);
+            var pick = form.TypePick.Moved(rows, form.TypeChoices?.Count ?? 0);
 
-            return Result(Replace(state, tab, form with { TypeCursor = cursor }));
+            return Result(Replace(state, tab, form with { TypePick = pick }));
         }
 
         if (form.Suggest is not { } popup)

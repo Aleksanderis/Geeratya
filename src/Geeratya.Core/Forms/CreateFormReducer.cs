@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Search.Models;
@@ -88,13 +89,13 @@ public static class CreateFormReducer
     /// <summary>A key while the type picker is open: move, choose or leave. Nothing else reaches the form.</summary>
     public static ReduceResult ChoosingType(AppState state, TabState tab, FormState form, string? action)
     {
-        var last = (form.TypeChoices?.Count ?? 1) - 1;
+        var count = form.TypeChoices?.Count ?? 0;
 
         return action switch
         {
             ActionIds.Cancel => FormReducer.Result(FormReducer.Closed(state, tab)),
-            ActionIds.PickerNext => Moved(state, tab, form, Math.Min(last, form.TypeCursor + 1)),
-            ActionIds.PickerPrevious => Moved(state, tab, form, Math.Max(0, form.TypeCursor - 1)),
+            ActionIds.PickerNext => Moved(state, tab, form, form.TypePick.Moved(1, count)),
+            ActionIds.PickerPrevious => Moved(state, tab, form, form.TypePick.Moved(-1, count)),
             ActionIds.FormNext => Chosen(state, tab, form),
             _ => FormReducer.Result(state),
         };
@@ -113,9 +114,9 @@ public static class CreateFormReducer
         return FormReducer.Replace(state, tab, toggled);
     }
 
-    private static ReduceResult Moved(AppState state, TabState tab, FormState form, int cursor)
+    private static ReduceResult Moved(AppState state, TabState tab, FormState form, PickList pick)
     {
-        return FormReducer.Result(FormReducer.Replace(state, tab, form with { TypeCursor = cursor }));
+        return FormReducer.Result(FormReducer.Replace(state, tab, form with { TypePick = pick }));
     }
 
     private static ReduceResult Chosen(AppState state, TabState tab, FormState form)

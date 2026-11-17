@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -160,7 +161,7 @@ public class CreatePaneOverlaySnapshotTests
     {
         Suggestion[] items = [new("1", "High", null, false), new("2", "Highest", null, false)];
         var source = new SuggestionSource(SuggestionKind.Options, null, []);
-        var popup = new SuggestionState(3, source, "hi", items, items, 0, SuggestionStatus.Loaded, 2, null);
+        var popup = new SuggestionState(3, source, "hi", items, items, 0, PickStatus.Ready, 2, null);
         var form = Form() with { Focus = 3, Suggest = popup };
 
         var frame = FrameBuilder.BuildStyled(Open(form), 120, 36, _keymap)!;
@@ -252,12 +253,12 @@ public class CreatePaneOverlaySnapshotTests
         return new CreateFormTarget("A", "A-1", false, new CreateIssueType("10", "Task", string.Empty, 0, false));
     }
 
-    private static AppState Open(FormState form)
+    internal static AppState Open(FormState form)
     {
         return FormOverlaySnapshotTests.WithForm(form) with { ViewportColumns = 120, ViewportBodyHeight = 30 };
     }
 
-    private static FormState Form()
+    internal static FormState Form()
     {
         var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, true, []);
         var description = FormField.Create("description", "Description", FormFieldKind.Paragraph, false, []);

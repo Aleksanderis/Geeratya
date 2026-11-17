@@ -3,7 +3,6 @@ using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -20,10 +19,6 @@ public static class CommentEditorOverlay
     private const string ReplyTitle = "Reply to";
     private const string SavingText = "Saving…";
     private const string PlaceholderText = " Type the comment here";
-    private const string SearchingText = "searching…";
-    private const string LookupFailedText = "lookup failed";
-    private const string NoMatchText = "No match";
-    private const int PopupRows = 5;
     private const int MinimumBoxWidth = 12;
     private const int MinimumHeight = 6;
     private const int MinimumTextRows = 4;
@@ -79,10 +74,7 @@ public static class CommentEditorOverlay
             return;
         }
 
-        var first = FormOverlay.PopupFirst(popup);
-        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
-
-        OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, Enumerable.Range(first, shown));
+        OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, PickListRenderer.PopupItems(popup));
     }
 
     private static List<StyledLine> BoxLines(
@@ -207,38 +199,10 @@ public static class CommentEditorOverlay
         }
 
         var width = Math.Max(1, inner - 2);
-        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-        var first = FormOverlay.PopupFirst(popup);
-        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
-        foreach (var index in Enumerable.Range(first, shown))
-        {
-            var highlighted = index == cursor;
-            var pointer = " ";
-            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
-
-            lines.Add(StyledLine.Of($"{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
-        }
-
-        if (PopupNotice(popup, inner) is { } notice)
-        {
-            lines.Add(notice);
-        }
+        lines.AddRange(PickListRenderer.Popup(popup, width, string.Empty, false).Select(static row => row.Line));
 
         return lines;
-    }
-
-    private static StyledLine? PopupNotice(SuggestionState popup, int inner)
-    {
-        return popup.Status switch
-        {
-            SuggestionStatus.Loading => StyledLine.Of(SearchingText, TextRole.Loading),
-            SuggestionStatus.Failed => StyledLine.Of(
-                TextWidth.Fit($"{LookupFailedText}: {popup.Error}", inner),
-                TextRole.Error),
-            SuggestionStatus.Loaded when popup.Items.Count == 0 => StyledLine.Of(NoMatchText, TextRole.Muted),
-            _ => null,
-        };
     }
 
     private static void AddWrapped(List<StyledLine> lines, string? text, TextRole role, int inner)

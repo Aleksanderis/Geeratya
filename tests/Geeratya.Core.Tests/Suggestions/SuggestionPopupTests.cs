@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 
@@ -15,7 +16,7 @@ public class SuggestionPopupTests
     {
         var popup = SuggestionPopup.Queried(null, 2, _labels, "back", _none, 7);
 
-        Assert.Equal(SuggestionStatus.Waiting, popup.Status);
+        Assert.Equal(PickStatus.Waiting, popup.Status);
         Assert.Equal(7, popup.RequestId);
         Assert.Equal(["backend", "back"], popup.Items.Select(item => item.Label));
     }
@@ -37,7 +38,7 @@ public class SuggestionPopupTests
 
         var loaded = SuggestionPopup.Loaded(popup, 8, [User("2", "Zed (jo@x)"), User("1", "Al")], _none)!;
 
-        Assert.Equal(SuggestionStatus.Loaded, loaded.Status);
+        Assert.Equal(PickStatus.Ready, loaded.Status);
         Assert.Equal(["Zed (jo@x)", "Al"], loaded.Items.Select(item => item.Label));
         Assert.Equal("2", loaded.Selected!.Id);
     }
@@ -81,8 +82,8 @@ public class SuggestionPopupTests
 
         var slow = SuggestionPopup.Slow(popup, 8)!;
 
-        Assert.Equal(SuggestionStatus.Loading, slow.Status);
-        Assert.Null(SuggestionPopup.Slow(slow with { Status = SuggestionStatus.Loaded }, 8));
+        Assert.Equal(PickStatus.Loading, slow.Status);
+        Assert.Null(SuggestionPopup.Slow(slow with { Status = PickStatus.Ready }, 8));
     }
 
     [Fact]
@@ -92,7 +93,7 @@ public class SuggestionPopupTests
 
         var failed = SuggestionPopup.Failed(popup, 4, "offline")!;
 
-        Assert.Equal(SuggestionStatus.Failed, failed.Status);
+        Assert.Equal(PickStatus.Failed, failed.Status);
         Assert.Equal("offline", failed.Error);
         Assert.Equal(popup.Items, failed.Items);
     }

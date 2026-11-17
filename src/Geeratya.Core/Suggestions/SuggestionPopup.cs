@@ -44,7 +44,7 @@ public static class SuggestionPopup
             pool,
             items,
             0,
-            SuggestionStatus.Waiting,
+            PickStatus.Waiting,
             requestId,
             null);
     }
@@ -67,18 +67,18 @@ public static class SuggestionPopup
 
         var cursor = KeptCursor(state, items);
 
-        return state with { Pool = kept, Items = items, Cursor = cursor, Status = SuggestionStatus.Loaded, Error = null };
+        return state with { Pool = kept, Items = items, Pick = state.Pick.At(cursor, items.Count).Ready() };
     }
 
     /// <summary>The popup marked as searching; null when the notice is not for its current request or too late.</summary>
     public static SuggestionState? Slow(SuggestionState state, long requestId)
     {
-        if (state.RequestId != requestId || state.Status != SuggestionStatus.Waiting)
+        if (state.RequestId != requestId || state.Status != PickStatus.Waiting)
         {
             return null;
         }
 
-        return state with { Status = SuggestionStatus.Loading };
+        return state with { Pick = state.Pick.Loading() };
     }
 
     /// <summary>The popup after a failed lookup, still showing what is loaded; null when not for its request.</summary>
@@ -89,13 +89,13 @@ public static class SuggestionPopup
             return null;
         }
 
-        return state with { Status = SuggestionStatus.Failed, Error = message };
+        return state with { Pick = state.Pick.Failed(message) };
     }
 
     /// <summary>The cursor moved by <paramref name="delta"/> rows, kept inside the list.</summary>
     public static SuggestionState Moved(SuggestionState state, int delta)
     {
-        return state with { Cursor = ListCursor.Step(state.Cursor, delta, state.Items.Count) };
+        return state with { Pick = state.Pick.Moved(delta, state.Items.Count) };
     }
 
     // A highlight the user moved stays on its row when the reply reorders the list; an untouched one stays on top.

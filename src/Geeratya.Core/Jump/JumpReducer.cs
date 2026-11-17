@@ -1,7 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -61,9 +60,9 @@ public static class JumpReducer
             return state;
         }
 
-        var selected = ListCursor.Step(jump.Selected, delta, JumpRows.For(state, jump).Count);
+        var pick = jump.Pick.Moved(delta, JumpRows.For(state, jump).Count);
 
-        return state with { Jump = jump with { Selected = selected, Notice = null } };
+        return state with { Jump = jump with { Pick = pick, Notice = null } };
     }
 
     /// <summary>Enter: opens the highlighted row; with no row the notice says why nothing opened.</summary>
@@ -81,7 +80,7 @@ public static class JumpReducer
             return Plain(state with { Jump = jump with { Notice = NoRowsNotice(state, jump) } });
         }
 
-        return OpenKey(Close(state), rows[Math.Clamp(jump.Selected, 0, rows.Count - 1)].Key);
+        return OpenKey(Close(state), rows[jump.Pick.Index(rows.Count)].Key);
     }
 
     /// <summary>Closes the prompt and leaves Insert mode.</summary>

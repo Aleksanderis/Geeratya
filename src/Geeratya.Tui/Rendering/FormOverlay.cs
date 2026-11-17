@@ -1,8 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Create.Models;
 
@@ -34,12 +32,7 @@ public static partial class FormOverlay
     private const int TopGap = 1;
     private const int Indent = 4;
     private const int ParagraphRows = 4;
-    private const int PopupRows = 5;
     private const int PopupMargin = 2;
-    private const string SearchingText = "searching…";
-    private const string LookupFailedText = "lookup failed, showing what is loaded";
-    private const string NoMatchText = "No match";
-    private const string NoMoreText = "No more values";
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -256,7 +249,7 @@ public static partial class FormOverlay
 
             lines.AddRange(block);
 
-            tags.AddRange(BlockTags(form, index, block, valueWidth));
+            tags.AddRange(BlockTags(form, index, block));
         }
 
         return new FormContent(lines, focusStart, focusLength, tags);
@@ -271,7 +264,7 @@ public static partial class FormOverlay
     }
 
     // Every row of a field block focuses the field; the rows of its open popup take the popup row instead.
-    private static List<RowTag?> BlockTags(FormState form, int index, List<StyledLine> block, int valueWidth)
+    private static List<RowTag?> BlockTags(FormState form, int index, List<StyledLine> block)
     {
         var tags = new List<RowTag?>();
 
@@ -286,33 +279,25 @@ public static partial class FormOverlay
             return tags;
         }
 
-        var popupRows = PopupLines(true, form, valueWidth).Count;
-        var items = popupRows - (PopupStatus(popup) is null ? 0 : 1);
-        var start = block.Count - (field.Error is null ? 0 : 1) - popupRows;
-        var first = PopupFirst(popup);
+        var popupItems = PickListRenderer.PopupItems(popup);
+        var start = block.Count - (field.Error is null ? 0 : 1) - popupItems.Count;
 
-        for (var row = 0; row < items; row++)
+        for (var row = 0; row < popupItems.Count; row++)
         {
-            tags[start + row] = new RowTag(MouseTarget.FormChoice, first + row);
+            if (popupItems[row] >= 0)
+            {
+                tags[start + row] = new RowTag(MouseTarget.FormChoice, popupItems[row]);
+            }
         }
 
         return tags;
-    }
-
-    /// <summary>The first popup row to draw: the highlight stays inside the rows with the shared scroll margin.</summary>
-    internal static int PopupFirst(SuggestionState popup)
-    {
-        return ListCursor.FirstVisible(Math.Max(popup.Cursor, 0), popup.Items.Count, PopupRows);
     }
 
     private static void AddTypes(List<StyledLine> lines, FormState form, IReadOnlyList<CreateIssueType> types)
     {
         for (var index = 0; index < types.Count; index++)
         {
-            var highlighted = index == form.TypeCursor;
-            var pointer = " ";
-
-            lines.Add(StyledLine.Of($"{pointer} {types[index].Name}", highlighted ? TextRole.Selected : TextRole.Body));
+            lines.Add(PickListRenderer.Row(types[index].Name, index == form.TypePick.Index(types.Count)));
         }
     }
 
@@ -338,13 +323,6 @@ public static partial class FormOverlay
             lines.Add(StyledLine.Of(DiscardText, TextRole.Warning));
         }
     }
-
-    private static StyledLine Indented(string text, TextRole role)
-    {
-        return StyledLine.Of($"{new string(' ', Indent)}{text}", role);
-    }
-
-    internal sealed record PopupNotice(string Text, TextRole Role);
 
     private sealed record RowTag(MouseTarget Target, int Index);
 

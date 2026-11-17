@@ -65,10 +65,11 @@ public static class SourcePickerOverlay
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         var area = inner - 1 - footer;
-        var firstLine = ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area);
-        var visible = rows.ChoiceOfLine.Skip(firstLine).Take(Math.Max(0, area));
+        var window = PickList.WindowAt(rows.SelectedLine, rows.Lines.Count, area);
 
-        OverlayBox.Mark(regions, MouseTarget.PickerRow, top, left, boxWidth, 2, visible);
+        var place = new BoxPlace(top, left, boxWidth);
+
+        PickListRenderer.Mark(regions, MouseTarget.PickerRow, place, 2, window, rows.ChoiceOfLine);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -88,17 +89,14 @@ public static class SourcePickerOverlay
     {
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
-        var first = ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area);
-        var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker, contentWidth), contentWidth) };
-
-        var shown = rows.Lines.Skip(first).Take(Math.Max(0, area)).ToList();
-
-        for (var row = 0; row < shown.Count; row++)
+        var window = PickList.WindowAt(rows.SelectedLine, rows.Lines.Count, area);
+        var lines = new List<StyledLine>
         {
-            var marker = OverlayBox.ScrollMarker(row, area, first, rows.Lines.Count);
+            OverlayBox.Top(boxWidth, TitleOf(picker)),
+            OverlayBox.Wall(Prompt(picker, contentWidth), contentWidth),
+        };
 
-            lines.Add(OverlayBox.Wall(shown[row], contentWidth, marker));
-        }
+        lines.AddRange(PickListRenderer.Walls(rows.Lines, window, area, contentWidth));
 
         while (lines.Count < inner + 1 - footer)
         {
@@ -183,7 +181,7 @@ public static class SourcePickerOverlay
     private static PickerRows Rows(SourcePickerState picker, SourceLists lists, int width)
     {
         var choices = SourceChoices.For(picker, lists);
-        var selected = Math.Clamp(picker.Selected, 0, Math.Max(0, choices.Count - 1));
+        var selected = Math.Max(0, picker.Pick.Index(choices.Count));
         var lines = new List<StyledLine>();
         var choiceOfLine = new List<int>();
         var selectedLine = 0;

@@ -2,7 +2,6 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -18,7 +17,6 @@ internal sealed class CreateDetailsRows
     private const string MoreText = "show more fields";
     private const string FewerText = "fewer fields";
     private const string Separator = " · ";
-    private const int PopupRows = 5;
     private const int PopupMargin = 2;
 
     private readonly FormState _form;
@@ -98,24 +96,12 @@ internal sealed class CreateDetailsRows
 
         var width = Math.Max(1, inner - 2 - PopupMargin);
         var margin = new string(' ', PopupMargin);
-        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
-        var first = FormOverlay.PopupFirst(popup);
-        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
-        foreach (var item in Enumerable.Range(first, shown))
+        foreach (var row in PickListRenderer.Popup(popup, width, margin))
         {
-            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[item]), width);
-            var highlighted = item == cursor;
-            var pointer = " ";
-            var role = highlighted ? TextRole.Selected : TextRole.Body;
-            var line = StyledLine.Of($"{margin}{pointer} {text}", role);
-
-            rows.Add(new CreatePaneRow(line, MouseTarget.FormChoice, item));
-        }
-
-        if (FormOverlay.PopupStatus(popup) is { } status)
-        {
-            rows.Add(new CreatePaneRow(StyledLine.Of($"{margin}  {TextWidth.Fit(status.Text, width)}", status.Role)));
+            rows.Add(row.Item >= 0
+                ? new CreatePaneRow(row.Line, MouseTarget.FormChoice, row.Item)
+                : new CreatePaneRow(row.Line));
         }
     }
 

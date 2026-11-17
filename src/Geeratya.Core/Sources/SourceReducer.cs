@@ -1,6 +1,5 @@
 using Geeratya.Core.History;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
@@ -169,9 +168,9 @@ public static partial class SourceReducer
         }
 
         var count = SourceChoices.For(picker, state.Session.Sources).Count;
-        var selected = ListCursor.Step(picker.Selected, delta, count);
+        var pick = picker.Pick.Moved(delta, count);
 
-        return state with { Picker = picker with { Selected = selected, AutoOpen = false, Notice = null } };
+        return state with { Picker = picker with { Pick = pick, AutoOpen = false, Notice = null } };
     }
 
     /// <summary>

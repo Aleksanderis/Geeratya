@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
@@ -41,16 +42,16 @@ public static class ContextMenuOverlay
             return body;
         }
 
-        var selected = Math.Clamp(menu.Selected, 0, menu.Items.Count - 1);
+        var selected = Math.Max(0, menu.Pick.Index(menu.Items.Count));
         var rows = DisplayRows(menu, keymap, selected, boxWidth - 4);
         var selectedRow = rows.FindIndex(row => row.Item == selected);
         var footer = height >= FooterMinimumHeight ? FooterRows : 0;
         var area = Math.Min(rows.Count, height - 2 - footer);
-        var first = area <= 0 || selectedRow < area ? 0 : Math.Min(selectedRow - area + 1, rows.Count - area);
+        var window = PickList.WindowAt(selectedRow, rows.Count, area);
         var contentWidth = boxWidth - 2;
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, Title) };
 
-        lines.AddRange(rows.Skip(first).Take(area).Select(row => OverlayBox.Wall(row.Line, contentWidth)));
+        lines.AddRange(PickListRenderer.Walls([.. rows.Select(static row => row.Line)], window, area, contentWidth));
 
         if (footer > 0)
         {
@@ -66,7 +67,9 @@ public static class ContextMenuOverlay
 
         OverlayBox.Cover(regions, top, left, boxWidth, lines.Count);
 
-        OverlayBox.Mark(regions, MouseTarget.ContextMenu, top, left, boxWidth, 1, rows.Skip(first).Take(area).Select(row => row.Item));
+        var place = new BoxPlace(top, left, boxWidth);
+
+        PickListRenderer.Mark(regions, MouseTarget.ContextMenu, place, 1, window, [.. rows.Select(static row => row.Item)]);
 
         for (var index = 0; index < lines.Count && top + index < result.Count; index++)
         {
