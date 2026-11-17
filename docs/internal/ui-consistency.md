@@ -190,6 +190,10 @@ Each component has a pure part in Core (state and behaviour, no terminal) and on
 | 6 | Form shell | The navigate state for every form (11), one discard prompt, one field renderer for box, pane, dropdown and in place, and Details opening every field the same way | 3, 4, 5 |
 | 7 | Text editor | One buffer and caret for prompts, forms and the comment editor | 6 |
 
+### Phase 4 status (#999)
+
+Done: `ListCursor` (replaces the clamp copies in the reducers and the six `FirstVisible` copies in the overlay renderers and the two `PopupFirst` copies; `ListMotion` and `BoardScroll` build on it), `Matcher` (shared by `PaletteFuzzy`, `SuggestionRanker`, the picker, tab list, sprint list and Jump filters), `HintLabels`, `DialogFooter` and `ChipButtons` (footers of the picker, Jump, palette, form, comment editor, profile form and Settings; the profile buttons), the wheel by context with `OverlayWheeled` and the contract tests (`OverlayWheelContractTests`), and the rewritten wheel text in `ux-mouse.md`. Not done, carried by #1005: the `PickList` state and renderer proper (the four popup renderers and the state types are still separate; the contract tests already run one key and wheel scenario over all of them), `j`/`k` in the profile manager, footers for Help, Messages, the context menu, the profile manager and which-key (they rely on the status bar), and the Dialog dimming and frame role by kind.
+
 ## What this audit did not cover
 
 - **Rendered frames not captured with typed text:** Details dropdown typing (Assignee, Labels), the Settings choice list, profile-form field focus, the JQL prompt, and the comment editor with several lines. A few captures timed out and may show another state: detail section, zoomed description edit, epic relations.

@@ -95,6 +95,29 @@ public class OverlayWheelContractTests
         Assert.Null(RegionProbe.At(scenario.State, frame, box.Left + (box.Width / 2), box.Top, MouseGesture.WheelUp));
     }
 
+    [Theory]
+    [InlineData("Down")]
+    [InlineData("Ctrl-n")]
+    public void GivenAnyPickList_WhenPressingTheNextKeyAndThenThePreviousKey_ThenTheHighlightMovesOneRowAndBack(string key)
+    {
+        var previous = key == "Down" ? "Up" : "Ctrl-p";
+        var reducer = new AppReducer(_keymap);
+
+        foreach (var user in new[] { "palette", "jump", "picker", Profiles, "form", "comment" })
+        {
+            var scenario = Scenario.For(user);
+            var start = Scenario.Highlight(user, scenario.State);
+            var after = reducer.Reduce(scenario.State, new KeyPressed(user == "form" || user == "comment" ? "Up" : key));
+            var moved = Scenario.Highlight(user, after.State);
+
+            Assert.True(moved != start, $"{user}: {key} did not move the highlight");
+
+            var back = reducer.Reduce(after.State, new KeyPressed(user == "form" || user == "comment" ? "Down" : previous));
+
+            Assert.Equal(start, Scenario.Highlight(user, back.State));
+        }
+    }
+
     [Fact]
     public void GivenTheSettingsChoiceList_WhenWheeling_ThenTheHighlightMovesOneRow()
     {
