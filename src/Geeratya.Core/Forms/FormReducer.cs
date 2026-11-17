@@ -17,7 +17,6 @@ public static partial class FormReducer
 {
     private const string NoIssueText = "No issue selected: select a row or open an issue first";
     private const string NoPageText = "No issue page to open";
-    private const string NothingChangedText = "Nothing changed";
     private const string DetachedText = "Closed the form; the save continues";
 
     private static readonly IReadOnlyList<Effect> _noEffects = [];
@@ -45,10 +44,10 @@ public static partial class FormReducer
         {
             OpenFormRequested { Target: AssignFormTarget assign } open => OpenAssign(state, open.Tab, assign),
             OpenFormRequested open => Open(state, open.Tab, open.Target),
-            OpenLabelsFormRequested => OpenLabels(state),
             OpenCreateFormRequested create => CreateFormReducer.Open(state, create.Subtask),
             FormTypesLoaded types => CreateFormReducer.TypesLoaded(state, types),
             OpenLinkFormRequested => OpenLink(state),
+            DiscardFormRequested discard => Discarded(state, discard.Tab),
             FormMetadataLoaded loaded => Loaded(state, loaded),
             FormMetadataFailed failed => Failed(state, failed),
             SuggestionsLoaded loaded => Suggested(state, loaded.Tab, SuggestionLoaded(loaded)),
@@ -68,11 +67,6 @@ public static partial class FormReducer
         if (form.IsSaving)
         {
             return Saving(state, tab, action);
-        }
-
-        if (form.DiscardPending)
-        {
-            return Discarding(state, tab, keymap.Resolve(InputMode.Confirm, string.Empty, key).Action, action);
         }
 
         if (form.IsChoosingType)
@@ -257,7 +251,7 @@ public static partial class FormReducer
         var tab = ActiveTab(state)!;
         var form = tab.Form!;
 
-        return form.IsSaving || form.DiscardPending || form.Navigating || text.Length == 0
+        return form.IsSaving || form.Navigating || text.Length == 0
             ? Result(state)
             : Choosing(Edited(Typed(state, tab, form, text), tab.Id), tab.Id);
     }

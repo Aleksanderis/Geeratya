@@ -15,7 +15,7 @@ public static partial class FormReducer
     /// </summary>
     public static ReduceResult Clicked(AppState state, OverlayRowClicked clicked)
     {
-        if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving || form.DiscardPending)
+        if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving)
         {
             return Result(state);
         }
@@ -49,7 +49,7 @@ public static partial class FormReducer
     /// </summary>
     public static ReduceResult Wheeled(AppState state, int rows)
     {
-        if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving || form.DiscardPending)
+        if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving)
         {
             return Result(state);
         }

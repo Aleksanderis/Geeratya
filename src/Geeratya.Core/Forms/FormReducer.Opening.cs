@@ -122,29 +122,6 @@ public static partial class FormReducer
         return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
     }
 
-    private static ReduceResult OpenLabels(AppState state)
-    {
-        var tab = ActiveTab(state);
-        var key = tab is null ? null : TargetKey(state, tab);
-
-        if (tab is null || key is null)
-        {
-            return Say(state, NoIssueText);
-        }
-
-        var labels = LabelsOf(tab, key);
-
-        if (labels is null)
-        {
-            return Say(state, $"The labels of {key} are not loaded yet");
-        }
-
-        var known = new Dictionary<string, FormValue> { [FormFieldIds.Labels] = FormValue.OfChosen(labels) };
-        var target = new EditFormTarget(key, known, true, FormFieldKind.Labels);
-
-        return Open(state, tab.Id, target);
-    }
-
     private static ReduceResult OpenLink(AppState state)
     {
         var tab = ActiveTab(state);
@@ -156,18 +133,6 @@ public static partial class FormReducer
     internal static string? TargetKey(AppState state, TabState tab)
     {
         return tab.Detail.Count > 0 ? tab.Detail[^1].Key : BrowserReducer.SelectedKey(state);
-    }
-
-    private static IReadOnlyList<string>? LabelsOf(TabState tab, string key)
-    {
-        if (tab.Detail.Count > 0)
-        {
-            var detail = tab.Detail[^1];
-
-            return detail.Issue?.Labels ?? detail.Row?.Labels;
-        }
-
-        return tab.Rows.FirstOrDefault(row => string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))?.Labels;
     }
 
     private static ReduceResult OpenBrowser(AppState state, FormState form)

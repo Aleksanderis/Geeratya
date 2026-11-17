@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using System.Globalization;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.CommandPalette;
@@ -101,16 +102,16 @@ public sealed partial class AppReducer
             "q" or "quit" => Quit(normal),
             "help" or "h" => Result(normal with { Mode = InputMode.Help }),
             PaletteCommands.History + " clear" => SourceReducer.ClearHistory(normal),
-            PaletteCommands.Status => TransitionForms.OpenPicker(normal),
+            PaletteCommands.Status => DetailFieldActions.OpenField(normal, DetailFieldIds.Status),
             "status next" => TransitionForms.MoveCard(normal, 1),
             "status prev" or "status previous" => TransitionForms.MoveCard(normal, -1),
-            PaletteCommands.Labels => FormReducer.Reduce(normal, new OpenLabelsFormRequested()),
+            PaletteCommands.Labels => DetailFieldActions.OpenField(normal, DetailFieldIds.Labels),
             PaletteCommands.Create => FormReducer.Reduce(normal, new OpenCreateFormRequested(false)),
             PaletteCommands.CreateSubtask => FormReducer.Reduce(normal, new OpenCreateFormRequested(true)),
             PaletteCommands.Edit => FormOpener.Edit(normal),
-            PaletteCommands.Priority => FormOpener.Priority(normal),
-            PaletteCommands.Estimate => FormOpener.Estimate(normal),
-            PaletteCommands.Assign => FormOpener.Assign(normal),
+            PaletteCommands.Priority => DetailFieldActions.OpenField(normal, DetailFieldIds.Priority),
+            PaletteCommands.Estimate => DetailFieldActions.OpenField(normal, DetailFieldIds.Estimate),
+            PaletteCommands.Assign => DetailFieldActions.OpenField(normal, DetailFieldIds.Assignee),
             PaletteCommands.AssignMe => FormOpener.AssignMe(normal, at),
             _ when IsLayoutCommand(text) => LayoutCommand(normal, text["layout".Length..].Trim()),
             _ when IsDoneCutoffCommand(text) => DoneCutoffPicker.Command(
