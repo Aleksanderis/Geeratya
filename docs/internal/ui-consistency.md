@@ -207,6 +207,12 @@ Not merged into one type, on purpose: the item lists. A pick list's rows come fr
 
 Phase 6 (`FormShell`) builds on this: its dropdown is `SuggestionState` plus `PickListRenderer.Popup` in every layout, and a new form presentation adds no list code.
 
+### Phase 6 status (#1001)
+
+Done: `FormShell` (Core/Forms) owns the navigate state (`IsNavigable`, `StateNote`), the one-field rule (`HasOneField`), the discard question (`DiscardRequest`, a `ConfirmRequest` shared with the comment editor and the profile form through `DiscardPrompts`) and the "nothing changed" close. `FieldRows` (Core/Forms) is the one field renderer, driven by a `FieldLook` (width, role, layout, rows, boxed, expanded): the form box, the create panes, the Details dropdown and the in-place edit draw their values through it, so `FormOverlay.ValueLines`, `CreateFieldBlocks.Items` and the hand-drawn dropdown rows are gone (the pane and box layouts stay, they place rows). Errors are `FormErrors.Lines` (`! ` mark, hanging indent, at most six rows). Details opens Status, Estimate and Sprint through the dropdown like Assignee, and a field key or command from a list (`DetailFieldActions.OpenField`) opens the detail first, so a field edits the same way from every route. The dropdown-only cancel and Enter special cases are removed. Tests: `FormShellTests`, `FieldRowsTests`, `DiscardPromptTests`, `DetailFieldOpeningTests`, `SprintMoveTargetTests` and `FormPresentationContractTests` (one scenario set over the four presentations).
+
+Not done on purpose: the text buffer under the fields stays `PromptText` until #1002 (`TextEditor`).
+
 ## What this audit did not cover
 
 - **Rendered frames not captured with typed text:** Details dropdown typing (Assignee, Labels), the Settings choice list, profile-form field focus, the JQL prompt, and the comment editor with several lines. A few captures timed out and may show another state: detail section, zoomed description edit, epic relations.
