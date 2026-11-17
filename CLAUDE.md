@@ -73,7 +73,7 @@ Procedure for issues, milestones, review, PRs, merge, loose ends and owner feedb
 
 - `spike` issues are never merged by an agent: they stay on unmerged `spike/` branches and close with findings; `needs-review` issues are merged like any other once the reviewer has no open blockers, and the label only tells the owner what to look at afterwards (decision 2026-11-03: the owner reviews after merge and must never be the bottleneck; a stuck dependency is worked around, not waited on).
 - Merge commits only, never squash or rebase, never force-push.
-- Every issue has a milestone, with no exception: whoever creates an issue passes `-m "<milestone>"` (a follow-up stays in its feature's milestone, or goes to the next open one if that is closed). The orchestrator state script lists open issues without one.
+- Every issue has a milestone: whoever creates an issue passes `-m "<milestone>"` (a follow-up stays in its feature's milestone, or goes to the next open one if that is closed). The orchestrator state script lists open issues without one. The one exception is parked issues: issues that wait on something outside the project (`blocked-upstream`, `needs-owner`, or hardware nobody has, such as a Mac). They carry no milestone on purpose (owner, 2026-11-17), so don't assign one when the script lists them.
 - Every PR carries the reviewer's findings as a PR comment; every owner comment gets an agent-marked reply; loose ends are registered as issues, not left in notes.
 - Don't block on questions: decide from the docs or take the recommended default, log it, and say so in the PR.
 - Models: use Sonnet for every role, not Opus. Cost is tuned with reasoning effort, set in the skill and agent frontmatter, not repeated in prose.
