@@ -79,9 +79,9 @@ public static partial class FormOverlay
     // An empty value is no typed text: the shared empty word in the muted role, so an empty field never looks filled.
     private static StyledLine Placeholder(FormField field)
     {
-        var word = field.Kind == FormFieldKind.User ? EmptyValues.Unassigned : EmptyValues.None;
+        var empty = ValueText.Empty(field.Kind == FormFieldKind.User);
 
-        return Cell(word, TextRole.Muted);
+        return Cell(empty.Text, empty.Role);
     }
 
     private static StyledLine Cell(string text, TextRole role)

@@ -50,6 +50,8 @@ public sealed record CreateFormTarget(
 
     public override string? IssueKey => null;
 
+    public override string SearchProjectKey => ProjectKey;
+
     /// <summary>True for a type the picker offers: sub-task types or none, as the form was opened.</summary>
     public bool Offers(CreateIssueType type)
     {

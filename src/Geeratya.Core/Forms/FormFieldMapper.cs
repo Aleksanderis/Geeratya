@@ -56,6 +56,12 @@ public static class FormFieldMapper
 
             var mapped = FormField.Create(field.FieldId, field.Name, kind, field.Required, field.AllowedValues);
 
+            // The person shown in the issue is an option, so the form can show the name of its id.
+            if (target.People?.TryGetValue(field.FieldId, out var person) == true)
+            {
+                mapped = mapped with { Options = [person] };
+            }
+
             result.Add(known ? mapped.WithInitial(Resolved(mapped, value!)) : mapped);
         }
 

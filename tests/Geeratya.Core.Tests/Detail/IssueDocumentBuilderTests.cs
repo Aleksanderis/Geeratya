@@ -228,6 +228,25 @@ public class IssueDocumentBuilderTests
         Assert.Contains(" None ▾", texts);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void GivenAnEmptyReporter_WhenTheEditMetadataListsIt_ThenTheRowShowsUnassignedSoItCanBeSet(
+        bool listed,
+        bool shown)
+    {
+        var detail = Loaded(null, []) with
+        {
+            Issue = Issue(null) with { Reporter = null },
+            EditableFields = listed ? [DetailFieldIds.Reporter] : [DetailFieldIds.Priority],
+        };
+
+        var texts = Texts(IssueDocumentBuilder.Build(detail, 120));
+
+        Assert.Equal(shown, texts.Contains("Reporter"));
+        Assert.Equal(shown, texts.Contains(" [--] Unassigned ▾"));
+    }
+
     [Fact]
     public void GivenVeryLongLabelList_WhenBuilding_ThenTheChipsWrapInsteadOfBeingCut()
     {

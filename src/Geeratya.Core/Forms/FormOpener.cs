@@ -4,6 +4,7 @@ using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
 
@@ -173,8 +174,19 @@ public static class FormOpener
         known[FormFieldIds.Parent] = subject.ParentKey is { } parent ? FormValue.OfChosen([parent]) : FormValue.Empty;
 
         var lossy = new List<string>();
+        var people = new Dictionary<string, FieldOption>();
 
         AddDescription(subject, known, lossy);
+
+        // An empty reporter is still known (empty), so the person field is listed and one can be set.
+        known[FormFieldIds.Reporter] = subject.Reporter is { } reporter
+            ? FormValue.OfChosen([reporter.AccountId])
+            : FormValue.Empty;
+
+        if (subject.Reporter is { } current)
+        {
+            people[FormFieldIds.Reporter] = new FieldOption(current.AccountId, current.DisplayName);
+        }
 
         var target = new EditFormTarget(
             subject.Key,
@@ -183,7 +195,8 @@ public static class FormOpener
             null,
             onlyId,
             lossy,
-            ParentLevel: subject.ParentLevel);
+            ParentLevel: subject.ParentLevel,
+            People: people);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
     }
@@ -229,7 +242,8 @@ public static class FormOpener
         string? ParentKey,
         int? ParentLevel,
         bool DescriptionKnown,
-        AdfDocument? Description)
+        AdfDocument? Description,
+        IssueAssignee? Reporter = null)
     {
         public static Subject? Of(AppState state)
         {
@@ -265,7 +279,8 @@ public static class FormOpener
                     issue.Parent?.Key,
                     ParentLevels.Accepted(issue.IssueType.HierarchyLevel, issue.IssueType.IsSubtask),
                     true,
-                    issue.Description);
+                    issue.Description,
+                    issue.Reporter);
             }
 
             return shown.Row is { } row ? OfRow(tab, row) : null;

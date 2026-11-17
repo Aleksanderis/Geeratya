@@ -92,6 +92,18 @@ public class CardRowsTests
     }
 
     [Fact]
+    public void GivenAnAssignee_WhenBuildingTheBottomRow_ThenTheChipIsTheOneTheSharedValueTextBuilds()
+    {
+        var jane = Issue() with { Assignee = new IssueAssignee("a", "Jane Doe") };
+
+        var assigned = CardRows.Bottom(jane, false, 32, TextRole.Body);
+        var unassigned = CardRows.Bottom(Issue(), false, 32, TextRole.Body);
+
+        Assert.Contains(ValueText.PersonChip("Jane Doe", 2), assigned);
+        Assert.Contains(ValueText.PersonChip(null, 2), unassigned);
+    }
+
+    [Fact]
     public void GivenAListedSubtaskWithKnownAssignee_WhenBuildingTheBottomRow_ThenTheChipSitsRightAfterTheStatus()
     {
         var jane = Listed() with { Assignee = new IssueAssignee("a", "Jane Doe"), AssigneeLoaded = true };

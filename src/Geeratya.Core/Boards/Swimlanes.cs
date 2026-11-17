@@ -10,9 +10,6 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class Swimlanes
 {
-    /// <summary>The name of the lane of issues without an assignee.</summary>
-    public const string UnassignedName = EmptyValues.Unassigned;
-
     /// <summary>The name of the lane of issues under no epic.</summary>
     public const string NoEpicName = "No epic";
 
@@ -209,7 +206,7 @@ public static class Swimlanes
     {
         if (kind == SwimlaneKind.Assignee)
         {
-            return row.Assignee?.DisplayName ?? UnassignedName;
+            return row.Assignee?.DisplayName ?? EmptyValues.Unassigned;
         }
 
         if (row.Epic is not { } epic)

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Flash;
@@ -24,8 +23,6 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     private const string CollapsedMark = "▸";
     private const string ActiveWord = "active";
     private const string NoDatesText = "no dates";
-    private const string DateFormat = "d MMM";
-    private const string DateRangeSeparator = " - ";
     private const string GoalPrefix = "Goal: ";
     private const string EmptySprintText = "No issues in this sprint.";
     private const string EmptyBacklogText = "No issues in the backlog.";
@@ -222,10 +219,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
             return NoDatesText;
         }
 
-        var from = start.ToString(DateFormat, CultureInfo.InvariantCulture);
-        var to = end.ToString(DateFormat, CultureInfo.InvariantCulture);
-
-        return $"{from}{DateRangeSeparator}{to}";
+        return ValueText.DateRange(start, end);
     }
 
     private static StyledLine NonRowLine(TabState tab, BacklogSection section, int line, int width, Glyphs glyphs)
