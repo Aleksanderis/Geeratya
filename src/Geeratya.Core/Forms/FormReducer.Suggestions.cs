@@ -88,6 +88,12 @@ public static partial class FormReducer
 
         var field = form.Fields[form.Focus];
 
+        if (form.Suggest is null && field.Entry.Length == 0 && form.Target is CreateFormTarget
+            && CreateQuickPopup(result.State, form) is { } quick)
+        {
+            return new ReduceResult(Replace(result.State, tab, form with { Suggest = quick }), result.Effects);
+        }
+
         if (!FormFieldKinds.IsChoice(field.Kind) || !field.IsEditable || form.IsSaving || form.Navigating)
         {
             return form.Suggest is { Source.Kind: SuggestionKind.Options }
@@ -193,6 +199,11 @@ public static partial class FormReducer
             return labels;
         }
 
+        if (form.Target is CreateFormTarget)
+        {
+            return CreateQuickPopup(state, form);
+        }
+
         if (form.Target is not AssignFormTarget || form.Focus >= form.Fields.Count
             || form.Fields[form.Focus].Id != FormFieldIds.Assignee)
         {
@@ -218,6 +229,31 @@ public static partial class FormReducer
         }
 
         var source = new SuggestionSource(SuggestionKind.AssignableUsers, form.Target.IssueKey, []);
+
+        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
+    }
+
+    // The create form offers "Me" on an empty Assignee or Reporter field, as the assign picker does. "Unassigned" is
+    // not a row there: an empty assignee already means unassigned, and a reporter cannot be cleared.
+    private static SuggestionState? CreateQuickPopup(AppState state, FormState form)
+    {
+        if (form.Navigating || form.IsSaving || form.Focus >= form.Fields.Count)
+        {
+            return null;
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (!field.IsEditable || field.Kind != FormFieldKind.User || field.Value.Chosen.Count > 0
+            || field.Id is not (FormFieldIds.Assignee or FormFieldIds.Reporter)
+            || state.Session.Connection is not Connected { AccountId: { } accountId } connected)
+        {
+            return null;
+        }
+
+        var kind = field.Id == FormFieldIds.Assignee ? SuggestionKind.AssignableUsers : SuggestionKind.ProjectUsers;
+        var source = new SuggestionSource(kind, null, [], ((CreateFormTarget)form.Target).ProjectKey);
+        Suggestion[] rows = [AssigneeQuickRows.Me(accountId, connected.DisplayName)];
 
         return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
     }

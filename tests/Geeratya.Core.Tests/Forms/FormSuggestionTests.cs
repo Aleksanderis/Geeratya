@@ -424,6 +424,23 @@ public class FormSuggestionTests
     }
 
     [Theory]
+    [InlineData(FormFieldIds.Assignee)]
+    [InlineData(FormFieldIds.Reporter)]
+    public void GivenACreateForm_WhenAnEmptyAssigneeOrReporterGetsTheFocus_ThenMeIsOffered(string fieldId)
+    {
+        var form = AsCreateForm(Focused(fieldId));
+        var connected = form with { Session = form.Session with { Connection = new Connected("Me", "acc-me") } };
+        var onLabels = Press(connected, "Tab").State;
+
+        var result = Press(onLabels, "Tab");
+
+        var row = Assert.Single(Popup(result.State).Items);
+        Assert.Equal("acc-me", row.Id);
+        Assert.Equal(AssigneeQuickRows.MeDetail, row.Detail);
+        Assert.Null(Popup(result.State).Selected);
+    }
+
+    [Theory]
     [InlineData(SuggestionKind.Components)]
     [InlineData(SuggestionKind.Versions)]
     public void GivenACreateFormProjectListField_WhenTypingAFilter_ThenTheProjectListIsSearchedNotTheLocalValues(
