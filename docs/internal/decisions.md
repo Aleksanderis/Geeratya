@@ -346,3 +346,9 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-17 (sub-task keys, #994)
 
 **UI:** The status and assignee of a sub-task from its parent's detail have their own `<space>t` group (`ts`, `ta`, `tm`; actions `issue.subtask-transition`, `issue.subtask-assign`, `issue.subtask-assign-me`); `<space>is`, `<space>ia`, `<space>im` always act on the shown issue (supersedes the retargeting of #990, owner feedback 2026-11-17). `<space>t` no longer opens the new-tab picker; `Ctrl-t` (and `:tab new`) stays. Why: one key, one target; the same key meaning something else under the cursor was confusing. A user row binding exactly `Space t` is skipped by the existing prefix check, see `customising-keys.md`.
+
+## 2026-11-17 (UI consistency and shared components)
+
+**UI:** Owner decisions from the UI consistency audit (`ui-consistency.md`): empty people read "Unassigned" and every other empty value "None", on every surface; Esc is two-step (leave field editing for the navigate state, then close) and `q` outside text closes one level at a time, quitting only from the main view; the mouse wheel acts on what is under the pointer, moving the highlight where there is one and scrolling where there is none; validation is mixed (formats as you type, required fields and Jira's answer on save); Reporter follows Jira's create and edit metadata (offered and editable only when listed, Jira sets the creator when none is sent). Recommended defaults the owner may override are listed in `ui-consistency.md`, "Owner decisions" 6 to 11.
+
+**Code structure:** Field behaviour belongs to the field kind, never to the form target or a field id; lists, pickers, dialogs, value display and text input go through the shared components named in `ui-consistency.md`. Why: Assignee and Reporter behaved differently in the create form and the issue view because each form carried its own copy of the rules.

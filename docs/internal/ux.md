@@ -2,7 +2,7 @@
 
 *Internal design note for maintainers and agents. Not needed to use or contribute to Geeratya.*
 
-Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](../keymap.md), [customising keys](../customising-keys.md). [look](ux-look.md) (frame, chips, focus, overlays, chrome), [mouse](ux-mouse.md) (gesture to action id table). The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
+Index of the interface specification. Parts: [M1 screens](ux-screens.md), [workflows](ux-workflows.md), [key rules](ux-keymap.md), [generated key reference](../keymap.md), [customising keys](../customising-keys.md). [look](ux-look.md) (frame, chips, focus, overlays, chrome), [mouse](ux-mouse.md) (gesture to action id table), [UI consistency](ui-consistency.md) (audit and shared components). The planned layout for writes and Scrum (not yet bound) is in [ux-keymap.md](ux-keymap.md), "Layout for writes and Scrum".
 
 ## Shell
 
