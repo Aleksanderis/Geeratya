@@ -1,4 +1,6 @@
+using System.Globalization;
 using Geeratya.Core.Backlog;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Menus;
@@ -526,6 +528,52 @@ public class SprintMoveTests
         var result = Chord(state, "Space s b");
 
         Assert.Equal(["A-3"], Request(result).Keys);
+    }
+
+    // A company-managed (6, as in issue-gcs-closed-sprint.json) and a team-managed (59, id 9 of issue-gts-closed-sprint.json
+    // shifted: 9 is a sprint of this tab's fixture) closed sprint; the reducer has no project-kind branch, the mapping of
+    // both fixtures is tested in SprintFieldMappingTests.
+    [Theory]
+    [InlineData(6L, "Seed Sprint 1")]
+    [InlineData(59L, "Seed Sprint 1")]
+    public void GivenAnIssueLeftInAClosedSprint_WhenChoosingTheBacklogInTheDropdown_ThenTheMoveIsSentNotNothingChanged(
+        long sprintId,
+        string name)
+    {
+        var closed = new IssueSprint(sprintId, name, SprintState.Closed);
+        var state = WithSprints(At(Loaded(), "A-4"));
+        var tab = Tab(state);
+        state = Replace(state, tab with { Rows = [.. tab.Rows.Select(row => row.Key == "A-4" ? row with { Sprints = [closed] } : row)] });
+        var opened = Chord(_reducer.Reduce(state, new KeyPressed("Enter", _now)).State, "Space s m");
+
+        var form = Tab(opened.State).Form!;
+        var field = Assert.Single(form.Fields);
+        Assert.Equal([sprintId.ToString(CultureInfo.InvariantCulture)], field.Value.Chosen);
+        Assert.Contains($"{name} (closed)", field.Options.Select(option => option.Label));
+        Assert.False(field.IsChanged);
+
+        var toBacklog = field with { Value = FormValue.OfChosen([SprintMoveTarget.BacklogId]) };
+        Assert.True(toBacklog.IsChanged);
+        var chosen = Replace(opened.State, Tab(opened.State) with { Form = form with { Fields = [toBacklog] } });
+        var saved = Press(chosen, "Ctrl-s");
+
+        var request = Request(saved);
+        Assert.Equal(["A-4"], request.Keys);
+        Assert.Null(request.Target);
+    }
+
+    [Fact]
+    public void GivenAnIssueLeftInAClosedSprint_WhenMovingToTheBacklogByKey_ThenItIsSentNotAlreadyInTheBacklog()
+    {
+        var state = At(Loaded(), "A-4");
+        var tab = Tab(state);
+        var closed = new IssueSprint(59, "Seed Sprint 1", SprintState.Closed);
+        state = Replace(state, tab with { Rows = [.. tab.Rows.Select(row => row.Key == "A-4" ? row with { Sprints = [closed] } : row)] });
+
+        var request = Request(Chord(state, "Space s b"));
+
+        Assert.Equal(["A-4"], request.Keys);
+        Assert.Null(request.Target);
     }
 
     private ReduceResult Drag(AppState state, string fromKey, int toLine)

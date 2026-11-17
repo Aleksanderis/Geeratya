@@ -73,8 +73,7 @@ public static class SprintMoveActions
 
         var shown = tab.Detail.Count > 0 ? tab.Detail[^1].Issue?.CurrentSprint : null;
         var current = shown ?? FindRow(state, keys[0])?.CurrentSprint;
-        var open = current is { State: SprintState.Active or SprintState.Future } ? current : null;
-        var target = new SprintMoveTarget(keys[0], sprints, open, SourceOf(state, keys));
+        var target = new SprintMoveTarget(keys[0], sprints, current, SourceOf(state, keys));
 
         return FormReducer.OpenReady(state, tab.Id, target, [target.Field()]);
     }
@@ -217,9 +216,16 @@ public static class SprintMoveActions
             return false;
         }
 
+        // An issue left in a closed sprint still has it in its Sprint field: moving it to the backlog clears that
+        // field, so it is not "already in" the backlog (the Details dropdown offers the same move, #1018).
+        if (target is null)
+        {
+            return row.CurrentSprint is null;
+        }
+
         var sprint = row.CurrentSprint is { State: SprintState.Active or SprintState.Future } open ? open : null;
 
-        return target is null ? sprint is null : sprint is not null && sprint.Id == target.Id;
+        return sprint is not null && sprint.Id == target.Id;
     }
 
     private static string AlreadyInText(int count, IssueSprint? target)

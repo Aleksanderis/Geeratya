@@ -163,6 +163,17 @@ public sealed class SprintFieldMappingTests
         Assert.Equal(SprintState.Future, detail.CurrentSprint?.State);
     }
 
+    [Theory]
+    [InlineData("scrum/issue-gcs-closed-sprint.json")]
+    [InlineData("scrum/issue-gts-closed-sprint.json")]
+    public async Task GivenIssueLeftInAClosedSprint_WhenOpening_ThenTheCurrentSprintIsTheClosedOne(string fixtureName)
+    {
+        var detail = await DetailAsync(fixtureName, new IssueExtraFields("customfield_10020", []));
+
+        Assert.Equal(SprintState.Closed, detail.CurrentSprint?.State);
+        Assert.Single(detail.Sprints);
+    }
+
     [Fact]
     public async Task GivenExtraFields_WhenOpeningAnIssue_ThenTheyAreAddedToTheDetailFieldList()
     {
