@@ -117,7 +117,7 @@ public static class SettingsScreenReducer
         return action == ActionIds.SettingsReset ? Reset(selected.State) : Activate(selected.State);
     }
 
-    /// <summary>A wheel notch: the highlight of the open choice list, else of the rows, moves by <paramref name="rows"/>.</summary>
+    /// <summary>A wheel notch: the highlight of the open choice list, else of the rows, moves.</summary>
     public static ReduceResult Wheeled(AppState state, int rows)
     {
         return state.SettingsScreen is null ? new ReduceResult(state, _noEffects) : Move(state, rows);

@@ -65,7 +65,8 @@ public static class SourcePickerOverlay
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         var area = inner - 1 - footer;
-        var visible = rows.ChoiceOfLine.Skip(ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area)).Take(Math.Max(0, area));
+        var firstLine = ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area);
+        var visible = rows.ChoiceOfLine.Skip(firstLine).Take(Math.Max(0, area));
 
         OverlayBox.Mark(regions, MouseTarget.PickerRow, top, left, boxWidth, 2, visible);
 

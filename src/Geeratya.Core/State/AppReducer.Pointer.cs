@@ -65,7 +65,8 @@ public sealed partial class AppReducer
             MouseTarget.PaletteRow when state.Mode == InputMode.Command => Result(MovePalette(cleared, wheeled.Rows)),
             MouseTarget.JumpRow => Result(JumpReducer.Move(cleared, wheeled.Rows)),
             MouseTarget.PickerRow => Result(SourceReducer.Move(cleared, wheeled.Rows)),
-            MouseTarget.SettingsRow or MouseTarget.SettingsChoice => SettingsScreenReducer.Wheeled(cleared, wheeled.Rows),
+            MouseTarget.SettingsRow or MouseTarget.SettingsChoice
+                => SettingsScreenReducer.Wheeled(cleared, wheeled.Rows),
             MouseTarget.ProfileRow => Result(ProfileReducer.MoveList(cleared, wheeled.Rows)),
             MouseTarget.FormChoice => FormReducer.Wheeled(cleared, wheeled.Rows),
             MouseTarget.EditorChoice => EditorSuggestions.Wheeled(cleared, wheeled.Rows),

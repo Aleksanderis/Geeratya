@@ -6,12 +6,16 @@ namespace Geeratya.Core.Mouse;
 /// </summary>
 public enum WheelScope
 {
-    /// <summary>Anywhere on the screen (help, messages and the context menu, which have no other wheel target).</summary>
+    /// <summary>Anywhere on the screen (help, messages and the context menu have no other wheel target).</summary>
     Screen,
 
-    /// <summary>Anywhere over the overlay's box: its prompt, rows and footer alike (picker, Jump, palette, Settings, profiles).</summary>
+    /// <summary>
+    /// Anywhere over the overlay's box: its prompt, rows and footer alike (picker, Jump, palette, Settings, profiles).
+    /// </summary>
     Box,
 
-    /// <summary>Only over the rows of the overlay's popup list; the rest of the form takes no wheel (form and comment popups).</summary>
+    /// <summary>
+    /// Only over the rows of the overlay's popup list; the rest of the form takes no wheel (form and comment popups).
+    /// </summary>
     Rows,
 }

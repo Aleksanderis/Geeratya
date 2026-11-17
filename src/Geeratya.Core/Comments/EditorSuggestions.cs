@@ -78,7 +78,7 @@ internal static class EditorSuggestions
         };
     }
 
-    /// <summary>A wheel notch over the popup rows: the highlight moves by <paramref name="rows"/>, nothing is taken.</summary>
+    /// <summary>A wheel notch over the popup rows: the highlight moves by <paramref name="rows"/>, nothing taken.</summary>
     public static ReduceResult Wheeled(AppState state, int rows)
     {
         if (state.Editor is not { Suggest: { } popup } editor || popup.Items.Count == 0)

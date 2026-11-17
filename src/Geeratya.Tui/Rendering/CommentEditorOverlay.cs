@@ -260,8 +260,8 @@ public static class CommentEditorOverlay
         var move = DialogFooter.Pair(
             keymap,
             InputMode.Insert,
-            ActionIds.PickerNext,
             ActionIds.PickerPrevious,
+            ActionIds.PickerNext,
             HintLabels.Move);
         var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
 

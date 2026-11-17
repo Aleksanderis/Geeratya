@@ -2,8 +2,8 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Sprints;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 

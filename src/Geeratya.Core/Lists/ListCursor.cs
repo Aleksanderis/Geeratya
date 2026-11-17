@@ -2,17 +2,19 @@ namespace Geeratya.Core.Lists;
 
 /// <summary>
 /// The one cursor of every list: clamping, steps, pages, ends and the scroll that keeps the selection in view
-/// (<c>docs/internal/ui-consistency.md</c>, component 4). The lists, the pick lists, the popups and the board columns all
-/// move and scroll through it, so they share one scroll margin (<see cref="ScrollOff"/>) and one half-page rule
-/// (<see cref="Half"/>). Pure: the row count and the viewport height are facts passed in, every result is clamped, and an
-/// empty list or a zero viewport never throws.
+/// (<c>docs/internal/ui-consistency.md</c>, component 4). The lists, the pick lists, the popups and the board
+/// columns all move and scroll through it, so they share one scroll margin (<see cref="ScrollOff"/>) and one
+/// half-page rule (<see cref="Half"/>). Pure: the row count and the viewport height are facts passed in, every
+/// result is clamped, and an empty list or a zero viewport never throws.
 /// </summary>
 public static class ListCursor
 {
     /// <summary>Rows of context kept above and below the selection while scrolling (vim <c>scrolloff</c>).</summary>
     public const int ScrollOff = 3;
 
-    /// <summary><paramref name="index"/> kept inside a list of <paramref name="count"/> rows (0 for an empty list).</summary>
+    /// <summary>
+    /// <paramref name="index"/> kept inside a list of <paramref name="count"/> rows (0 for an empty list).
+    /// </summary>
     public static int Clamp(int index, int count)
     {
         return Math.Clamp(index, 0, Math.Max(0, count - 1));

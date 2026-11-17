@@ -5,7 +5,9 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>The footer chips of the field form, by what the form is doing (typed <see cref="HintChip"/> values).</summary>
+/// <summary>
+/// The footer chips of the field form, by what the form is doing (typed <see cref="HintChip"/> values).
+/// </summary>
 public static class FormFooter
 {
     /// <summary>The footer of <paramref name="form"/> as one line.</summary>
@@ -20,8 +22,8 @@ public static class FormFooter
         var move = DialogFooter.Pair(
             keymap,
             InputMode.Insert,
-            ActionIds.PickerNext,
             ActionIds.PickerPrevious,
+            ActionIds.PickerNext,
             HintLabels.Move);
         var fields = DialogFooter.Pair(
             keymap,

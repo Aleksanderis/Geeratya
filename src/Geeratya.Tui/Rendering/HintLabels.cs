@@ -43,7 +43,7 @@ public static class HintLabels
     public const string Send = "send";
 
     /// <summary>Enter moves the marked issues to the highlighted sprint.</summary>
-    public const string MoveIssues = "move";
+    public const string MoveIssues = "move here";
 
     /// <summary>Enter starts a new line.</summary>
     public const string NewLine = "new line";

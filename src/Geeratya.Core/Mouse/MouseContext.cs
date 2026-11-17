@@ -109,6 +109,12 @@ public sealed record MouseContext(int Width, int Height, int HeaderRows, bool Ov
 
     private static WheelTargetScope? WheelTargetOf(AppState state)
     {
+        // A Confirm dialog covers whatever overlay is still open behind it, and takes no wheel.
+        if (state is { Mode: InputMode.Confirm, Confirm: not null })
+        {
+            return null;
+        }
+
         if (state.ContextMenu is not null)
         {
             return new WheelTargetScope(MouseTarget.ContextMenu, WheelScope.Screen);

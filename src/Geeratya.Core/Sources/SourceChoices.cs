@@ -1,6 +1,6 @@
 using System.Globalization;
-using Geeratya.Core.Lists;
 using Geeratya.Core.History;
+using Geeratya.Core.Lists;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Views;

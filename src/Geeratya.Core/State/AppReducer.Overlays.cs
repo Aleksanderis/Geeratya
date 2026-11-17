@@ -2,9 +2,9 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Menus;
 using Geeratya.Core.Panes;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.State;

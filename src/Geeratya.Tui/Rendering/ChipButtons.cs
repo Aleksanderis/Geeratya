@@ -3,13 +3,13 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
 
-/// <summary>One clickable button of a <see cref="ChipButtons"/> row: its label and the mouse target a click takes.</summary>
+/// <summary>One clickable button of a <see cref="ChipButtons"/> row: its label and the target a click takes.</summary>
 public readonly record struct ChipButton(string Label, MouseTarget Target);
 
 /// <summary>
-/// The one helper for a row of clickable buttons (<c>docs/internal/ui-consistency.md</c>, component 6): the line and the
-/// click regions come from the same list, so they cannot drift apart. Buttons are drawn in the key role, three cells
-/// apart.
+/// The one helper for a row of clickable buttons (<c>docs/internal/ui-consistency.md</c>, component 6): the line
+/// and the click regions come from the same list, so they cannot drift apart. Buttons are drawn in the key role,
+/// three cells apart.
 /// </summary>
 public static class ChipButtons
 {

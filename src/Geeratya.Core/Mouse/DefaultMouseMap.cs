@@ -13,7 +13,7 @@ public static class DefaultMouseMap
     /// <summary>Rows moved by one wheel notch.</summary>
     public const int WheelRows = 3;
 
-    /// <summary>Rows moved by one wheel notch in a popup list of about five rows (decision 7 of the UI consistency audit).</summary>
+    /// <summary>Rows moved by one wheel notch in a popup list of about five rows (audit decision 7).</summary>
     public const int PopupWheelRows = 1;
 
     public static IReadOnlyList<MouseRow> Rows { get; } =

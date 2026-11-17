@@ -16,13 +16,6 @@ public class MatcherTests
     }
 
     [Fact]
-    public void GivenSeveralTexts_WhenMatchingAny_ThenOneHitIsEnoughAndNullsAreSkipped()
-    {
-        Assert.True(Matcher.MatchesAny("gcm", "Other", null, "GCM-12"));
-        Assert.False(Matcher.MatchesAny("gcm", "Other", null));
-    }
-
-    [Fact]
     public void GivenQueries_WhenRanking_ThenExactBeatsPrefixBeatsSubstringBeatsLettersInOrder()
     {
         var exact = Matcher.Rank("bug", "bug");

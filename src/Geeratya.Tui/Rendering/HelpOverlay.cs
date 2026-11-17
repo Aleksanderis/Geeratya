@@ -215,5 +215,4 @@ public static class HelpOverlay
 
         return missing <= 0 ? line : new StyledLine([.. line.Spans, new StyledSpan(new string(' ', missing), TextRole.Body)]);
     }
-
 }

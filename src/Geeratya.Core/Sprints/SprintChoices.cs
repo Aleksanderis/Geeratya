@@ -1,6 +1,6 @@
 using System.Globalization;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Boards;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Sprints.Models;

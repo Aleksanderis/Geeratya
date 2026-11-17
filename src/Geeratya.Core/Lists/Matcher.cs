@@ -20,12 +20,6 @@ public static class Matcher
         return query.Length == 0 || text.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>True when any of <paramref name="texts"/> matches (see <see cref="Matches(string, string)"/>).</summary>
-    public static bool MatchesAny(string query, params string?[] texts)
-    {
-        return query.Length == 0 || texts.Any(text => text is not null && Matches(text, query));
-    }
-
     /// <summary>
     /// How well <paramref name="text"/> fits <paramref name="query"/>, lower is better, or -1 for no match: the exact
     /// text first, then a prefix, then a substring (the earlier the better), then letters in order (the tighter the
