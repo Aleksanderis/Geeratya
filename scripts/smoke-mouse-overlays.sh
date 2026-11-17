@@ -244,7 +244,7 @@ for kind in "GCS 6" "GTS 5"; do
   fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
   drag_to "$key " "├─ Backlog "
   wait_for "Jira has no undo"
-  wait_for "from sprint"
+  wait_for "Move $key from sprint" # one row, not a range
   fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
   send "y"
   wait_gone "Jira has no undo"
@@ -280,10 +280,10 @@ echo "ok: gg returned the help to the top"
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Help"
 
-# Card drag: a card dragged onto the next column runs the transition like Alt-l (a single matching transition is sent at
-# once, no form, a move into Done asks; the column titles carry the counts), with the motion events a terminal sends (they carry the Pressed flag
-# too) and without them. That the click after a release is swallowed is covered by the MouseDragTrackerTests only; this
-# script proves the press, motion and release pairing.
+# Card drag: a card dragged onto the next column runs the transition like Alt-l: a single matching transition is sent at
+# once (no form; the column titles carry the counts), a move into Done asks first. Done with the motion events a terminal
+# sends (they carry the Pressed flag too) and without them. That the click after a release is swallowed is covered by
+# the MouseDragTrackerTests only; this script proves the press, motion and release pairing.
 drag "GCM-11 " 40 motion
 wait_for "In Progress 5"
 wait_for "To Do 4"
@@ -291,6 +291,7 @@ drag "GCM-11 " 40
 wait_for "Move GCM-11 to Done?" # a move into a done status asks first (the workflow may do more than change the status)
 tmux -L "$socket" send-keys -t s Escape
 wait_gone "Move GCM-11 to Done?"
+wait_for "In Progress 5" # Esc kept the card where it was
 wait_for "Done (14d) 3"
 
 # Create form: the type list row is taken by a click, then a click on another field moves the focus to it.
