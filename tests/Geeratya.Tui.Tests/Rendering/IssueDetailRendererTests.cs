@@ -627,7 +627,7 @@ public class IssueDetailRendererTests
         var pending = Keys(state, "Ctrl-w");
 
         Assert.Equal("Ctrl-w", pending.PendingKeys);
-        Assert.Contains("INSERT  Ctrl-w", StatusBar.Render(pending, 120, _keymap));
+        Assert.Contains("NORMAL  Ctrl-w", StatusBar.Render(pending, 120, _keymap));
     }
 
     private AppState PriorityDropdown(int width, int height)

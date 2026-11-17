@@ -62,7 +62,17 @@ public static partial class StatusBar
         // Visual mode is a state of the tab over Normal mode (docs/internal/ux.md, "Modes").
         var visual = state.Mode == InputMode.Normal && ListBodyRenderer.ActiveTab(state) is { Detail.Count: 0, VisualAnchor: not null };
 
-        return visual ? "VISUAL" : Badge(state.Mode);
+        return visual ? "VISUAL" : Badge(ShownMode(state));
+    }
+
+    // A form in its navigate state takes motion keys, not text, so its badge reads NORMAL like the views (the mode
+    // itself stays Insert for the key routing).
+    private static InputMode ShownMode(AppState state)
+    {
+        var navigating = state is { Mode: InputMode.Insert, Editor: null, Jump: null, FlashJump: null }
+            && FormReducer.OpenForm(state) is { Navigating: true };
+
+        return navigating ? InputMode.Normal : state.Mode;
     }
 
     private static TextRole BadgeRole(AppState state)
@@ -79,7 +89,7 @@ public static partial class StatusBar
             return TextRole.BadgeVisual;
         }
 
-        return state.Mode switch
+        return ShownMode(state) switch
         {
             InputMode.Command => TextRole.BadgeCommand,
             InputMode.Help => TextRole.BadgeHelp,
