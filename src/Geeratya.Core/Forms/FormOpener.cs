@@ -253,6 +253,11 @@ public static class FormOpener
 
         private static Subject? OfDetail(TabState tab, DetailState shown)
         {
+            if (DetailReducer.SubtaskUnderCursor(shown) is { } subtask)
+            {
+                return OfSubtask(tab, shown, subtask);
+            }
+
             if (shown.Issue is { } issue)
             {
                 return new Subject(
@@ -269,6 +274,15 @@ public static class FormOpener
             }
 
             return shown.Row is { } row ? OfRow(tab, row) : null;
+        }
+
+        // A sub-task under the cursor: only its key and assignee are known here (the assign paths read nothing else).
+        private static Subject OfSubtask(TabState tab, DetailState shown, string key)
+        {
+            var stub = shown.Issue!.Subtasks.First(candidate => string.Equals(candidate.Key, key, StringComparison.OrdinalIgnoreCase));
+            var row = shown.Children?.FirstOrDefault(child => string.Equals(child.Key, key, StringComparison.OrdinalIgnoreCase));
+
+            return new Subject(tab, stub.Key, stub.Summary, row?.Labels ?? [], row?.Priority, row?.Assignee, shown.Key, null, false, null);
         }
 
         private static Subject OfRow(TabState tab, IssueSummary row)

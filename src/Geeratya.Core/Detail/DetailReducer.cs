@@ -87,8 +87,8 @@ internal static partial class DetailReducer
         return recorded.State;
     }
 
-    /// <summary>Esc: pops the top issue; with an empty stack nothing happens.</summary>
-    public static AppState Back(AppState state, TabId id)
+    /// <summary>Esc: pops the top issue (the one below reloads when a write marked it stale); with an empty stack nothing happens.</summary>
+    public static AppState Back(AppState state, TabId id, List<Effect> effects)
     {
         var tab = ViewReducer.Find(state.Session.Tabs, id);
 
@@ -101,7 +101,10 @@ internal static partial class DetailReducer
 
         var shown = tab with { Detail = remaining };
 
-        return ViewReducer.Replace(state, Resized(shown, DetailSize.Columns(state), DetailSize.ListRows(state, tab)));
+        var resized = ViewReducer.Replace(state, Resized(shown, DetailSize.Columns(state), DetailSize.ListRows(state, tab)));
+
+        // An issue a write marked stale while another was on top reads again as it comes back (#990).
+        return NeedsReload(shown) ? Reload(resized, id, effects) : resized;
     }
 
     /// <summary>Closes the overlay: the whole issue stack of the tab is dropped, the view is as it was left.</summary>
