@@ -249,7 +249,7 @@ public class SourceReducerTests
     public void GivenAWaitingCommand_WhenEscIsPressedBeforeTheReply_ThenTheLateReplyOpensNothing()
     {
         var waiting = Run(Start(), "board gcm");
-        var cancelled = Press(waiting.State, "Esc");
+        var cancelled = Press(Press(waiting.State, "Esc").State, "Esc");
 
         var late = _reducer.Reduce(cancelled.State, new BoardsLoaded(_boards));
 

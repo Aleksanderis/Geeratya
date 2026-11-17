@@ -145,7 +145,7 @@ public class AppReducerTests
     [Fact]
     public void GivenCommandMode_WhenEsc_ThenCancelsWithoutRunning()
     {
-        var result = Press(TypeCommand("quit"), "Esc");
+        var result = Press(Press(TypeCommand("quit"), "Esc").State, "Esc");
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
         Assert.Equal(string.Empty, result.State.PaletteText);
@@ -207,11 +207,11 @@ public class AppReducerTests
     }
 
     [Fact]
-    public void GivenConfirmMode_WhenPressingQEnterOrOtherKeys_ThenNothingHappens()
+    public void GivenConfirmMode_WhenPressingEnterOrOtherKeys_ThenNothingHappens()
     {
         var state = Confirming(ActionIds.Quit);
 
-        foreach (var key in new[] { "q", "Enter", "x", ":" })
+        foreach (var key in new[] { "Enter", "x", ":" })
         {
             var result = Press(state, key);
 

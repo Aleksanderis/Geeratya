@@ -2,9 +2,10 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   za         Expand or collapse sub-tasks of a card, a cut text or a        ▲│           │
-│           │   All actions │              backlog section                                                 │           │
-│           │   Commands    │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
+│           │   Global      │   [[         Previous section of the Scrum backlog, or previous swimlane    ▲│           │
+│           │   All actions │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
+│           │   Commands    │              backlog section                                                 │           │
+│           │               │   Ctrl-h     Focus the pane to the left (zoomed: the previous section)       │           │
 │           │               │              (Ctrl-Backspace, Ctrl-w h)                                      │           │
 │           │               │   Ctrl-j     Focus the pane below  (Ctrl-w j)                                │           │
 │           │               │   Ctrl-k     Focus the pane above  (Ctrl-w k)                                │           │
@@ -17,7 +18,7 @@
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
-│           │               │   q          Quit  (Ctrl-c)                                                  │           │
+│           │               │   Ctrl-c     Quit                                                            │           │
 │           │               │   Esc        Cancel or close                                                 │           │
 │           │               │   :          Open the command palette  (Ctrl-p)                              │           │
 │           │               │   <space>a   Open the actions menu of the selected issue                     │           │
@@ -29,8 +30,7 @@
 │           │               │ Dialogs                                                                      │           │
 │           │               │   Esc        Close help  (q)                                                 │           │
 │           │               │   /          Filter the help by key, title or action id                      │           │
-│           │               │   Tab        Next help section                                               │           │
-│           │               │   Shift-Tab  Previous help section                                          ▼│           │
+│           │               │   Tab        Next help section                                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

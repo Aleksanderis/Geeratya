@@ -197,7 +197,7 @@ public class PaletteReducerTests
     [Fact]
     public void GivenOpenPalette_WhenPressingEsc_ThenItClosesAndNothingRuns()
     {
-        var result = Press(Press(Typed("quit"), "Down").State, "Esc");
+        var result = Press(Press(Press(Typed("quit"), "Down").State, "Esc").State, "Esc");
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
         Assert.Empty(result.Effects);

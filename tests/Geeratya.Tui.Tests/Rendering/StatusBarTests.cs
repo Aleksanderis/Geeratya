@@ -171,7 +171,7 @@ public class StatusBarTests
     [Fact]
     public void GivenARemappedQuitKey_WhenRenderingHints_ThenTheHintShowsTheNewKey()
     {
-        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-q", ActionIds.Quit)]);
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-q", ActionIds.NavigateClose)]);
 
         Assert.Equal(["Ctrl-q quit"], StatusBar.HintsFor(InputMode.Normal, keymap));
     }
@@ -179,7 +179,7 @@ public class StatusBarTests
     [Fact]
     public void GivenAHintActionUnbound_WhenRenderingHints_ThenItIsLeftOut()
     {
-        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "q", ActionIds.Quit)]);
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "q", ActionIds.NavigateClose)]);
 
         Assert.Equal(["q quit"], StatusBar.HintsFor(InputMode.Normal, keymap));
     }

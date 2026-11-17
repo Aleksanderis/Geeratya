@@ -24,6 +24,7 @@ public static class ActionIds
     public const string HelpBottom = "help.bottom";
     public const string Quit = "app.quit";
     public const string Cancel = "mode.cancel";
+    public const string NavigateClose = "nav.close";
     public const string PaletteOpen = "palette.open";
     public const string ContextMenuOpen = "menu.context";
     public const string ViewMenuOpen = "menu.view";

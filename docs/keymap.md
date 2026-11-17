@@ -25,7 +25,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `?` | Show or hide help | `help.toggle` | everyday |
 | `:` | Open the command palette | `palette.open` | everyday |
 | `Ctrl-p` | Open the command palette | `palette.open` | everyday |
-| `q` | Quit | `app.quit` | everyday |
+| `q` | Quit at the main view, else close one level | `nav.close` | everyday |
 | `Esc` | Cancel or close | `mode.cancel` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
 | `Enter` | Open the selected item | `item.open` | everyday |
@@ -191,6 +191,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `y` | Confirm | `confirm.yes` | everyday |
 | `n` | Decline | `confirm.no` | everyday |
 | `Esc` | Decline | `confirm.no` | everyday |
+| `q` | Decline | `confirm.no` | everyday |
 | `Ctrl-c` | Quit | `app.quit` | everyday |
 
 ## Insert mode

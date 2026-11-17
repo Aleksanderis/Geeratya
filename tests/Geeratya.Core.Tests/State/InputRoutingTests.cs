@@ -151,12 +151,12 @@ public class InputRoutingTests
     }
 
     [Fact]
-    public void GivenNormalMode_WhenTypingQ_ThenItRoutesToTheQuitAction()
+    public void GivenNormalMode_WhenTypingQ_ThenItRoutesToTheCloseAction()
     {
         var route = InputRouting.Route(AppState.Initial, "q", _keymap);
 
         Assert.Equal(KeyRouteKind.Action, route.Kind);
-        Assert.Equal(ActionIds.Quit, route.Resolution!.Action);
+        Assert.Equal(ActionIds.NavigateClose, route.Resolution!.Action);
     }
 
     [Fact]
@@ -186,7 +186,6 @@ public class InputRoutingTests
     }
 
     [Theory]
-    [InlineData("q")]
     [InlineData("g")]
     [InlineData(":")]
     [InlineData("Enter")]

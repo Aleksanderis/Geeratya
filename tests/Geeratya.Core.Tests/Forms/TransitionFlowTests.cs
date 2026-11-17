@@ -129,6 +129,23 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenTheTransitionFields_WhenPressingEsc_ThenTheStatusPickerOpensAgainInsteadOfEverythingClosing()
+    {
+        var picked = Keys(Picker(Tabbed(ViewLayout.List), Required()), "Enter");
+        var tab = picked.State.Session.Tabs[0];
+        var fields = FormFieldMapper.FromTransition(Required().Fields);
+        var form = _reducer.Reduce(picked.State, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, fields)).State;
+
+        var back = Keys(form, "Esc");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(back.Effects));
+        Assert.IsType<TransitionPickTarget>(effect.Target);
+        Assert.IsType<TransitionPickTarget>(back.State.Session.Tabs[0].Form!.Target);
+        Assert.Equal(InputMode.Insert, back.State.Mode);
+        Assert.Empty(back.State.Session.Operations);
+    }
+
+    [Fact]
     public void GivenTheTransitionFormWithAMissingRequiredField_WhenSubmitted_ThenItStaysOpenAndSendsNothing()
     {
         var form = TransitionForm(Tabbed(ViewLayout.List), Required());

@@ -128,8 +128,10 @@ public class ProfileReducerTests
 
         Assert.Equal("a", state.Form!.Name);
 
-        var cancelled = Press(state, "Esc");
+        var asked = Press(state, "Esc");
+        var cancelled = Press(asked.State, "y");
 
+        Assert.Equal(InputMode.Confirm, asked.State.Mode);
         Assert.Equal(InputMode.Normal, cancelled.State.Mode);
         Assert.Null(cancelled.State.Form);
         Assert.Empty(cancelled.Effects);

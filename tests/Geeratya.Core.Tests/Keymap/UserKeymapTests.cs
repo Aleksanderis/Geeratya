@@ -198,7 +198,7 @@ public sealed class UserKeymapTests : IDisposable
 
         Assert.Equal(2, problems.Count);
         Assert.All(problems, problem => Assert.Contains("needs", problem));
-        Assert.Equal(ActionIds.Quit, table.Resolve(InputMode.Normal, string.Empty, "q").Action);
+        Assert.Equal(ActionIds.NavigateClose, table.Resolve(InputMode.Normal, string.Empty, "q").Action);
         Assert.Equal(KeyResolutionKind.None, table.Resolve(InputMode.Normal, string.Empty, "x").Kind);
     }
 

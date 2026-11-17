@@ -34,7 +34,7 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `g g`, `G` | top, bottom | top, bottom |
 | `Ctrl-d`, `Ctrl-u` | half page down, up | page down, up (in an opened issue inside the current pane only, #870) |
 | `:` | command line | command palette |
-| `q` | record a macro | quit (Normal mode only; there are no macros) |
+| `q` | record a macro | close one level, quit at the view root (Normal mode only; there are no macros) |
 | `?` | search backwards | help (search arrives with `/` and `n`/`N` in a later issue) |
 | `s u c a x r D M E` and other bare letters | edit commands | not bound by Geeratya actions |
 | `0` `$` | line start, line end | first and last column of the board |
@@ -168,7 +168,7 @@ A bare-letter shortcut for any write, an undo key (Jira has none), bulk delete, 
 ## Design details (moved from `decisions.md`)
 
 - **Command levels (#196).** The level is a property of the action in `ActionCatalog`, not of a key row in `keymap.default.json`, so every key of an action shares it; the generated `docs/keymap.md` shows it per row. Two levels only. The palette hides advanced actions only from the unfiltered list (a note counts them); any filter searches them too, because most have no typed command and "exact id only" would make `delete` unreachable. `<space>*` changes the level for the session without saving; `:set commandlevel` saves. Messages and Confirm texts that name a key are not filtered.
-- **Quit and cancel (#390).** `Ctrl-c` quits from Confirm and cancels running read loads at once, but still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` quits in Normal only and does nothing in Confirm, so a stray key never answers a destructive question.
+- **Quit and cancel (#390).** `Ctrl-c` quits from Confirm and cancels running read loads at once, but still asks while writes run and cancels (never quits) in a text form, where `Esc` asks about changed text. `q` closes one level in Normal and quits only at the view root (`docs/internal/ux.md`, "Focus model and key style"); in Confirm it answers no, never yes, so a stray key never confirms a destructive question.
 
 ## Copying text
 

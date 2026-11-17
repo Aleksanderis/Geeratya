@@ -12,7 +12,7 @@ public static partial class StatusBar
     [
         new(InputMode.Normal, ActionIds.HelpToggle, "help"),
         new(InputMode.Normal, ActionIds.PaletteOpen, "commands"),
-        new(InputMode.Normal, ActionIds.Quit, "quit"),
+        new(InputMode.Normal, ActionIds.NavigateClose, "quit"),
         new(InputMode.Help, ActionIds.NavigateDown, "down"),
         new(InputMode.Help, ActionIds.NavigateUp, "up"),
         new(InputMode.Help, ActionIds.HelpClose, "close"),

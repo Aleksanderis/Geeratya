@@ -202,7 +202,8 @@ public class HelpReducerTests
     [Fact]
     public void GivenAFilterThatNarrowsThePage_WhenScrollingFarDown_ThenTheScrollStopsAtTheShorterLastLine()
     {
-        var typed = Press(Press(Press(Press(Opened(), "/"), "q"), "u"), "Enter");
+        var typed = Press(Press(Press(Press(Press(Opened(), "/"), "c"), "t"), "r"), "l");
+        typed = Press(Press(Press(typed, "-"), "c"), "Enter");
         var lines = HelpPages.Lines(typed, _keymap).Count;
 
         var state = typed;

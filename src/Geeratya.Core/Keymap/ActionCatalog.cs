@@ -99,6 +99,7 @@ public static class ActionCatalog
         new(ActionIds.HelpBottom, "Scroll help to the bottom"),
         new(ActionIds.Quit, "Quit"),
         new(ActionIds.Cancel, "Cancel or close"),
+        new(ActionIds.NavigateClose, "Quit at the main view, else close one level"),
         new(ActionIds.PaletteOpen, "Open the command palette"),
         new(ActionIds.ContextMenuOpen, "Open the actions menu of the selected issue"),
         new(ActionIds.ViewMenuOpen, "Open the actions menu of the tab and the view"),

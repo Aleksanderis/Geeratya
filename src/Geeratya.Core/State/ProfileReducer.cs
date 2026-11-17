@@ -14,6 +14,7 @@ public static partial class ProfileReducer
 {
     public const string RemoveAction = ActionIds.ProfileRemove;
     public const string SwitchAction = "profile.switch";
+    public const string DiscardAction = "profile.discard";
 
     private const string AddVerb = "add";
     private const string ListVerb = "list";
@@ -206,7 +207,7 @@ public static partial class ProfileReducer
 
         var selected = Math.Clamp(ClampedRow(state, list) + delta, 0, last);
 
-        return state with { ProfileList = new ProfileListState(selected) };
+        return state with { ProfileList = list with { Selected = selected } };
     }
 
     /// <summary>Enter in the profile list: switches to the highlighted profile (as the palette command does).</summary>
@@ -235,6 +236,25 @@ public static partial class ProfileReducer
         }
 
         return Highlighted(state, row) is { } profile ? AskRemove(state, profile.Name) : Plain(state);
+    }
+
+    /// <summary>
+    /// True when the open profile form differs from what it was opened with: any text in a new profile's fields or a
+    /// typed token, or an edited name, site or email of an existing one.
+    /// </summary>
+    public static bool IsDirty(AppState state, ProfileForm form)
+    {
+        if (!form.Token.IsEmpty)
+        {
+            return true;
+        }
+
+        if (state.Profiles.Find(form.EditingName) is { } original)
+        {
+            return form.Name != original.Name || form.SiteUrl != original.SiteUrl || form.Email != original.Email;
+        }
+
+        return form.Name.Length > 0 || form.SiteUrl.Length > 0 || form.Email.Length > 0;
     }
 
     /// <summary>Closes the profile list and leaves Insert mode.</summary>

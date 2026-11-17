@@ -5,6 +5,6 @@
 |w+- Actions ------------------------+l|
 | |   Show or hide help            ? | |
 | |   Edit the issue       <space>ie | |
-| |   Quit                         q | |
+| |   Quit                    Ctrl-c | |
 +-+----------------------------------+-+
 [INSERT]                                

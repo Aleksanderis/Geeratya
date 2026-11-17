@@ -77,7 +77,10 @@ public static partial class FormReducer
 
         if (form.IsChoosingType)
         {
-            return CreateFormReducer.ChoosingType(state, tab, form, action);
+            // q closes a level like Esc where it is not text (docs/internal/ux.md, "Focus model and key style").
+            var closing = key == NavigationLevels.CloseKey ? ActionIds.Cancel : action;
+
+            return CreateFormReducer.ChoosingType(state, tab, form, closing);
         }
 
         if (form.Suggest is { } popup && Suggesting(state, tab, form, popup, action, at) is { } handled)
@@ -148,6 +151,11 @@ public static partial class FormReducer
         if (PaneChord(state, tab, key, at, keymap) is { } chord)
         {
             return chord;
+        }
+
+        if (key == NavigationLevels.CloseKey)
+        {
+            return Cancel(state, tab, form);
         }
 
         var motion = keymap.Resolve(InputMode.Normal, string.Empty, key).Action;

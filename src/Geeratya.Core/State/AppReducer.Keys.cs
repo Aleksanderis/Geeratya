@@ -96,6 +96,11 @@ public sealed partial class AppReducer
             return FlashJumpReducer.Type(cleared, typed);
         }
 
+        if (route.Kind == KeyRouteKind.Text && key == NavigationLevels.CloseKey && NavigationLevels.QClosesInsert(state))
+        {
+            return ReduceKey(state, EscapeKey, at);
+        }
+
         if (route.Kind == KeyRouteKind.Text)
         {
             return Result(TypeText(cleared, key));

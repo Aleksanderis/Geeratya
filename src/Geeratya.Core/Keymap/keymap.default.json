@@ -19,7 +19,7 @@
     { "mode": "normal", "keys": "?", "action": "help.toggle" },
     { "mode": "normal", "keys": ":", "action": "palette.open" },
     { "mode": "normal", "keys": "Ctrl-p", "action": "palette.open" },
-    { "mode": "normal", "keys": "q", "action": "app.quit" },
+    { "mode": "normal", "keys": "q", "action": "nav.close" },
     { "mode": "normal", "keys": "Esc", "action": "mode.cancel" },
     { "mode": "normal", "keys": "Ctrl-c", "action": "app.quit" },
     { "mode": "normal", "keys": "Enter", "action": "item.open" },
@@ -154,6 +154,7 @@
     { "mode": "confirm", "keys": "y", "action": "confirm.yes" },
     { "mode": "confirm", "keys": "n", "action": "confirm.no" },
     { "mode": "confirm", "keys": "Esc", "action": "confirm.no" },
+    { "mode": "confirm", "keys": "q", "action": "confirm.no" },
     { "mode": "confirm", "keys": "Ctrl-c", "action": "app.quit" },
 
     { "mode": "insert", "keys": "Enter", "action": "form.next" },

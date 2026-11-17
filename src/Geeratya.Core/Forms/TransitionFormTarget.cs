@@ -13,6 +13,9 @@ public sealed record TransitionFormTarget(string Key, TransitionChoice Choice, s
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
 
+    /// <summary>The status picker this form was opened from; Esc returns to it. Null when opened on its own.</summary>
+    public TransitionPickTarget? Origin { get; init; }
+
     public override string EmptyText => $"{Choice.Name} has no fields to fill in for {Key}";
 
     public override bool AllowsNoChanges => true;
