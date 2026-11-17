@@ -23,7 +23,7 @@ public sealed class SavedViewEffectHandlerTests : IDisposable
         Apply(saving, Run(opened, "view save Mine"));
 
         var reading = new SavedViewEffectHandler(new SavedViewStore(_directory));
-        var picker = Apply(reading, Press(Press(Start(), "Space").State, "t"));
+        var picker = Apply(reading, Press(Start(), "Ctrl-t"));
         var chosen = Press(picker, "Enter");
 
         var tab = Assert.Single(chosen.State.Session.Tabs);

@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   0          Go to the first column                                         ▲│           │
-│           │   All actions │   $          Go to the last column                                           │           │
-│           │   Commands    │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
+│           │   Global      │   Ctrl-d     Page down  (PageDown)                                          ▲│           │
+│           │   All actions │   Ctrl-u     Page up  (PageUp)                                               │           │
+│           │   Commands    │   Enter      Open the selected item                                          │           │
+│           │               │   0          Go to the first column                                          │           │
+│           │               │   $          Go to the last column                                           │           │
+│           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
 │           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
 │           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
 │           │               │              backlog section                                                 │           │
@@ -27,10 +30,7 @@
 │           │               │   <space>a   Open the actions menu of the selected issue                     │           │
 │           │               │   <space>n   Show the message history                                        │           │
 │           │               │   <space>x   Dismiss the status message                                      │           │
-│           │               │   <space>,   Open or close the settings screen                               │           │
-│           │               │   Alt-r      Reset the highlighted setting to its default (in the settings   │           │
-│           │               │              screen)                                                         │           │
-│           │               │ Dialogs                                                                     ▼│           │
+│           │               │   <space>,   Open or close the settings screen                              ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

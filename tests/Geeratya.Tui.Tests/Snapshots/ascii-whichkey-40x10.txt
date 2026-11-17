@@ -2,9 +2,9 @@
                                         
 +- <space> ----------------------------+
 | c         Close the tab              |
-| t         Open the source picker for |
 | Tab       Previously active tab      |
 | T         Show a list of open tabs   |
+| x         Dismiss the status message |
 | . 18 more                            |
 +--------------------------------------+
 [NORMAL] <space>                        

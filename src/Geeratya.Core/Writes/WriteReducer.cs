@@ -85,7 +85,7 @@ public static partial class WriteReducer
 
         var assignee = new IssueAssignee(accountId, connected.DisplayName);
 
-        return Request(state, new WriteRequested(request.Tab, new AssignRequest(request.Key, assignee), request.At));
+        return Request(state, new WriteRequested(request.Tab, new AssignRequest(request.Key, assignee, request.Summary), request.At));
     }
 
     private static ReduceResult Request(AppState state, WriteRequested requested)

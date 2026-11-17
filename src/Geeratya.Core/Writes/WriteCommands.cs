@@ -19,7 +19,7 @@ public sealed record WriteRequested(TabId Tab, WriteRequest Request, DateTimeOff
     : WriteCommand;
 
 /// <summary>Assign an issue to the account of the active profile (the pilot write of the pipeline).</summary>
-public sealed record AssignToMeRequested(TabId Tab, string Key, DateTimeOffset At) : WriteCommand;
+public sealed record AssignToMeRequested(TabId Tab, string Key, DateTimeOffset At, string? Summary = null) : WriteCommand;
 
 /// <summary>The handler moved an operation to another phase; ignored when the operation is gone.</summary>
 public sealed record OperationPhaseChanged(long OperationId, OperationPhase Phase) : WriteCommand;

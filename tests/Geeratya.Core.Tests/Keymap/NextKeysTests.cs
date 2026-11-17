@@ -35,7 +35,11 @@ public class NextKeysTests
 
         Assert.Null(issue.Action);
         Assert.Equal(issueRows, issue.Count);
-        Assert.Equal(ActionIds.TabNew, Assert.Single(next, entry => entry.Key == "t").Action);
+
+        var subtask = Assert.Single(next, entry => entry.Key == "t");
+
+        Assert.Null(subtask.Action);
+        Assert.Equal(3, subtask.Count);
     }
 
     [Fact]

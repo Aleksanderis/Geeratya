@@ -6,9 +6,9 @@ namespace Geeratya.Core.Forms;
 /// The fields of one transition screen (required ones first), shown after the transition was picked. Submitting is
 /// the confirmation, so the write does not ask again. Optional fields may stay empty.
 /// </summary>
-public sealed record TransitionFormTarget(string Key, TransitionChoice Choice) : FormTarget
+public sealed record TransitionFormTarget(string Key, TransitionChoice Choice, string? Summary = null) : FormTarget
 {
-    public override string Title => $"Move {Key} to {Choice.Target.Name}";
+    public override string Title => Summary is null ? $"Move {Key} to {Choice.Target.Name}" : $"Move {Key} ({Summary}) to {Choice.Target.Name}";
 
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base allows null for a form with no issue)
     public override string? IssueKey => Key;
@@ -19,6 +19,6 @@ public sealed record TransitionFormTarget(string Key, TransitionChoice Choice) :
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
-        return new TransitionRequest(Key, Choice, changes, false);
+        return new TransitionRequest(Key, Choice, changes, false, Summary);
     }
 }

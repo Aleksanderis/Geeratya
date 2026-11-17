@@ -61,6 +61,10 @@ A row with no `mode` (or no `keys` or `action`) is reported and skipped; it neve
 
 `Ctrl-c` quits before the keymap is consulted (except in Insert mode, where it cancels the edit), so no `keymap.json` can remove it: an `unbind` or a binding for `Ctrl-c` is skipped with a message. Unbinding `q`, `Esc` and `:` still leaves `Ctrl-c`. To undo a bad file, edit or delete `keymap.json` from outside the app and start again.
 
+## Keys that changed
+
+- `<space>t` no longer opens the new-tab source picker; `Ctrl-t` does (since #994). `<space>t` is now a prefix for the sub-task keys (`<space>ts`, `<space>ta`, `<space>tm`). A `keymap.json` row that binds exactly `Space t` is skipped with a message, because it would hide those keys; bind it to a free sequence instead, or unbind the three sub-task rows first (`Space t s`, `Space t a`, `Space t m`), after which the row applies. An `unbind` of `Space t` is no longer needed (it is not a default binding any more) and is reported as having no default binding; delete it.
+
 ## Applying changes
 
 Geeratya reads the file at start. After editing it, run `:keys reload` in the command palette to apply it without a restart; the status line says `Keymap reloaded` or names the first problem.

@@ -92,11 +92,11 @@ public class TabKeysTests
     }
 
     [Fact]
-    public void GivenAnActiveTab_WhenPressingSpaceT_ThenTheSourcePickerOpensAndNoTabIsCopied()
+    public void GivenAnActiveTab_WhenPressingCtrlT_ThenTheSourcePickerOpensAndNoTabIsCopied()
     {
         var state = OpenTabs(1);
 
-        var result = Press(Press(state, "Space").State, "t");
+        var result = Press(state, "Ctrl-t");
 
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.NotNull(result.State.Picker);

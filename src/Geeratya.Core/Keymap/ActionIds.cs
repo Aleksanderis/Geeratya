@@ -95,6 +95,9 @@ public static class ActionIds
     public const string IssueEdit = "issue.edit";
     public const string IssueAssign = "issue.assign";
     public const string IssueAssignMe = "issue.assign-me";
+    public const string IssueSubtaskTransition = "issue.subtask-transition";
+    public const string IssueSubtaskAssign = "issue.subtask-assign";
+    public const string IssueSubtaskAssignMe = "issue.subtask-assign-me";
     public const string IssueJump = "issue.jump";
     public const string RowJump = "nav.row-jump";
     public const string StatusHistory = "status.history";

@@ -2,9 +2,12 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>sc  Complete the sprint (confirms where the open issues go)        ▲│           │
-│           │   All actions │   <space>sg  Show the full goal of the sprint                                │           │
-│           │   Commands    │ Tabs                                                                         │           │
+│           │   Global      │   <space>sv  Switch the sprint shown (active, future, closed)               ▲│           │
+│           │   All actions │   <space>sn  Create a sprint (name, goal, dates)                             │           │
+│           │   Commands    │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
+│           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
+│           │               │   <space>sg  Show the full goal of the sprint                                │           │
+│           │               │ Tabs                                                                         │           │
 │           │               │   Tab        Next tab  (gt)                                                  │           │
 │           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
 │           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
@@ -17,7 +20,7 @@
 │           │               │   Alt-7      Go to tab 7                                                     │           │
 │           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
-│           │               │   <space>t   Open the source picker for a new tab  (Ctrl-t)                  │           │
+│           │               │   Ctrl-t     Open the source picker for a new tab                            │           │
 │           │               │   <space>c   Close the tab                                                   │           │
 │           │               │   <space>T   Show a list of open tabs                                        │           │
 │           │               │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
@@ -27,10 +30,7 @@
 │           │               │   h          Move left  (Left)                                               │           │
 │           │               │   l          Move right  (Right)                                             │           │
 │           │               │   gg         Go to the top  (Home)                                           │           │
-│           │               │   G          Go to the bottom  (End)                                         │           │
-│           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
-│           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
-│           │               │   Enter      Open the selected item                                         ▼│           │
+│           │               │   G          Go to the bottom  (End)                                        ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
