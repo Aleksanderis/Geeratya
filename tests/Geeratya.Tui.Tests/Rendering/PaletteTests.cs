@@ -387,4 +387,36 @@ public class PaletteTests
             }
             """;
     }
+
+    [Theory]
+    [MemberData(nameof(ThemeNames))]
+    public void GivenAnyTheme_WhenResolvingTypedTextAndCaret_ThenTypedTextIsBodyAndTheCaretIsNotWarn(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!;
+        var body = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body);
+        var typed = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Editable);
+        var caret = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.EditCaret);
+        var warn = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.PriorityMedium);
+
+        Assert.Equal(body.Foreground, typed.Foreground);
+        Assert.NotEqual(warn.Foreground, typed.Foreground);
+        Assert.NotEqual(warn.Background, caret.Background);
+        Assert.NotEqual(typed.Foreground, caret.Foreground);
+    }
+
+    [Fact]
+    public void GivenNoColour_WhenResolvingTypedTextAndCaret_ThenBothAreUnderlinedAndTheColourTiersAreNot()
+    {
+        var theme = BuiltInThemes.Default;
+
+        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.Editable).Style.HasFlag(RoleStyle.Underline));
+        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Underline));
+        Assert.False(Palette.Resolve(theme, ColorSupport.None, PaletteRole.FieldLabel).Style.HasFlag(RoleStyle.Underline));
+
+        foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16 })
+        {
+            Assert.False(Palette.Resolve(theme, tier, PaletteRole.Editable).Style.HasFlag(RoleStyle.Underline));
+            Assert.False(Palette.Resolve(theme, tier, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Underline));
+        }
+    }
 }

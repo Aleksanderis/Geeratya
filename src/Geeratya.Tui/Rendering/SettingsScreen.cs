@@ -219,10 +219,11 @@ public static class SettingsScreen
         }
 
         var active = line == current;
-        var label = $"  {categories[line]}";
+        var label = active ? $"> {categories[line]}" : $"  {categories[line]}";
         var text = TextWidth.Pad(TextWidth.Fit(label, CategoryWidth), CategoryWidth);
 
-        return StyledLine.Of(text, active ? TextRole.Selected : TextRole.Muted);
+        // The category only follows the row cursor: bold with a mark, so the selected row alone reads as the focus.
+        return StyledLine.Of(text, active ? TextRole.Strong : TextRole.Muted);
     }
 
     private static List<Entry> Entries(

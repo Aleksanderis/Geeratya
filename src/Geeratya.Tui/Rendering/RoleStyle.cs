@@ -15,4 +15,7 @@ public enum RoleStyle
 
     /// <summary>A line through the text (SGR 9): struck-through ADF text.</summary>
     Strike = 32,
+
+    /// <summary>Underline that only shows without colour: typed text, which the colour tiers tell apart by its own look.</summary>
+    NoColorUnderline = 64,
 }

@@ -16,7 +16,7 @@ public static partial class FormOverlay
     /// <summary>
     /// One field as a labelled box: the label (with the required mark and state) in the top edge, the value rows
     /// inside the walls, then the suggestion rows and the error line under the box. The focused box is accent
-    /// (and keeps the <c>&gt;</c> mark, so it shows without colour), a read-only field is dimmed.
+    /// (its label starts with the <c>&gt;</c> mark, so focus shows without colour), a read-only field is dimmed.
     /// </summary>
     private static List<StyledLine> Block(FormState form, int index, int valueWidth)
     {
@@ -24,7 +24,7 @@ public static partial class FormOverlay
         var focused = index == form.Focus && !form.IsSaving;
         var frame = !field.IsEditable ? TextRole.Muted : focused ? TextRole.OverlayFrame
             : field.Error is not null ? TextRole.Error : TextRole.Muted;
-        var marker = string.Empty;
+        var marker = focused ? "> " : string.Empty;
         var required = field.Required ? " *" : string.Empty;
         var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
         var labelRole = focused ? TextRole.Strong : field.IsEditable ? TextRole.FieldLabel : TextRole.Muted;
@@ -45,7 +45,7 @@ public static partial class FormOverlay
 
         if (field.Error is not null)
         {
-            lines.Add(StyledLine.Of($"{new string(' ', Indent)}! {field.Error}", TextRole.Error));
+            lines.Add(StyledLine.Of(DisplayText.Cut($"{new string(' ', Indent)}! {field.Error}", valueWidth + Indent), TextRole.Error));
         }
 
         return lines;
@@ -72,6 +72,14 @@ public static partial class FormOverlay
         spans.Add(new StyledSpan(BoxWallEnd, frame));
 
         return new StyledLine(spans);
+    }
+
+    // An empty value is no typed text: the shared empty word in the muted role, so an empty field never looks filled.
+    private static StyledLine Placeholder(FormField field)
+    {
+        var word = field.Kind == FormFieldKind.User ? EmptyValues.Unassigned : EmptyValues.None;
+
+        return Cell(word, TextRole.Muted);
     }
 
     private static StyledLine Cell(string text, TextRole role)
@@ -103,7 +111,7 @@ public static partial class FormOverlay
             return new StyledLine(CaretRows.Spans(new PromptText(field.Value.Text, field.Back), valueWidth, TextRole.Editable));
         }
 
-        return Cell(field.Value.Text.Length == 0 ? EmptyText : field.Value.Text, TextRole.Editable);
+        return field.Value.Text.Length == 0 ? Placeholder(field) : Cell(field.Value.Text, TextRole.Editable);
     }
 
     private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
@@ -113,9 +121,12 @@ public static partial class FormOverlay
 
         if (!focused)
         {
-            var head = rows[0].Length == 0 ? EmptyText : rows[0];
+            if (rows[0].Length == 0)
+            {
+                return [Placeholder(field)];
+            }
 
-            return [Cell(rows.Length > 1 ? $"{head}…" : head, TextRole.Editable)];
+            return [Cell(rows.Length > 1 ? $"{rows[0]}…" : rows[0], TextRole.Editable)];
         }
 
         var prompt = new PromptText(field.Value.Text, field.Back);
@@ -136,7 +147,7 @@ public static partial class FormOverlay
     {
         var labels = field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray();
 
-        return Cell(labels.Length == 0 ? EmptyText : string.Join(", ", labels), TextRole.Editable);
+        return labels.Length == 0 ? Placeholder(field) : Cell(string.Join(", ", labels), TextRole.Editable);
     }
 
     /// <summary>The labels as tokens wrapped to the box; the buffer being typed ends the last line, caret in view.</summary>
@@ -155,7 +166,7 @@ public static partial class FormOverlay
 
         if (tokens.Count == 0)
         {
-            return [Cell(EmptyText, TextRole.Editable)];
+            return [Placeholder(field)];
         }
 
         var rows = new List<string>();

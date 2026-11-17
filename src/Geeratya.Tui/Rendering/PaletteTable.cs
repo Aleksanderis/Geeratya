@@ -69,7 +69,7 @@ public static class PaletteTable
             RoleStyle.Reverse | RoleStyle.Bold,
             RoleGround.OnBlue),
         [PaletteRole.Key] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
-        [PaletteRole.OverlayKey] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.Bold),
+        [PaletteRole.IssueKey] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.StatusToDo] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.StatusInProgress] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.StatusDone] = new(ThemeColor.Good, ThemeColor.BaseBackground, RoleStyle.Bold),
@@ -82,7 +82,7 @@ public static class PaletteTable
         [PaletteRole.PriorityMedium] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.PriorityLow] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.FieldLabel] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.None),
-        [PaletteRole.Editable] = new(ThemeColor.Warn, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Editable] = new(ThemeColor.BaseForeground, ThemeColor.BaseBackground, RoleStyle.NoColorUnderline),
         [PaletteRole.BarMuted] = new(
             ThemeColor.Muted,
             ThemeColor.BarBackground,
@@ -167,8 +167,8 @@ public static class PaletteTable
             RoleGround.OnBlue),
         [PaletteRole.EditCaret] = new(
             ThemeColor.BaseBackground,
-            ThemeColor.Warn,
-            RoleStyle.Bold,
+            ThemeColor.BaseForeground,
+            RoleStyle.Bold | RoleStyle.NoColorUnderline,
             RoleGround.Chip),
         [PaletteRole.Range] = new(
             ThemeColor.BaseForeground,
@@ -197,7 +197,7 @@ public static class PaletteTable
         [TextRole.Quote] = PaletteRole.Quote,
         [TextRole.Selected] = PaletteRole.Selected,
         [TextRole.Key] = PaletteRole.Key,
-        [TextRole.OverlayKey] = PaletteRole.OverlayKey,
+        [TextRole.IssueKey] = PaletteRole.IssueKey,
         [TextRole.StatusToDo] = PaletteRole.StatusToDo,
         [TextRole.StatusInProgress] = PaletteRole.StatusInProgress,
         [TextRole.StatusDone] = PaletteRole.StatusDone,
@@ -423,6 +423,12 @@ public static class PaletteTable
 
         if (spec.Ground == RoleGround.Chip)
         {
+            // The caret is a block in the text colour: white on a dark terminal, black on a light one.
+            if (spec.Background == ThemeColor.BaseForeground)
+            {
+                return variant == ThemeVariant.Light ? Ansi16Color.Black : Ansi16Color.White;
+            }
+
             return theme.Ansi.TryGetValue(spec.Background, out var fill)
                 ? fill
                 : variant == ThemeVariant.Light ? LightDefault(spec.Background) : DarkDefault(spec.Background);

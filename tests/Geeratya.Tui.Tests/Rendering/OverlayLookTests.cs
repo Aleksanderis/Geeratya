@@ -194,13 +194,13 @@ public class OverlayLookTests
     }
 
     [Fact]
-    public void GivenAWhichKeyPopup_WhenBuildingTheFrame_ThenTheViewAroundItIsNotDimmed()
+    public void GivenAWhichKeyPopup_WhenBuildingTheFrame_ThenTheViewAroundItIsDimmedAndTheBoxIsNot()
     {
         var spans = FrameBuilder.BuildStyled(WhichKeyOverlayTests.Opened("Space"), 120, 36, _keymap)!
             .Body.SelectMany(line => line.Spans).ToList();
 
-        Assert.DoesNotContain(spans, span => span.Ground.HasFlag(SpanGround.Dim));
-        Assert.Contains(spans, span => span.Role == TextRole.OverlayChip);
+        Assert.Contains(spans, span => span.Ground.HasFlag(SpanGround.Dim));
+        Assert.Contains(spans, span => span.Role == TextRole.OverlayChip && !span.Ground.HasFlag(SpanGround.Dim));
     }
 
     [Fact]

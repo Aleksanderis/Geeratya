@@ -62,7 +62,7 @@ public class FocusColourTests
     {
         StyledSpan[] spans =
         [
-            new("GCM-5", TextRole.Key),
+            new("GCM-5", TextRole.IssueKey),
             new(" · ", TextRole.Heading),
             new("Bug", TextRole.TypeBug),
         ];

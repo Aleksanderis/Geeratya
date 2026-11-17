@@ -2,7 +2,7 @@
                                                                                                                         
 ╭─ My open issues ─────────────────────────────────────────────────────────────────────────────────────────── 1 issue ─╮
 │  Key    T Summary                                                                     Status         Assignee        │
-│  GCM-12 T Row summary                                                                 In Progress    -               │
+│  GCM-12 T Row summary                                                                 In Progress    Unassigned      │
 │                                                                                                                      │
 │ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │ │
@@ -24,7 +24,7 @@
 │ │ │                                                                            │ │ Parent                        │ │ │
 │ │ │ 日本語の作者                                                       3 h ago │ │  GCM-17 Reporting overhaul    │ │ │
 │ │ │ 日本語のコメント。これは長い文章で、折り返しが必要になります。             │ │                               │ │ │
-│ │ │                                                                            │ │ Due none · Updated 2 h ago    │ │ │
+│ │ │                                                                            │ │ Due None · Updated 2 h ago    │ │ │
 │ │ │ Ola Nordmann                                                     5 min ago │ │                               │ │ │
 │ │ │ See also café and 😀 in the second paragraph, which is long enough to      │ │                               │ │ │
 │ │ │ wrap.                                                                      │ │                               │ │ │

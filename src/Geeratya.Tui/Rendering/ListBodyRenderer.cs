@@ -34,7 +34,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
     private const string SprintTitle = "Sprint";
     private const string PointsTitle = "Pts";
     private const string EpicTitle = "Epic";
-    private const string Unassigned = "-";
+    private const string Unassigned = EmptyValues.Unassigned;
     private const string UnknownGlyph = "?";
 
     private static readonly Dictionary<int, FlashLabel> _noFlash = [];

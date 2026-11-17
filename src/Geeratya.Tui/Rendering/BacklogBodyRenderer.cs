@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
@@ -211,7 +212,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
     /// <summary>The estimates as the board shows them: no fraction for whole numbers, else one decimal at most.</summary>
     public static string PointsText(double points)
     {
-        return points.ToString("0.#", CultureInfo.InvariantCulture);
+        return EstimateText.Format(points);
     }
 
     private static string DatesText(Sprint? sprint)

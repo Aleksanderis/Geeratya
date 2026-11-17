@@ -74,7 +74,7 @@ public static class CardRows
         var left = width - (rightWidth > 0 ? rightWidth + 1 : 0);
         var key = TextWidth.Fit(issue.Key, left);
         var used = TextWidth.Of(key);
-        var spans = new List<StyledSpan> { new(key, TextRole.Key) };
+        var spans = new List<StyledSpan> { new(key, TextRole.IssueKey) };
         var room = left - used - Gap.Length;
 
         if (room >= 1)

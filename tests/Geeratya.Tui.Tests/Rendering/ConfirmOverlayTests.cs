@@ -48,6 +48,23 @@ public class ConfirmOverlayTests
     }
 
     [Fact]
+    public void GivenAnActionJiraCannotUndo_WhenBuildingTheFrame_ThenTheWarningLineIsRedLikeTheFrame()
+    {
+        var request = new ConfirmRequest(
+            "Delete GCM-3? Jira cannot undo this.",
+            "x",
+            Label: "Delete issue",
+            Destructive: true);
+        var spans = FrameBuilder.BuildStyled(Open(request), 120, 36, _keymap)!.Body.SelectMany(line => line.Spans).ToList();
+
+        Assert.Contains(
+            spans,
+            span => span.Role == TextRole.Error && span.Text.Contains("Jira cannot undo", StringComparison.Ordinal));
+        Assert.Contains(spans, span => span.Role == TextRole.OverlayFrameBad);
+        Assert.DoesNotContain(spans, span => span.Role == TextRole.Warning);
+    }
+
+    [Fact]
     public void GivenALongQuestionAtEightyColumns_WhenBuildingTheFrame_ThenNothingIsCutOff()
     {
         var message = "Remove profile work (me@work.test on https://work.atlassian.net) and delete its stored token? "

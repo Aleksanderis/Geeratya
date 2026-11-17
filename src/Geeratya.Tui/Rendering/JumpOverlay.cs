@@ -125,9 +125,9 @@ public static class JumpOverlay
 
     private static StyledLine Prompt(JumpState jump, int contentWidth)
     {
-        var text = PromptSpans.Of(new PromptText(jump.Text, jump.Back), contentWidth - PromptMargin, TextRole.Body);
+        var text = PromptSpans.Of(new PromptText(jump.Text, jump.Back), contentWidth - PromptMargin);
 
-        return new StyledLine([new StyledSpan("> ", TextRole.Key), .. text]);
+        return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }
 
     private static List<StyledLine> RowLines(IReadOnlyList<JumpRow> rows, int selected, int width)

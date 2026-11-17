@@ -185,7 +185,7 @@ public class IssueDocumentBuilderTests
     }
 
     [Theory]
-    [InlineData(null, "Due none")]
+    [InlineData(null, "Due None")]
     [InlineData("2026-12-31", "Due 2026-12-31")]
     public void GivenLoadedIssue_WhenBuilding_ThenTheDetailsPaneShowsTheDueDateOrNone(string? due, string expected)
     {
@@ -225,7 +225,7 @@ public class IssueDocumentBuilderTests
         Assert.DoesNotContain("Reporter", texts);
         Assert.Contains(" None ▾", texts);
         Assert.Contains(" [--] Unassigned ▾", texts);
-        Assert.Contains(" none ▾", texts);
+        Assert.Contains(" None ▾", texts);
     }
 
     [Fact]

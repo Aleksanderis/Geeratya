@@ -204,7 +204,7 @@ public sealed partial class ColumnsBodyRenderer
 
     private static bool IsQuietable(TextRole role)
     {
-        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.PriorityHigh
+        return role is TextRole.Body or TextRole.Muted or TextRole.Strong or TextRole.Key or TextRole.IssueKey or TextRole.PriorityHigh
             or TextRole.PriorityMedium or TextRole.PriorityLow
             or TextRole.TypeEpic or TextRole.TypeStory or TextRole.TypeBug or TextRole.TypeTask or TextRole.TypeSubtask
             or TextRole.StatusToDo

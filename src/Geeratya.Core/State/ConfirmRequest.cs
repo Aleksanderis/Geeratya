@@ -6,7 +6,8 @@ namespace Geeratya.Core.State;
 /// issue is refused at that moment); the other confirms name an action id. <paramref name="Label"/> names the
 /// <c>y</c> answer in the dialog ("Delete issue"); without one it reads "Confirm".
 /// <paramref name="Destructive"/> marks an action Jira cannot undo or that removes data (delete, remove): the dialog
-/// frame uses the bad colour, any other question the warn colour.
+/// frame and its warning line use the bad colour; an action Geeratya can reverse (unlink, rank across sections) and any other
+/// question use the warn colour (<c>docs/internal/ui-consistency.md</c>, decision 8).
 /// A <paramref name="Heading"/> names the action and its target in the title chip ("Move GCM-8"); without one the
 /// chip reads "Confirm".
 /// A <paramref name="Title"/> makes the request a notice: a read-only text under that title (not split into question

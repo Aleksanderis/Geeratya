@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Boards;
@@ -10,7 +11,7 @@ namespace Geeratya.Core.Boards;
 public static class Swimlanes
 {
     /// <summary>The name of the lane of issues without an assignee.</summary>
-    public const string UnassignedName = "Unassigned";
+    public const string UnassignedName = EmptyValues.Unassigned;
 
     /// <summary>The name of the lane of issues under no epic.</summary>
     public const string NoEpicName = "No epic";

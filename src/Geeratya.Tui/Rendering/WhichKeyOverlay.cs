@@ -42,7 +42,7 @@ public static class WhichKeyOverlay
     }
 
     /// <summary>
-    /// The styled rows behind <see cref="Rows"/>: the key in the key role (bold warn, as in Gitunia's overlays), the
+    /// The styled rows behind <see cref="Rows"/>: the key in the shared key role, the
     /// label as body text, a header in the heading role and the <c>… n more</c> row muted.
     /// </summary>
     public static IReadOnlyList<StyledLine> Lines(
@@ -101,7 +101,7 @@ public static class WhichKeyOverlay
         lines.AddRange(shown.Select(row => OverlayBox.Wall(row, contentWidth)));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
-        var result = body.ToList();
+        var result = OverlayBox.Backdrop(body);
         var top = result.Count - lines.Count;
 
         for (var index = 0; index < lines.Count; index++)
@@ -183,7 +183,7 @@ public static class WhichKeyOverlay
 
         return new StyledLine(
         [
-            new StyledSpan(row.Key.PadRight(KeyColumn), TextRole.OverlayKey),
+            new StyledSpan(row.Key.PadRight(KeyColumn), TextRole.Key),
             new StyledSpan(row.Label, TextRole.Body),
         ]);
     }

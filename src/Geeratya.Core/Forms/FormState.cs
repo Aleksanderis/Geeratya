@@ -52,7 +52,7 @@ public sealed record FormState(
     public int TypeCursor { get; init; }
 
     /// <summary>
-    /// The form has a navigate state besides editing (the edit form with more than one editable field, #650): in it
+    /// The form has a navigate state besides editing (the create form today, #650; the other forms move to it in the UI consistency phase 6): in it
     /// <c>j</c>/<c>k</c>/<c>Tab</c> move from field to field and <c>Enter</c>, <c>i</c> or a click starts editing the
     /// focused one; <c>Esc</c> stops editing. Other forms are always editing.
     /// </summary>

@@ -4,7 +4,7 @@
 │                                                                              │
 │                                                                              │
 │ ╭─ Settings ───────────────────────────────────────────────────────────────╮ │
-│ │   Appearance       │   theme                                    [auto ▾] │ │
+│ │ > Appearance       │   theme                                    [auto ▾] │ │
 │ │   Hints and keys   │       ● auto                                        │ │
 │ │   Startup          │       ○ dark                                        │ │
 │ │   Board            │       ○ light                                       │ │
