@@ -178,10 +178,14 @@ public static class FormOpener
 
         AddDescription(subject, known, lossy);
 
-        if (subject.Reporter is { } reporter)
+        // An empty reporter is still known (empty), so the person field is listed and one can be set.
+        known[FormFieldIds.Reporter] = subject.Reporter is { } reporter
+            ? FormValue.OfChosen([reporter.AccountId])
+            : FormValue.Empty;
+
+        if (subject.Reporter is { } current)
         {
-            known[FormFieldIds.Reporter] = FormValue.OfChosen([reporter.AccountId]);
-            people[FormFieldIds.Reporter] = new FieldOption(reporter.AccountId, reporter.DisplayName);
+            people[FormFieldIds.Reporter] = new FieldOption(current.AccountId, current.DisplayName);
         }
 
         var target = new EditFormTarget(

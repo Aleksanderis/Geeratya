@@ -78,6 +78,25 @@ public class FormFieldMapperTests
         Assert.True(field.Initial.IsEmpty);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenAReporterOfTheIssue_WhenMapped_ThenThePersonFieldIsListedWithTheNameOfTheAccount(bool empty)
+    {
+        var known = new Dictionary<string, FormValue>
+        {
+            ["reporter"] = empty ? FormValue.Empty : FormValue.OfChosen(["acc-1"]),
+        };
+        var people = new Dictionary<string, FieldOption> { ["reporter"] = new("acc-1", "Eve Example") };
+        var target = new EditFormTarget("X-1", known, true, null, "reporter", People: people);
+
+        var field = Assert.Single(FormFieldMapper.FromEdit([Edit("reporter", EditFieldKind.User, true)], target));
+
+        Assert.Equal(FormFieldKind.User, field.Kind);
+        Assert.Equal(empty ? [] : ["acc-1"], field.Value.Chosen);
+        Assert.Equal("Eve Example", field.Options.Single().Label);
+    }
+
     [Fact]
     public void GivenAFieldThatWouldLoseContentWhenEdited_WhenMapped_ThenItIsListedReadOnly()
     {

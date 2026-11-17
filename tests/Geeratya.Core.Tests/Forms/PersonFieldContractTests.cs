@@ -12,8 +12,7 @@ namespace Geeratya.Core.Tests.Forms;
 
 /// <summary>
 /// One contract for every person field (Assignee, Reporter, a custom user picker) however its form is opened: the
-/// create form , the assign form, the boxed edit
-/// form and the transition fields. The quick rows and the search source follow the field and the context, never the
+/// create form, the assign form, the boxed edit form and the transition fields. The quick rows and the search source follow the field and the context, never the
 /// kind of form (<c>docs/internal/ui-consistency.md</c>, "Shared components", 2).
 /// </summary>
 [Trait("Os", "Independent")]
@@ -27,7 +26,7 @@ public class PersonFieldContractTests
 
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
 
-    /// <summary>Every way a person field is shown: the form target and whether it searches by issue or by project.</summary>
+    /// <summary>Every way a person field is shown: the form target (create searches by project, the others by issue).</summary>
     public static TheoryData<string> Presentations =>
     [
         "create",

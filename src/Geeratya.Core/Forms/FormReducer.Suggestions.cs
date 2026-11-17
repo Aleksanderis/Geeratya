@@ -188,9 +188,9 @@ public static partial class FormReducer
         return new ReduceResult(next, [effect]);
     }
 
-    // A person field offers its quick rows while its buffer is empty (PersonField): no lookup, nothing highlighted, so
-    // Enter still saves the form as it stands. Typing replaces them with the single search path. The labels dropdown
-    // lists the applied labels. Null for any other field, or when no row applies.
+    // The rows of an empty buffer: the applied labels of the labels dropdown, or the quick rows of a person field
+    // (PersonField: no lookup, nothing highlighted, so Enter still saves the form as it stands). Typing replaces them
+    // with the single search path. Null for any other field, or when no row applies.
     private static SuggestionState? QuickPopup(AppState state, FormState form)
     {
         if (LabelRows(form) is { } labels)

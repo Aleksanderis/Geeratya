@@ -235,6 +235,20 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
+    public void GivenAnEmptyReporterAndMetadataListingIt_WhenPressingEnterOnIt_ThenTheReporterIsKnownEmptySoTheFieldIsListed()
+    {
+        var opened = Opened(Issue() with { Reporter = null });
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["reporter"])).State;
+
+        var result = Press(OnTarget(loaded, DetailFieldIds.Reporter), "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Empty(target.Known[FormFieldIds.Reporter].Chosen);
+        Assert.Empty(target.People!);
+    }
+
+    [Fact]
     public void GivenAnIssueWithoutAssigneeOrLabels_WhenBuilding_ThenTheEditableFieldsStillHaveAStop()
     {
         var state = Opened(Issue() with { Assignee = null, Labels = [], Priority = null });

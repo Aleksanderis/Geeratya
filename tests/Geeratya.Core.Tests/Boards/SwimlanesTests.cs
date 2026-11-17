@@ -1,4 +1,5 @@
 using Geeratya.Core.Boards;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Boards;
@@ -13,7 +14,7 @@ public class SwimlanesTests
 
         var lanes = Swimlanes.Lanes(SwimlaneKind.Assignee, rows);
 
-        Assert.Equal(["Bo", "Al", Swimlanes.UnassignedName], lanes.Select(lane => lane.Name));
+        Assert.Equal(["Bo", "Al", EmptyValues.Unassigned], lanes.Select(lane => lane.Name));
         Assert.Equal([2, 1, 1], lanes.Select(lane => lane.Count));
     }
 

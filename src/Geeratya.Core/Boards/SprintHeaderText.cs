@@ -11,7 +11,6 @@ namespace Geeratya.Core.Boards;
 /// </summary>
 public static class SprintHeaderText
 {
-
     /// <summary>The start and end date as <c>3 Nov - 17 Nov</c>; empty when the sprint has no dates.</summary>
     public static string Dates(Sprint sprint)
     {
