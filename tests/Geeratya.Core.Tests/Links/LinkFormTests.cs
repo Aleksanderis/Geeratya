@@ -23,7 +23,6 @@ public class LinkFormTests
         Assert.Equal(["blocks", "is blocked by", "relates to"], type.Options.Select(option => option.Label));
         Assert.Equal(LinkFormFields.IssueFieldId, fields[1].Id);
         Assert.Equal(FormFieldKind.Parent, fields[1].Kind);
-        Assert.True(fields[1].TakesTypedKey);
         Assert.True(fields[1].Required);
     }
 

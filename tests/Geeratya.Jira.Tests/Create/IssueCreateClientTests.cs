@@ -1,7 +1,9 @@
 using System.Net;
 using System.Text.Json;
+using Geeratya.Jira.Adf;
 using Geeratya.Jira.Create;
 using Geeratya.Jira.Create.Models;
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Tests.Fakes;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes.Models;
@@ -41,10 +43,10 @@ public sealed class IssueCreateClientTests
                 "Title",
                 "# Plan\n\n- one\n- two",
                 null,
-                new Dictionary<string, CreateFieldValue>
+                new Dictionary<string, FieldUpdate>
                 {
-                    ["customfield_2"] = CreateFieldValue.DateTime(moment),
-                    ["customfield_3"] = CreateFieldValue.Markdown("**bold**"),
+                    ["customfield_2"] = FieldUpdate.DateTime("customfield_2", moment),
+                    ["customfield_3"] = FieldUpdate.RichText("customfield_3", AdfMarkdownParser.Parse("**bold**")),
                 },
                 true),
             CancellationToken.None);
@@ -289,10 +291,10 @@ public sealed class IssueCreateClientTests
                 "20003",
                 "Title",
                 ParentKey: "GCM-5",
-                Fields: new Dictionary<string, CreateFieldValue>
+                Fields: new Dictionary<string, FieldUpdate>
                 {
-                    ["customfield_20010"] = CreateFieldValue.Choice("30001"),
-                    ["customfield_20015"] = CreateFieldValue.Text("x"),
+                    ["customfield_20010"] = FieldUpdate.Option("customfield_20010", "30001"),
+                    ["customfield_20015"] = FieldUpdate.Text("customfield_20015", "x"),
                 }));
 
         Assert.Equal(["parent", "customfield_20010", "customfield_20015"], bare.Select(field => field.FieldId));
@@ -374,15 +376,15 @@ public sealed class IssueCreateClientTests
     public async Task GivenExtraFieldsOfEachShape_WhenCreating_ThenEachIsWrittenInItsJiraShape()
     {
         using var fixture = ServingCreate("writes/create-gtm-task-reply.json");
-        var extras = new Dictionary<string, CreateFieldValue>
+        var extras = new Dictionary<string, FieldUpdate>
         {
-            ["customfield_20010"] = CreateFieldValue.Choice("30001"),
-            ["customfield_20012"] = CreateFieldValue.Choices(["30010", "30011"]),
-            ["labels"] = CreateFieldValue.Labels(["a", "b"]),
-            ["assignee"] = CreateFieldValue.User("acc-1"),
-            ["duedate"] = CreateFieldValue.Text("2026-11-30"),
-            ["customfield_20011"] = CreateFieldValue.RichText("note"),
-            ["customfield_20099"] = CreateFieldValue.Number(1.5m),
+            ["customfield_20010"] = FieldUpdate.Option("customfield_20010", "30001"),
+            ["customfield_20012"] = FieldUpdate.Options("customfield_20012", ["30010", "30011"]),
+            ["labels"] = FieldUpdate.Labels("labels", ["a", "b"]),
+            ["assignee"] = FieldUpdate.User("assignee", "acc-1"),
+            ["duedate"] = FieldUpdate.Date("duedate", new DateOnly(2026, 11, 30)),
+            ["customfield_20011"] = FieldUpdate.RichText("customfield_20011", AdfMarkdownParser.Parse("note")),
+            ["customfield_20099"] = FieldUpdate.Number("customfield_20099", 1.5),
         };
 
         var result = await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
@@ -458,6 +460,46 @@ public sealed class IssueCreateClientTests
         Assert.Equal("issuetype", Assert.Single(result.Error.FieldErrors).FieldId);
     }
 
+    [Fact]
+    public async Task GivenAnAddOrRemoveChangeOrAMismatchedId_WhenCreating_ThenRefusedWithoutRequest()
+    {
+        using var fixture = ServingCreate("writes/create-gtm-task-reply.json");
+        var extras = new Dictionary<string, FieldUpdate>
+        {
+            ["labels"] = FieldUpdate.ChangeLabels("labels", ["a"], []),
+            ["customfield_1"] = FieldUpdate.Text("customfield_2", "x"),
+        };
+
+        var result = await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
+            new NewIssue("GCM", "10010", "Title", Fields: extras),
+            CancellationToken.None);
+
+        Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
+        Assert.Equal(["labels", "customfield_1"], result.Error.FieldErrors.Select(error => error.FieldId));
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenAClearedValueForARequiredField_WhenCheckingRequired_ThenTheFieldIsStillMissing()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            $"{MetaPath}/GCM/issuetypes/20003",
+            FakeResponse.Ok(FixtureFiles.Read("create/synthetic-fields-custom.json")));
+        var fields = (await new IssueCreateClient(fixture.Transport)
+            .GetFieldsAsync("GCM", "20003", CancellationToken.None)).Value;
+        var cleared = new Dictionary<string, FieldUpdate>
+        {
+            ["customfield_20010"] = FieldUpdate.Option("customfield_20010", null),
+            ["customfield_20015"] = FieldUpdate.Text("customfield_20015", null),
+        };
+
+        var missing = CreateFormRules.MissingRequired(fields, new NewIssue("GCM", "20003", "T", "d", "GCM-5", cleared));
+
+        Assert.Equal(["customfield_20010", "customfield_20015"], missing.Select(field => field.FieldId));
+    }
+
     [Theory]
     [InlineData("", "10010", "GCM-1", null, "summary")]
     [InlineData("  ", "10010", null, null, "summary")]
@@ -475,7 +517,7 @@ public sealed class IssueCreateClientTests
         using var fixture = ServingCreate("writes/create-gtm-task-reply.json");
         var extras = reservedField is null
             ? null
-            : new Dictionary<string, CreateFieldValue> { [reservedField] = CreateFieldValue.Text("y") };
+            : new Dictionary<string, FieldUpdate> { [reservedField] = FieldUpdate.Text(reservedField, "y") };
 
         var result = await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
             new NewIssue("GCM", typeId, summary, ParentKey: parent, Fields: extras),

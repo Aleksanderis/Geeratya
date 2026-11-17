@@ -268,10 +268,13 @@ public sealed class CreateHandlerTests
 
         Assert.Equal("Title", issue.Summary);
         Assert.True(issue.DescriptionIsMarkdown);
-        Assert.Equal(CreateFieldValueKind.Number, issue.Fields!["customfield_1"].Kind);
-        Assert.Equal(["2026-12-01"], issue.Fields["duedate"].Values);
-        Assert.StartsWith("2026-12-01T09:30:00.000", issue.Fields["customfield_2"].Values[0], StringComparison.Ordinal);
-        Assert.Equal(["plain"], issue.Fields["customfield_3"].Values);
+        Assert.Equal("2.5", issue.Fields!["customfield_1"].ToElement().GetRawText());
+        Assert.Equal("\"2026-12-01\"", issue.Fields["duedate"].ToElement().GetRawText());
+        Assert.StartsWith(
+            "\"2026-12-01T09:30:00.000",
+            issue.Fields["customfield_2"].ToElement().GetRawText(),
+            StringComparison.Ordinal);
+        Assert.Equal("\"plain\"", issue.Fields["customfield_3"].ToElement().GetRawText());
     }
 
     [Fact]

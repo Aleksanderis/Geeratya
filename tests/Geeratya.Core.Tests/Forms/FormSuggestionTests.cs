@@ -99,7 +99,7 @@ public class FormSuggestionTests
         var form = accepted.State.Session.Tabs[0].Form!;
         Assert.Equal(["backend"], form.Fields[0].Value.Chosen);
         Assert.Equal(string.Empty, form.Fields[0].Entry);
-        Assert.Null(form.Suggest);
+        Assert.Equal(["backend"], form.Suggest!.Items.Select(item => item.Id));
         Assert.Contains(accepted.Effects, effect => effect is CancelSuggestionsEffect);
     }
 
@@ -138,7 +138,7 @@ public class FormSuggestionTests
 
         var form = spaced.State.Session.Tabs[0].Form!;
         Assert.Equal(["ab"], form.Fields[0].Value.Chosen);
-        Assert.Null(form.Suggest);
+        Assert.Equal(0, form.Suggest!.RequestId);
         Assert.DoesNotContain(spaced.Effects, effect => effect is SearchSuggestionsEffect);
     }
 

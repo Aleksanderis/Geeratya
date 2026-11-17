@@ -1,4 +1,3 @@
-using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -17,7 +16,8 @@ public static partial class FormReducer
     private const int KnownLabelLimit = 500;
 
     // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and
-    // Down move, Tab and Enter take the highlighted row (Enter on a full key typed into the link form's issue field takes that key, Tab the row). Any other key is not the popup's (null) and goes on to the field.
+    // Down move, Tab and Enter take the highlighted row (Enter on a full issue key typed into any parent field takes
+    // that key, Tab the row). Any other key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,
@@ -88,7 +88,7 @@ public static partial class FormReducer
 
         var field = form.Fields[form.Focus];
 
-        if (form.Suggest is null && field.Entry.Length == 0 && PersonField.QuickPopup(result.State, form) is { } quick)
+        if (form.Suggest is null && field.Entry.Length == 0 && QuickPopup(result.State, form) is { } quick)
         {
             return new ReduceResult(Replace(result.State, tab, form with { Suggest = quick }), result.Effects);
         }
@@ -181,14 +181,16 @@ public static partial class FormReducer
         }
 
         var requestId = state.Sequence + 1;
-        var popup = SuggestionPopup.Queried(form.Suggest, form.Focus, source, query, field.Value.Chosen, requestId);
+        // Quick rows (request 0) hold no pool of their own: the search starts from the source's known values.
+        var previous = form.Suggest is { RequestId: 0 } ? null : form.Suggest;
+        var popup = SuggestionPopup.Queried(previous, form.Focus, source, query, field.Value.Chosen, requestId);
         var next = Replace(state with { Sequence = requestId }, tab, form with { Suggest = popup });
         var effect = new SearchSuggestionsEffect(tabId, requestId, source, query, SuggestionPopup.Debounce);
 
         return new ReduceResult(next, [effect]);
     }
 
-    // The rows of an empty buffer: the applied labels of the labels dropdown, or the quick rows of a person field
+    // The rows of an empty buffer: the applied labels of a labels field, or the quick rows of a person field
     // (PersonField: no lookup, nothing highlighted, so Enter still saves the form as it stands). Typing replaces them
     // with the single search path. Null for any other field, or when no row applies.
     private static SuggestionState? QuickPopup(AppState state, FormState form)
@@ -201,18 +203,18 @@ public static partial class FormReducer
         return PersonField.QuickPopup(state, form);
     }
 
-    // The labels dropdown of the Details pane lists the labels the issue has while the buffer is empty, so one can be
-    // taken off; null for any other form or when there is none.
+    // A labels field lists the labels it has while the buffer is empty, in every form, so one can be taken off; null
+    // for any other field or when there is none.
     private static SuggestionState? LabelRows(FormState form)
     {
-        if (form.Dropdown is null || form.Focus >= form.Fields.Count)
+        if (form.Focus >= form.Fields.Count || form.Navigating || form.IsSaving)
         {
             return null;
         }
 
         var field = form.Fields[form.Focus];
 
-        if (field.Kind != FormFieldKind.Labels || field.Value.Chosen.Count == 0)
+        if (field.Kind != FormFieldKind.Labels || !field.IsEditable || field.Value.Chosen.Count == 0)
         {
             return null;
         }
@@ -256,49 +258,25 @@ public static partial class FormReducer
             return PersonField.Source(form.Target, field);
         }
 
-        if (form.Target is CreateFormTarget create)
+        var target = form.Target;
+
+        if (field.Lookup is { } lookup && FormFieldKinds.IsChoice(field.Kind) && target.SearchProjectKey is { } project)
         {
-            return CreateSourceOf(create, field);
+            return new SuggestionSource(lookup, null, [], project);
         }
 
-        if (form.Target.IssueKey is not { } key)
+        if (field.Kind != FormFieldKind.Parent || (target.IssueKey is null && target.ParentProjectKey is null))
         {
             return null;
         }
 
-        return field.Kind switch
-        {
-            // The parent of an edited issue is searched in its project; a link target may be in any project.
-            FormFieldKind.Parent => new SuggestionSource(
-                SuggestionKind.Issues,
-                key,
-                [],
-                form.Target is EditFormTarget ? JumpKey.ProjectOf(key) : null,
-                (form.Target as EditFormTarget)?.ParentLevel),
-            _ => null,
-        };
-    }
-
-    // A create form has no issue yet: people who can be assigned in the project (the assignee), people who can see its
-    // issues (other person fields), the components and versions of the project (the typed filter of those fields) and
-    // issues of the project as parent.
-    private static SuggestionSource? CreateSourceOf(CreateFormTarget create, FormField field)
-    {
-        if (field.Lookup is { } lookup && FormFieldKinds.IsChoice(field.Kind))
-        {
-            return new SuggestionSource(lookup, null, [], create.ProjectKey);
-        }
-
-        return field.Kind switch
-        {
-            FormFieldKind.Parent => new SuggestionSource(
-                SuggestionKind.Issues,
-                null,
-                [],
-                create.ProjectKey,
-                create.IssueType is { } type ? ParentLevels.Accepted(type.HierarchyLevel, type.IsSubtask) : null),
-            _ => null,
-        };
+        // A parent is searched in the project of the issue (a link target may be in any project, so it names none).
+        return new SuggestionSource(
+            SuggestionKind.Issues,
+            target.IssueKey,
+            [],
+            target.ParentProjectKey,
+            target.ParentHierarchyLevel);
     }
 
     private static Func<SuggestionState, FormField, SuggestionState?> SuggestionLoaded(SuggestionsLoaded loaded)

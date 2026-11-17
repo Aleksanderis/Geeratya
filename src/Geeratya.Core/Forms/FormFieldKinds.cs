@@ -15,6 +15,37 @@ public static class FormFieldKinds
         return kind is FormFieldKind.User or FormFieldKind.Parent;
     }
 
+    /// <summary>True for the kinds that keep a typing buffer next to their value (labels, picked kinds).</summary>
+    public static bool TakesEntry(FormFieldKind kind)
+    {
+        return kind == FormFieldKind.Labels || IsPicked(kind);
+    }
+
+    /// <summary>True for the kinds whose value is chosen from a popup, not typed (the dropdown ends their block).</summary>
+    public static bool HasPopup(FormFieldKind kind)
+    {
+        return IsChoice(kind) || TakesEntry(kind);
+    }
+
+    /// <summary>True for the kinds whose typed text has a format that is checked as it is typed.</summary>
+    public static bool HasFormat(FormFieldKind kind)
+    {
+        return kind is FormFieldKind.Number or FormFieldKind.Date or FormFieldKind.DateTime;
+    }
+
+    /// <summary>The label with the format of a date or date-time field spelled out once, before any error.</summary>
+    public static string Labelled(string label, FormFieldKind kind)
+    {
+        var format = kind switch
+        {
+            FormFieldKind.Date => FormValueParser.DateFormat,
+            FormFieldKind.DateTime => FormValueParser.DateTimeFormat,
+            _ => null,
+        };
+
+        return format is null || label.Contains(format, StringComparison.Ordinal) ? label : $"{label} ({format})";
+    }
+
     /// <summary>True for the kinds that choose from the allowed values.</summary>
     public static bool IsChoice(FormFieldKind kind)
     {

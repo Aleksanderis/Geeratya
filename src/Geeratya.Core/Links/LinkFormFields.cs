@@ -36,7 +36,7 @@ public static class LinkFormFields
         return
         [
             FormField.Create(TypeFieldId, TypeLabel, FormFieldKind.Select, true, options),
-            FormField.Create(IssueFieldId, IssueLabel, FormFieldKind.Parent, true, []) with { TakesTypedKey = true },
+            FormField.Create(IssueFieldId, IssueLabel, FormFieldKind.Parent, true, []),
         ];
     }
 

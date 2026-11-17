@@ -34,8 +34,7 @@ internal static class CreateFieldBlocks
     /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown.</summary>
     private static bool Dropdown(FormField field)
     {
-        return field.Kind is FormFieldKind.Select or FormFieldKind.MultiSelect or FormFieldKind.Labels
-            or FormFieldKind.User or FormFieldKind.Parent;
+        return FormFieldKinds.HasPopup(field.Kind);
     }
 
     private static string? Note(FormState form, FormField field, bool focused)
@@ -57,12 +56,11 @@ internal static class CreateFieldBlocks
         {
             FormFieldKind.Labels => LabelItems(field),
             FormFieldKind.User => UserItems(field),
-            FormFieldKind.Select or FormFieldKind.MultiSelect or FormFieldKind.Parent => ChoiceItems(field),
+            _ when FormFieldKinds.IsChoice(field.Kind) || field.Kind == FormFieldKind.Parent => ChoiceItems(field),
             _ => TextItems(field, editing, room),
         };
 
-        if (editing && field.Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent
-            or FormFieldKind.Select or FormFieldKind.MultiSelect)
+        if (editing && FormFieldKinds.HasPopup(field.Kind))
         {
             items.Add(CaretRows.Spans(new PromptText(field.Entry, field.Back), room, TextRole.ValueBlock));
         }

@@ -85,7 +85,7 @@ public sealed partial class WriteHandler
             // Transition fields are plain values: the whole value is sent, never adds and removes.
             var plain = transition.Changes.Select(change => change with { Initial = null }).ToArray();
 
-            fields = FieldUpdates.For(plain).ToDictionary(update => update.FieldId, update => update.ToElement());
+            fields = FieldConverter.ForEdit(plain).ToDictionary(update => update.FieldId, update => update.ToElement());
         }
         catch (Exception exception) when (exception is FormatException or NotSupportedException)
         {
@@ -264,7 +264,7 @@ public sealed partial class WriteHandler
 
         try
         {
-            updates = FieldUpdates.For(edit.Changes);
+            updates = FieldConverter.ForEdit(edit.Changes);
         }
         catch (Exception exception) when (exception is FormatException or NotSupportedException)
         {

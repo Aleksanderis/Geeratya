@@ -18,6 +18,25 @@ public static class FormValidation
         return [.. fields.Select(Check)];
     }
 
+    /// <summary>
+    /// The error of a number, date or date-time text that does not read as typed so far, or null when it reads or is
+    /// empty (an empty value is the required check's business, at save).
+    /// </summary>
+    public static string? FormatError(FormField field)
+    {
+        if (!FormFieldKinds.HasFormat(field.Kind) || field.Value.Text.Trim().Length == 0)
+        {
+            return null;
+        }
+
+        return field.Kind switch
+        {
+            FormFieldKind.Number => FormValueParser.TryNumber(field.Value.Text, out _) ? null : NumberText,
+            FormFieldKind.Date => FormValueParser.TryDate(field.Value.Text, out _) ? null : DateText,
+            _ => FormValueParser.TryDateTime(field.Value.Text, out _) ? null : DateTimeText,
+        };
+    }
+
     private static FormField Check(FormField field)
     {
         return field.IsEditable ? field with { Error = ErrorOf(field) } : field;
@@ -37,12 +56,6 @@ public static class FormValidation
             return field.Required ? RequiredText : null;
         }
 
-        return field.Kind switch
-        {
-            FormFieldKind.Number => FormValueParser.TryNumber(field.Value.Text, out _) ? null : NumberText,
-            FormFieldKind.Date => FormValueParser.TryDate(field.Value.Text, out _) ? null : DateText,
-            FormFieldKind.DateTime => FormValueParser.TryDateTime(field.Value.Text, out _) ? null : DateTimeText,
-            _ => null,
-        };
+        return FormatError(field);
     }
 }

@@ -53,7 +53,5 @@ public static class CreateFormRules
         };
 
     private static bool HasValue(CreateField field, NewIssue issue) =>
-        issue.Fields is not null
-        && issue.Fields.TryGetValue(field.FieldId, out var value)
-        && value.Values.Any(text => !string.IsNullOrWhiteSpace(text));
+        issue.Fields?.GetValueOrDefault(field.FieldId) is { IsCleared: false };
 }

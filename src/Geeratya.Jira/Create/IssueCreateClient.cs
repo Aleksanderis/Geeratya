@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Geeratya.Jira.Create.Models;
+using Geeratya.Jira.Edit.Models;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Transport;
 using Geeratya.Jira.Writes;
@@ -186,11 +187,15 @@ public sealed partial class IssueCreateClient(JiraTransport transport)
             errors.Add(new WriteFieldError(CreateFieldIds.Parent, "Not an issue key."));
         }
 
-        foreach (var fieldId in issue.Fields?.Keys ?? [])
+        foreach (var (fieldId, update) in issue.Fields ?? new Dictionary<string, FieldUpdate>())
         {
             if (IsReserved(fieldId))
             {
                 errors.Add(new WriteFieldError(fieldId, "Set by the create call itself."));
+            }
+            else if (update.IsOperation || update.FieldId != fieldId)
+            {
+                errors.Add(new WriteFieldError(fieldId, "A create sets whole values for the field it names."));
             }
         }
 

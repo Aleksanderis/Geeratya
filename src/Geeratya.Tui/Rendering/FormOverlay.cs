@@ -279,8 +279,7 @@ public static partial class FormOverlay
 
         var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
-        var hasPopup = field.IsEditable && field.Kind is FormFieldKind.Labels or FormFieldKind.User
-            or FormFieldKind.Parent or FormFieldKind.Select or FormFieldKind.MultiSelect;
+        var hasPopup = field.IsEditable && FormFieldKinds.HasPopup(field.Kind);
 
         if (!focused || !hasPopup || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
         {

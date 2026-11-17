@@ -143,7 +143,7 @@ public static class DetailDropdown
             return Notice(ReadOnlyText, TextRole.Muted);
         }
 
-        var typed = field.Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent;
+        var typed = FormFieldKinds.TakesEntry(field.Kind);
 
         if (typed || field.Entry.Length > 0)
         {

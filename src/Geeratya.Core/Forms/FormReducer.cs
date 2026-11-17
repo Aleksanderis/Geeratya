@@ -299,7 +299,14 @@ public static partial class FormReducer
             return state;
         }
 
-        var field = edit(form.Fields[form.Focus]);
+        var before = form.Fields[form.Focus];
+        var field = edit(before);
+
+        // Formats are checked as they are typed (number, date); required fields and Jira's answer wait for the save.
+        if (FormFieldKinds.HasFormat(field.Kind) && field.Value.Text != before.Value.Text)
+        {
+            field = field with { Error = FormValidation.FormatError(field) };
+        }
 
         return Replace(state, tab, form with { Fields = WithField(form.Fields, form.Focus, field), TopError = null });
     }

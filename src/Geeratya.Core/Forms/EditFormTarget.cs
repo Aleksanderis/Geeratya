@@ -1,3 +1,4 @@
+using Geeratya.Core.Jump;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Transitions.Models;
 
@@ -33,6 +34,10 @@ public sealed record EditFormTarget(
     public override string Title => $"Edit {Key}";
 
     public override string IssueKey => Key;
+
+    public override string? ParentProjectKey => JumpKey.ProjectOf(Key);
+
+    public override int? ParentHierarchyLevel => ParentLevel;
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
