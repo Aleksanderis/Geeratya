@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.State;
 using Geeratya.Jira.Transport;
 
@@ -130,7 +131,26 @@ public static partial class ViewReducer
             return new ReduceResult(state with { Message = "No view to refresh." }, _noEffects);
         }
 
-        return Reduce(state, new RefreshRequested(id));
+        var refreshed = Reduce(state, new RefreshRequested(id));
+
+        return ReloadShownIssue(refreshed, id);
+    }
+
+    /// <summary>
+    /// The refresh key with an issue open also reads the shown issue and its comments again (its sub-tasks follow
+    /// the issue reply), besides the view underneath (#990).
+    /// </summary>
+    private static ReduceResult ReloadShownIssue(ReduceResult refreshed, TabId id)
+    {
+        if (Find(refreshed.State.Session.Tabs, id) is not { Detail: [.., { Issue: not null } top] })
+        {
+            return refreshed;
+        }
+
+        var effects = new List<Effect>(refreshed.Effects);
+        var reloaded = DetailReducer.Reload(refreshed.State, id, effects);
+
+        return new ReduceResult(DetailReducer.ReloadComments(reloaded, id, top.Key, effects), effects);
     }
 
     /// <summary>A rate-limit state from the transport; "online" clears only a rate-limit state.</summary>

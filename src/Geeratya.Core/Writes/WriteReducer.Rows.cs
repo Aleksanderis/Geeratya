@@ -71,8 +71,9 @@ public static partial class WriteReducer
     }
 
     /// <summary>
-    /// The shown issue of every tab that holds one of the keys is marked stale; the active tab reloads it now, the
-    /// others when they are activated.
+    /// The shown issue of every tab that holds one of the keys, or lists one as a sub-task, link, child or parent, is
+    /// marked stale; the active tab reloads it now, the others when they are activated. An issue lower in the stack
+    /// that relates to a key is marked too, and reloads when it is shown again (#990).
     /// </summary>
     private static AppState ReloadDetails(AppState state, IReadOnlyList<string> keys, List<Effect> effects)
     {
@@ -80,23 +81,33 @@ public static partial class WriteReducer
 
         foreach (var tab in state.Session.Tabs)
         {
-            if (tab.Detail is not [.., { Issue: not null } top] || !IsAmong(keys, top.Key))
+            if (tab.Detail.Count == 0 || !tab.Detail.Any(detail => Concerns(detail, keys)))
             {
                 continue;
             }
 
-            var current = ViewReducer.Find(next.Session.Tabs, tab.Id)!;
-            var stack = current.Detail.ToArray();
+            var stack = tab.Detail.Select(detail => Concerns(detail, keys) ? detail with { IssueStale = true } : detail).ToArray();
+            var staleState = ViewReducer.Replace(next, ViewReducer.Find(next.Session.Tabs, tab.Id)! with { Detail = stack });
+            var reloadsNow = tab.Id == state.Session.Active && Concerns(stack[^1], keys);
 
-            stack[^1] = top with { IssueStale = true };
-
-            var marked = current with { Detail = stack };
-            var staleState = ViewReducer.Replace(next, marked);
-
-            next = tab.Id == state.Session.Active ? DetailReducer.Reload(staleState, tab.Id, effects) : staleState;
+            next = reloadsNow ? DetailReducer.Reload(staleState, tab.Id, effects) : staleState;
         }
 
         return next;
+    }
+
+    private static bool Concerns(DetailState detail, IReadOnlyList<string> keys)
+    {
+        if (detail.Issue is not { } issue)
+        {
+            return false;
+        }
+
+        return IsAmong(keys, detail.Key)
+            || issue.Subtasks.Any(stub => IsAmong(keys, stub.Key))
+            || issue.Links.Any(link => IsAmong(keys, link.Issue.Key))
+            || (issue.Parent is { } parent && IsAmong(keys, parent.Key))
+            || (detail.Children?.Any(child => IsAmong(keys, child.Key)) ?? false);
     }
 
     /// <summary>The keys as one case-insensitive set, built once per call so a lookup per row is O(1).</summary>

@@ -253,6 +253,22 @@ internal static partial class DetailReducer
         return ReplaceTop(tab, resized);
     }
 
+    /// <summary>
+    /// The key of the sub-task the cursor rests on in the main column of <paramref name="detail"/> (the status and
+    /// assignee keys then act on it instead of on the shown issue, #990), null on any other line.
+    /// </summary>
+    public static string? SubtaskUnderCursor(DetailState detail)
+    {
+        if (detail.SideCursor is not null || detail.Issue is not { } issue || TargetOf(detail) is not
+            { Kind: DetailTargetKind.Issue } target)
+        {
+            return null;
+        }
+
+        return issue.Subtasks.FirstOrDefault(stub => string.Equals(stub.Key, target.Value, StringComparison.OrdinalIgnoreCase))
+            ?.Key;
+    }
+
     /// <summary>What Enter opens on the cursor line of <paramref name="detail"/>, null on a plain line.</summary>
     public static DetailTarget? TargetOf(DetailState detail)
     {
