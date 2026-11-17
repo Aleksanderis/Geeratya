@@ -11,6 +11,7 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
     private const string Title = "Messages";
     private const string SettingsTitle = "Settings";
     private const string EmptyText = "No messages yet.";
+    private const int FooterMinimumInner = 6;
 
     public bool AppliesTo(AppState state)
     {
@@ -53,12 +54,22 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
             count = [new StyledSpan(CountText(state.StatusHistory.Count), TextRole.Muted)];
         }
 
+        var content = shown.Select(Padded).ToList();
+        var frameRows = height - 2;
+
+        if (frameRows >= FooterMinimumInner)
+        {
+            // The footer sits on the last inner row; the history above it keeps the rest.
+            content = [.. content.Take(frameRows - 1), .. Enumerable.Repeat(StyledLine.Empty, Math.Max(0, frameRows - 1 - content.Count))];
+            content.Add(Padded(HelpOverlay.Footer(context.Keymap, withPages: false)));
+        }
+
         return PaneFrame.Build(
             width,
             height,
             [new StyledSpan(heading, TextRole.Heading)],
             count,
-            shown.Select(Padded).ToList(),
+            content,
             []);
     }
 

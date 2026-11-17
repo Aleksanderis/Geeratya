@@ -28,9 +28,9 @@
 │           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
 │           │               │   <space>im  Assign the issue to me                                          │           │
 │           │               │   <space>is  Change the status of the issue                                  │           │
-│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
-│           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
-│           │               │   v          Start or end Visual mode (a range of rows, or of lines in an   ▼│           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)          ▼│           │
+│           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
+│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

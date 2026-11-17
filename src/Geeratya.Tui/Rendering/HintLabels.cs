@@ -15,6 +15,9 @@ public static class HintLabels
     /// <summary>Esc empties the typed filter first.</summary>
     public const string ClearFilter = "clear filter";
 
+    /// <summary>Enter keeps the typed filter and leaves the filter line.</summary>
+    public const string KeepFilter = "keep filter";
+
     /// <summary>The answer that returns to a form that asked to discard.</summary>
     public const string KeepEditing = "keep editing";
 
@@ -71,4 +74,13 @@ public static class HintLabels
 
     /// <summary>Resets the highlighted setting.</summary>
     public const string Reset = "reset";
+
+    /// <summary>Tab shows the next page of the Help.</summary>
+    public const string Page = "page";
+
+    /// <summary>Starts the filter of the Help.</summary>
+    public const string Filter = "filter";
+
+    /// <summary>Esc drops the half-typed key sequence.</summary>
+    public const string Cancel = "cancel";
 }

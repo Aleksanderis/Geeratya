@@ -16,9 +16,9 @@
 │ │                │   Ctrl-h     Focus the pane to the left (zoomed: the    │ │
 ╰─│                │              previous section)  (Ctrl-Backspace,        │─╯
 ╭─│                │              Ctrl-w h)                                  │─╮
-│ │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)           │ │
-│ │                │   Ctrl-k     Focus the pane above  (Ctrl-w k)           │ │
-│ │                │   Ctrl-l     Focus the pane to the right (zoomed: the  ▼│ │
+│ │                │   Ctrl-j     Focus the pane below  (Ctrl-w j)          ▼│ │
+│ ├──────────────────────────────────────────────────────────────────────────┤ │
+│ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  HELP                                   j section  J scroll  / filter  Esc close

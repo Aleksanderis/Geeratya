@@ -696,6 +696,49 @@ public class ProfileReducerTests
         Assert.Equal("profile list", state.PaletteText);
     }
 
+    [Fact]
+    public void GivenTheProfileList_WhenPressingJAndK_ThenTheHighlightMovesLikeDownAndUp()
+    {
+        var catalog = ProfileCatalog.Empty
+            .With(new Profile("one", "https://one.atlassian.net", "a@b.test"))
+            .With(new Profile("two", "https://two.atlassian.net", "a@b.test"))
+            .Activate("one");
+        var open = AppState.Initial with { Mode = InputMode.Insert, Profiles = catalog, ProfileList = new ProfileListState(0) };
+
+        var down = Press(open, "j").State;
+        var up = Press(down, "k").State;
+        var past = Press(down, "j").State;
+
+        Assert.Equal(1, down.ProfileList!.Selected);
+        Assert.Equal(0, up.ProfileList!.Selected);
+        Assert.Equal(1, past.ProfileList!.Selected);
+        Assert.Null(past.Form);
+    }
+
+    [Fact]
+    public void GivenTheProfileForm_WhenTypingJAndK_ThenTheyStayText()
+    {
+        var catalog = ProfileCatalog.Empty.With(new Profile("one", "https://one.atlassian.net", "a@b.test")).Activate("one");
+        var list = AppState.Initial with { Mode = InputMode.Insert, Profiles = catalog, ProfileList = new ProfileListState(0) };
+        var form = ProfileReducer.Add(list).State;
+
+        var typed = Press(Press(form, "j").State, "k").State;
+
+        Assert.Equal("jk", typed.Form!.Name);
+        Assert.Equal(0, typed.ProfileList!.Selected);
+    }
+
+    [Fact]
+    public void GivenAnEmptyProfileList_WhenPressingJ_ThenNothingChanges()
+    {
+        var open = AppState.Initial with { Mode = InputMode.Insert, ProfileList = new ProfileListState(0) };
+
+        var after = Press(open, "j").State;
+
+        Assert.Equal(0, after.ProfileList!.Selected);
+        Assert.Null(after.Form);
+    }
+
     private AppState Paste(AppState state, string text)
     {
         return _reducer.Reduce(state, new TextPasted(text)).State;

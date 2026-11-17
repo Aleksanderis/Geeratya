@@ -28,9 +28,9 @@
 │           │               │   <space>vv  Open a saved view in a new tab                                  │           │
 │           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
 │           │               │   <space>*   Switch the command level for the session                        │           │
-│           │               │   <space>ic  Create an issue (type picker, then the form)                    │           │
-│           │               │   <space>g   Jump to an issue by key                                         │           │
-│           │               │   <space>n   Show the message history                                       ▼│           │
+│           │               │   <space>ic  Create an issue (type picker, then the form)                   ▼│           │
+│           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
+│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close
