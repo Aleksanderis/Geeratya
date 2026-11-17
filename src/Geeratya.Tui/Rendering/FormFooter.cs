@@ -32,11 +32,6 @@ public static class FormFooter
             ActionIds.FormFieldPrevious,
             HintLabels.Field);
 
-        if (form.DiscardPending)
-        {
-            return Discarding(keymap);
-        }
-
         if (form.IsChoosingType)
         {
             return [move, DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose), close];
@@ -63,19 +58,6 @@ public static class FormFooter
         return Editing(form, keymap, fields, close);
     }
 
-    private static List<HintChip?> Discarding(KeymapTable keymap)
-    {
-        var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo);
-        var cancel = keymap.FindKeyLabel(InputMode.Insert, ActionIds.Cancel);
-        var keep = string.Join('/', new[] { no, cancel }.Where(static key => key is { Length: > 0 }));
-
-        return
-        [
-            DialogFooter.Chip(keymap, InputMode.Confirm, ActionIds.ConfirmYes, HintLabels.Discard),
-            keep.Length == 0 ? null : new HintChip(keep, HintLabels.KeepEditing),
-        ];
-    }
-
     // Tab and Enter both take the highlighted row of a popup of suggestions.
     private static HintChip? ChoosingKeys(KeymapTable keymap)
     {
@@ -88,11 +70,14 @@ public static class FormFooter
 
     private static List<HintChip?> Editing(FormState form, KeymapTable keymap, HintChip? fields, HintChip? close)
     {
-        var chips = new List<HintChip?>
+        var chips = new List<HintChip?> { fields };
+
+        if (form.Navigating)
         {
-            fields,
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save),
-        };
+            chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Edit));
+        }
+
+        chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save));
 
         if (form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable))
         {

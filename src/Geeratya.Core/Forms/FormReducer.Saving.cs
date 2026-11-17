@@ -29,8 +29,7 @@ public static partial class FormReducer
             IsLoading = false,
             TopError = top,
         };
-        var editable = fields.Count(field => field.IsEditable);
-        var navigable = target is CreateFormTarget && editable > 0;
+        var navigable = FormShell.IsNavigable(fields);
         var stepped = filled with { Focus = Step(filled, 0), Navigable = navigable };
         var shown = WithQuickRows(state, stepped);
 
@@ -65,28 +64,22 @@ public static partial class FormReducer
         return Result(Closed(state, tab) with { Message = DetachedText });
     }
 
-    private static ReduceResult Discarding(AppState state, TabState tab, string? answer, string? action)
+    // The answer yes to the discard question (FormShell.DiscardRequest): the form closes without a write.
+    private static ReduceResult Discarded(AppState state, TabId tabId)
     {
-        if (answer == ActionIds.ConfirmYes)
+        if (ViewReducer.Find(state.Session.Tabs, tabId) is not { Form: { } form } tab)
         {
-            return Left(Closed(state, tab) with { Message = "Discarded the changes" }, tab, tab.Form!);
+            return Result(state);
         }
 
-        if (answer == ActionIds.ConfirmNo || action == ActionIds.Cancel)
-        {
-            return Result(Replace(state, tab, tab.Form! with { DiscardPending = false }));
-        }
-
-        return Result(state);
+        return Left(Closed(state, tab) with { Message = FormShell.DiscardedText }, tab, form);
     }
 
     private static ReduceResult Cancel(AppState state, TabState tab, FormState form)
     {
-        // A dropdown holds one choice that writes as soon as it is taken (and its prompt is never drawn): Esc just
-        // closes it, after a refusal or with a typed filter nothing was accepted for.
-        if (form.IsDirty && form.Dropdown is null)
+        if (form.IsDirty)
         {
-            return Result(Replace(state, tab, form with { DiscardPending = true }));
+            return Result(DiscardPrompts.Ask(state, FormShell.DiscardRequest(form, tab.Id)));
         }
 
         return Left(Closed(state, tab), tab, form);
@@ -97,10 +90,21 @@ public static partial class FormReducer
     {
         if (form.Target is TransitionFormTarget { Origin: { } picker })
         {
-            return Open(closed, tab.Id, picker);
+            return WithDropdown(Open(closed, tab.Id, picker), tab.Id, ((TransitionFormTarget)form.Target).ReturnDropdown);
         }
 
         return Result(closed);
+    }
+
+    // The picker the transition fields came from hangs under the same Details field again.
+    private static ReduceResult WithDropdown(ReduceResult opened, TabId tabId, string? dropdown)
+    {
+        if (dropdown is null || ViewReducer.Find(opened.State.Session.Tabs, tabId) is not { Form: { } form } tab)
+        {
+            return opened;
+        }
+
+        return opened with { State = Replace(opened.State, tab, form with { Dropdown = dropdown }) };
     }
 
     private static ReduceResult Enter(AppState state, TabState tab, FormState form, DateTimeOffset at)
@@ -159,7 +163,7 @@ public static partial class FormReducer
 
         if (changes.Length == 0 && !form.Target.AllowsNoChanges)
         {
-            return Result(Replace(state, tab, form with { Fields = checkedFields, TopError = NothingChangedText }));
+            return Result(Closed(state, tab) with { Message = FormShell.NothingChangedText });
         }
 
         return Send(state, tab, form with { Fields = checkedFields, TopError = null }, changes, at);
@@ -174,6 +178,11 @@ public static partial class FormReducer
     {
         if (form.Target.Following(changes) is { } following)
         {
+            if (following is TransitionFormTarget transition && form.Dropdown is { } dropdown)
+            {
+                following = transition with { ReturnDropdown = dropdown };
+            }
+
             return Open(state, tab.Id, following);
         }
 

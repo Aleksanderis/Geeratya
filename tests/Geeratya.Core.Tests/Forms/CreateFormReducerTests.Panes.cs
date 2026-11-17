@@ -58,9 +58,9 @@ public partial class CreateFormReducerTests
         var asked = Press(navigating, "Esc").State;
 
         Assert.True(navigating.Session.Tabs[0].Form!.Navigating);
-        Assert.False(navigating.Session.Tabs[0].Form!.DiscardPending);
+        Assert.False(DiscardPrompts.Is(navigating.Confirm));
         Assert.Equal("Draft", navigating.Session.Tabs[0].Form!.Fields[0].Value.Text);
-        Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
+        Assert.True(DiscardPrompts.Is(asked.Confirm));
     }
 
     [Fact]

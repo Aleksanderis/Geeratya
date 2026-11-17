@@ -84,7 +84,7 @@ public class FormSuggestionTests
 
         var form = dismissed.State.Session.Tabs[0].Form!;
         Assert.Null(form.Suggest);
-        Assert.False(form.DiscardPending);
+        Assert.Null(dismissed.State.Confirm);
         Assert.Equal(InputMode.Insert, dismissed.State.Mode);
         Assert.IsType<CancelSuggestionsEffect>(Assert.Single(dismissed.Effects));
         Assert.Equal("b", form.Fields[0].Entry);
@@ -107,8 +107,8 @@ public class FormSuggestionTests
     [Fact]
     public void GivenTwoAcceptedLabels_WhenTheFieldIsSubmitted_ThenBothAreWrittenAsAdds()
     {
-        var state = Press(Press(Press(Loaded(), "b").State, "Enter").State, "f").State;
-        state = Press(state, "Enter").State;
+        var state = Press(Press(Press(Loaded(), "b").State, "Tab").State, "f").State;
+        state = Press(state, "Tab").State;
 
         var submitted = Press(state, "Ctrl-s", _start);
 
@@ -289,7 +289,7 @@ public class FormSuggestionTests
         var navigating = Press(dismissed, "Esc").State;
         var asked = Press(navigating, "Esc").State;
 
-        Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
+        Assert.True(DiscardPrompts.Is(asked.Confirm));
     }
 
     [Fact]

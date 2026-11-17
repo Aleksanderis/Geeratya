@@ -15,7 +15,6 @@ namespace Geeratya.Core.Forms;
 /// <param name="RequestId">The only metadata request whose reply this form accepts.</param>
 /// <param name="TopError">A message that belongs to no field (a load failure, a refused write), or null.</param>
 /// <param name="OperationId">The write of the submit while it runs; the form shows Saving and ignores edits.</param>
-/// <param name="DiscardPending">Esc was pressed on a form with changes; waiting for y or n.</param>
 /// <param name="BrowserUrl">The issue page, shown with the fields the form cannot edit; null when unknown.</param>
 /// <param name="Suggest">The suggestion popup of the focused field while one is open, else null.</param>
 public sealed record FormState(
@@ -26,7 +25,6 @@ public sealed record FormState(
     long RequestId,
     string? TopError,
     long? OperationId,
-    bool DiscardPending,
     string? BrowserUrl,
     SuggestionState? Suggest = null)
 {
@@ -60,9 +58,10 @@ public sealed record FormState(
     }
 
     /// <summary>
-    /// The form has a navigate state besides editing (the create form today, #650; the others follow in UI consistency phase 6): in it
-    /// <c>j</c>/<c>k</c>/<c>Tab</c> move from field to field and <c>Enter</c>, <c>i</c> or a click starts editing the
-    /// focused one; <c>Esc</c> stops editing. Other forms are always editing.
+    /// The form has a navigate state besides editing (every form with more than one editable field,
+    /// <see cref="FormShell.IsNavigable"/>): in it <c>j</c>/<c>k</c>/<c>Tab</c> move from field to field and
+    /// <c>Enter</c>, <c>i</c> or a click starts editing the focused one; <c>Esc</c> stops editing. Other forms are
+    /// always editing.
     /// </summary>
     public bool Navigable { get; init; }
 
@@ -86,6 +85,6 @@ public sealed record FormState(
 
     public static FormState Opened(FormTarget target, long requestId, string? browserUrl)
     {
-        return new FormState(target, [], 0, true, requestId, null, null, false, browserUrl);
+        return new FormState(target, [], 0, true, requestId, null, null, browserUrl);
     }
 }

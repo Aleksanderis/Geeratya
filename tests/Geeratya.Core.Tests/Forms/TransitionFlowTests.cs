@@ -29,7 +29,7 @@ public class TransitionFlowTests
         var result = Keys(Tabbed(ViewLayout.List), "Space", "i", "s");
 
         var form = result.State.Session.Tabs[0].Form!;
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.IsType<TransitionPickTarget>(form.Target);
         Assert.Equal("A-1", effect.Target.IssueKey);
@@ -143,6 +143,27 @@ public class TransitionFlowTests
         Assert.IsType<TransitionPickTarget>(back.State.Session.Tabs[0].Form!.Target);
         Assert.Equal(InputMode.Insert, back.State.Mode);
         Assert.Empty(back.State.Session.Operations);
+    }
+
+    [Fact]
+    public void GivenAStatusDropdownUnderTheDetailsField_WhenTheTransitionFieldsAreLeftWithEsc_ThenThePickerHangsUnderStatusAgain()
+    {
+        var picker = Picker(Tabbed(ViewLayout.List), Required());
+        var pickerTab = picker.Session.Tabs[0];
+        var hanging = picker with
+        {
+            Session = picker.Session with { Tabs = [pickerTab with { Form = pickerTab.Form! with { Dropdown = "status" } }] },
+        };
+        var picked = Keys(hanging, "Enter");
+        var tab = picked.State.Session.Tabs[0];
+        var fields = FormFieldMapper.FromTransition(Required().Fields);
+        var form = _reducer.Reduce(picked.State, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, fields)).State;
+
+        var back = Keys(form, "Esc");
+
+        var again = back.State.Session.Tabs[0].Form!;
+        Assert.IsType<TransitionPickTarget>(again.Target);
+        Assert.Equal("status", again.Dropdown);
     }
 
     [Fact]
@@ -267,7 +288,7 @@ public class TransitionFlowTests
     {
         var result = Keys(Tabbed(ViewLayout.Columns), "Alt-l");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         var target = Assert.IsType<TransitionPickTarget>(effect.Target);
         Assert.Equal("In Progress", target.ColumnName);
         Assert.Equal(["2"], target.ColumnStatusIds);

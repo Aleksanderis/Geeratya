@@ -1,5 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Editing;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
@@ -19,12 +20,12 @@ namespace Geeratya.Core.Comments;
 internal static partial class CommentEditing
 {
     /// <summary>The confirm action that throws the editor text away.</summary>
-    public const string DiscardAction = "comment.discard";
+    public const string DiscardAction = DiscardPrompts.CommentAction;
 
     private const string OpenIssueText = "Open an issue first.";
     private const string NoCommentText = "Put the cursor on a comment first.";
     private const string EmptyText = "A comment cannot be empty.";
-    private const string NoChangeText = "No change to save.";
+    private const string NoChangeText = FormShell.NothingChangedText;
     private const string LostFormattingText =
         "This comment has formatting the editor cannot show; saving replaces it with the text below.";
     private const string NotYoursText = "Not your comment: Jira refuses unless you may edit all comments.";
@@ -197,13 +198,13 @@ internal static partial class CommentEditing
             DiscardAction,
             Label: "Discard text");
 
-        return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
+        return Result(DiscardPrompts.Ask(state, request));
     }
 
     /// <summary>The answer to the discard question was no: back to the editor with the text as it was.</summary>
     public static AppState KeepEditing(AppState state)
     {
-        return state with { Mode = InputMode.Insert, Confirm = null, PendingKeys = string.Empty };
+        return DiscardPrompts.Kept(state);
     }
 
     /// <summary><c>form.submit</c> (Ctrl-s): starts the write, or says in the editor why it did not start.</summary>

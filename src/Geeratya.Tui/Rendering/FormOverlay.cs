@@ -18,7 +18,6 @@ public static partial class FormOverlay
     private const string ChooseTypeText = "Choose the issue type";
     internal const string OpenAfterOnText = "on";
     internal const string OpenAfterOffText = "off";
-    private const string DiscardText = "Discard the changes? (y/n)";
     private const string ReadOnlyText = "not editable here";
     private const int MaxBoxWidth = 100;
     private const int WantedBoxWidth = 90;
@@ -91,11 +90,6 @@ public static partial class FormOverlay
     /// <summary>The one-line status text of the open form: the state, or the error of the focused field.</summary>
     public static string StatusText(FormState form)
     {
-        if (form.DiscardPending)
-        {
-            return DiscardText;
-        }
-
         if (form.IsSaving)
         {
             return SavingText;
@@ -128,7 +122,17 @@ public static partial class FormOverlay
             return $"{form.Target.Title} · {focused.Label}";
         }
 
-        return CreatePanes.Applies(form) && focused is not null ? CreateStatusText(form, focused) : form.Target.Title;
+        if (CreatePanes.Applies(form) && focused is not null)
+        {
+            return CreateStatusText(form, focused);
+        }
+
+        if (form.Navigating && focused is not null)
+        {
+            return $"{form.Target.Title} · {focused.Label}  {FormShell.NavigateNote}";
+        }
+
+        return form.Target.Title;
     }
 
     // Create GEN · Story · Summary, with the state of the focused field in the navigate state.
@@ -137,7 +141,7 @@ public static partial class FormOverlay
         var create = (CreateFormTarget)form.Target;
         var text = $"Create {create.ProjectKey} · {create.IssueType?.Name} · {focused.Label}";
 
-        return form.Navigating ? $"{text}  [navigate]" : text;
+        return form.Navigating ? $"{text}  {FormShell.NavigateNote}" : text;
     }
 
     private static List<StyledLine> BoxLines(
@@ -315,12 +319,7 @@ public static partial class FormOverlay
 
         if (form.TopError is not null)
         {
-            lines.Add(StyledLine.Of(DisplayText.Cut($"! {form.TopError}", width), TextRole.Error));
-        }
-
-        if (form.DiscardPending)
-        {
-            lines.Add(StyledLine.Of(DiscardText, TextRole.Warning));
+            lines.AddRange(FieldRows.Error(form.TopError, width));
         }
     }
 

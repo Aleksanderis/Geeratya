@@ -10,9 +10,6 @@ public abstract record FormCommand : Command;
 /// <summary>Open a form on a tab; its metadata is fetched and the form fills when the reply arrives.</summary>
 public sealed record OpenFormRequested(TabId Tab, FormTarget Target) : FormCommand;
 
-/// <summary>Open the labels pilot form on the issue the active tab shows or has selected (<c>:labels</c>).</summary>
-public sealed record OpenLabelsFormRequested : FormCommand;
-
 /// <summary>Open the link form on the issue the active tab shows or has selected (<c>issue.link</c>).</summary>
 public sealed record OpenLinkFormRequested : FormCommand;
 
@@ -39,3 +36,6 @@ public sealed record OpenCreateFormRequested(bool Subtask) : FormCommand;
 
 /// <summary>The issue types of the project arrived for a create form that waits for them (unfiltered).</summary>
 public sealed record FormTypesLoaded(TabId Tab, long RequestId, IReadOnlyList<CreateIssueType> Types) : FormCommand;
+
+/// <summary>The answer yes to the discard question of the form on <paramref name="Tab"/>: the form closes.</summary>
+public sealed record DiscardFormRequested(TabId Tab) : FormCommand;

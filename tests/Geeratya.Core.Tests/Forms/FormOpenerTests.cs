@@ -53,7 +53,7 @@ public class FormOpenerTests
     {
         var result = Palette(Tabbed(), "priority");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = MetadataOf(result);
         Assert.Equal(FormFieldIds.Priority, Assert.IsType<EditFormTarget>(effect.Target).OnlyId);
     }
 
@@ -62,7 +62,7 @@ public class FormOpenerTests
     {
         var result = Palette(Tabbed(), "estimate");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = MetadataOf(result);
         var target = Assert.IsType<EditFormTarget>(effect.Target);
         Assert.True(target.EstimateOnly);
         Assert.Equal(FormFieldKind.Number, target.Only);
@@ -131,7 +131,7 @@ public class FormOpenerTests
     {
         var result = Palette(WithBoard(Tabbed(), "customfield_10047", true), "estimate");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = MetadataOf(result);
         Assert.Equal("customfield_10047", Assert.IsType<EditFormTarget>(effect.Target).EstimateFieldId);
     }
 
@@ -140,7 +140,7 @@ public class FormOpenerTests
     {
         var result = Palette(WithBoard(Tabbed(), null, true), "estimate");
 
-        Assert.Empty(result.Effects);
+        Assert.DoesNotContain(result.Effects, static effect => effect is LoadFormMetadataEffect);
         Assert.Contains("no story point estimation", result.State.Message);
     }
 
@@ -149,7 +149,7 @@ public class FormOpenerTests
     {
         var result = Palette(WithBoard(Tabbed(), null, false), "estimate");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = MetadataOf(result);
         Assert.Null(Assert.IsType<EditFormTarget>(effect.Target).EstimateFieldId);
     }
 
@@ -211,7 +211,7 @@ public class FormOpenerTests
 
         var form = result.State.Session.Tabs[0].Form!;
         var field = Assert.Single(form.Fields);
-        Assert.Empty(result.Effects);
+        Assert.DoesNotContain(result.Effects, static effect => effect is LoadFormMetadataEffect);
         Assert.False(form.IsLoading);
         Assert.Equal("Assign A-1", form.Target.Title);
         Assert.Equal(FormFieldKind.User, field.Kind);
@@ -338,8 +338,7 @@ public class FormOpenerTests
     {
         var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
 
-        var chosen = Press(Press(opened, "Down").State, "Enter").State;
-        var saved = Press(chosen, "Enter", _start);
+        var saved = Press(Press(opened, "Down").State, "Enter", _start);
 
         var request = Assert.IsType<AssignRequest>(WrittenBy(saved));
         Assert.Equal("acc-me", request.Assignee!.AccountId);
@@ -351,8 +350,7 @@ public class FormOpenerTests
     {
         var opened = Keys(Tabbed(_eve), "Space", "i", "a").State;
 
-        var chosen = Keys(opened, "Down", "Down", "Enter").State;
-        var saved = Press(chosen, "Enter", _start);
+        var saved = Press(Keys(opened, "Down", "Down").State, "Enter", _start);
 
         Assert.Null(Assert.IsType<AssignRequest>(WrittenBy(saved)).Assignee);
         Assert.Null(saved.State.Session.Tabs[0].Rows[0].Assignee);
@@ -420,7 +418,7 @@ public class FormOpenerTests
         var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
         var found = Found(typed.State, search, "acc-eve", "Eve Example");
 
-        var saved = Press(Press(found.State, "Enter").State, "Enter", _start);
+        var saved = Press(found.State, "Enter", _start);
 
         Assert.Equal("acc-eve", Assert.IsType<AssignRequest>(WrittenBy(saved)).Assignee!.AccountId);
     }
@@ -433,7 +431,8 @@ public class FormOpenerTests
         var saved = Press(opened, "Enter");
 
         Assert.Empty(saved.Effects);
-        Assert.Equal("Nothing changed", saved.State.Session.Tabs[0].Form!.TopError);
+        Assert.Null(saved.State.Session.Tabs[0].Form);
+        Assert.Equal(FormShell.NothingChangedText, saved.State.Message);
     }
 
     [Fact]
@@ -503,7 +502,7 @@ public class FormOpenerTests
         var picked = Press(Keys(opened, "Space", "i", "a").State, "e");
         var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(picked.Effects));
         var found = Found(picked.State, search, "acc-eve", "Eve Example");
-        var saved = Press(Press(found.State, "Enter").State, "Enter", _start);
+        var saved = Press(found.State, "Enter", _start);
         var id = saved.State.Session.Operations[0].Id;
 
         var conflict = new WriteError(WriteErrorKind.Conflict, 409, "x", [], []);
@@ -562,7 +561,7 @@ public class FormOpenerTests
         var search = Assert.IsType<SearchSuggestionsEffect>(Assert.Single(typed.Effects));
         var found = Found(typed.State, search, "acc-eve", "Eve Example");
 
-        return Press(Press(found.State, "Enter").State, "Enter", _start);
+        return Press(found.State, "Enter", _start);
     }
 
     private AppState LoadedForm(ReduceResult opened, FormField field)
@@ -574,9 +573,14 @@ public class FormOpenerTests
 
     private static EditFormTarget EditTargetOf(ReduceResult result)
     {
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = MetadataOf(result);
 
         return Assert.IsType<EditFormTarget>(effect.Target);
+    }
+
+    private static LoadFormMetadataEffect MetadataOf(ReduceResult result)
+    {
+        return Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
     }
 
     private static WriteRequest WrittenBy(ReduceResult result)

@@ -134,7 +134,7 @@ public static class FrameBuilder
             body = Fit(composed, width, bodyHeight);
         }
 
-        if (FormReducer.OpenForm(state) is { } form)
+        if (FormReducer.DrawnForm(state) is { } form)
         {
             body = Fit(ComposeForm(body, state, form, context, width, bodyHeight, regions), width, bodyHeight);
         }

@@ -17,12 +17,11 @@ public static class DetailDropdown
     private const int SidebarInset = 1;
     private const int MaxNarrowWidth = 40;
     private const int Chrome = 4;
-    private const int ErrorRows = 6;
     private const string LoadingText = "Loading…";
     private const string SavingText = "Saving…";
     private const string ReadOnlyText = "Not editable here";
     private const string TypeText = "Type to search";
-    private const string Caret = "_";
+    private const int TextRows = 4;
 
     /// <summary>Whether <paramref name="form"/> is drawn as a dropdown over the open detail.</summary>
     public static bool Applies(AppState state, FormState form)
@@ -126,7 +125,12 @@ public static class DetailDropdown
 
         if (form.IsLoading || form.Fields.Count == 0)
         {
-            return Notice(form.TopError ?? LoadingText, form.TopError is null ? TextRole.Loading : TextRole.Error);
+            if (form.TopError is { } top)
+            {
+                return Notice(FieldRows.Error(top, inner));
+            }
+
+            return Notice(LoadingText, TextRole.Loading);
         }
 
         if (form.IsSaving)
@@ -141,41 +145,43 @@ public static class DetailDropdown
             return Notice(ReadOnlyText, TextRole.Muted);
         }
 
-        var typed = FormFieldKinds.TakesEntry(field.Kind);
-
-        if (typed || field.Entry.Length > 0)
+        if (FormFieldKinds.IsText(field.Kind))
         {
-            lines.Add(new StyledLine(
-            [
-                new StyledSpan(TextWidth.Fit(field.Entry, Math.Max(0, inner - 1)), TextRole.Body),
-                new StyledSpan(Caret, TextRole.EditCaret),
-            ]));
+            var look = new FieldLook(inner, TextRole.Body) { Editing = true, Rows = TextRows };
+
+            lines.AddRange(FieldRows.Value(field, look));
+        }
+        else if (FormFieldKinds.TakesEntry(field.Kind) || field.Entry.Length > 0)
+        {
+            lines.Add(FieldRows.Entry(field, inner, TextRole.Body));
         }
 
         var skipped = lines.Count;
         var indexes = new List<int>();
 
-        AddRows(lines, indexes, form, inner);
+        AddRows(lines, indexes, form, field, inner);
 
         if (field.Error is { } error)
         {
             // A refusal is Jira's own sentence: it wraps instead of being cut, so the reason stays readable.
-            foreach (var part in ConfirmDialog.Wrap(error, Math.Max(1, inner)).Take(ErrorRows))
-            {
-                lines.Add(StyledLine.Of(part, TextRole.Error));
-                indexes.Add(-1);
-            }
+            var rows = FieldRows.Error(error, inner);
+
+            lines.AddRange(rows);
+            indexes.AddRange(rows.Select(static _ => -1));
         }
 
         return new Content(lines, skipped, indexes);
     }
 
-    private static void AddRows(List<StyledLine> lines, List<int> indexes, FormState form, int inner)
+    private static void AddRows(List<StyledLine> lines, List<int> indexes, FormState form, FormField field, int inner)
     {
         if (form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
         {
-            lines.Add(StyledLine.Of(TypeText, TextRole.Muted));
-            indexes.Add(-1);
+            if (FormFieldKinds.HasPopup(field.Kind))
+            {
+                lines.Add(StyledLine.Of(TypeText, TextRole.Muted));
+                indexes.Add(-1);
+            }
 
             return;
         }
@@ -189,7 +195,12 @@ public static class DetailDropdown
 
     private static Content Notice(string text, TextRole role)
     {
-        return new Content([StyledLine.Of(text, role)], 0, [-1]);
+        return Notice([StyledLine.Of(text, role)]);
+    }
+
+    private static Content Notice(List<StyledLine> lines)
+    {
+        return new Content(lines, 0, [.. lines.Select(static _ => -1)]);
     }
 
     private sealed record Content(List<StyledLine> Lines, int Skipped, List<int> Indexes);

@@ -1,4 +1,6 @@
 using Geeratya.Core.Backlog;
+using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Selection;
@@ -25,6 +27,7 @@ public static class SprintMoveActions
     private const string NothingText = "Nothing to move here";
     private const string CollapsedText = "Expand the section first (z a): its issues are hidden";
     private const string SprintsNotLoadedText = "The sprints are still loading: drop again in a moment.";
+    private const string SprintsLoadingText = "The sprints are still loading: try again in a moment.";
     private const string SprintUnavailableText = "That sprint is not available: refresh the view.";
     private const string BacklogText = "the backlog";
     private const int MaxPlacesNamed = 2;
@@ -34,11 +37,46 @@ public static class SprintMoveActions
     /// <summary>Opens the picker of active and future sprints for the set; says why not when there is none.</summary>
     public static ReduceResult OpenPicker(AppState state)
     {
+        if (ActiveTab(state) is { Detail.Count: > 0 })
+        {
+            // The open issue: the Sprint field edits like every other field of Details.
+            return DetailFieldActions.Open(state, DetailFieldIds.Sprint);
+        }
+
         var keys = KeysOf(state, out var refusal);
 
         return keys is null
             ? Say(state, refusal!)
             : SourceReducer.OpenSprintPicker(state, keys);
+    }
+
+    /// <summary>
+    /// The Sprint field of the open issue as a one-field form (the Details dropdown): the active and future sprints of
+    /// the tab and the backlog. Says why not when the tab has no board or its sprints are not loaded.
+    /// </summary>
+    internal static ReduceResult OpenField(AppState state)
+    {
+        var keys = KeysOf(state, out var refusal);
+        var tab = ActiveTab(state);
+
+        if (keys is null || tab is null)
+        {
+            return Say(state, refusal ?? NothingText);
+        }
+
+        var sprints = tab.Sprints.Where(static sprint => sprint.State is SprintState.Active or SprintState.Future).ToList();
+
+        if (tab.Sprints.Count == 0)
+        {
+            return Say(state, SprintsLoadingText);
+        }
+
+        var shown = tab.Detail.Count > 0 ? tab.Detail[^1].Issue?.CurrentSprint : null;
+        var current = shown ?? FindRow(state, keys[0])?.CurrentSprint;
+        var open = current is { State: SprintState.Active or SprintState.Future } ? current : null;
+        var target = new SprintMoveTarget(keys[0], sprints, open, SourceOf(state, keys));
+
+        return FormReducer.OpenReady(state, tab.Id, target, [target.Field()]);
     }
 
     /// <summary>Moves the set to the backlog (asks first when it holds more than one issue).</summary>

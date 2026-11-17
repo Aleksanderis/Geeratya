@@ -24,11 +24,12 @@ public static partial class FormOverlay
         var frame = !field.IsEditable ? TextRole.Muted : focused ? TextRole.OverlayFrame
             : field.Error is not null ? TextRole.Error : TextRole.Muted;
         var marker = focused ? "> " : string.Empty;
+        var note = focused && FormShell.StateNote(form) is { } state ? $"  {state}" : string.Empty;
         var required = field.Required ? " *" : string.Empty;
         var readOnly = field.IsEditable ? string.Empty : $"  ({ReadOnlyText})";
         var labelRole = focused ? TextRole.Strong : field.IsEditable ? TextRole.FieldLabel : TextRole.Muted;
         var width = Math.Max(6, valueWidth + Indent);
-        var lines = new List<StyledLine> { BoxTop(width, $"{marker}{field.Label}{required}{readOnly}", labelRole, frame) };
+        var lines = new List<StyledLine> { BoxTop(width, $"{marker}{field.Label}{required}{readOnly}{note}", labelRole, frame) };
 
         foreach (var value in ValueLines(field, focused, form, valueWidth))
         {
@@ -44,9 +45,7 @@ public static partial class FormOverlay
 
         if (field.Error is not null)
         {
-            var error = $"{new string(' ', Indent)}! {field.Error}";
-
-            lines.Add(StyledLine.Of(DisplayText.Cut(error, valueWidth + Indent), TextRole.Error));
+            lines.AddRange(FieldRows.Error(field.Error, valueWidth + Indent, Indent));
         }
 
         return lines;
@@ -75,140 +74,16 @@ public static partial class FormOverlay
         return new StyledLine(spans);
     }
 
-    // An empty value is no typed text: the shared empty word in the muted role, so an empty field never looks filled.
-    private static StyledLine Placeholder(FormField field)
-    {
-        var empty = ValueText.Empty(field.Kind == FormFieldKind.User);
-
-        return Cell(empty.Text, empty.Role);
-    }
-
-    private static StyledLine Cell(string text, TextRole role)
-    {
-        return StyledLine.Of(text, role);
-    }
-
     private static List<StyledLine> ValueLines(FormField field, bool focused, FormState form, int valueWidth)
     {
         if (!field.IsEditable)
         {
-            return [Cell(form.BrowserUrl ?? ReadOnlyText, TextRole.Muted)];
+            return [StyledLine.Of(form.BrowserUrl ?? ReadOnlyText, TextRole.Muted)];
         }
 
-        return field.Kind switch
-        {
-            FormFieldKind.Paragraph => ParagraphLines(field, focused, valueWidth),
-            FormFieldKind.Select or FormFieldKind.MultiSelect => ChoiceLines(field, focused, valueWidth),
-            FormFieldKind.Labels => LabelLines(field, focused, valueWidth),
-            FormFieldKind.User or FormFieldKind.Parent => PickedLines(field, focused, valueWidth),
-            _ => [TextLine(field, focused, valueWidth)],
-        };
-    }
+        var look = new FieldLook(valueWidth) { Editing = focused && !form.Navigating, Rows = ParagraphRows };
 
-    private static StyledLine TextLine(FormField field, bool focused, int valueWidth)
-    {
-        if (focused)
-        {
-            return new StyledLine(CaretRows.Spans(new PromptText(field.Value.Text, field.Back), valueWidth, TextRole.Editable));
-        }
-
-        return field.Value.Text.Length == 0 ? Placeholder(field) : Cell(field.Value.Text, TextRole.Editable);
-    }
-
-    private static List<StyledLine> ParagraphLines(FormField field, bool focused, int valueWidth)
-    {
-        var rows = field.Value.Text.Split('\n');
-        var lines = new List<StyledLine>();
-
-        if (!focused)
-        {
-            if (rows[0].Length == 0)
-            {
-                return [Placeholder(field)];
-            }
-
-            return [Cell(rows.Length > 1 ? $"{rows[0]}…" : rows[0], TextRole.Editable)];
-        }
-
-        var prompt = new PromptText(field.Value.Text, field.Back);
-        var caretRow = prompt.Text[..prompt.Caret].Count(character => character == '\n');
-        var first = Math.Clamp(caretRow - ParagraphRows + 1, 0, Math.Max(0, rows.Length - ParagraphRows));
-        var shown = Math.Min(ParagraphRows, rows.Length - first);
-
-        for (var index = first; index < first + shown; index++)
-        {
-            lines.Add(new StyledLine(
-                CaretRows.ParagraphSpans(prompt, rows[index], index, caretRow, valueWidth, TextRole.Editable)));
-        }
-
-        return lines;
-    }
-
-    private static StyledLine ChosenLine(FormField field)
-    {
-        var labels = field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray();
-
-        return labels.Length == 0 ? Placeholder(field) : Cell(string.Join(", ", labels), TextRole.Editable);
-    }
-
-    /// <summary>The labels as tokens wrapped to the box; the buffer being typed ends the last line, caret in view.</summary>
-    private static List<StyledLine> LabelLines(FormField field, bool focused, int valueWidth)
-    {
-        var tokens = field.Value.Chosen.Select(label => $"[{LabelOf(field, label)}]").ToList();
-        var typed = focused
-            ? CaretRows.Spans(new PromptText(field.Entry, field.Back), valueWidth, TextRole.Editable)
-            : [];
-        var typedText = string.Concat(typed.Select(static span => span.Text));
-
-        if (focused)
-        {
-            tokens.Add(typedText);
-        }
-
-        if (tokens.Count == 0)
-        {
-            return [Placeholder(field)];
-        }
-
-        var rows = new List<string>();
-        var current = string.Empty;
-
-        foreach (var token in tokens)
-        {
-            var joined = current.Length == 0 ? token : $"{current} {token}";
-
-            if (current.Length > 0 && TextWidth.Of(joined) > valueWidth)
-            {
-                rows.Add(current);
-                joined = token;
-            }
-
-            current = joined;
-        }
-
-        rows.Add(current);
-
-        var lines = rows.Select(row => Cell(row, TextRole.Editable)).ToList();
-
-        if (focused)
-        {
-            var last = rows[^1];
-            var head = last[..^typedText.Length];
-
-            lines[^1] = new StyledLine([new StyledSpan(head, TextRole.Editable), .. typed]);
-        }
-
-        return lines;
-    }
-
-    private static List<StyledLine> PickedLines(FormField field, bool focused, int valueWidth)
-    {
-        if (!focused)
-        {
-            return [ChosenLine(field)];
-        }
-
-        return LabelLines(field, true, valueWidth);
+        return FieldRows.Value(field, look);
     }
 
     /// <summary>The suggestion popup under the focused field: ranked rows, the cursor row marked, a status line.</summary>
@@ -223,21 +98,5 @@ public static partial class FormOverlay
         var margin = new string(' ', Indent + PopupMargin);
 
         return [.. PickListRenderer.Popup(popup, width, margin).Select(static row => row.Line)];
-    }
-
-    // A choice shows its chosen values like chips and, while focused, the typed filter and the suggestion popup.
-    private static List<StyledLine> ChoiceLines(FormField field, bool focused, int valueWidth)
-    {
-        if (!focused)
-        {
-            return [ChosenLine(field)];
-        }
-
-        return LabelLines(field, true, valueWidth);
-    }
-
-    internal static string LabelOf(FormField field, string id)
-    {
-        return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
     }
 }
