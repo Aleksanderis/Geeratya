@@ -45,7 +45,9 @@ public static partial class FormOverlay
 
         if (field.Error is not null)
         {
-            lines.Add(StyledLine.Of(DisplayText.Cut($"{new string(' ', Indent)}! {field.Error}", valueWidth + Indent), TextRole.Error));
+            var error = $"{new string(' ', Indent)}! {field.Error}";
+
+            lines.Add(StyledLine.Of(DisplayText.Cut(error, valueWidth + Indent), TextRole.Error));
         }
 
         return lines;

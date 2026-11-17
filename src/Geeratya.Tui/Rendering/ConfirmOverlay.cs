@@ -81,11 +81,13 @@ public static class ConfirmOverlay
 
         if (layout.Warning.Count > 0)
         {
+            var warningRole = kind == OverlayKind.Destructive ? TextRole.Error : TextRole.Warning;
+
             lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth, kind));
 
             foreach (var text in layout.Warning)
             {
-                lines.Add(OverlayBox.Wall(StyledLine.Of(text, kind == OverlayKind.Destructive ? TextRole.Error : TextRole.Warning), contentWidth, kind));
+                lines.Add(OverlayBox.Wall(StyledLine.Of(text, warningRole), contentWidth, kind));
             }
         }
 

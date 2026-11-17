@@ -209,7 +209,7 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         return $"{marker} {section.Name}{glyphs.Separator}{string.Join(glyphs.Separator, parts)}";
     }
 
-    /// <summary>The estimates as the board shows them: no fraction for whole numbers, else one decimal at most.</summary>
+    /// <summary>The estimates as the board shows them: no fraction for whole numbers, else two decimals at most.</summary>
     public static string PointsText(double points)
     {
         return EstimateText.Format(points);
