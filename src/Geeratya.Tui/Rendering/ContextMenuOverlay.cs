@@ -95,7 +95,7 @@ public static class ContextMenuOverlay
             {
                 if (index > 0)
                 {
-                    rows.Add(new MenuRow(-1, StyledLine.Of(string.Empty, TextRole.Body)));
+                    rows.Add(new MenuRow(-1, StyledLine.Of(string.Empty)));
                 }
 
                 var header = StyledLine.Of($"  {WhichKeyBuilder.GroupTitle(prefixes[index])}", TextRole.Heading);
