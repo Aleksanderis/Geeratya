@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Lists;
 using Geeratya.Core.History;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sprints;
@@ -114,7 +115,7 @@ public static class SourceChoices
 
     private static void AddSavedViews(List<SourceChoice> choices, string text, SavedViewList? views)
     {
-        foreach (var view in (views?.Items ?? []).Where(view => Contains(view.Name, text)))
+        foreach (var view in (views?.Items ?? []).Where(view => Matcher.Matches(view.Name, text)))
         {
             if (SavedViewList.ToDefinition(view) is { } definition)
             {
@@ -127,7 +128,7 @@ public static class SourceChoices
 
     private static void AddBoards(List<SourceChoice> choices, PickerScope scope, string text, IReadOnlyList<BoardSummary> boards)
     {
-        foreach (var board in boards.Where(board => Contains(board.Name, text)))
+        foreach (var board in boards.Where(board => Matcher.Matches(board.Name, text)))
         {
             var detail = BoardDetail(board);
 
@@ -145,7 +146,7 @@ public static class SourceChoices
 
     private static void AddFilters(List<SourceChoice> choices, string text, IReadOnlyList<SavedFilter> filters)
     {
-        foreach (var filter in filters.Where(filter => Contains(filter.Name, text)))
+        foreach (var filter in filters.Where(filter => Matcher.Matches(filter.Name, text)))
         {
             choices.Add(new SourceChoice(SourceChoiceKind.Filter, filter.Name, FilterDetail(filter), FilterView(filter)));
         }
@@ -156,18 +157,13 @@ public static class SourceChoices
         var typed = text.Length == 0 ? string.Empty : JqlText.FromTyped(text);
         var limit = scope == PickerScope.All ? MaxRecentInAll : SiteHistory.MaxQueries;
         var recent = (history?.Queries ?? [])
-            .Where(query => Contains(query, text) && !string.Equals(query, typed, StringComparison.Ordinal))
+            .Where(query => Matcher.Matches(query, text) && !string.Equals(query, typed, StringComparison.Ordinal))
             .Take(limit);
 
         foreach (var query in recent)
         {
             choices.Add(new SourceChoice(SourceChoiceKind.Recent, query, string.Empty, JqlView(query)));
         }
-    }
-
-    private static bool Contains(string name, string text)
-    {
-        return text.Length == 0 || name.Contains(text, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string BoardDetail(BoardSummary board)

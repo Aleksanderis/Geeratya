@@ -222,8 +222,8 @@ public class PaletteReducerTests
     public void GivenOpenPalette_WhenWheelingOverTheRows_ThenTheHighlightMovesThreeAndNothingRuns()
     {
         var state = Open();
-        var down = new OverlayRowClicked(MouseTarget.PaletteRow, 0, ActionIds.PickerNext, _now);
-        var up = new OverlayRowClicked(MouseTarget.PaletteRow, 0, ActionIds.PickerPrevious, _now);
+        var down = new OverlayWheeled(MouseTarget.PaletteRow, 3);
+        var up = new OverlayWheeled(MouseTarget.PaletteRow, -3);
 
         var moved = _reducer.Reduce(state, down);
         var back = _reducer.Reduce(moved.State, up);

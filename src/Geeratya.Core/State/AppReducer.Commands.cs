@@ -3,7 +3,6 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.Views;
@@ -12,22 +11,9 @@ namespace Geeratya.Core.State;
 
 public sealed partial class AppReducer
 {
-    /// <summary>
-    /// A click on a palette row chooses it and runs it like <c>Enter</c>; the wheel over the rows moves the
-    /// highlight (<see cref="DefaultMouseMap.WheelRows"/> rows) and runs nothing.
-    /// </summary>
+    /// <summary>A click on a palette row chooses it and runs it like <c>Enter</c>.</summary>
     private ReduceResult ClickPaletteRow(AppState state, OverlayRowClicked clicked)
     {
-        if (clicked.Action == ActionIds.PickerNext)
-        {
-            return Result(MovePalette(state, DefaultMouseMap.WheelRows));
-        }
-
-        if (clicked.Action == ActionIds.PickerPrevious)
-        {
-            return Result(MovePalette(state, -DefaultMouseMap.WheelRows));
-        }
-
         return RunPaletteRow(state with { PaletteSelected = clicked.Index }, clicked.At);
     }
 

@@ -303,7 +303,7 @@ public class CommentEditorOverlayTests
         Assert.Contains("╭─ Confirm", text);
     }
 
-    private static CommentEditor EditorWithPopup()
+    internal static CommentEditor EditorWithPopup()
     {
         var rows = new[]
         {

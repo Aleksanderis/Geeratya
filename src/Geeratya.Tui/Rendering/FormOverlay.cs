@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
@@ -359,11 +360,10 @@ public static partial class FormOverlay
         return tags;
     }
 
+    /// <summary>The first popup row to draw: the highlight stays inside the rows with the shared scroll margin.</summary>
     internal static int PopupFirst(SuggestionState popup)
     {
-        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
-
-        return Math.Clamp(Math.Max(cursor, 0) - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
+        return ListCursor.FirstVisible(Math.Max(popup.Cursor, 0), popup.Items.Count, PopupRows);
     }
 
     private static void AddTypes(List<StyledLine> lines, FormState form, IReadOnlyList<CreateIssueType> types)

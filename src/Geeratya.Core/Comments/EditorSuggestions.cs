@@ -78,6 +78,17 @@ internal static class EditorSuggestions
         };
     }
 
+    /// <summary>A wheel notch over the popup rows: the highlight moves by <paramref name="rows"/>, nothing is taken.</summary>
+    public static ReduceResult Wheeled(AppState state, int rows)
+    {
+        if (state.Editor is not { Suggest: { } popup } editor || popup.Items.Count == 0)
+        {
+            return Result(state);
+        }
+
+        return Moved(state, editor, popup, rows);
+    }
+
     /// <summary>A click on row <paramref name="index"/> of the popup takes it, like Enter on that row.</summary>
     public static ReduceResult Clicked(AppState state, int index)
     {

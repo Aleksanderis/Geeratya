@@ -31,5 +31,19 @@ internal static class RegionProbe
         return commands.Count == 0 ? null : new AppReducer(DefaultKeymap.Load()).Reduce(state, commands[0]);
     }
 
+    /// <summary>
+    /// A gesture at a screen cell, through the real resolver and reducer (null: nothing is bound there); the cell may be
+    /// anywhere, not only on a region.
+    /// </summary>
+    public static ReduceResult? At(AppState state, StyledFrame frame, int column, int row, MouseGesture gesture)
+    {
+        var height = frame.Header.Count + frame.Body.Count + 1;
+        var width = frame.Body[0].PlainText.Length;
+        var context = MouseContext.From(state, width, height, frame.Header.Count, _at, frame.Regions);
+        var commands = MouseResolver.Resolve(context, column, row, gesture, _at);
+
+        return commands.Count == 0 ? null : new AppReducer(DefaultKeymap.Load()).Reduce(state, commands[0]);
+    }
+
     internal sealed record RegionRow(int Index, string Text, OverlayRegion Region);
 }

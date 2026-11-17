@@ -1,6 +1,8 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Forms;
@@ -40,6 +42,32 @@ public static partial class FormReducer
         }
 
         return FocusedField(state, tab, form, clicked.Index);
+    }
+
+    /// <summary>
+    /// A wheel notch over the popup rows of the open form (or its type chooser): the highlight moves by
+    /// <paramref name="rows"/> and nothing is chosen.
+    /// </summary>
+    public static ReduceResult Wheeled(AppState state, int rows)
+    {
+        if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving || form.DiscardPending)
+        {
+            return Result(state);
+        }
+
+        if (form.IsChoosingType)
+        {
+            var cursor = ListCursor.Step(form.TypeCursor, rows, form.TypeChoices?.Count ?? 0);
+
+            return Result(Replace(state, tab, form with { TypeCursor = cursor }));
+        }
+
+        if (form.Suggest is not { } popup)
+        {
+            return Result(state);
+        }
+
+        return Result(Replace(state, tab, form with { Suggest = SuggestionPopup.Moved(popup, rows) }));
     }
 
     private static ReduceResult ChosenType(AppState state, TabState tab, FormState form, int index)

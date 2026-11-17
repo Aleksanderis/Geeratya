@@ -178,7 +178,7 @@ public class FormSuggestionOverlayTests
         Assert.DoesNotContain(lines, line => line.Contains("acc-1", StringComparison.Ordinal));
     }
 
-    private static FormState LabelsForm(SuggestionStatus status, string? error = null)
+    internal static FormState LabelsForm(SuggestionStatus status, string? error = null)
     {
         var labels = FormField.Create("labels", "Labels", FormFieldKind.Labels, false, [])
             .WithInitial(FormValue.OfChosen(["backend"])) with { Entry = "日本" };
@@ -218,7 +218,7 @@ public class FormSuggestionOverlayTests
         return FormState.Opened(target, 3, "https://work.atlassian.net/browse/A-1") with { IsLoading = false };
     }
 
-    private static AppState WithForm(FormState form)
+    internal static AppState WithForm(FormState form)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var reducer = new AppReducer(_keymap);

@@ -80,14 +80,16 @@ public class OverlayWheelTests
     }
 
     [Fact]
-    public void GivenTheState_WhenBuildingTheContext_ThenOnlyHelpMessagesAndMenusHaveAWheelTarget()
+    public void GivenTheState_WhenBuildingTheContext_ThenEveryOverlayWithAHighlightHasAWheelTarget()
     {
         Assert.Null(MouseContext.From(AppState.Initial, 80, 24, 2, _now).WheelTarget);
         Assert.Equal(MouseTarget.HelpBody, MouseContext.From(Press(AppState.Initial, "?"), 80, 24, 2, _now).WheelTarget);
         Assert.Equal(
             MouseTarget.MessagesBody,
             MouseContext.From(Press(Press(AppState.Initial, "Space"), "n"), 80, 24, 2, _now).WheelTarget);
-        Assert.Null(MouseContext.From(Press(AppState.Initial, ":"), 80, 24, 2, _now).WheelTarget);
+        Assert.Equal(
+            MouseTarget.PaletteRow,
+            MouseContext.From(Press(AppState.Initial, ":"), 80, 24, 2, _now).WheelTarget);
     }
 
     private AppState Wheel(AppState state, MouseGesture gesture, int column, int row)

@@ -189,6 +189,6 @@ public sealed partial class AppReducer
     {
         var count = PaletteRows.Selectable(state, _keymap).Count;
 
-        return state with { PaletteSelected = Math.Clamp(state.PaletteSelected + delta, 0, Math.Max(0, count - 1)) };
+        return state with { PaletteSelected = ListCursor.Step(state.PaletteSelected, delta, count) };
     }
 }

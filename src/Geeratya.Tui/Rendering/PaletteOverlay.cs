@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -63,7 +64,7 @@ public static class PaletteOverlay
             lines = ListLines(rows, selected, boxWidth - 4, gaps: false);
         }
 
-        var first = FirstVisible(lines, area);
+        var first = ListCursor.FirstVisible(lines.FindIndex(line => line.Selected), lines.Count, area);
         var shown = lines.Skip(first).Take(area).ToList();
         var stable = StableRows(state, keymap, boxWidth - 4, area);
 
@@ -165,19 +166,6 @@ public static class PaletteOverlay
         var count = ListLines(all, 0, width, gaps: true).Count;
 
         return Math.Min(count, area);
-    }
-
-    // The first line to draw: the highlighted row stays in view and, near the top, the first subheader shows.
-    private static int FirstVisible(List<ListLine> lines, int area)
-    {
-        var at = lines.FindIndex(line => line.Selected);
-
-        if (area <= 0 || at < area)
-        {
-            return 0;
-        }
-
-        return Math.Min(at - area + 1, Math.Max(0, lines.Count - area));
     }
 
     private static List<ListLine> ListLines(IReadOnlyList<PaletteRow> rows, int selected, int width, bool gaps)

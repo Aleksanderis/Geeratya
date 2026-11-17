@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -56,7 +57,7 @@ public static class ProfileManagerScreen
         var inner = framed ? Math.Max(0, height - 2) : height;
         var listRoom = Math.Max(0, listWidth - (framed ? 3 : 0));
         var area = Math.Max(0, inner - ButtonRows);
-        var first = FirstVisible(selected, profiles.Count, area);
+        var first = ListCursor.FirstVisible(selected, profiles.Count, area);
         var left = ListLines(state, context, selected, first, area, listRoom, inner);
         var right = withDetails ? DetailLines(state, selected, width - listWidth - 1) : [];
 
@@ -293,11 +294,6 @@ public static class ProfileManagerScreen
             new StyledSpan(TextWidth.Pad(label, LabelColumn), TextRole.Muted),
             new StyledSpan(value, role),
         ]);
-    }
-
-    private static int FirstVisible(int selected, int count, int area)
-    {
-        return area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, count - area));
     }
 
     private static void MarkRegions(

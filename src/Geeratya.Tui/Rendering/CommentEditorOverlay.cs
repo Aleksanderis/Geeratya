@@ -79,17 +79,10 @@ public static class CommentEditorOverlay
             return;
         }
 
-        var first = PopupFirst(popup);
+        var first = FormOverlay.PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, Enumerable.Range(first, shown));
-    }
-
-    private static int PopupFirst(SuggestionState popup)
-    {
-        var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-
-        return Math.Clamp(cursor - PopupRows + 1, 0, Math.Max(0, popup.Items.Count - PopupRows));
     }
 
     private static List<StyledLine> BoxLines(
@@ -215,7 +208,7 @@ public static class CommentEditorOverlay
 
         var width = Math.Max(1, inner - 2);
         var cursor = Math.Clamp(popup.Cursor, 0, Math.Max(0, popup.Items.Count - 1));
-        var first = PopupFirst(popup);
+        var first = FormOverlay.PopupFirst(popup);
         var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
 
         foreach (var index in Enumerable.Range(first, shown))

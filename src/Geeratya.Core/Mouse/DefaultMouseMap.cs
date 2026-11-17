@@ -13,6 +13,9 @@ public static class DefaultMouseMap
     /// <summary>Rows moved by one wheel notch.</summary>
     public const int WheelRows = 3;
 
+    /// <summary>Rows moved by one wheel notch in a popup list of about five rows (decision 7 of the UI consistency audit).</summary>
+    public const int PopupWheelRows = 1;
+
     public static IReadOnlyList<MouseRow> Rows { get; } =
     [
         new(MouseTarget.Lists, MouseGesture.WheelUp, ActionIds.NavigateUp, WheelRows, 'A'),
@@ -40,11 +43,15 @@ public static class DefaultMouseMap
         new(MouseTarget.SettingsCategory, MouseGesture.Click, ActionIds.NavigateRight, 1, 'O'),
         new(MouseTarget.SettingsRow, MouseGesture.Click, ActionIds.ItemOpen, 1, 'O'),
         new(MouseTarget.SettingsRow, MouseGesture.RightClick, ActionIds.SettingsReset, 1, 'O'),
-        new(MouseTarget.SettingsRow, MouseGesture.WheelUp, ActionIds.NavigateUp, 1, 'O'),
-        new(MouseTarget.SettingsRow, MouseGesture.WheelDown, ActionIds.NavigateDown, 1, 'O'),
+        new(MouseTarget.SettingsRow, MouseGesture.WheelUp, ActionIds.NavigateUp, WheelRows, 'O'),
+        new(MouseTarget.SettingsRow, MouseGesture.WheelDown, ActionIds.NavigateDown, WheelRows, 'O'),
         new(MouseTarget.SettingsChoice, MouseGesture.Click, ActionIds.ItemOpen, 1, 'O'),
+        new(MouseTarget.SettingsChoice, MouseGesture.WheelUp, ActionIds.NavigateUp, PopupWheelRows, 'O'),
+        new(MouseTarget.SettingsChoice, MouseGesture.WheelDown, ActionIds.NavigateDown, PopupWheelRows, 'O'),
         new(MouseTarget.ProfileRow, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
         new(MouseTarget.ProfileRow, MouseGesture.RightClick, ActionIds.ProfileRemove, 1, 'O'),
+        new(MouseTarget.ProfileRow, MouseGesture.WheelUp, ActionIds.PickerPrevious, WheelRows, 'O'),
+        new(MouseTarget.ProfileRow, MouseGesture.WheelDown, ActionIds.PickerNext, WheelRows, 'O'),
         new(MouseTarget.ProfileAddButton, MouseGesture.Click, ActionIds.ProfileAdd, 1, 'O'),
         new(MouseTarget.ProfileEditButton, MouseGesture.Click, ActionIds.ProfileEdit, 1, 'O'),
         new(MouseTarget.ProfileTestButton, MouseGesture.Click, ActionIds.ProfileTest, 1, 'O'),
@@ -52,8 +59,12 @@ public static class DefaultMouseMap
         new(MouseTarget.ProfileCancelButton, MouseGesture.Click, ActionIds.Cancel, 1, 'O'),
         new(MouseTarget.FormField, MouseGesture.Click, ActionIds.FormFieldNext, 1, 'O'),
         new(MouseTarget.FormChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
+        new(MouseTarget.FormChoice, MouseGesture.WheelUp, ActionIds.PickerPrevious, PopupWheelRows, 'O'),
+        new(MouseTarget.FormChoice, MouseGesture.WheelDown, ActionIds.PickerNext, PopupWheelRows, 'O'),
         new(MouseTarget.FormMoreFields, MouseGesture.Click, ActionIds.FormMoreFields, 1, 'O'),
         new(MouseTarget.EditorChoice, MouseGesture.Click, ActionIds.FormNext, 1, 'O'),
+        new(MouseTarget.EditorChoice, MouseGesture.WheelUp, ActionIds.PickerPrevious, PopupWheelRows, 'O'),
+        new(MouseTarget.EditorChoice, MouseGesture.WheelDown, ActionIds.PickerNext, PopupWheelRows, 'O'),
         new(MouseTarget.HelpPage, MouseGesture.Click, ActionIds.HelpPageNext, 1, 'O'),
         new(MouseTarget.ConfirmYes, MouseGesture.Click, ActionIds.ConfirmYes, 1, 'O'),
         new(MouseTarget.ConfirmNo, MouseGesture.Click, ActionIds.ConfirmNo, 1, 'O'),

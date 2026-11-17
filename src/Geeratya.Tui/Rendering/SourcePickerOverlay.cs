@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Sprints;
@@ -64,7 +65,7 @@ public static class SourcePickerOverlay
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         var area = inner - 1 - footer;
-        var visible = rows.ChoiceOfLine.Skip(FirstVisible(rows, area)).Take(Math.Max(0, area));
+        var visible = rows.ChoiceOfLine.Skip(ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area)).Take(Math.Max(0, area));
 
         OverlayBox.Mark(regions, MouseTarget.PickerRow, top, left, boxWidth, 2, visible);
 
@@ -86,7 +87,7 @@ public static class SourcePickerOverlay
     {
         var contentWidth = boxWidth - 2;
         var area = inner - 1 - footer;
-        var first = FirstVisible(rows, area);
+        var first = ListCursor.FirstVisible(rows.SelectedLine, rows.Lines.Count, area);
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, TitleOf(picker)), OverlayBox.Wall(Prompt(picker, contentWidth), contentWidth) };
 
         var shown = rows.Lines.Skip(first).Take(Math.Max(0, area)).ToList();
@@ -134,16 +135,6 @@ public static class SourcePickerOverlay
     private static string MovedText(IReadOnlyList<string> keys)
     {
         return keys.Count == 1 ? keys[0] : $"{keys.Count.ToString(CultureInfo.InvariantCulture)} issues";
-    }
-
-    private static int FirstVisible(PickerRows rows, int area)
-    {
-        if (area <= 0 || rows.SelectedLine < area)
-        {
-            return 0;
-        }
-
-        return Math.Min(rows.SelectedLine - area + 1, Math.Max(0, rows.Lines.Count - area));
     }
 
     private static StyledLine Prompt(SourcePickerState picker, int contentWidth)

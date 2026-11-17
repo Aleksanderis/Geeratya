@@ -19,15 +19,6 @@ public sealed partial class AppReducer
     {
         var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
 
-        if (clicked.Target is MouseTarget.PickerRow or MouseTarget.JumpRow
-            && clicked.Action is ActionIds.PickerNext or ActionIds.PickerPrevious)
-        {
-            // The wheel over the rows moves the highlight and opens nothing.
-            var rows = clicked.Action == ActionIds.PickerNext ? DefaultMouseMap.WheelRows : -DefaultMouseMap.WheelRows;
-
-            return Result(MovePicker(cleared, rows));
-        }
-
         return clicked.Target switch
         {
             MouseTarget.PickerRow when cleared.Picker is { } picker
@@ -57,6 +48,27 @@ public sealed partial class AppReducer
             MouseTarget.HelpPage when state.Mode == InputMode.Help => Result(HelpReducer.Show(cleared, clicked.Index)),
             MouseTarget.ConfirmYes when state.Mode == InputMode.Confirm => Confirmed(state, clicked.At),
             MouseTarget.ConfirmNo when state.Mode == InputMode.Confirm => DeclineConfirm(state),
+            _ => Result(state),
+        };
+    }
+
+    /// <summary>
+    /// A wheel notch over an overlay with a highlight: the highlight moves and nothing runs, so a stray scroll never
+    /// opens or changes anything.
+    /// </summary>
+    private ReduceResult ReduceOverlayWheel(AppState state, OverlayWheeled wheeled)
+    {
+        var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
+
+        return wheeled.Target switch
+        {
+            MouseTarget.PaletteRow when state.Mode == InputMode.Command => Result(MovePalette(cleared, wheeled.Rows)),
+            MouseTarget.JumpRow => Result(JumpReducer.Move(cleared, wheeled.Rows)),
+            MouseTarget.PickerRow => Result(SourceReducer.Move(cleared, wheeled.Rows)),
+            MouseTarget.SettingsRow or MouseTarget.SettingsChoice => SettingsScreenReducer.Wheeled(cleared, wheeled.Rows),
+            MouseTarget.ProfileRow => Result(ProfileReducer.MoveList(cleared, wheeled.Rows)),
+            MouseTarget.FormChoice => FormReducer.Wheeled(cleared, wheeled.Rows),
+            MouseTarget.EditorChoice => EditorSuggestions.Wheeled(cleared, wheeled.Rows),
             _ => Result(state),
         };
     }

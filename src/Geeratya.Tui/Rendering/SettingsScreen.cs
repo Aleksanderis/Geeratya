@@ -1,4 +1,5 @@
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Settings;
 using Geeratya.Core.State;
@@ -67,7 +68,7 @@ public static class SettingsScreen
         var entries = Entries(state, rows, selected, wide ? categories[category] : null, room);
         var area = Math.Max(1, Math.Min(height - 2 - Chrome, Wanted(state, rows, categories, wide, room)));
         var top = Math.Max(0, (height - area - Chrome) / 2);
-        var first = FirstVisible(entries, area);
+        var first = ListCursor.FirstVisible(entries.FindLastIndex(static entry => entry.Cursor), entries.Count, area);
         var box = Box(state, context, rows[selected], entries, new Layout(categories, category, wide, boxWidth, area, first));
 
         if (regions is not null)
@@ -322,13 +323,6 @@ public static class SettingsScreen
 
             yield return new Entry(StyledLine.Of($"    {cursor} {saved} {words[index]}", role), -1, index, index == choice);
         }
-    }
-
-    private static int FirstVisible(List<Entry> entries, int area)
-    {
-        var cursor = entries.FindLastIndex(static entry => entry.Cursor);
-
-        return area <= 0 || cursor < area ? 0 : Math.Min(cursor - area + 1, Math.Max(0, entries.Count - area));
     }
 
     private static string HelpText(AppState state, SettingsRow row)

@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 
@@ -38,7 +39,7 @@ public static class JumpRows
                 break;
             }
 
-            if (candidate.Key.Contains(needle, StringComparison.Ordinal) && seen.Add(candidate.Key))
+            if (Matcher.Matches(candidate.Key, needle) && seen.Add(candidate.Key))
             {
                 rows.Add(candidate);
             }

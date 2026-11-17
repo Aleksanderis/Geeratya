@@ -168,6 +168,7 @@ public sealed partial class AppReducer
             CardDragged dragged => Followed(state, CardDrag.Drop(Unpended(state), dragged)),
             TabActivated activated => ViewReducer.Reduce(Unpended(state), activated),
             OverlayRowClicked clicked => Followed(state, ReduceOverlayRow(state, clicked)),
+            OverlayWheeled wheeled => Followed(state, ReduceOverlayWheel(state, wheeled)),
             ConfirmRequested requested => Result(state with
             {
                 Mode = InputMode.Confirm,

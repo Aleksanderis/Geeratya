@@ -1,5 +1,6 @@
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -59,7 +60,7 @@ public static class JumpOverlay
 
         if (rows.Count > 0)
         {
-            var first = FirstVisible(selected, rows.Count, area);
+            var first = ListCursor.FirstVisible(selected, rows.Count, area);
             var shown = Math.Max(0, Math.Min(area, rows.Count - first));
 
             OverlayBox.Mark(regions, MouseTarget.JumpRow, top, left, boxWidth, 2, Enumerable.Range(first, shown));
@@ -84,7 +85,7 @@ public static class JumpOverlay
     {
         var contentWidth = boxWidth - 2;
         var area = Math.Max(0, inner - 1 - footer);
-        var first = FirstVisible(selected, rows.Count, area);
+        var first = ListCursor.FirstVisible(selected, rows.Count, area);
         var lines = new List<StyledLine>
         {
             OverlayBox.Top(boxWidth, Title),
@@ -116,11 +117,6 @@ public static class JumpOverlay
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;
-    }
-
-    private static int FirstVisible(int selected, int count, int area)
-    {
-        return area <= 0 || selected < area ? 0 : Math.Min(selected - area + 1, Math.Max(0, count - area));
     }
 
     private static StyledLine Prompt(JumpState jump, int contentWidth)
