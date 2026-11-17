@@ -728,6 +728,17 @@ public class ProfileReducerTests
         Assert.Equal(0, typed.ProfileList!.Selected);
     }
 
+    [Fact]
+    public void GivenAnEmptyProfileList_WhenPressingJ_ThenNothingChanges()
+    {
+        var open = AppState.Initial with { Mode = InputMode.Insert, ProfileList = new ProfileListState(0) };
+
+        var after = Press(open, "j").State;
+
+        Assert.Equal(0, after.ProfileList!.Selected);
+        Assert.Null(after.Form);
+    }
+
     private AppState Paste(AppState state, string text)
     {
         return _reducer.Reduce(state, new TextPasted(text)).State;

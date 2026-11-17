@@ -190,18 +190,18 @@ public static class ProfileManagerScreen
 
         if (footer > 0)
         {
-            lines.Add(Footer(context.Keymap));
+            lines.Add(Footer(context.Keymap, state.Profiles.Profiles.Count > 0));
         }
 
         return lines;
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, bool anyProfile)
     {
         return DialogFooter.Line(
         [
             DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Switch),
+            anyProfile ? DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Switch) : null,
             DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
         ]);
     }

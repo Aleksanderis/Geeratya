@@ -109,7 +109,7 @@ public static class HelpOverlay
         if (footer > 0)
         {
             box.Add(OverlayBox.Divider(boxWidth));
-            box.Add(OverlayBox.Wall(Footer(keymap, withPages: true), boxWidth - 2));
+            box.Add(OverlayBox.Wall(Footer(keymap, withPages: true, state.HelpFiltering), boxWidth - 2));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));
@@ -132,8 +132,19 @@ public static class HelpOverlay
     }
 
     /// <summary>The footer of the Help and of the Messages screen (Help mode); the page chips only for the Help.</summary>
-    internal static StyledLine Footer(KeymapTable keymap, bool withPages)
+    internal static StyledLine Footer(KeymapTable keymap, bool withPages, bool filtering = false)
     {
+        if (filtering)
+        {
+            // While the filter line is typed j, k and / are text, Enter keeps the filter and Esc clears it.
+            return DialogFooter.Line(
+            [
+                DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.KeepFilter),
+                DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page),
+                DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.ClearFilter),
+            ]);
+        }
+
         return DialogFooter.Line(
         [
             DialogFooter.Pair(keymap, InputMode.Help, ActionIds.NavigateDown, ActionIds.NavigateUp, HintLabels.Move),

@@ -15,6 +15,9 @@ public static class HintLabels
     /// <summary>Esc empties the typed filter first.</summary>
     public const string ClearFilter = "clear filter";
 
+    /// <summary>Enter keeps the typed filter and leaves the filter line.</summary>
+    public const string KeepFilter = "keep filter";
+
     /// <summary>The answer that returns to a form that asked to discard.</summary>
     public const string KeepEditing = "keep editing";
 
