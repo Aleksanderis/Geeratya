@@ -71,7 +71,7 @@ Geeratya reads the file at start. After editing it, run `:keys reload` in the co
 
 ## Examples
 
-Quit on `Ctrl-q` and not on `q`:
+Quit on `Ctrl-q` and not on `q` (this rebinds only `app.quit`; `q` is also `nav.close` and keeps closing one level at a time, and `Ctrl-c` and `:q` still quit):
 
 ```json
 {

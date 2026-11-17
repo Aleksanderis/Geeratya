@@ -8,7 +8,7 @@ This table is generated from the settings registry (`SettingsRegistry` in `Geera
 
 | `:set` name | File key | Values | Default | What it does |
 |---|---|---|---|---|
-| `hints.statusBar` | `hints.statusBar` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none. |
+| `hints.statusBar` | `hints.statusBar` | full, minimal or off | `full` | How many key hints the right of the status bar shows: all of them, only help, commands and back, or none. |
 | `hints.whichKey` | `hints.whichKey` | on or off | `on` | Show the popup of the next keys while a multi-key binding is half typed. |
 | `commandlevel` | `commandLevel` | everyday or advanced | `everyday` | Which actions help, the palette, which-key and the hints list: everyday ones only, or advanced too. |
 | `theme` | `theme` | a theme name | `auto` | The colour theme: a built-in one or a file in the themes folder. |

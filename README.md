@@ -80,7 +80,7 @@ geeratya GEN-123            # open one issue in a tab
 geeratya --board <name>     # also --backlog, --jql, --filter, --profile
 ```
 
-`?` shows the keys of the current screen, `:` opens the command palette, `q` quits. The full list is in the [key reference](docs/keymap.md).
+`?` shows the keys of the current screen, `:` opens the command palette, `q` closes the innermost open thing and quits from the view root. The full list is in the [key reference](docs/keymap.md).
 
 ## Docs
 
