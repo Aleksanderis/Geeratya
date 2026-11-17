@@ -5,7 +5,9 @@ using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Tests.Forms;
 
@@ -147,6 +149,89 @@ public class FieldKindContractTests
         Assert.Equal("Start (yyyy-MM-dd HH:mm)", field.Label);
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(0, true)]
+    public void GivenACreateFormOfAnIssueType_WhenSearchingAParent_ThenTheLevelTheTypeAcceptsNarrowsTheSearch(
+        int level,
+        bool subtask)
+    {
+        var type = new CreateIssueType("10", "Type", string.Empty, level, subtask);
+
+        var source = ParentSearchOf(new CreateFormTarget("A", null, subtask, type));
+
+        Assert.NotNull(source.ParentLevel);
+        Assert.Equal(ParentLevels.Accepted(level, subtask), source.ParentLevel);
+    }
+
+    [Fact]
+    public void GivenAnEditFormWithAParentLevel_WhenSearchingAParent_ThenTheSearchIsLimitedToItsProjectAndLevel()
+    {
+        var target = new EditFormTarget("TM-7", new Dictionary<string, FormValue>(), false, null, ParentLevel: 1);
+
+        var source = ParentSearchOf(target);
+
+        Assert.Equal("TM", source.ProjectKey);
+        Assert.Equal("TM-7", source.IssueKey);
+        Assert.Equal(1, source.ParentLevel);
+    }
+
+    [Fact]
+    public void GivenACreateFormWithoutAType_WhenSearchingAParent_ThenNoLevelNarrowsTheSearch()
+    {
+        var source = ParentSearchOf(new CreateFormTarget("A", null, false, null));
+
+        Assert.Null(source.ParentLevel);
+        Assert.Equal("A", source.ProjectKey);
+    }
+
+    [Theory]
+    [InlineData("create", true)]
+    [InlineData("edit", false)]
+    [InlineData("transition", false)]
+    public void GivenAChoiceFieldWithAProjectList_WhenTyping_ThenTheListIsSearchedOnlyWhereTheProjectIsKnown(
+        string presentation,
+        bool searched)
+    {
+        var field = Choice(FormFieldKind.MultiSelect) with { Lookup = SuggestionKind.Components };
+        var state = Open(presentation, field);
+
+        var effects = Press(state, "u").Effects;
+
+        Assert.Equal(searched, effects.OfType<SearchSuggestionsEffect>().Any());
+    }
+
+    [Theory]
+    [MemberData(nameof(Presentations))]
+    public void GivenAChoiceFieldWithAFilter_WhenEscIsPressed_ThenTheFilterClearsFirstAndTheValuesStayListed(
+        string presentation)
+    {
+        var state = Open(presentation, Choice(FormFieldKind.Select));
+
+        var filtered = Type(state, "ba");
+        var cleared = Press(filtered, "Esc").State.Session.Tabs[0].Form!;
+
+        Assert.Equal(string.Empty, cleared.Fields[0].Entry);
+        Assert.Equal(["", "low", "base"], cleared.Suggest!.Items.Select(item => item.Id));
+    }
+
+    // The dropdown of the issue view is left out: it writes as soon as a row is taken, by design.
+    [Theory]
+    [InlineData("create")]
+    [InlineData("edit")]
+    [InlineData("transition")]
+    public void GivenAMultiChoiceField_WhenARowIsTakenWithEnter_ThenItJoinsTheValueAndTheFieldKeepsTheFocus(
+        string presentation)
+    {
+        var state = Open(presentation, Choice(FormFieldKind.MultiSelect), Text());
+
+        var taken = Press(Press(state, "Down").State, "Enter").State.Session.Tabs[0].Form!;
+
+        Assert.Equal(["low"], taken.Fields[0].Value.Chosen);
+        Assert.Equal(0, taken.Focus);
+    }
+
     private static FormField Labels(params string[] labels)
     {
         var field = Field("Labels", FormFieldKind.Labels) with { Id = FormFieldIds.Labels };
@@ -157,6 +242,20 @@ public class FieldKindContractTests
     private static FormField Parent()
     {
         return Field("Parent", FormFieldKind.Parent) with { Id = FormFieldIds.Parent };
+    }
+
+    private static FormField Choice(FormFieldKind kind)
+    {
+        FieldOption[] options = [new("low", "Low"), new("base", "Base")];
+
+        return FormField.Create("customfield_pick", "Pick", kind, false, options);
+    }
+
+    private SuggestionSource ParentSearchOf(FormTarget target)
+    {
+        var state = Open(target, false, Parent());
+
+        return Assert.IsType<SearchSuggestionsEffect>(Assert.Single(Press(state, "j").Effects)).Source;
     }
 
     private static FormField Text()
@@ -192,11 +291,16 @@ public class FieldKindContractTests
     // The form with the given fields, the first focused.
     private AppState Open(string presentation, params FormField[] fields)
     {
+        return Open(TargetOf(presentation), presentation == "dropdown", fields);
+    }
+
+    private AppState Open(FormTarget target, bool dropdown, params FormField[] fields)
+    {
         var state = Tabbed();
         var tab = state.Session.Tabs[0];
-        var form = FormState.Opened(TargetOf(presentation), 7, null) with
+        var form = FormState.Opened(target, 7, null) with
         {
-            Dropdown = presentation == "dropdown" ? fields[0].Id : null,
+            Dropdown = dropdown ? fields[0].Id : null,
         };
         var withForm = state with
         {

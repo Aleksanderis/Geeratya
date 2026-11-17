@@ -52,7 +52,7 @@ public sealed record CreateFormTarget(
 
     public override string SearchProjectKey => ProjectKey;
 
-    public override string? ParentProjectKey => ProjectKey;
+    public override string ParentProjectKey => ProjectKey;
 
     public override int? ParentHierarchyLevel
         => IssueType is { } type ? ParentLevels.Accepted(type.HierarchyLevel, type.IsSubtask) : null;

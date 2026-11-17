@@ -53,5 +53,5 @@ public static class CreateFormRules
         };
 
     private static bool HasValue(CreateField field, NewIssue issue) =>
-        issue.Fields?.ContainsKey(field.FieldId) == true;
+        issue.Fields?.GetValueOrDefault(field.FieldId) is { IsCleared: false };
 }

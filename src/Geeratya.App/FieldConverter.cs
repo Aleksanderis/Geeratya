@@ -16,13 +16,13 @@ public static class FieldConverter
     /// <summary>The edits for the changed fields of an edit form.</summary>
     public static IReadOnlyList<FieldUpdate> ForEdit(IReadOnlyList<FieldChange> changes)
     {
-        return [.. changes.Select(change => Convert(change, true))];
+        return [.. changes.Select(change => Convert(change, incremental: true))];
     }
 
     /// <summary>The value of one field of a create form, written whole.</summary>
     public static FieldUpdate ForCreate(FieldChange change)
     {
-        return Convert(change, false);
+        return Convert(change, incremental: false);
     }
 
     private static FieldUpdate Convert(FieldChange change, bool incremental)

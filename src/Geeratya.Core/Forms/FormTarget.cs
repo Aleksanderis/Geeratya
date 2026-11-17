@@ -15,13 +15,13 @@ public abstract record FormTarget
     /// <summary>The issue the form is about, or null for a form with no issue yet (create).</summary>
     public abstract string? IssueKey { get; }
 
-    /// <summary>The project a person field searches in while the issue does not exist yet (a create form); null otherwise.</summary>
+    /// <summary>The project a person field searches in while the issue does not exist yet (create); else null.</summary>
     public virtual string? SearchProjectKey => null;
 
-    /// <summary>The project a parent search is limited to (the project of the edited or created issue); null for any.</summary>
+    /// <summary>The project a parent search is limited to (that of the edited or created issue); null for any.</summary>
     public virtual string? ParentProjectKey => null;
 
-    /// <summary>The hierarchy level a parent of this issue must have, when the issue type is known; else null.</summary>
+    /// <summary>The hierarchy level a parent of this issue must have, when its type is known; else null.</summary>
     public virtual int? ParentHierarchyLevel => null;
 
     /// <summary>The message when the metadata holds nothing to fill in.</summary>

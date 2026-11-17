@@ -35,6 +35,9 @@ public sealed class FieldUpdate
 
     internal string Json { get; }
 
+    /// <summary>True when the value clears the field (null or an empty list), so a create counts it as not given.</summary>
+    internal bool IsCleared => Json is "null" or "[]";
+
     /// <summary>The value as a JSON element, for the body of a call that takes plain field values (a transition).</summary>
     public JsonElement ToElement()
     {

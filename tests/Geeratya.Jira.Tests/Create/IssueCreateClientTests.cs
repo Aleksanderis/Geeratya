@@ -460,6 +460,46 @@ public sealed class IssueCreateClientTests
         Assert.Equal("issuetype", Assert.Single(result.Error.FieldErrors).FieldId);
     }
 
+    [Fact]
+    public async Task GivenAnAddOrRemoveChangeOrAMismatchedId_WhenCreating_ThenRefusedWithoutRequest()
+    {
+        using var fixture = ServingCreate("writes/create-gtm-task-reply.json");
+        var extras = new Dictionary<string, FieldUpdate>
+        {
+            ["labels"] = FieldUpdate.ChangeLabels("labels", ["a"], []),
+            ["customfield_1"] = FieldUpdate.Text("customfield_2", "x"),
+        };
+
+        var result = await new IssueCreateClient(fixture.Transport).CreateIssueAsync(
+            new NewIssue("GCM", "10010", "Title", Fields: extras),
+            CancellationToken.None);
+
+        Assert.Equal(WriteErrorKind.Validation, result.Error.Kind);
+        Assert.Equal(["labels", "customfield_1"], result.Error.FieldErrors.Select(error => error.FieldId));
+        Assert.Empty(fixture.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task GivenAClearedValueForARequiredField_WhenCheckingRequired_ThenTheFieldIsStillMissing()
+    {
+        using var fixture = new TransportFixture();
+        fixture.Handler.Serve(
+            HttpMethod.Get,
+            $"{MetaPath}/GCM/issuetypes/20003",
+            FakeResponse.Ok(FixtureFiles.Read("create/synthetic-fields-custom.json")));
+        var fields = (await new IssueCreateClient(fixture.Transport)
+            .GetFieldsAsync("GCM", "20003", CancellationToken.None)).Value;
+        var cleared = new Dictionary<string, FieldUpdate>
+        {
+            ["customfield_20010"] = FieldUpdate.Option("customfield_20010", null),
+            ["customfield_20015"] = FieldUpdate.Text("customfield_20015", null),
+        };
+
+        var missing = CreateFormRules.MissingRequired(fields, new NewIssue("GCM", "20003", "T", "d", "GCM-5", cleared));
+
+        Assert.Equal(["customfield_20010", "customfield_20015"], missing.Select(field => field.FieldId));
+    }
+
     [Theory]
     [InlineData("", "10010", "GCM-1", null, "summary")]
     [InlineData("  ", "10010", null, null, "summary")]
