@@ -82,7 +82,7 @@ internal sealed class CreateDetailsRows
 
         if (_form.Fields[index].Error is { } error)
         {
-            rows.Add(new CreatePaneRow(StyledLine.Of($"! {error}", TextRole.Error), MouseTarget.FormField, index));
+            rows.AddRange(FieldRows.Error(error, inner).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
         }
     }
 

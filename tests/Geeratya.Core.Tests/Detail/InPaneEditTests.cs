@@ -138,8 +138,8 @@ public class InPaneEditTests
         var asked = Press(typed, "Esc");
         var discarded = Press(asked.State, "y");
 
-        Assert.True(Active(asked.State).Form!.DiscardPending);
-        Assert.Contains("Discard the changes?", Plain(Build(asked.State, 100, 30)));
+        Assert.True(DiscardPrompts.Is(asked.State.Confirm));
+        Assert.Contains("Discard", Plain(Build(asked.State, 100, 30)));
         Assert.Null(Active(discarded.State).Form);
         Assert.Empty(discarded.Effects);
         Assert.Equal("Issue 1", Active(discarded.State).Detail[0].Issue!.Summary);

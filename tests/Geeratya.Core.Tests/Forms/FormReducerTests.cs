@@ -301,9 +301,9 @@ public class FormReducerTests
         var askedAgain = Press(kept, "Esc").State;
         var discarded = Press(askedAgain, "y");
 
-        Assert.False(dismissed.Session.Tabs[0].Form!.DiscardPending);
-        Assert.True(asked.Session.Tabs[0].Form!.DiscardPending);
-        Assert.False(kept.Session.Tabs[0].Form!.DiscardPending);
+        Assert.False(DiscardPrompts.Is(dismissed.Confirm));
+        Assert.True(DiscardPrompts.Is(asked.Confirm));
+        Assert.False(DiscardPrompts.Is(kept.Confirm));
         Assert.Equal("x", kept.Session.Tabs[0].Form!.Fields[0].Entry);
         Assert.Null(discarded.State.Session.Tabs[0].Form);
         Assert.Equal(InputMode.Normal, discarded.State.Mode);

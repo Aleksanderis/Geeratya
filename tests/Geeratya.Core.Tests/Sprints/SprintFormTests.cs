@@ -259,7 +259,7 @@ public class SprintFormTests
         var asked = Press(state, "Esc");
         var discarded = Press(asked.State, "y");
 
-        Assert.True(Active(asked.State).Form!.DiscardPending);
+        Assert.True(DiscardPrompts.Is(asked.State.Confirm));
         Assert.Empty(asked.Effects);
         Assert.Null(Active(discarded.State).Form);
         Assert.Empty(discarded.Effects);

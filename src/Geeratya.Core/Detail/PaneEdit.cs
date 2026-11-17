@@ -58,7 +58,7 @@ public sealed record PaneEdit(string Pane, FormState Form)
     public List<StyledLine> TitleRows(int inner)
     {
         var field = Field;
-        var rows = new List<StyledLine> { CaretRows.Field(new PromptText(field.Value.Text, field.Back), Math.Max(1, inner)) };
+        var rows = FieldRows.Value(field, Look(inner));
 
         rows.AddRange(Footer(inner));
 
@@ -75,22 +75,22 @@ public sealed record PaneEdit(string Pane, FormState Form)
         var field = Field;
         var prompt = new PromptText(field.Value.Text, field.Back);
         var lines = field.Value.Text.Split('\n');
-        var caretRow = prompt.Text[..prompt.Caret].Count(static character => character == '\n');
+        var caretRow = FieldRows.CaretRowOf(prompt);
         var notices = Footer(inner);
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);
         var first = Math.Clamp(caretRow - (shown / 2), 0, lines.Length - shown);
-        var rows = new List<StyledLine>(shown + notices.Count);
-
-        for (var index = first; index < first + shown; index++)
-        {
-            rows.Add(CaretRows.FieldRow(prompt, lines[index], index, caretRow, Math.Max(1, inner)));
-        }
+        var rows = FieldRows.Paragraph(field, Look(inner), first, shown);
 
         rows.AddRange(notices);
         scroll = lines.Length > shown ? new PaneScroll(first, lines.Length, shown) : null;
 
         return rows;
+    }
+
+    private static FieldLook Look(int inner)
+    {
+        return new FieldLook(Math.Max(1, inner)) { Editing = true, Boxed = true };
     }
 
     // The rows under the input: the key hint, then the notices.
@@ -130,12 +130,12 @@ public sealed record PaneEdit(string Pane, FormState Form)
 
         if (Field.Error is { } error)
         {
-            notices.AddRange(FormErrors.Lines(error, inner));
+            notices.AddRange(FieldRows.Error(error, inner));
         }
 
         if (Form.TopError is { } top)
         {
-            notices.AddRange(FormErrors.Lines(top, inner));
+            notices.AddRange(FieldRows.Error(top, inner));
         }
 
         return notices;

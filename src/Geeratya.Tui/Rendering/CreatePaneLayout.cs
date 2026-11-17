@@ -22,7 +22,6 @@ internal sealed class CreatePaneLayout
     private const string NotEditableText = "Attachments and comments are added after the issue exists.";
     private const string OpenAfterText = "opens after create";
     private const string SavingText = "Saving…";
-    private const string DiscardText = "Discard the changes? (y/n)";
     private const string TitlePlaceholder = "What needs to be done?";
     private const string DescriptionPlaceholder = "Describe it.";
     private const string RequiredText = "required *";
@@ -173,11 +172,11 @@ internal sealed class CreatePaneLayout
 
             if (_form.Fields[index].Error is { } error)
             {
-                rows.Add(new CreatePaneRow(StyledLine.Of($"! {error}", TextRole.Error), MouseTarget.FormField, index));
+                rows.AddRange(ErrorRows(error, index, Panel.InnerWidth(width)));
             }
         }
 
-        rows.AddRange(Notices().Select(static line => new CreatePaneRow(line)));
+        rows.AddRange(Notices(Panel.InnerWidth(width)).Select(static line => new CreatePaneRow(line)));
 
         var openAfter = create.OpenAfter ? new[] { new StyledSpan(OpenAfterText, TextRole.Muted) } : null;
 
@@ -190,28 +189,8 @@ internal sealed class CreatePaneLayout
         var editing = index == _form.Focus && !_form.Navigating && !_form.IsSaving;
         var required = field.Required ? RequiredText : string.Empty;
         var room = Math.Max(1, inner - (required.Length == 0 ? 0 : required.Length + 1));
-        var spans = new List<StyledSpan>();
-
-        if (field.Value.Text.Length == 0)
-        {
-            spans.Add(new StyledSpan(DisplayText.Cut(TitlePlaceholder, room - (editing ? 1 : 0)), TextRole.Muted));
-
-            if (editing)
-            {
-                spans.Add(new StyledSpan(" ", TextRole.EditCaret));
-            }
-        }
-        else if (editing)
-        {
-            spans.AddRange(CaretRows.Spans(new PromptText(field.Value.Text, field.Back), room, TextRole.Editable));
-        }
-        else
-        {
-            var flat = field.Value.Text.ReplaceLineEndings(" ");
-
-            spans.Add(new StyledSpan(DisplayText.Cut(flat, room), TextRole.Editable));
-        }
-
+        var look = new FieldLook(room) { Editing = editing, Placeholder = TitlePlaceholder };
+        var spans = FieldRows.Value(field, look)[0].Spans.ToList();
         var used = spans.Sum(static span => DisplayWidth.Of(span.Text));
 
         if (required.Length > 0 && inner - used > required.Length)
@@ -223,7 +202,12 @@ internal sealed class CreatePaneLayout
         return new StyledLine(spans);
     }
 
-    private List<StyledLine> Notices()
+    private static IEnumerable<CreatePaneRow> ErrorRows(string error, int index, int inner)
+    {
+        return FieldRows.Error(error, inner).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index));
+    }
+
+    private List<StyledLine> Notices(int inner)
     {
         var notices = new List<StyledLine>();
 
@@ -234,12 +218,7 @@ internal sealed class CreatePaneLayout
 
         if (_form.TopError is not null)
         {
-            notices.Add(StyledLine.Of($"! {_form.TopError}", TextRole.Error));
-        }
-
-        if (_form.DiscardPending)
-        {
-            notices.Add(StyledLine.Of(DiscardText, TextRole.Warning));
+            notices.AddRange(FieldRows.Error(_form.TopError, inner));
         }
 
         return notices;
@@ -255,22 +234,20 @@ internal sealed class CreatePaneLayout
         if (index >= 0)
         {
             var field = _form.Fields[index];
-            var prompt = new PromptText(field.Value.Text, field.Back);
-            var lines = field.Value.Text.Split('\n');
             var editing = index == _form.Focus && !_form.Navigating && !_form.IsSaving;
-
-            caretRow = editing ? prompt.Text[..prompt.Caret].Count(character => character == '\n') : -1;
-
-            for (var row = 0; row < lines.Length; row++)
+            var look = new FieldLook(inner)
             {
-                var line = DescriptionLine(prompt, lines[row], row, caretRow, inner);
+                Editing = editing,
+                Expanded = true,
+                Placeholder = DescriptionPlaceholder,
+            };
 
-                rows.Add(new CreatePaneRow(line, MouseTarget.FormField, index));
-            }
+            caretRow = editing ? FieldRows.CaretRowOf(new PromptText(field.Value.Text, field.Back)) : -1;
+            rows.AddRange(FieldRows.Value(field, look).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
 
             if (field.Error is { } error)
             {
-                rows.Add(new CreatePaneRow(StyledLine.Of($"! {error}", TextRole.Error), MouseTarget.FormField, index));
+                rows.AddRange(ErrorRows(error, index, inner));
             }
         }
 
@@ -283,16 +260,6 @@ internal sealed class CreatePaneLayout
             FocusStart = Math.Max(0, caretRow),
             FocusLength = 1,
         };
-    }
-
-    private static StyledLine DescriptionLine(PromptText prompt, string line, int row, int caretRow, int inner)
-    {
-        if (prompt.Text.Length == 0 && caretRow < 0)
-        {
-            return StyledLine.Of(DisplayText.Cut(DescriptionPlaceholder, inner), TextRole.Muted);
-        }
-
-        return new StyledLine(CaretRows.ParagraphSpans(prompt, line, row, caretRow, inner, TextRole.Editable));
     }
 
     private CreatePaneSpec NotEditablePane(int width)

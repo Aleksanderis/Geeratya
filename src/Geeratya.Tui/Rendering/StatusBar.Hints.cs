@@ -135,6 +135,23 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
+    /// <summary>The hints of a form of several fields in its navigate state (every presentation but the create panes).</summary>
+    public static IReadOnlyList<StatusHint> FormNavigateHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormNext, "edit"),
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "cancel"),
+    ];
+
+    /// <summary>The hints of a form of several fields while the focused field is edited (<c>Esc</c> stops).</summary>
+    public static IReadOnlyList<StatusHint> FormEditingHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormSubmit, "save"),
+        new(InputMode.Insert, ActionIds.Cancel, "stop editing"),
+    ];
+
     /// <summary>The hints shown while the create form is open as panes (#708).</summary>
     public static IReadOnlyList<StatusHint> CreateHints { get; } =
     [
@@ -168,24 +185,6 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
     ];
 
-    /// <summary>The hint shown while a form asks whether to discard its changes (the "keep editing" chip is added in <see cref="DiscardTexts"/>).</summary>
-    private static IReadOnlyList<StatusHint> DiscardHints { get; } =
-    [
-        new(InputMode.Confirm, ActionIds.ConfirmYes, "discard"),
-    ];
-
-    private static List<HintChip> DiscardTexts(KeymapTable keymap, CommandLevel level)
-    {
-        var texts = TextsOf(DiscardHints, InputMode.Confirm, HintScope.Global, keymap, level);
-        var no = KeyNotation.Display(keymap.FindKeys(InputMode.Confirm, ActionIds.ConfirmNo));
-        var escape = KeyNotation.Display(keymap.FindKeys(InputMode.Insert, ActionIds.Cancel));
-
-        // Esc keeps editing as well (the form reducer treats it like the no answer).
-        texts.Add(new HintChip(string.Join('/', new[] { no, escape }.Where(static key => key is not null)), "keep editing"));
-
-        return texts;
-    }
-
     private const string MoreFieldsLabel = "more fields";
     private const string CtrlPrefix = "Ctrl-";
 
@@ -203,7 +202,7 @@ public static partial class StatusBar
 
         if (!CreatePanes.Applies(form))
         {
-            return FormHints;
+            return !form.Navigable ? FormHints : form.Navigating ? FormNavigateHints : FormEditingHints;
         }
 
         return form.Navigating ? CreateHints : CreateEditingHints;
@@ -246,14 +245,9 @@ public static partial class StatusBar
             return new HintList([], TextsOf(EditorHints, state.Mode, HintScope.Global, keymap, level));
         }
 
-        if (FormReducer.IsOpen(state))
+        if (FormReducer.IsOpen(state) && state.Mode != InputMode.Confirm)
         {
             var form = FormReducer.OpenForm(state)!;
-
-            if (form.DiscardPending)
-            {
-                return new HintList([], DiscardTexts(keymap, level));
-            }
 
             var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
 

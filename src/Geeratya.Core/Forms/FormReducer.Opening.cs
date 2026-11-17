@@ -111,15 +111,10 @@ public static partial class FormReducer
     private static FieldChange ChangeOf(FormField field)
     {
         var display = FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind)
-            ? field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray()
+            ? field.Value.Chosen.Select(id => FieldRows.LabelOf(field, id)).ToArray()
             : null;
 
         return new FieldChange(field.Id, field.Kind, field.Value, field.Initial, display);
-    }
-
-    private static string LabelOf(FormField field, string id)
-    {
-        return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
     }
 
     private static ReduceResult OpenLink(AppState state)

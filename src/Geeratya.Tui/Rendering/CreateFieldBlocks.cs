@@ -11,11 +11,7 @@ namespace Geeratya.Tui.Rendering;
 internal static class CreateFieldBlocks
 {
     private const string RequiredMark = " *";
-    private const string NoneText = EmptyValues.None;
     private const string FromSelection = "from selection";
-    private const string NavigateNote = "[navigate]";
-    private const string EditingNote = "[editing]";
-    private const int InitialsCells = 2;
     private const int Lead = 1;
     private const int DropdownCells = 2;
 
@@ -39,9 +35,9 @@ internal static class CreateFieldBlocks
 
     private static string? Note(FormState form, FormField field, bool focused)
     {
-        if (focused && form.Navigable)
+        if (focused && FormShell.StateNote(form) is { } state)
         {
-            return form.Navigating ? NavigateNote : EditingNote;
+            return state;
         }
 
         var fromSelection = field.Id == FormFieldIds.Parent && form.Target is CreateFormTarget { ParentKey: { } parent }
@@ -52,104 +48,8 @@ internal static class CreateFieldBlocks
 
     private static List<IReadOnlyList<StyledSpan>> Items(FormField field, bool editing, int room)
     {
-        var items = field.Kind switch
-        {
-            FormFieldKind.Labels => LabelItems(field),
-            FormFieldKind.User => UserItems(field),
-            _ when FormFieldKinds.IsChoice(field.Kind) || field.Kind == FormFieldKind.Parent => ChoiceItems(field),
-            _ => TextItems(field, editing, room),
-        };
+        var look = new FieldLook(room, TextRole.ValueBlock) { Editing = editing, Layout = FieldLayout.Items };
 
-        if (editing && FormFieldKinds.HasPopup(field.Kind))
-        {
-            items.Add(CaretRows.Spans(new PromptText(field.Entry, field.Back), room, TextRole.ValueBlock));
-        }
-
-        return items.Count == 0 ? [[new StyledSpan(NoneText, TextRole.Muted)]] : items;
-    }
-
-    private static List<IReadOnlyList<StyledSpan>> TextItems(FormField field, bool editing, int room)
-    {
-        var text = field.Value.Text;
-
-        if (editing)
-        {
-            var row = field.Kind == FormFieldKind.Paragraph
-                ? Caretted(field, room)
-                : CaretRows.Spans(new PromptText(text, field.Back), room, TextRole.ValueBlock);
-
-            return [row];
-        }
-
-        if (text.Length == 0)
-        {
-            return [];
-        }
-
-        var head = text.Split('\n')[0];
-
-        return [[Block(text.Contains('\n') ? $"{head}…" : head)]];
-    }
-
-    private static IReadOnlyList<StyledSpan> Caretted(FormField field, int room)
-    {
-        var prompt = new PromptText(field.Value.Text, field.Back);
-        var rows = prompt.Text.Split('\n');
-        var caretRow = prompt.Text[..prompt.Caret].Count(character => character == '\n');
-
-        return CaretRows.ParagraphSpans(prompt, rows[caretRow], caretRow, caretRow, room, TextRole.ValueBlock);
-    }
-
-    private static List<IReadOnlyList<StyledSpan>> LabelItems(FormField field)
-    {
-        return [.. field.Value.Chosen.Select(label => (IReadOnlyList<StyledSpan>)
-            [new StyledSpan($" {Clean(FormOverlay.LabelOf(field, label))} ", LabelChips.For(label))])];
-    }
-
-    private static List<IReadOnlyList<StyledSpan>> UserItems(FormField field)
-    {
-        if (field.Value.Chosen.Count == 0)
-        {
-            return [ValueText.Person(null, InitialsCells, TextRole.ValueBlock)];
-        }
-
-        return [.. field.Value.Chosen.Select(id => Person(Clean(FormOverlay.LabelOf(field, id))))];
-    }
-
-    private static IReadOnlyList<StyledSpan> Person(string name)
-    {
-        return ValueText.Person(name, InitialsCells, TextRole.ValueBlock);
-    }
-
-    private static List<IReadOnlyList<StyledSpan>> ChoiceItems(FormField field)
-    {
-        return [.. field.Value.Chosen.Select(id => Choice(field, id))];
-    }
-
-    private static IReadOnlyList<StyledSpan> Choice(FormField field, string id)
-    {
-        var name = Clean(FormOverlay.LabelOf(field, id));
-
-        if (field.Kind == FormFieldKind.Parent)
-        {
-            return [Block($"[{name}]")];
-        }
-
-        if (field.Id != FormFieldIds.Priority)
-        {
-            return [Block(name)];
-        }
-
-        return ValueText.Priority(name, TextRole.ValueBlock);
-    }
-
-    private static StyledSpan Block(string text)
-    {
-        return new StyledSpan(text, TextRole.ValueBlock);
-    }
-
-    private static string Clean(string text)
-    {
-        return string.Concat(text.Where(static character => !char.IsControl(character)));
+        return [.. FieldRows.Value(field, look).Select(static line => line.Spans)];
     }
 }
