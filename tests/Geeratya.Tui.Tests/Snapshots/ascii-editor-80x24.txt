@@ -10,7 +10,7 @@
 | | Ctrl-s send   Enter new line   Esc cancel                                | |
 | +--------------------------------------------------------------------------+ |
 |                         No profile yet: :profile add                         |
-|                         ? help   : commands   q quit                         |
+|                         ? help   : commands   q back                         |
 |                                                                              |
 |                                                                              |
 |                                                                              |

@@ -103,7 +103,9 @@ internal static class DetailYank
             return null;
         }
 
-        return Replaced(state, opened.Tab, opened.Detail with { YankAnchor = null }).State;
+        var dropped = Replaced(state, opened.Tab, opened.Detail with { YankAnchor = null }).State;
+
+        return dropped.Status?.Text == StartedText ? StatusMessages.Dismiss(dropped) : dropped;
     }
 
     /// <summary>True when Esc has a selection to drop in the issue detail.</summary>

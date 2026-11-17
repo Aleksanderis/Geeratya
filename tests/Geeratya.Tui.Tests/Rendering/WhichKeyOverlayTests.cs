@@ -133,7 +133,7 @@ public class WhichKeyOverlayTests
     {
         var off = AppState.Initial with { Settings = new AppSettings(StatusHints: HintLevel.Off) };
 
-        Assert.Contains("q quit", StatusBar.Render(AppState.Initial, 80, _keymap));
+        Assert.Contains("q back", StatusBar.Render(AppState.Initial, 80, _keymap));
         Assert.DoesNotContain("quit", StatusBar.Render(off, 80, _keymap));
         Assert.Equal(80, StatusBar.Render(off, 80, _keymap).Length);
     }

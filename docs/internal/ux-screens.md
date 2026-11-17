@@ -69,7 +69,7 @@ My open issues · 10 of about 340
 
 
 
- NORMAL  j/k move  Enter open  <space>o browser  ? help  : commands  q quit
+ NORMAL  j/k move  Enter open  <space>o browser  ? help  : commands  q back
 ```
 
 - **Columns.** Key (width of the longest loaded key, at most 12), one-cell type marker, summary (takes the remaining width), status (14), assignee (16). The status text uses the colour role of its category: `StatusTodo`, `StatusProgress`, `StatusDone` (new roles, added with the list; the no-colour tier relies on the text itself, and the 40-column glyphs are `○`, `◐`, `●`, ASCII `.`, `~`, `x`). The glyph set is chosen once at start (`ConsoleCapabilities.Glyphs`): ASCII on a classic console (Linux `TERM=linux`, Windows console host; `docs/internal/architecture.md`, "Cross-platform"), when `TERM=dumb` or the locale (`LC_ALL`, `LC_CTYPE`, `LANG`, first one set) is not UTF-8, an unset locale counting as UTF-8. In ASCII the list header separator is ` - `, the loading marker is `...`, and the status glyphs are `.`, `~`, `x`; the Unicode set is `·`, `…`, `○`, `◐`, `●`. The list and the detail panel borders draw them (with the ASCII set the finished frame is passed through `Glyphs.ToAscii`, which swaps every shell-drawn character one cell for one cell: box lines to `+ - |`, `‹ › ↑ ▾ … ·` to `< > ^ v . -`, so the tab bar, banner, status bar, overlays and board are covered and widths do not change; the same characters inside issue text are swapped too, and a cut text ends with `.` instead of `…` to keep one cell; in the detail, the `›` of the breadcrumb becomes `>`). The type marker is `E` epic, `S` story, `T` task, `B` bug, `s` sub-task, `?` any other type; `E` and `s` come from the hierarchy level and the sub-task flag; level-0 types (Story, Task, Bug, identical in both project kinds) are told apart by name, anything else falls back to `?` (jira-layer.md "Hierarchy"). The marker may also carry a type colour role.
@@ -100,7 +100,7 @@ My open issues · 10 of about 340
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  loading                j/k move  Enter open  ? help  : commands  q quit
+ NORMAL  loading                j/k move  Enter open  ? help  : commands  q back
 ```
 
   At 40 columns (and 10 rows):
@@ -143,7 +143,7 @@ The backlog of a Scrum board (`scrum` boards from the picker and `:backlog`; a t
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q quit
+ NORMAL       j/k move  Enter open  <space>o browser  ? help  : commands  q back
 ```
 
 - **Rows.** The tab keeps its rows in section order (rank order inside a section), so everything that acts on the row under the cursor (open, edit, marks, Visual) works as in any list. The sprint of a row is the one its `Sprint` field says is current: active, else future, else the backlog; the sprint list (`GET board/{id}/sprint?state=active,future`, read once per open or manual refresh) supplies dates, goal and sprints with no issue yet. When it fails the sections take their names from the issues.
@@ -188,7 +188,7 @@ One column per board column, in the order of the board configuration. Never assu
 │                   │                   │ └───────────────┘ │ └──────────────┘ │
 │                   │                   │                   │                  │
 ╰───────────────────┴───────────────────┴───────────────────┴──────────────────╯
- NORMAL  GTM board · 16 iss…    h/l column  j/k card  ? help  : commands  q quit
+ NORMAL  GTM board · 16 iss…    h/l column  j/k card  ? help  : commands  q back
 ```
 
 The sketch is the 80x24 snapshot of the team-managed dev board (`Backlog` third); the cursor is on the first card.
@@ -218,7 +218,7 @@ GCM board · 24 issues                 3›
 │ T GCM-4 Survey task four             │
 │ S GCM-3 Survey story three with unic…│
 └──────────────────────────────────────┘
- NORMAL        ? help  : commands  q quit
+ NORMAL        ? help  : commands  q back
 ```
 
 ## Issue detail
@@ -285,7 +285,7 @@ GCM board › GCM-12 · Top
 │ refresh                              │
 │                                      │
 │ Status    In Progress ▾              │
- NORMAL  ? help  : commands  q quit
+ NORMAL  ? help  : commands  q back
 ```
 
 ## Pane layout for the issue detail, board cards and forms

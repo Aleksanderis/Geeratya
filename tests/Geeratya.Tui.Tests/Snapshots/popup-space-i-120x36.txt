@@ -16,7 +16,7 @@
 │                                                                                                                      │
 │                                                                                                                      │
 │                                             No profile yet: :profile add                                             │
-│                                             ? help   : commands   q quit                                             │
+│                                             ? help   : commands   q back                                             │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
@@ -33,4 +33,4 @@
 │                                    │ c         Create an issue (type picker, then the form)                          │
 │                                    │ e         Edit the issue title in place (opens the detail from a list or board) │
 ╰────────────────────────────────────╰─────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  <space>i                                                                             ? help  : commands  q quit
+ NORMAL  <space>i                                                                             ? help  : commands  q back

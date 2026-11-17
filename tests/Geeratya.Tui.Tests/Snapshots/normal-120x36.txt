@@ -16,7 +16,7 @@
 │                                                                                                                      │
 │                                                                                                                      │
 │                                             No profile yet: :profile add                                             │
-│                                             ? help   : commands   q quit                                             │
+│                                             ? help   : commands   q back                                             │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL                                                                                       ? help  : commands  q quit
+ NORMAL                                                                                       ? help  : commands  q back

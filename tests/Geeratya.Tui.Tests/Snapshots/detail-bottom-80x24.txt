@@ -21,4 +21,4 @@
 │ Ola Nordmann                                                   ... 5 min ago░│
 │ See also café and 😀 in the second paragraph, which is long enough to wrap. ▼│
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q quit
+ NORMAL  My open issues › GCM-12 · Top     j/k field  ? help  : commands  q back

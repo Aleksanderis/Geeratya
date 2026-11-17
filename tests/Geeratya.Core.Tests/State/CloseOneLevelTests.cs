@@ -185,6 +185,40 @@ public sealed class CloseOneLevelTests
     }
 
     [Fact]
+    public void GivenVisualModeInAZoomedPane_WhenPressingEsc_ThenVisualClosesFirstAndZoomStays()
+    {
+        var zoomed = Press(Build("zoom"), "v").State;
+
+        var first = Press(zoomed, "Esc");
+        var second = Press(first.State, "Esc");
+
+        Assert.NotNull(zoomed.Session.Tabs[0].Detail[^1].YankAnchor);
+        Assert.Null(first.State.Session.Tabs[0].Detail[^1].YankAnchor);
+        Assert.True(PaneActions.IsZoomed(first.State));
+        Assert.False(PaneActions.IsZoomed(second.State));
+        Assert.NotEmpty(second.State.Session.Tabs[0].Detail);
+        Assert.Empty(second.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenAProfileFormWithChangesInTheManagerFromSettings_WhenEscaping_ThenItAsksThenReturnsStepByStep()
+    {
+        var manager = Build("manager-from-settings");
+        var form = Press(manager, "Ctrl-a", "w", "o").State;
+
+        var asked = Press(form, "Esc");
+        var discarded = Press(asked.State, "y");
+        var closedManager = Press(discarded.State, "Esc");
+
+        Assert.Equal(InputMode.Confirm, asked.State.Mode);
+        Assert.Null(discarded.State.Form);
+        Assert.NotNull(discarded.State.ProfileList);
+        Assert.Null(closedManager.State.ProfileList);
+        Assert.NotNull(closedManager.State.SettingsScreen);
+        Assert.Empty(closedManager.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
     public void GivenAnOpenIssue_WhenPressingQTwice_ThenTheFirstPopsTheIssueAndTheSecondQuits()
     {
         var detail = Press(Tabbed(), "Enter").State;

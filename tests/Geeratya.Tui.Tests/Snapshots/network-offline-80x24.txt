@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- NORMAL  offline                j/k move  Enter open  ? help  : commands  q quit
+ NORMAL  offline                j/k move  Enter open  ? help  : commands  q back

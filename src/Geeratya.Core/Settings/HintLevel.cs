@@ -8,7 +8,7 @@ public enum HintLevel
     /// <summary>The main keys of the screen and the global ones.</summary>
     Full,
 
-    /// <summary>Only <c>? help  : commands  q quit</c>.</summary>
+    /// <summary>Only <c>? help  : commands  q back</c>.</summary>
     Minimal,
 
     /// <summary>No hints.</summary>

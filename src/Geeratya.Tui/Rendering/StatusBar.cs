@@ -186,7 +186,7 @@ public static partial class StatusBar
         return Fit(Leveled(HintTexts(state, keymap), state), room);
     }
 
-    /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q quit</c>).</summary>
+    /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q back</c>).</summary>
     private static HintList Leveled(HintList hints, AppState state)
     {
         if (state.Settings.StatusHints != HintLevel.Minimal || state.Mode != InputMode.Normal)

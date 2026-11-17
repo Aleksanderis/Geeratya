@@ -20,7 +20,7 @@ public class StatusBarUpdateTests
 
         Assert.Contains("update 1.3.0 available", line, StringComparison.Ordinal);
         Assert.Contains("? help", line, StringComparison.Ordinal);
-        Assert.Contains("q quit", line, StringComparison.Ordinal);
+        Assert.Contains("q back", line, StringComparison.Ordinal);
         Assert.Equal(80, line.Length);
     }
 
