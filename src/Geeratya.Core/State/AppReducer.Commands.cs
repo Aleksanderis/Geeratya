@@ -1,7 +1,7 @@
-using Geeratya.Core.Detail;
 using System.Globalization;
 using Geeratya.Core.Backlog;
 using Geeratya.Core.CommandPalette;
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;

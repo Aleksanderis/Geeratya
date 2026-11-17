@@ -146,6 +146,27 @@ public class TransitionFlowTests
     }
 
     [Fact]
+    public void GivenAStatusDropdownUnderTheDetailsField_WhenTheTransitionFieldsAreLeftWithEsc_ThenThePickerHangsUnderStatusAgain()
+    {
+        var picker = Picker(Tabbed(ViewLayout.List), Required());
+        var pickerTab = picker.Session.Tabs[0];
+        var hanging = picker with
+        {
+            Session = picker.Session with { Tabs = [pickerTab with { Form = pickerTab.Form! with { Dropdown = "status" } }] },
+        };
+        var picked = Keys(hanging, "Enter");
+        var tab = picked.State.Session.Tabs[0];
+        var fields = FormFieldMapper.FromTransition(Required().Fields);
+        var form = _reducer.Reduce(picked.State, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, fields)).State;
+
+        var back = Keys(form, "Esc");
+
+        var again = back.State.Session.Tabs[0].Form!;
+        Assert.IsType<TransitionPickTarget>(again.Target);
+        Assert.Equal("status", again.Dropdown);
+    }
+
+    [Fact]
     public void GivenTheTransitionFormWithAMissingRequiredField_WhenSubmitted_ThenItStaysOpenAndSendsNothing()
     {
         var form = TransitionForm(Tabbed(ViewLayout.List), Required());

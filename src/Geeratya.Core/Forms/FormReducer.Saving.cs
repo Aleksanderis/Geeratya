@@ -90,7 +90,7 @@ public static partial class FormReducer
     {
         if (form.Target is TransitionFormTarget { Origin: { } picker })
         {
-            return WithDropdown(Open(closed, tab.Id, picker), tab.Id, form.Dropdown);
+            return WithDropdown(Open(closed, tab.Id, picker), tab.Id, ((TransitionFormTarget)form.Target).ReturnDropdown);
         }
 
         return Result(closed);
@@ -178,6 +178,11 @@ public static partial class FormReducer
     {
         if (form.Target.Following(changes) is { } following)
         {
+            if (following is TransitionFormTarget transition && form.Dropdown is { } dropdown)
+            {
+                following = transition with { ReturnDropdown = dropdown };
+            }
+
             return Open(state, tab.Id, following);
         }
 

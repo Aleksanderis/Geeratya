@@ -110,9 +110,12 @@ public static partial class FormReducer
 
     private static FieldChange ChangeOf(FormField field)
     {
-        var display = FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind)
-            ? field.Value.Chosen.Select(id => FieldRows.LabelOf(field, id)).ToArray()
-            : null;
+        string[]? display = null;
+
+        if (FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind))
+        {
+            display = [.. field.Value.Chosen.Select(id => FieldRows.LabelOf(field, id))];
+        }
 
         return new FieldChange(field.Id, field.Kind, field.Value, field.Initial, display);
     }

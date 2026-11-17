@@ -93,9 +93,12 @@ public static class FieldRows
         {
             var prompt = new PromptText(text, field.Back);
 
-            return look.Boxed
-                ? CaretRows.Field(prompt, width)
-                : new StyledLine(CaretRows.Spans(prompt, width, look.Role));
+            if (look.Boxed)
+            {
+                return CaretRows.Field(prompt, width);
+            }
+
+            return new StyledLine(CaretRows.Spans(prompt, width, look.Role));
         }
 
         if (text.Length == 0)
@@ -209,9 +212,12 @@ public static class FieldRows
             return rows;
         }
 
-        return field.Kind == FormFieldKind.User
-            ? [new StyledLine(ValueText.Person(null, InitialsCells, look.Role))]
-            : [Empty(field, look with { Editing = false })];
+        if (field.Kind == FormFieldKind.User)
+        {
+            return [new StyledLine(ValueText.Person(null, InitialsCells, look.Role))];
+        }
+
+        return [Empty(field, look with { Editing = false })];
     }
 
     // The values joined and wrapped to the width; the typed filter ends the last row, caret in view.
@@ -281,9 +287,12 @@ public static class FieldRows
             return [new StyledSpan($"{ParentOpen}{name}{ParentClose}", look.Role)];
         }
 
-        return field.Id == FormFieldIds.Priority
-            ? ValueText.Priority(name, look.Role)
-            : [new StyledSpan(name, look.Role)];
+        if (field.Id == FormFieldIds.Priority)
+        {
+            return ValueText.Priority(name, look.Role);
+        }
+
+        return [new StyledSpan(name, look.Role)];
     }
 
     private static string Clean(string text)

@@ -38,6 +38,22 @@ public static partial class FormReducer
         return ActiveTab(state)?.Form;
     }
 
+    /// <summary>
+    /// The form to draw: the one that takes the keys, or the one a discard question is asked over (the form stays
+    /// visible so the answer is given with the text in view). Null when there is none.
+    /// </summary>
+    public static FormState? DrawnForm(AppState state)
+    {
+        if (OpenForm(state) is { } open)
+        {
+            return open;
+        }
+
+        var asking = state.Mode == InputMode.Confirm && state.Confirm?.ActionOnConfirm == DiscardPrompts.FormAction;
+
+        return asking && state.Picker is null && state.Form is null ? ActiveTab(state)?.Form : null;
+    }
+
     public static ReduceResult Reduce(AppState state, FormCommand command)
     {
         return command switch

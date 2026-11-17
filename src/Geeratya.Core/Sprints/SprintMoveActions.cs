@@ -66,12 +66,13 @@ public static class SprintMoveActions
 
         var sprints = tab.Sprints.Where(static sprint => sprint.State is SprintState.Active or SprintState.Future).ToList();
 
-        if (sprints.Count == 0)
+        if (tab.Sprints.Count == 0)
         {
             return Say(state, SprintsLoadingText);
         }
 
-        var current = tab.Detail[^1].Issue?.CurrentSprint ?? FindRow(state, keys[0])?.CurrentSprint;
+        var shown = tab.Detail.Count > 0 ? tab.Detail[^1].Issue?.CurrentSprint : null;
+        var current = shown ?? FindRow(state, keys[0])?.CurrentSprint;
         var open = current is { State: SprintState.Active or SprintState.Future } ? current : null;
         var target = new SprintMoveTarget(keys[0], sprints, open, SourceOf(state, keys));
 

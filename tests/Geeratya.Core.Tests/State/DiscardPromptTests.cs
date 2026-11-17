@@ -28,7 +28,7 @@ public sealed class DiscardPromptTests
 
     [Theory]
     [MemberData(nameof(Editors))]
-    public void GivenAChangedEditor_WhenEscIsPressedTwice_ThenItAsksThroughOneDiscardConfirm(string editor)
+    public void GivenAChangedEditor_WhenItIsLeftWithEsc_ThenItAsksThroughOneDiscardConfirm(string editor)
     {
         var asked = Asked(editor);
 

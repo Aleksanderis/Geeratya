@@ -79,6 +79,7 @@ public class FormPresentationContractTests
         Assert.True(DiscardPrompts.Is(asked.Confirm));
         Assert.NotNull(asked.Session.Tabs[0].Form);
         Assert.Contains(frame.Body, line => line.PlainText.Contains("Discard", StringComparison.Ordinal));
+        Assert.Contains(frame.Body, line => line.PlainText.Contains("hellox", StringComparison.Ordinal));
         Assert.Contains("CONFIRM", frame.StatusLine);
         Assert.Contains("y/n", frame.StatusLine);
     }

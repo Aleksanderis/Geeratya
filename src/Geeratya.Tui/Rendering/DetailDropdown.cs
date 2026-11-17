@@ -125,9 +125,12 @@ public static class DetailDropdown
 
         if (form.IsLoading || form.Fields.Count == 0)
         {
-            return form.TopError is { } top
-                ? Notice(FieldRows.Error(top, inner))
-                : Notice(LoadingText, TextRole.Loading);
+            if (form.TopError is { } top)
+            {
+                return Notice(FieldRows.Error(top, inner));
+            }
+
+            return Notice(LoadingText, TextRole.Loading);
         }
 
         if (form.IsSaving)

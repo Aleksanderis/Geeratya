@@ -104,7 +104,7 @@ public class LinkFlowTests
     }
 
     [Fact]
-    public void GivenAFullKeyTypedByHand_WhenEnterIsPressed_ThenItIsTakenAndTheFormIsSent()
+    public void GivenAFullKeyTypedByHand_WhenEnterAndThenCtrlSArePressed_ThenItIsTakenAndTheFormIsSent()
     {
         var state = OnIssueField();
 
@@ -116,7 +116,7 @@ public class LinkFlowTests
     }
 
     [Fact]
-    public void GivenAFullKeyTypedAndAPopupWithOtherRows_WhenEnter_ThenTheTypedKeyIsLinkedNotTheFirstRow()
+    public void GivenAFullKeyTypedAndAPopupWithOtherRows_WhenEnterAndThenCtrlSArePressed_ThenTheTypedKeyIsLinkedNotTheFirstRow()
     {
         var asked = Type(OnIssueField(), "a-3");
         var popup = Active(asked).Form!.Suggest!;

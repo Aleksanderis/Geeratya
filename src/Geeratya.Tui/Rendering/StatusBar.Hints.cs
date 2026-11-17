@@ -202,7 +202,12 @@ public static partial class StatusBar
 
         if (!CreatePanes.Applies(form))
         {
-            return !form.Navigable ? FormHints : form.Navigating ? FormNavigateHints : FormEditingHints;
+            if (!form.Navigable)
+            {
+                return FormHints;
+            }
+
+            return form.Navigating ? FormNavigateHints : FormEditingHints;
         }
 
         return form.Navigating ? CreateHints : CreateEditingHints;

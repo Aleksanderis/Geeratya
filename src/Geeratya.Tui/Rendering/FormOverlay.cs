@@ -127,9 +127,12 @@ public static partial class FormOverlay
             return CreateStatusText(form, focused);
         }
 
-        return form.Navigating && focused is not null
-            ? $"{form.Target.Title} · {focused.Label}  {FormShell.NavigateNote}"
-            : form.Target.Title;
+        if (form.Navigating && focused is not null)
+        {
+            return $"{form.Target.Title} · {focused.Label}  {FormShell.NavigateNote}";
+        }
+
+        return form.Target.Title;
     }
 
     // Create GEN · Story · Summary, with the state of the focused field in the navigate state.

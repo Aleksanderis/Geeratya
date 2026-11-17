@@ -131,7 +131,7 @@ internal static partial class CommentEditing
             "Delete comment",
             Destructive: true);
 
-        return Result(DiscardPrompts.Ask(state, request));
+        return Result(state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty });
     }
 
     /// <summary>Types text (or a paste) at the cursor.</summary>
