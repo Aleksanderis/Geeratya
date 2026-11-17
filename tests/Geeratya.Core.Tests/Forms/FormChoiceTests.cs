@@ -120,7 +120,7 @@ public class FormChoiceTests
         var form = dismissed.State.Session.Tabs[0].Form!;
         Assert.Equal(string.Empty, form.Fields[0].Entry);
         Assert.Equal(3, form.Suggest!.Items.Count);
-        Assert.False(form.DiscardPending);
+        Assert.Null(dismissed.State.Confirm);
     }
 
     [Fact]

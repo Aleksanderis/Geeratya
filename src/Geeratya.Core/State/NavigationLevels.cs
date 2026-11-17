@@ -100,7 +100,7 @@ public static class NavigationLevels
 
         var request = new ConfirmRequest(DiscardQuestion, ProfileReducer.DiscardAction, Label: "Discard");
 
-        return state with { Mode = InputMode.Confirm, Confirm = request, PendingKeys = string.Empty };
+        return DiscardPrompts.Ask(state, request);
     }
 
     /// <summary>The profile manager opened from Settings closes back to Settings; null for any other state.</summary>

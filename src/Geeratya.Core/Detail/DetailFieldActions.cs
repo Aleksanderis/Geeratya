@@ -15,6 +15,33 @@ internal static class DetailFieldActions
 {
     private static readonly IReadOnlyList<Effect> _noEffects = [];
 
+    /// <summary>
+    /// The key or command of one field (<c>issue.assign</c>, <c>:priority</c>, <c>:estimate</c>, <c>:labels</c>,
+    /// <c>issue.transition</c>) opens it the way Enter does in Details: from a list or board the detail overlay
+    /// opens on the selected issue first, so a field edits the same way from every route.
+    /// </summary>
+    public static ReduceResult OpenField(AppState state, string fieldId)
+    {
+        var tab = ActiveTab(state);
+
+        if (tab is null || tab.Detail.Count > 0 || state.Session.ProfileName is null)
+        {
+            return Open(state, fieldId);
+        }
+
+        var effects = new List<Effect>();
+        var opened = DetailReducer.OpenSelected(state, effects);
+
+        if (ActiveTab(opened) is not { Detail.Count: > 0 })
+        {
+            return Open(state, fieldId);
+        }
+
+        var field = Open(opened, fieldId);
+
+        return new ReduceResult(field.State, [.. effects, .. field.Effects]);
+    }
+
     public static ReduceResult Open(AppState state, string fieldId)
     {
         if (Refused(state, fieldId))
@@ -24,10 +51,10 @@ internal static class DetailFieldActions
 
         return fieldId switch
         {
-            DetailFieldIds.Status => TransitionForms.OpenPicker(state),
+            DetailFieldIds.Status => Dropdown(TransitionForms.OpenPicker(state), fieldId),
             DetailFieldIds.Assignee => Dropdown(FormOpener.Assign(state), fieldId),
-            DetailFieldIds.Estimate => FormOpener.Estimate(state),
-            DetailFieldIds.Sprint => SprintMoveActions.OpenPicker(state),
+            DetailFieldIds.Estimate => Dropdown(FormOpener.Estimate(state), fieldId),
+            DetailFieldIds.Sprint => Dropdown(SprintMoveActions.OpenField(state), fieldId),
             DetailFieldIds.Parent or DetailFieldIds.Epic
                 => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId),
             DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter

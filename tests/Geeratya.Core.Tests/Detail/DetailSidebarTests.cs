@@ -86,7 +86,7 @@ public class DetailSidebarTests
 
         var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
         Assert.IsType<TransitionPickTarget>(effect.Target);
-        Assert.Null(Active(result.State).Form!.Dropdown);
+        Assert.Equal(DetailFieldIds.Status, Active(result.State).Form!.Dropdown);
     }
 
     [Theory]

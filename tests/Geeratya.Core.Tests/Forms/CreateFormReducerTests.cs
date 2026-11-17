@@ -152,13 +152,11 @@ public partial class CreateFormReducerTests
     {
         var loaded = ChosenForm(_task, false, SummaryField(), DescriptionField());
         var form = loaded.Session.Tabs[0].Form!;
-        var saving = form with { OperationId = 7 };
-        var discarding = form with { DiscardPending = true };
+        var saving = WithForm(loaded, form with { OperationId = 7 });
+        var discarding = DiscardPrompts.Ask(loaded, FormShell.DiscardRequest(form, loaded.Session.Tabs[0].Id));
 
-        foreach (var shown in new[] { saving, discarding })
+        foreach (var state in new[] { saving, discarding })
         {
-            var state = WithForm(loaded, shown);
-
             var result = _reducer.Reduce(state, Click(MouseTarget.FormField, 1));
 
             Assert.Empty(result.Effects);
@@ -303,11 +301,11 @@ public partial class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(Press(state, "Esc").State, "Esc");
+        var asked = Press(state, "Esc");
         var kept = Press(asked.State, "n");
 
-        Assert.True(asked.State.Session.Tabs[0].Form!.DiscardPending);
-        Assert.False(kept.State.Session.Tabs[0].Form!.DiscardPending);
+        Assert.True(DiscardPrompts.Is(asked.State.Confirm));
+        Assert.False(DiscardPrompts.Is(kept.State.Confirm));
         Assert.Empty(kept.Effects);
         Assert.Empty(kept.State.Session.Operations);
     }
@@ -317,7 +315,7 @@ public partial class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(Press(state, "Esc").State, "Esc");
+        var asked = Press(state, "Esc");
         var discarded = Press(asked.State, "y");
 
         Assert.Null(discarded.State.Session.Tabs[0].Form);

@@ -412,7 +412,7 @@ public sealed class CloseOneLevelTests
             "confirm" => _reducer.Reduce(Tabbed(), new ConfirmRequested(new ConfirmRequest("Do it?", ActionIds.Quit))).State,
             "form-navigate" => WithForm(form => form with { Navigable = true, Navigating = true }),
             "form-type-chooser" => WithForm(form => form with { TypeChoices = [new CreateIssueType("1", "Task", "", 0, false)] }),
-            "form-discard-prompt" => WithForm(form => form with { DiscardPending = true }),
+            "form-discard-prompt" => DiscardAsked(),
             "messages" => StatusMessages.OpenHistory(Tabbed()),
             "messages-with-settings" => StatusMessages.OpenSettings(Tabbed()),
             "profile-form" => Press(Palette(Tabbed(), "profile add"), "w", "o", "r").State,
@@ -446,7 +446,7 @@ public sealed class CloseOneLevelTests
             "context-menu" => after.ContextMenu is null && after.Mode == InputMode.Normal,
             "confirm" => after.Confirm is null && after.Mode == InputMode.Normal,
             "form-navigate" or "form-type-chooser" => tab.Form is null && after.Mode == InputMode.Normal,
-            "form-discard-prompt" => tab.Form is { DiscardPending: false } && start.Mode == after.Mode,
+            "form-discard-prompt" => tab.Form is not null && after.Confirm is null && start.Mode != after.Mode,
             "messages" or "messages-with-settings"
                 => !after.MessagesOpen && !after.MessagesShowSettings && after.Mode == InputMode.Normal,
             _ => false,
@@ -456,6 +456,14 @@ public sealed class CloseOneLevelTests
     private static string TypedText(AppState state)
     {
         return state.Picker?.Text ?? state.Jump?.Text ?? state.FlashJump?.Text ?? state.PaletteText;
+    }
+
+    private AppState DiscardAsked()
+    {
+        var opened = WithForm(form => form);
+        var tab = opened.Session.Tabs[0];
+
+        return DiscardPrompts.Ask(opened, FormShell.DiscardRequest(tab.Form!, tab.Id));
     }
 
     private AppState WithForm(Func<FormState, FormState> shape)

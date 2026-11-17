@@ -29,7 +29,7 @@ public class TransitionFlowTests
         var result = Keys(Tabbed(ViewLayout.List), "Space", "i", "s");
 
         var form = result.State.Session.Tabs[0].Form!;
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.IsType<TransitionPickTarget>(form.Target);
         Assert.Equal("A-1", effect.Target.IssueKey);
@@ -267,7 +267,7 @@ public class TransitionFlowTests
     {
         var result = Keys(Tabbed(ViewLayout.Columns), "Alt-l");
 
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         var target = Assert.IsType<TransitionPickTarget>(effect.Target);
         Assert.Equal("In Progress", target.ColumnName);
         Assert.Equal(["2"], target.ColumnStatusIds);

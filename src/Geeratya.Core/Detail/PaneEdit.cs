@@ -19,14 +19,9 @@ public sealed record PaneEdit(string Pane, FormState Form)
     private const string SaveText = " save";
     private const string CancelKey = "Esc";
     private const string CancelText = " cancel";
-    private const string DiscardYesKey = "y";
-    private const string DiscardYesText = " discard";
-    private const string DiscardNoKey = "n/Esc";
-    private const string DiscardNoText = " keep editing";
     private const string Gap = "   ";
     private const string EditingText = "editing";
     private const string SavingText = "Saving…";
-    private const string DiscardText = "Discard the changes? (y/n)";
 
     private FormField Field => Form.Fields[Math.Clamp(Form.Focus, 0, Form.Fields.Count - 1)];
 
@@ -63,7 +58,7 @@ public sealed record PaneEdit(string Pane, FormState Form)
     public List<StyledLine> TitleRows(int inner)
     {
         var field = Field;
-        var rows = new List<StyledLine> { CaretRows.Field(new PromptText(field.Value.Text, field.Back), Math.Max(1, inner)) };
+        var rows = FieldRows.Value(field, Look(inner));
 
         rows.AddRange(Footer(inner));
 
@@ -80,17 +75,12 @@ public sealed record PaneEdit(string Pane, FormState Form)
         var field = Field;
         var prompt = new PromptText(field.Value.Text, field.Back);
         var lines = field.Value.Text.Split('\n');
-        var caretRow = prompt.Text[..prompt.Caret].Count(static character => character == '\n');
+        var caretRow = FieldRows.CaretRowOf(prompt);
         var notices = Footer(inner);
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);
         var first = Math.Clamp(caretRow - (shown / 2), 0, lines.Length - shown);
-        var rows = new List<StyledLine>(shown + notices.Count);
-
-        for (var index = first; index < first + shown; index++)
-        {
-            rows.Add(CaretRows.FieldRow(prompt, lines[index], index, caretRow, Math.Max(1, inner)));
-        }
+        var rows = FieldRows.Paragraph(field, Look(inner), first, shown);
 
         rows.AddRange(notices);
         scroll = lines.Length > shown ? new PaneScroll(first, lines.Length, shown) : null;
@@ -98,31 +88,19 @@ public sealed record PaneEdit(string Pane, FormState Form)
         return rows;
     }
 
+    private static FieldLook Look(int inner)
+    {
+        return new FieldLook(Math.Max(1, inner)) { Editing = true, Boxed = true };
+    }
+
     // The rows under the input: the key hint, then the notices.
     private List<StyledLine> Footer(int inner)
     {
-        var rows = new List<StyledLine> { Form.DiscardPending ? DiscardHint(inner) : Hint(inner) };
+        var rows = new List<StyledLine> { Hint(inner) };
 
         rows.AddRange(Notices(inner));
 
         return rows;
-    }
-
-    // While the discard question is shown the hint lists the keys of the question, not the editor's.
-    private static StyledLine DiscardHint(int inner)
-    {
-        if (DisplayWidth.Of(DiscardYesKey + DiscardYesText + Gap + DiscardNoKey + DiscardNoText) > inner)
-        {
-            return StyledLine.Of(DisplayText.Cut(DiscardYesKey + DiscardYesText, inner), TextRole.Muted);
-        }
-
-        return new StyledLine(
-        [
-            new StyledSpan(DiscardYesKey, TextRole.Key),
-            new StyledSpan(DiscardYesText + Gap, TextRole.Muted),
-            new StyledSpan(DiscardNoKey, TextRole.Key),
-            new StyledSpan(DiscardNoText, TextRole.Muted),
-        ]);
     }
 
     private static StyledLine Hint(int inner)
@@ -152,17 +130,12 @@ public sealed record PaneEdit(string Pane, FormState Form)
 
         if (Field.Error is { } error)
         {
-            notices.Add(StyledLine.Of(DisplayText.Cut($"! {error}", inner), TextRole.Error));
+            notices.AddRange(FieldRows.Error(error, inner));
         }
 
         if (Form.TopError is { } top)
         {
-            notices.Add(StyledLine.Of(DisplayText.Cut($"! {top}", inner), TextRole.Error));
-        }
-
-        if (Form.DiscardPending)
-        {
-            notices.Add(StyledLine.Of(DiscardText, TextRole.Warning));
+            notices.AddRange(FieldRows.Error(top, inner));
         }
 
         return notices;

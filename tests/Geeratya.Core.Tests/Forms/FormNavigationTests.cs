@@ -83,7 +83,7 @@ public class FormNavigationTests
         var form = Form(Press(typed, "Esc").State);
 
         Assert.True(form.Navigating);
-        Assert.False(form.DiscardPending);
+        Assert.Null(Press(typed, "Esc").State.Confirm);
         Assert.Equal("Fix itx", form.Fields[0].Value.Text);
     }
 
@@ -102,9 +102,9 @@ public class FormNavigationTests
         var typed = Press(Press(Loaded(), "Enter").State, "x").State;
         var navigating = Press(typed, "Esc").State;
 
-        var asked = Form(Press(navigating, "Esc").State);
+        var asked = Press(navigating, "Esc").State;
 
-        Assert.True(asked.DiscardPending);
+        Assert.True(DiscardPrompts.Is(asked.Confirm));
     }
 
     [Fact]

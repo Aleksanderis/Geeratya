@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
@@ -539,7 +540,7 @@ public class CommentEditingTests
 
         Assert.Empty(result.Effects);
         Assert.Null(result.State.Editor);
-        Assert.Equal("No change to save.", result.State.Message);
+        Assert.Equal(FormShell.NothingChangedText, result.State.Message);
     }
 
     [Fact]

@@ -304,7 +304,7 @@ public class SprintLifecycleTests
         var onFuture = Press(Backlog(), "j", "j").State;
         var opened = Press(onFuture, "Space", "s", "s").State;
         var end = Active(opened).Form!.Fields[1];
-        var typed = Press(opened, ["Enter", .. Enumerable.Repeat("Backspace", end.Value.Text.Length)]);
+        var typed = Press(opened, ["Tab", .. Enumerable.Repeat("Backspace", end.Value.Text.Length)]);
         var keys = "2020-01-01 09:00".Select(character => character == ' ' ? "Space" : character.ToString());
         var early = Press(typed.State, [.. keys]);
 

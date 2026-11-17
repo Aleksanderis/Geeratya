@@ -80,7 +80,7 @@ public static partial class FormReducer
 
         var requestId = state.Sequence + 1;
         var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
-        var form = opened with { Fields = fields, IsLoading = false };
+        var form = opened with { Fields = fields, IsLoading = false, Navigable = FormShell.IsNavigable(fields) };
         var next = ViewReducer.Replace(state, tab with { Form = form with { Focus = Step(form, 0) } }) with
         {
             Mode = InputMode.Insert,
@@ -111,38 +111,10 @@ public static partial class FormReducer
     private static FieldChange ChangeOf(FormField field)
     {
         var display = FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind)
-            ? field.Value.Chosen.Select(id => LabelOf(field, id)).ToArray()
+            ? field.Value.Chosen.Select(id => FieldRows.LabelOf(field, id)).ToArray()
             : null;
 
         return new FieldChange(field.Id, field.Kind, field.Value, field.Initial, display);
-    }
-
-    private static string LabelOf(FormField field, string id)
-    {
-        return field.Options.FirstOrDefault(option => option.Id == id)?.Label ?? id;
-    }
-
-    private static ReduceResult OpenLabels(AppState state)
-    {
-        var tab = ActiveTab(state);
-        var key = tab is null ? null : TargetKey(state, tab);
-
-        if (tab is null || key is null)
-        {
-            return Say(state, NoIssueText);
-        }
-
-        var labels = LabelsOf(tab, key);
-
-        if (labels is null)
-        {
-            return Say(state, $"The labels of {key} are not loaded yet");
-        }
-
-        var known = new Dictionary<string, FormValue> { [FormFieldIds.Labels] = FormValue.OfChosen(labels) };
-        var target = new EditFormTarget(key, known, true, FormFieldKind.Labels);
-
-        return Open(state, tab.Id, target);
     }
 
     private static ReduceResult OpenLink(AppState state)
@@ -156,18 +128,6 @@ public static partial class FormReducer
     internal static string? TargetKey(AppState state, TabState tab)
     {
         return tab.Detail.Count > 0 ? tab.Detail[^1].Key : BrowserReducer.SelectedKey(state);
-    }
-
-    private static IReadOnlyList<string>? LabelsOf(TabState tab, string key)
-    {
-        if (tab.Detail.Count > 0)
-        {
-            var detail = tab.Detail[^1];
-
-            return detail.Issue?.Labels ?? detail.Row?.Labels;
-        }
-
-        return tab.Rows.FirstOrDefault(row => string.Equals(row.Key, key, StringComparison.OrdinalIgnoreCase))?.Labels;
     }
 
     private static ReduceResult OpenBrowser(AppState state, FormState form)

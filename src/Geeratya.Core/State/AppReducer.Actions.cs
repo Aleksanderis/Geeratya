@@ -172,7 +172,7 @@ public sealed partial class AppReducer
                     ?? Result(state)),
             ActionIds.DetailEdit => InNormal(state, () => DetailActions.EditText(state)),
             ActionIds.IssueOpenParent => InNormal(state, () => DetailActions.OpenParent(state)),
-            ActionIds.IssueTransition => InNormal(state, () => TransitionForms.OpenPicker(state)),
+            ActionIds.IssueTransition => InNormal(state, () => DetailFieldActions.OpenField(state, DetailFieldIds.Status)),
             ActionIds.IssueTransitionNext => InNormal(state, () => TransitionForms.MoveCard(state, 1)),
             ActionIds.IssueTransitionPrevious => InNormal(state, () => TransitionForms.MoveCard(state, -1)),
             ActionIds.TabNext => ViewReducer.StepTab(state, 1),
@@ -190,7 +190,7 @@ public sealed partial class AppReducer
             ActionIds.IssueUnlink => InNormal(state, () => LinkReducer.Unlink(state, at)),
             ActionIds.IssueLink => InNormal(state, () => FormReducer.Reduce(state, new OpenLinkFormRequested())),
             ActionIds.IssueEdit => InNormal(state, () => FormOpener.Edit(state)),
-            ActionIds.IssueAssign => InNormal(state, () => FormOpener.Assign(state)),
+            ActionIds.IssueAssign => InNormal(state, () => DetailFieldActions.OpenField(state, DetailFieldIds.Assignee)),
             ActionIds.IssueAssignMe => InNormal(state, () => FormOpener.AssignMe(state, at)),
             ActionIds.IssueSubtaskTransition => InNormal(state, () => SubtaskWrites.Transition(state)),
             ActionIds.IssueSubtaskAssign => InNormal(state, () => SubtaskWrites.Assign(state)),
@@ -282,17 +282,12 @@ public sealed partial class AppReducer
         return CommentEditing.Move(state, direction > 0 ? EditorMove.Down : EditorMove.Up);
     }
 
-    /// <summary>n, q or Esc in Confirm mode; the discard question goes back to the editor with its text.</summary>
+    /// <summary>n, q or Esc in Confirm mode; a discard question goes back to the editor with its text.</summary>
     private static ReduceResult DeclineConfirm(AppState state)
     {
-        if (state.Confirm?.ActionOnConfirm == ProfileReducer.DiscardAction)
+        if (DiscardPrompts.Is(state.Confirm))
         {
-            return Result(state with { Mode = InputMode.Insert, Confirm = null });
-        }
-
-        if (state.Editor is not null)
-        {
-            return Result(CommentEditing.KeepEditing(state));
+            return Result(DiscardPrompts.Kept(state));
         }
 
         if (state.Confirm?.Title is not null)

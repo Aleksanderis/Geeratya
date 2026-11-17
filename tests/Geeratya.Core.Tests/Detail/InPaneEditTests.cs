@@ -138,8 +138,7 @@ public class InPaneEditTests
         var asked = Press(typed, "Esc");
         var discarded = Press(asked.State, "y");
 
-        Assert.True(Active(asked.State).Form!.DiscardPending);
-        Assert.Contains("Discard the changes?", Plain(Build(asked.State, 100, 30)));
+        Assert.True(DiscardPrompts.Is(asked.State.Confirm));
         Assert.Null(Active(discarded.State).Form);
         Assert.Empty(discarded.Effects);
         Assert.Equal("Issue 1", Active(discarded.State).Detail[0].Issue!.Summary);
@@ -216,15 +215,14 @@ public class InPaneEditTests
     }
 
     [Fact]
-    public void GivenTheDiscardQuestion_WhenBuildingTheDocument_ThenTheHintShowsTheKeysOfTheQuestion()
+    public void GivenTheDiscardQuestion_WhenAsked_ThenItIsTheConfirmDialogNamingTheIssueOverTheEditor()
     {
         var state = Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField());
         var asked = Press(Press(state, "z").State, "Esc").State;
 
-        var plain = Plain(Build(asked, 100, 30));
-
-        Assert.Contains("y discard   n/Esc keep editing", plain);
-        Assert.DoesNotContain("Ctrl-s save", plain);
+        Assert.Equal(InputMode.Confirm, asked.Mode);
+        Assert.Contains("A-1", asked.Confirm!.Message);
+        Assert.NotNull(Active(asked).Form);
     }
 
     [Fact]

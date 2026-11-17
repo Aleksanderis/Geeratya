@@ -63,8 +63,7 @@ public class LinkFlowTests
     {
         var state = LoadedForm();
 
-        state = Press(state, "Down").State;
-        state = Press(state, "Enter").State;
+        state = Press(state, "Down", "Enter", "j", "Enter").State;
         state = Type(state, "a-30");
         var submitted = Press(state, "Ctrl-s");
 
@@ -79,7 +78,7 @@ public class LinkFlowTests
     [Fact]
     public void GivenAWordOfTheSummary_WhenTyped_ThenTheIssuesAreSearchedAndTheAcceptedRowFillsTheKey()
     {
-        var state = Press(LoadedForm(), "Enter").State;
+        var state = OnIssueField();
 
         var asked = Type(state, "login");
         var form = Active(asked).Form!;
@@ -107,9 +106,10 @@ public class LinkFlowTests
     [Fact]
     public void GivenAFullKeyTypedByHand_WhenEnterIsPressed_ThenItIsTakenAndTheFormIsSent()
     {
-        var state = Press(LoadedForm(), "Enter").State;
+        var state = OnIssueField();
 
-        var sent = Press(Type(state, "a-30"), "Enter");
+        var taken = Press(Type(state, "a-30"), "Enter");
+        var sent = Press(taken.State, "Ctrl-s");
 
         var effect = Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>());
         Assert.Equal("A-30", Assert.IsType<LinkIssuesRequest>(effect.Request).OtherKey);
@@ -118,7 +118,7 @@ public class LinkFlowTests
     [Fact]
     public void GivenAFullKeyTypedAndAPopupWithOtherRows_WhenEnter_ThenTheTypedKeyIsLinkedNotTheFirstRow()
     {
-        var asked = Type(Press(LoadedForm(), "Enter").State, "a-3");
+        var asked = Type(OnIssueField(), "a-3");
         var popup = Active(asked).Form!.Suggest!;
         var loaded = _reducer.Reduce(
             asked,
@@ -127,7 +127,8 @@ public class LinkFlowTests
                 popup.RequestId,
                 [new Suggestion("A-30", "Other", "A-30", false)]));
 
-        var sent = Press(loaded.State, "Enter");
+        var taken = Press(loaded.State, "Enter");
+        var sent = Press(taken.State, "Ctrl-s");
 
         var request = Assert.IsType<LinkIssuesRequest>(Assert.Single(sent.Effects.OfType<ExecuteWriteEffect>()).Request);
         Assert.Equal("A-3", request.OtherKey);
@@ -136,7 +137,7 @@ public class LinkFlowTests
     [Fact]
     public void GivenTextThatIsNoKeyAndNoPick_WhenSubmitted_ThenNothingIsSentAndTheFieldAsksForAPick()
     {
-        var state = Type(Press(LoadedForm(), "Enter").State, "login");
+        var state = Type(OnIssueField(), "login");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -147,7 +148,7 @@ public class LinkFlowTests
     [Fact]
     public void GivenTheFormWithoutAnIssue_WhenSubmitted_ThenNothingIsSentAndTheFieldIsRequired()
     {
-        var state = Press(LoadedForm(), "Enter").State;
+        var state = OnIssueField();
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -158,7 +159,7 @@ public class LinkFlowTests
     [Fact]
     public void GivenARefusedKey_WhenTheWriteFails_ThenTheFormStaysOpenWithTheMessageAtTheIssueField()
     {
-        var state = Type(Press(LoadedForm(), "Enter").State, "A-1");
+        var state = Type(OnIssueField(), "A-1");
         var sent = Press(state, "Ctrl-s");
         var operation = sent.State.Session.Operations.Single();
         var error = new WriteError(
@@ -299,6 +300,12 @@ public class LinkFlowTests
 
         Assert.Equal("No permission to remove the link A-1 blocks A-30: No link permission.", failed.State.Message);
         Assert.Empty(failed.State.Session.Operations);
+    }
+
+    // The first link type taken with Enter (the form then navigates), then the issue field edited.
+    private AppState OnIssueField()
+    {
+        return Press(LoadedForm(), "Enter", "j", "Enter").State;
     }
 
     private AppState LoadedForm()

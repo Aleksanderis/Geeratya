@@ -18,11 +18,8 @@ public static class HintLabels
     /// <summary>Enter keeps the typed filter and leaves the filter line.</summary>
     public const string KeepFilter = "keep filter";
 
-    /// <summary>The answer that returns to a form that asked to discard.</summary>
-    public const string KeepEditing = "keep editing";
-
-    /// <summary>The answer that throws the edit away.</summary>
-    public const string Discard = "discard";
+    /// <summary>Enter starts editing the focused field of a form in its navigate state.</summary>
+    public const string Edit = "edit";
 
     /// <summary>Up and Down move the highlight.</summary>
     public const string Move = "move";
