@@ -132,7 +132,7 @@ public class ChromeSnapshotTests
         Assert.Contains("?", keys);
         Assert.Contains(":", keys);
         Assert.Contains("q", keys);
-        Assert.Contains(line.Spans, span => span is { Role: TextRole.BarMuted, Text: " quit" });
+        Assert.Contains(line.Spans, span => span is { Role: TextRole.BarMuted, Text: " back" });
     }
 
     [Theory]

@@ -4,7 +4,8 @@
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
 │           │   Global      │   Ctrl-d     Page down  (PageDown)                                          ▲│           │
 │           │   All actions │   Ctrl-u     Page up  (PageUp)                                               │           │
-│           │   Commands    │   Enter      Open the selected item                                          │           │
+│           │   Commands    │   q          Quit at the main view, else close one level                     │           │
+│           │               │   Enter      Open the selected item                                          │           │
 │           │               │   0          Go to the first column                                          │           │
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
@@ -24,13 +25,12 @@
 │           │               │   <space>j   Jump to a visible row (type text, press the letter on the row)  │           │
 │           │               │ General                                                                      │           │
 │           │               │   ?          Show or hide help                                               │           │
-│           │               │   q          Quit  (Ctrl-c)                                                  │           │
+│           │               │   Ctrl-c     Quit                                                            │           │
 │           │               │   Esc        Cancel or close                                                 │           │
 │           │               │   :          Open the command palette  (Ctrl-p)                              │           │
 │           │               │   <space>a   Open the actions menu of the selected issue                     │           │
 │           │               │   <space>n   Show the message history                                        │           │
-│           │               │   <space>x   Dismiss the status message                                      │           │
-│           │               │   <space>,   Open or close the settings screen                              ▼│           │
+│           │               │   <space>x   Dismiss the status message                                     ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

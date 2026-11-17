@@ -53,6 +53,7 @@ public sealed partial class AppReducer
         return action switch
         {
             ActionIds.Quit => Quit(state),
+            ActionIds.NavigateClose => CloseLevel(state, at),
             ActionIds.HelpToggle => Result(ToggleHelp(state)),
             ActionIds.HelpClose => Result(HelpReducer.Close(state) ?? ToNormal(state)),
             ActionIds.HelpFilter => Result(HelpReducer.OpenFilter(state)),
@@ -74,9 +75,7 @@ public sealed partial class AppReducer
             ActionIds.ViewMenuOpen => InNormal(state, () => OpenViewMenu(state)),
             ActionIds.PaletteBackspace => Result(Backspace(state)),
             ActionIds.PaletteSubmit => SubmitPalette(state, at),
-            ActionIds.Cancel when state.Editor is null && PaneActions.LeaveZoom(state) is { } unzoomed
-                => Result(unzoomed with { Message = null }),
-            ActionIds.Cancel => state.Editor is null ? Result(ToNormal(Escaped(state))) : CommentEditing.Cancel(state),
+            ActionIds.Cancel => state.Editor is null ? Result(Closed(state)) : CommentEditing.Cancel(state),
             ActionIds.PaneFocusLeft or ActionIds.PaneFocusDown or ActionIds.PaneFocusUp or ActionIds.PaneFocusRight
                 or ActionIds.PaneZoom => InNormal(
                     state,
@@ -283,9 +282,14 @@ public sealed partial class AppReducer
         return CommentEditing.Move(state, direction > 0 ? EditorMove.Down : EditorMove.Up);
     }
 
-    /// <summary>n or Esc in Confirm mode; the discard question goes back to the editor with its text.</summary>
+    /// <summary>n, q or Esc in Confirm mode; the discard question goes back to the editor with its text.</summary>
     private static ReduceResult DeclineConfirm(AppState state)
     {
+        if (state.Confirm?.ActionOnConfirm == ProfileReducer.DiscardAction)
+        {
+            return Result(state with { Mode = InputMode.Insert, Confirm = null });
+        }
+
         if (state.Editor is not null)
         {
             return Result(CommentEditing.KeepEditing(state));

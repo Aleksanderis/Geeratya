@@ -174,7 +174,6 @@ public class ConfirmOverlayTests
     [InlineData("Enter")]
     [InlineData("x")]
     [InlineData("j")]
-    [InlineData("q")]
     [InlineData(":")]
     public void GivenTheDialog_WhenPressingAnyOtherKey_ThenItStaysOpenAndNothingRuns(string key)
     {

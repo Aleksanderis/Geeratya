@@ -69,7 +69,7 @@ public sealed record TransitionPickTarget(
     {
         var choice = Chosen(changes);
 
-        return choice is { NeedsForm: true } ? new TransitionFormTarget(Key, choice, Summary) : null;
+        return choice is { NeedsForm: true } ? new TransitionFormTarget(Key, choice, Summary) { Origin = this } : null;
     }
 
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)

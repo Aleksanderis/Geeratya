@@ -21,4 +21,4 @@
 |   | t         +issue (3)                                                     |
 |   | . 4 more                                                                 |
 +---+--------------------------------------------------------------------------+
-[NORMAL] <space>                                      ? help  : commands  q quit
+[NORMAL] <space>                                      ? help  : commands  q back

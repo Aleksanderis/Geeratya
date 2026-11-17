@@ -92,7 +92,7 @@ public class StatusBarTests
         var line = StatusBar.Render(AppState.Initial, 60, _keymap);
 
         Assert.StartsWith(" NORMAL", line);
-        Assert.EndsWith("q quit", line);
+        Assert.EndsWith("q back", line);
         Assert.Equal(60, line.Length);
     }
 
@@ -171,17 +171,17 @@ public class StatusBarTests
     [Fact]
     public void GivenARemappedQuitKey_WhenRenderingHints_ThenTheHintShowsTheNewKey()
     {
-        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-q", ActionIds.Quit)]);
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "Ctrl-q", ActionIds.NavigateClose)]);
 
-        Assert.Equal(["Ctrl-q quit"], StatusBar.HintsFor(InputMode.Normal, keymap));
+        Assert.Equal(["Ctrl-q back"], StatusBar.HintsFor(InputMode.Normal, keymap));
     }
 
     [Fact]
     public void GivenAHintActionUnbound_WhenRenderingHints_ThenItIsLeftOut()
     {
-        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "q", ActionIds.Quit)]);
+        var keymap = new KeymapTable([new KeyBinding(InputMode.Normal, "q", ActionIds.NavigateClose)]);
 
-        Assert.Equal(["q quit"], StatusBar.HintsFor(InputMode.Normal, keymap));
+        Assert.Equal(["q back"], StatusBar.HintsFor(InputMode.Normal, keymap));
     }
 
     [Fact]
@@ -296,7 +296,7 @@ public class StatusBarTests
         var line = StatusBar.Render(With(ViewLayout.Columns), 150, _keymap);
 
         Assert.Contains("h/l column  j/k card  Enter open  <space>l list  <space>o browser", line);
-        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.EndsWith("? help  : commands  q back", line);
         Assert.Equal(150, line.Length);
     }
 
@@ -324,7 +324,7 @@ public class StatusBarTests
 
         Assert.DoesNotContain("column", line);
         Assert.DoesNotContain("browser", line);
-        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.EndsWith("? help  : commands  q back", line);
         Assert.Equal(120, line.Length);
     }
 
@@ -335,7 +335,7 @@ public class StatusBarTests
 
         Assert.DoesNotContain("column", line);
         Assert.DoesNotContain("card", line);
-        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.EndsWith("? help  : commands  q back", line);
     }
 
     [Fact]
@@ -348,7 +348,7 @@ public class StatusBarTests
             var line = StatusBar.Render(With(ViewLayout.Columns), width, _keymap);
 
             counts.Add(_columnsHints.Count(line.Contains));
-            Assert.Contains("q quit", line);
+            Assert.Contains("q back", line);
         }
 
         Assert.Equal(counts.OrderByDescending(count => count), counts);
@@ -387,7 +387,7 @@ public class StatusBarTests
         var line = StatusBar.Render(filtered, 80, _keymap);
 
         Assert.Contains("Filter: Mine", line);
-        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.EndsWith("? help  : commands  q back", line);
         Assert.Equal(80, line.Length);
     }
 
@@ -446,7 +446,7 @@ public class StatusBarTests
         var line = StatusBar.Render(AppState.Initial, 120, _keymap);
 
         Assert.DoesNotContain("browser", line);
-        Assert.EndsWith("? help  : commands  q quit", line);
+        Assert.EndsWith("? help  : commands  q back", line);
     }
 
     [Theory]
@@ -465,7 +465,7 @@ public class StatusBarTests
 
         if (width >= 80)
         {
-            Assert.EndsWith("q quit", line, StringComparison.Ordinal);
+            Assert.EndsWith("q back", line, StringComparison.Ordinal);
         }
     }
 

@@ -1,22 +1,46 @@
 using Geeratya.Core.Boards;
 using Geeratya.Core.CommandPalette;
-using Geeratya.Core.Detail;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Lists;
-using Geeratya.Core.Selection;
 using Geeratya.Core.Views;
-using Geeratya.Core.Writes;
 
 namespace Geeratya.Core.State;
 
 public sealed partial class AppReducer
 {
-    // Esc in the body: a picked-up rank issue goes first, then Visual mode, then the marks.
-    private static AppState Escaped(AppState state)
+    /// <summary>
+    /// <c>q</c> in Normal mode (<c>nav.close</c>): closes one level like Esc; at the view root, with nothing left to
+    /// close, it quits (asking first while writes run). A notice is not a level, so it ends with the key.
+    /// </summary>
+    private ReduceResult CloseLevel(AppState state, DateTimeOffset at)
     {
-        return DetailYank.Back(state) ?? SelectionActions.Back(state) ?? RankActions.DropPickup(state);
+        var quiet = StatusMessages.Dismiss(state);
+
+        return NavigationLevels.AtRoot(quiet) ? Quit(quiet) : ReduceKey(quiet, EscapeKey, at);
+    }
+
+    // Esc closes the innermost level (NavigationLevels): a typed filter, a profile form with changes (asks first), the
+    // manager opened from Settings (back to it), an open overlay, then Visual or marks, a rank pickup, zoom.
+    private static AppState Closed(AppState state)
+    {
+        var handled = NavigationLevels.ClearTyped(state)
+            ?? NavigationLevels.AskDiscardProfile(state)
+            ?? NavigationLevels.LeaveManager(state);
+
+        if (handled is not null)
+        {
+            return handled;
+        }
+
+        if (NavigationLevels.LeaveBody(state) is { } body)
+        {
+            return ToNormal(body);
+        }
+
+        return PaneActions.LeaveZoom(state) is { } unzoomed ? unzoomed with { Message = null } : ToNormal(state);
     }
 
     private static AppState ToNormal(AppState state)

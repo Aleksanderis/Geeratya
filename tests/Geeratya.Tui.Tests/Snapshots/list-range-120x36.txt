@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- VISUAL  loading · 3 selected       j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q quit
+ VISUAL  loading · 3 selected       j/k move  Enter open  <space>o browser  <space>ic create  ? help  : commands  q back

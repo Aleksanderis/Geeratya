@@ -83,7 +83,7 @@ xattr -d com.apple.quarantine geeratya
 
 Start from the command line (opens as a tab on top of the restored ones): `geeratya GEN-123`, `--board <name>`, `--backlog <name>`, `--jql <query>`, `--filter <name>`, and `--profile <name>` to use another saved profile for the run. `geeratya --help` lists everything, `--version` prints the version.
 
-Lost? `?` shows the keys of the current screen, `:` opens the command palette, `q` quits.
+Lost? `?` shows the keys of the current screen, `:` opens the command palette, `q` closes one level and quits at the main view.
 
 ## The screen
 
@@ -95,7 +95,7 @@ Lost? `?` shows the keys of the current screen, `:` opens the command palette, `
 |---|---|
 | `?` | Keys of the current screen |
 | `:` or `Ctrl-p` | Command palette |
-| `q` | Close an overlay, or quit |
+| `Esc` or `q` | Close one level (popup, form, overlay, issue); `q` quits at the main view |
 | `<space>,` | Settings |
 | `<space>*` | Show or hide the rarer commands |
 

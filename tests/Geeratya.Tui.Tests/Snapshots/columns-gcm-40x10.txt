@@ -7,4 +7,4 @@
 │ s GCM-19 ↑GCM-10 Validate the email  │
 │ B GCM-17 ↑GCM-9 Wrong date format in…│
 ╰──────────────────────────────────────╯
- NORMAL       ? help  : commands  q quit
+ NORMAL       ? help  : commands  q back

@@ -35,7 +35,7 @@ public class ContextMenuOverlayTests
         var quit = RegionProbe.Rows(frame, MouseTarget.ContextMenu).Single(row => row.Index == 2);
 
         Assert.Contains("Actions", text, StringComparison.Ordinal);
-        Assert.Contains("  q ", quit.Text, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-c", quit.Text, StringComparison.Ordinal);
     }
 
     [Fact]

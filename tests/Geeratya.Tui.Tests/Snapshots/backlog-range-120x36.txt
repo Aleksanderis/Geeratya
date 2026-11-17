@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- VISUAL  3 selected        j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q quit
+ VISUAL  3 selected        j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q back

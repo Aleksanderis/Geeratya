@@ -170,6 +170,7 @@ public static class DefaultMouseMap
 
         var exclusions = new Dictionary<string, string>
         {
+            [ActionIds.NavigateClose] = "the key form of Cancel (q); the Backdrop click row runs the same close-one-level handler",
             [ActionIds.NavigateDown] = "wheel rows cover it",
             [ActionIds.NavigateUp] = "wheel rows cover it",
             [ActionIds.NavigateLeft] = pointing,

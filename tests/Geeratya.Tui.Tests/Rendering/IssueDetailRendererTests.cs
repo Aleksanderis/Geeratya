@@ -392,7 +392,7 @@ public class IssueDetailRendererTests
 
         Assert.Contains("GCM-12", lines[^1]);
         Assert.Contains("Top", lines[^1]);
-        Assert.Contains("q quit", lines[^1]);
+        Assert.Contains("q back", lines[^1]);
     }
 
     [Fact]

@@ -70,7 +70,7 @@ public static class SettingsRegistry
             "hints.statusBar",
             SettingKind.Choice,
             Full,
-            "How many key hints the right of the status bar shows: all of them, only help, commands and quit, or none.",
+            "How many key hints the right of the status bar shows: all of them, only help, commands and back, or none.",
             settings => HintWord(settings.StatusHints),
             ApplyHints,
             HintsExpected,

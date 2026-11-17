@@ -7,4 +7,4 @@
 │ B GTM-18 ↑GTM-10 Wrong date format i…│
 │ s GTM-20 ↑GTM-11 Validate the email  │
 ╰──────────────────────────────────────╯
- NORMAL       ? help  : commands  q quit
+ NORMAL       ? help  : commands  q back

@@ -66,7 +66,7 @@ public static partial class FormReducer
     {
         if (answer == ActionIds.ConfirmYes)
         {
-            return Result(Closed(state, tab) with { Message = "Discarded the changes" });
+            return Left(Closed(state, tab) with { Message = "Discarded the changes" }, tab, tab.Form!);
         }
 
         if (answer == ActionIds.ConfirmNo || action == ActionIds.Cancel)
@@ -86,7 +86,18 @@ public static partial class FormReducer
             return Result(Replace(state, tab, form with { DiscardPending = true }));
         }
 
-        return Result(Closed(state, tab));
+        return Left(Closed(state, tab), tab, form);
+    }
+
+    // The transition fields go back to the status picker they came from; every other form just closes.
+    private static ReduceResult Left(AppState closed, TabState tab, FormState form)
+    {
+        if (form.Target is TransitionFormTarget { Origin: { } picker })
+        {
+            return Open(closed, tab.Id, picker);
+        }
+
+        return Result(closed);
     }
 
     private static ReduceResult Enter(AppState state, TabState tab, FormState form, DateTimeOffset at)

@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- VISUAL  loading · 3 selected   j/k move  Enter open  ? help  : commands  q quit
+ VISUAL  loading · 3 selected   j/k move  Enter open  ? help  : commands  q back

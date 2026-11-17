@@ -134,7 +134,7 @@ public class FlashJumpTests
         var state = Press(WithList(40), "Space", "j", "f", "i").State;
 
         var edited = Press(state, "Backspace").State;
-        var cancelled = Press(edited, "Esc").State;
+        var cancelled = Press(Press(edited, "Esc").State, "Esc").State;
 
         Assert.Equal("f", edited.FlashJump!.Text);
         Assert.Null(cancelled.FlashJump);

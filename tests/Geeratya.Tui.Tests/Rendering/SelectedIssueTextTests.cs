@@ -14,7 +14,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class SelectedIssueTextTests
 {
-    private const string GlobalHints = "? help  : commands  q quit";
+    private const string GlobalHints = "? help  : commands  q back";
 
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly Sprint _active = new(7, "Sprint 1", SprintState.Active, null, null, null, null, 6);

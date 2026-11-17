@@ -33,4 +33,4 @@
 │ └───────────────────────────────────┘ │ │   GCM-19  Sub-task        [To Do] │ │                                      │
 │                                       │ └───────────────────────────────────┘ │                                      │
 ╰───────────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────╯
- NORMAL  GCM board · 20 is…    za sub-tasks  h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q quit
+ NORMAL  GCM board · 20 is…    za sub-tasks  h/l column  j/k card  Enter open  <space>l list  ? help  : commands  q back

@@ -5,12 +5,12 @@
 |         +- Actions ------------------------------------------------+         |
 |         |   Show or hide help                                    ? |         |
 |         |   Edit the issue                               <space>ie |         |
-|         |   Quit                                                 q |         |
+|         |   Quit                                            Ctrl-c |         |
 |         +----------------------------------------------------------+         |
 |                                                                              |
 |                                                                              |
 |               work: me@work.test on https://work.atlassian.net               |
-|                         ? help   : commands   q quit                         |
+|                         ? help   : commands   q back                         |
 |                                                                              |
 |                                                                              |
 |                                                                              |

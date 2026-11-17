@@ -7,4 +7,4 @@
 ╰──────────────────────────────────────╯
 ╭─ Comments ───────────────────────────╮
 │ No comments.                     ... │
- NORMAL       ? help  : commands  q quit
+ NORMAL       ? help  : commands  q back

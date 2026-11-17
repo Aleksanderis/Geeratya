@@ -7,4 +7,4 @@
 │ B GCM-16 ↑GCM-8 App crashes on empty…│
 │                                      │
 ╰──────────────────────────────────────╯
- NORMAL       ? help  : commands  q quit
+ NORMAL       ? help  : commands  q back

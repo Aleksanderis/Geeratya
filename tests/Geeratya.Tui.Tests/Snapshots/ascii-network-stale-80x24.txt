@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
-[NORMAL] stale                  j/k move  Enter open  ? help  : commands  q quit
+[NORMAL] stale                  j/k move  Enter open  ? help  : commands  q back

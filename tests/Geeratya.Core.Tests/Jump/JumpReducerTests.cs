@@ -299,8 +299,8 @@ public class JumpReducerTests
     {
         var state = Press(WithList(), "Space", "g", "A", "-", "2").State;
 
-        var esc = Press(state, "Esc");
-        var control = Press(state, "Ctrl-c");
+        var esc = Press(Press(state, "Esc").State, "Esc");
+        var control = Press(Press(state, "Ctrl-c").State, "Ctrl-c");
 
         Assert.Null(esc.State.Jump);
         Assert.Null(control.State.Jump);

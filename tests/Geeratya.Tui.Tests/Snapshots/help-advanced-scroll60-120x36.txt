@@ -25,12 +25,12 @@
 │           │               │   G          Go to the bottom  (End)                                         │           │
 │           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
 │           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
+│           │               │   q          Quit at the main view, else close one level                     │           │
 │           │               │   Enter      Open the selected item                                          │           │
 │           │               │   0          Go to the first column                                          │           │
 │           │               │   $          Go to the last column                                           │           │
 │           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a        ▼│           │
+│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane    ▼│           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  HELP                                                                           j section  J scroll  / filter  Esc close

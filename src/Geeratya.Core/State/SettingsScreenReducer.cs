@@ -75,7 +75,7 @@ public static class SettingsScreenReducer
             ActionIds.ItemOpen => Activate(state),
             ActionIds.SettingsReset => Reset(state),
             ActionIds.SettingsOpen => Toggle(state),
-            ActionIds.Cancel => Cancel(state),
+            ActionIds.Cancel or ActionIds.NavigateClose => Cancel(state),
             _ => new ReduceResult(state, _noEffects),
         };
     }
@@ -186,6 +186,16 @@ public static class SettingsScreenReducer
         return new ReduceResult(state with { SettingsScreen = null, Message = null }, _noEffects);
     }
 
+    // The profile manager closes back to the screen it was opened from (the screen keeps its row).
+    private static ReduceResult ManagerFromSettings(AppState state)
+    {
+        var opened = ProfileReducer.OpenManager(state with { SettingsScreen = null });
+        var returnTo = state.SettingsScreen! with { Choice = null, Preview = null };
+        var list = opened.State.ProfileList! with { ReturnTo = returnTo };
+
+        return opened with { State = opened.State with { ProfileList = list } };
+    }
+
     private static ReduceResult Activate(AppState state)
     {
         var rows = SettingsRows.Build(state);
@@ -194,7 +204,7 @@ public static class SettingsScreenReducer
         switch (row.Kind)
         {
             case SettingsRowKind.Profiles:
-                return ProfileReducer.OpenManager(state with { SettingsScreen = null });
+                return ManagerFromSettings(state);
             case SettingsRowKind.Info:
                 return new ReduceResult(state with { Message = $"{row.Label}: {row.Value}" }, _noEffects);
         }

@@ -165,7 +165,7 @@ Each component has a pure part in Core (state and behaviour, no terminal) and on
    - *Used by:* source picker (all scopes, tab list, sprint move), Jump, palette, context menu, form, create-pane and dropdown popups, comment `@` popup, the Settings choice list, the type chooser and the profile list.
 6. **`Dialog`**: `OverlayBox` plus a footer built from typed `HintChip` values instead of strings, through one label table (one word per action: Esc is "close", or "back" when it returns to a previous screen; Enter is "open", "choose" or "save"). There is one button and chip helper (the `KeyedChip` the rules promise), with click regions. Background dimming and the frame role follow the dialog kind (decision 8). The profile manager, Settings, which-key and Help move onto it.
 7. **`TextEditor`**: one buffer (merging `PromptText` and `TextBuffer`, one maximum length), one mapping of editor actions and one caret renderer. Typed text uses the body role and the caret its own role (decision 6). Placeholders are `Muted`.
-8. **`NavigationStack`**: one "close one level" handler, the only path for Esc and for non-text `q`. It closes, in order: popup, filter, field editing, form, overlay, Visual or marks, zoom, the issue stack, and finally the view root, where `q` quits after the running-writes check.
+8. **`NavigationLevels`**: one "close one level" handler, the only path for Esc and for non-text `q`. It closes, in order: popup, filter, field editing, form, overlay, Visual or marks, zoom, the issue stack, and finally the view root, where `q` quits after the running-writes check.
    - *Replaces:* `Quit` as the direct target of `q`, and the per-surface Esc ladders.
 
 ### Guardrails
@@ -182,7 +182,7 @@ Each component has a pure part in Core (state and behaviour, no terminal) and on
 |---|---|---|---|
 | 1 | Visible quick fixes | Typed text and caret roles (6), placeholders `Muted`, one key-label role (9), confirm frame rule (8), one estimate format, "Unassigned"/"None" wording, error lines cut with an ellipsis, Settings focus highlight, which-key dimming, `NO_COLOR` focus marker. Docs: `ui-changes.md` (the `KeyedChip` line), stale `FormState.Navigable` comment, `ux-mouse.md` mismatches, and the dead part-C rows hidden from the doc until they are wired | none |
 | 2 | Value display and person fields | `ValueText` on every surface. Person `FieldKind`: Assignee and Reporter behave the same in every form. Reporter follows Jira's metadata in create and the issue view (live check on the dev site) | 1 |
-| 3 | Esc and `q` | `NavigationStack`: decision 2 on every surface, including the transition fields going back to the picker, and the profile manager going back to Settings | none |
+| 3 | Esc and `q` | `NavigationLevels`: decision 2 on every surface, including the transition fields going back to the picker, and the profile manager going back to Settings | none |
 | 4 | Lists and pickers | `ListCursor` and `PickList` with one `Matcher`, `Dialog` footers from `HintChip`, the wheel per decisions 3 and 7, j/k in the profile manager | 1 |
 | 5 | Field kinds | The remaining `FieldKind`s, one create/edit converter, validation timing (decision 4), labels removal everywhere, typed parent key everywhere | 2 |
 | 6 | Form shell | The navigate state for every form (11), one discard prompt, one field renderer for box, pane, dropdown and in place, and Details opening every field the same way | 3, 4, 5 |
