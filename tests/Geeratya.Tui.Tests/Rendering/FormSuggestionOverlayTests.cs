@@ -66,7 +66,7 @@ public class FormSuggestionOverlayTests
         var form = result.State.Session.Tabs[0].Form!;
 
         Assert.Equal(["backend", "日本チーム-北"], form.Fields[0].Value.Chosen);
-        Assert.Null(form.Suggest);
+        Assert.Equal(0, form.Suggest!.RequestId);
     }
 
     [Fact]

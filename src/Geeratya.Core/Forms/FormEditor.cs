@@ -126,7 +126,7 @@ public static class FormEditor
     /// <summary>The typed text of a field that takes a key as it stands, upper-cased, when it is a full issue key, else null.</summary>
     public static string? TypedKey(FormField field)
     {
-        if (!field.TakesTypedKey || field.Kind != FormFieldKind.Parent)
+        if (field.Kind != FormFieldKind.Parent)
         {
             return null;
         }

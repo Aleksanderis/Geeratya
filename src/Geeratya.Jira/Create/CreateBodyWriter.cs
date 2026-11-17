@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Geeratya.Jira.Adf;
 using Geeratya.Jira.Create.Models;
+using Geeratya.Jira.Edit.Models;
 
 namespace Geeratya.Jira.Create;
 
@@ -44,43 +45,12 @@ internal static class CreateBodyWriter
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static void WriteExtraFields(Utf8JsonWriter writer, IReadOnlyDictionary<string, CreateFieldValue>? fields)
+    private static void WriteExtraFields(Utf8JsonWriter writer, IReadOnlyDictionary<string, FieldUpdate>? fields)
     {
-        foreach (var (fieldId, value) in fields ?? new Dictionary<string, CreateFieldValue>())
+        foreach (var (fieldId, value) in fields ?? new Dictionary<string, FieldUpdate>())
         {
             writer.WritePropertyName(fieldId);
-            WriteValue(writer, value);
-        }
-    }
-
-    private static void WriteValue(Utf8JsonWriter writer, CreateFieldValue value)
-    {
-        switch (value.Kind)
-        {
-            case CreateFieldValueKind.Text:
-                writer.WriteStringValue(value.Values[0]);
-                break;
-            case CreateFieldValueKind.RichText:
-                WriteAdf(writer, value.Values[0]);
-                break;
-            case CreateFieldValueKind.Markdown:
-                WriteText(writer, value.Values[0], true);
-                break;
-            case CreateFieldValueKind.ChoiceId:
-                WriteObjectWith(writer, "id", value.Values[0]);
-                break;
-            case CreateFieldValueKind.AccountId:
-                WriteObjectWith(writer, "accountId", value.Values[0]);
-                break;
-            case CreateFieldValueKind.ChoiceIds:
-                WriteArray(writer, value.Values, true);
-                break;
-            case CreateFieldValueKind.Strings:
-                WriteArray(writer, value.Values, false);
-                break;
-            case CreateFieldValueKind.Number:
-                writer.WriteRawValue(value.Values[0]);
-                break;
+            writer.WriteRawValue(value.Json);
         }
     }
 
@@ -95,25 +65,6 @@ internal static class CreateBodyWriter
         writer.WriteStartObject();
         writer.WriteString(property, value);
         writer.WriteEndObject();
-    }
-
-    private static void WriteArray(Utf8JsonWriter writer, IReadOnlyList<string> values, bool asIds)
-    {
-        writer.WriteStartArray();
-
-        foreach (var value in values)
-        {
-            if (asIds)
-            {
-                WriteObjectWith(writer, "id", value);
-            }
-            else
-            {
-                writer.WriteStringValue(value);
-            }
-        }
-
-        writer.WriteEndArray();
     }
 
     private static void WriteText(Utf8JsonWriter writer, string text, bool isMarkdown)

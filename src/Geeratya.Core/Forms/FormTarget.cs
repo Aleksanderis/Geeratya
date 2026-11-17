@@ -18,6 +18,12 @@ public abstract record FormTarget
     /// <summary>The project a person field searches in while the issue does not exist yet (a create form); null otherwise.</summary>
     public virtual string? SearchProjectKey => null;
 
+    /// <summary>The project a parent search is limited to (the project of the edited or created issue); null for any.</summary>
+    public virtual string? ParentProjectKey => null;
+
+    /// <summary>The hierarchy level a parent of this issue must have, when the issue type is known; else null.</summary>
+    public virtual int? ParentHierarchyLevel => null;
+
     /// <summary>The message when the metadata holds nothing to fill in.</summary>
     public virtual string EmptyText => "Nothing here can be edited";
 

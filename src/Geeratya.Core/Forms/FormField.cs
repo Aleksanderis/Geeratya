@@ -17,8 +17,6 @@ namespace Geeratya.Core.Forms;
 /// <param name="Initial">The value the form was opened with; only fields that differ are written.</param>
 /// <param name="Entry">The typing buffer: the filter of a choice field, the label being typed.</param>
 /// <param name="Error">Why the field is wrong (checked locally or refused by Jira), or null.</param>
-/// <param name="TakesTypedKey">A full issue key typed into this parent-kind field is taken as it stands, without
-/// picking it from the popup (the link form). Enter takes the key, Tab the highlighted row.</param>
 /// <param name="Lookup">The project list a typed filter also searches (components, versions of a create form), or null.</param>
 public sealed record FormField(
     string Id,
@@ -30,8 +28,7 @@ public sealed record FormField(
     FormValue Initial,
     string Entry,
     string? Error,
-    SuggestionKind? Lookup = null,
-    bool TakesTypedKey = false)
+    SuggestionKind? Lookup = null)
 {
     /// <summary>
     /// Units between the caret and the end of the text being typed (<see cref="Entry"/> for a choice, picked or label
@@ -46,7 +43,7 @@ public sealed record FormField(
     {
         get
         {
-            var typed = Kind is FormFieldKind.Labels or FormFieldKind.User or FormFieldKind.Parent && Entry.Length > 0;
+            var typed = FormFieldKinds.TakesEntry(Kind) && Entry.Length > 0;
 
             return IsEditable && (!Value.Equals(Initial) || typed);
         }
@@ -62,7 +59,7 @@ public sealed record FormField(
     {
         return new FormField(
             id,
-            label,
+            FormFieldKinds.Labelled(label, kind),
             kind,
             required,
             options,

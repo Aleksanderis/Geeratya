@@ -1,21 +1,21 @@
-using System.Globalization;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Create.Models;
+using Geeratya.Jira.Edit.Models;
 
 namespace Geeratya.App;
 
 /// <summary>
-/// Turns the filled fields of a create form into the typed <see cref="NewIssue"/> of the Jira layer. The summary and
-/// the description have their own slots; every other field is written in the shape its kind needs. Validation ran
-/// before, so a value that does not read is a bug and throws instead of writing something else.
+/// Turns the filled fields of a create form into the typed <see cref="NewIssue"/> of the Jira layer. The summary,
+/// the description and the parent have their own slots of Jira's create call; every other field goes through
+/// <see cref="FieldConverter"/>, the converter the edit uses.
 /// </summary>
 public static class NewIssues
 {
     public static NewIssue For(CreateRequest request)
     {
         string? description = null;
-        var fields = new Dictionary<string, CreateFieldValue>();
+        var fields = new Dictionary<string, FieldUpdate>();
 
         foreach (var change in request.Changes.Where(change => !change.Value.IsEmpty))
         {
@@ -31,7 +31,7 @@ public static class NewIssues
             }
             else
             {
-                fields[change.FieldId] = ValueOf(change);
+                fields[change.FieldId] = FieldConverter.ForCreate(change);
             }
         }
 
@@ -43,46 +43,5 @@ public static class NewIssues
             request.ParentKey,
             fields,
             DescriptionIsMarkdown: true);
-    }
-
-    private static CreateFieldValue ValueOf(FieldChange change)
-    {
-        var text = change.Value.Text.Trim();
-        var chosen = change.Value.Chosen;
-
-        return change.Kind switch
-        {
-            FormFieldKind.Text => CreateFieldValue.Text(text),
-            FormFieldKind.Paragraph => CreateFieldValue.Markdown(change.Value.Text),
-            FormFieldKind.Number => CreateFieldValue.Number(Number(text)),
-            FormFieldKind.Date => CreateFieldValue.Text(Date(text)),
-            FormFieldKind.DateTime => CreateFieldValue.DateTime(DateTime(text)),
-            FormFieldKind.Select => CreateFieldValue.Choice(chosen[0]),
-            FormFieldKind.MultiSelect => CreateFieldValue.Choices(chosen),
-            FormFieldKind.Labels => CreateFieldValue.Labels(chosen),
-            FormFieldKind.User => CreateFieldValue.User(chosen[0]),
-            _ => throw new NotSupportedException($"The field {change.FieldId} cannot be written."),
-        };
-    }
-
-    private static decimal Number(string text)
-    {
-        return FormValueParser.TryNumber(text, out var number)
-            ? (decimal)number
-            : throw new FormatException("Not a number.");
-    }
-
-    private static string Date(string text)
-    {
-        return FormValueParser.TryDate(text, out var date)
-            ? date.ToString(FormValueParser.DateFormat, CultureInfo.InvariantCulture)
-            : throw new FormatException("Not a date.");
-    }
-
-    private static DateTimeOffset DateTime(string text)
-    {
-        return FormValueParser.TryDateTime(text, out var moment)
-            ? moment
-            : throw new FormatException("Not a moment.");
     }
 }
