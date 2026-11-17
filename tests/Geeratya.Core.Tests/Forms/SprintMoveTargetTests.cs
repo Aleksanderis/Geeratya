@@ -43,6 +43,18 @@ public class SprintMoveTargetTests
     }
 
     [Fact]
+    public void GivenAnIssueInAClosedSprint_WhenTheFieldIsBuilt_ThenTheClosedSprintIsTheCurrentChoiceAndTheBacklogIsAChange()
+    {
+        var field = Target(new IssueSprint(5, "Sprint 0", SprintState.Closed)).Field();
+
+        Assert.Equal(["backlog", "5", "11", "12"], field.Options.Select(option => option.Id));
+        Assert.Equal("Sprint 0 (closed)", field.Options[1].Label);
+        Assert.Equal(["5"], field.Value.Chosen);
+        Assert.False(field.IsChanged);
+        Assert.True((field with { Value = FormValue.OfChosen([SprintMoveTarget.BacklogId]) }).IsChanged);
+    }
+
+    [Fact]
     public void GivenAnotherSprintChosen_WhenTheFieldIsChecked_ThenItIsChanged()
     {
         var field = Target(new IssueSprint(11, "Sprint 1", SprintState.Active)).Field();

@@ -73,8 +73,7 @@ public static class SprintMoveActions
 
         var shown = tab.Detail.Count > 0 ? tab.Detail[^1].Issue?.CurrentSprint : null;
         var current = shown ?? FindRow(state, keys[0])?.CurrentSprint;
-        var open = current is { State: SprintState.Active or SprintState.Future } ? current : null;
-        var target = new SprintMoveTarget(keys[0], sprints, open, SourceOf(state, keys));
+        var target = new SprintMoveTarget(keys[0], sprints, current, SourceOf(state, keys));
 
         return FormReducer.OpenReady(state, tab.Id, target, [target.Field()]);
     }

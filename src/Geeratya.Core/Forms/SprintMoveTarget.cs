@@ -8,7 +8,8 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// The Sprint field of one issue as a one-field form (the Details dropdown): the active and future sprints of the
-/// board and the backlog, the current place already chosen. The sprints come from the tab, so nothing is fetched. A
+/// board and the backlog, the current place already chosen. A sprint that is closed (an issue left in one) is not a target, but it
+/// is listed as the current place, so the backlog is a change and moves the issue out of it. The sprints come from the tab, so nothing is fetched. A
 /// pick sends the same <see cref="SprintMoveRequest"/> as the sprint picker of a list key.
 /// </summary>
 public sealed record SprintMoveTarget(
@@ -36,6 +37,11 @@ public sealed record SprintMoveTarget(
     public FormField Field()
     {
         var options = new List<FieldOption> { new(BacklogId, BacklogLabel) };
+
+        if (Current is { } held && Sprints.All(item => item.Id != held.Id))
+        {
+            options.Add(new FieldOption(SprintId(held.Id), held.State == SprintState.Closed ? $"{held.Name} (closed)" : held.Name));
+        }
 
         options.AddRange(Sprints.Select(item => new FieldOption(SprintId(item.Id), item.Name)));
 
