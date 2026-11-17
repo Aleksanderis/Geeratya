@@ -12,6 +12,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// gives it must resolve to a command on that frame. A row whose target no renderer reports would sit in the table
 /// and the document and never fire.
 /// </summary>
+[Trait("Os", "Independent")]
 public class MouseWiringTests
 {
     private const int Width = 100;

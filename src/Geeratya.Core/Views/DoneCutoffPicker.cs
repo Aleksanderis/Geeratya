@@ -1,7 +1,7 @@
-using Geeratya.Core.Lists;
 using Geeratya.Core.Boards;
 using Geeratya.Core.CommandPalette;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 

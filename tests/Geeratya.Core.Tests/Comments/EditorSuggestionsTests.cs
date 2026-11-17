@@ -1,7 +1,7 @@
-using Geeratya.Core.Lists;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;

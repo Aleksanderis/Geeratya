@@ -1,7 +1,7 @@
-using Geeratya.Core.Lists;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -273,6 +273,18 @@ public class CommentEditorOverlayTests
 
         Assert.Contains(expected, plain);
         Assert.Contains("Ctrl-s send", plain);
+    }
+
+    [Fact]
+    public void GivenAnEmptyFilterWithNoRows_WhenRenderingTheCommentPopup_ThenItSaysNoMatchNotNoMoreValues()
+    {
+        var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
+        var popup = new SuggestionState(0, source, string.Empty, [], [], 0, PickStatus.Ready, 3, null);
+
+        var plain = string.Join('\n', Frame(Editor("#") with { Suggest = popup }, 80, 24).PlainLines());
+
+        Assert.Contains("No match", plain, StringComparison.Ordinal);
+        Assert.DoesNotContain("No more values", plain, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -74,9 +74,7 @@ public static class CommentEditorOverlay
             return;
         }
 
-        var rows = PickListRenderer.Popup(popup, 1);
-
-        OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, rows.Select(static row => row.Item));
+        OverlayBox.Mark(regions, MouseTarget.EditorChoice, top, left, boxWidth, 0, PickListRenderer.PopupItems(popup));
     }
 
     private static List<StyledLine> BoxLines(
@@ -202,7 +200,7 @@ public static class CommentEditorOverlay
 
         var width = Math.Max(1, inner - 2);
 
-        lines.AddRange(PickListRenderer.Popup(popup, width).Select(static row => row.Line));
+        lines.AddRange(PickListRenderer.Popup(popup, width, string.Empty, false).Select(static row => row.Line));
 
         return lines;
     }

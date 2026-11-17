@@ -1,9 +1,9 @@
 using Geeratya.Core.Comments;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
-using Geeratya.Core.Menus;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Menus;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;

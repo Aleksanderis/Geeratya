@@ -5,6 +5,7 @@ using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
+[Trait("Os", "Independent")]
 public class AnswerRowsTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();

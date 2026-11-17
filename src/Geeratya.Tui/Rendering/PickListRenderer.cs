@@ -50,8 +50,10 @@ public static class PickListRenderer
     /// <summary>
     /// The rows of a field popup: at most <see cref="PopupRows"/> suggestions around the highlight, then the notice
     /// line when there is one. Each row stands for its suggestion index, the notice for none.
+    /// <paramref name="emptyListsAll"/> says whether an empty filter means "every value" (a field popup, whose empty
+    /// list reads "No more values") or not (the comment popup, where it reads "No match").
     /// </summary>
-    public static List<PickRow> Popup(SuggestionState popup, int width, string margin = "")
+    public static List<PickRow> Popup(SuggestionState popup, int width, string margin = "", bool emptyListsAll = true)
     {
         var window = popup.Pick.Window(popup.Items.Count, PopupRows);
         var highlighted = popup.Pick.Index(popup.Items.Count);
@@ -64,7 +66,7 @@ public static class PickListRenderer
             rows.Add(new PickRow(Row(text, index == highlighted, margin), index));
         }
 
-        if (Notice(popup.Pick, popup.Items.Count, popup.Query.Length == 0) is { } notice)
+        if (Notice(popup.Pick, popup.Items.Count, emptyListsAll && popup.Query.Length == 0) is { } notice)
         {
             var text = TextWidth.Fit(notice.Text, width);
 
@@ -72,6 +74,22 @@ public static class PickListRenderer
         }
 
         return rows;
+    }
+
+    /// <summary>
+    /// The item index each row of <see cref="Popup"/> stands for (-1 for the notice row), for the mouse regions of a
+    /// popup whose rows are drawn elsewhere.
+    /// </summary>
+    public static List<int> PopupItems(SuggestionState popup)
+    {
+        var items = new List<int>(popup.Pick.Window(popup.Items.Count, PopupRows).Indexes);
+
+        if (Notice(popup.Pick, popup.Items.Count, popup.Query.Length == 0) is not null)
+        {
+            items.Add(-1);
+        }
+
+        return items;
     }
 
     /// <summary>

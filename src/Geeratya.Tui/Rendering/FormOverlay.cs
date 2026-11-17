@@ -279,14 +279,14 @@ public static partial class FormOverlay
             return tags;
         }
 
-        var popupRows = PickListRenderer.Popup(popup, 1);
-        var start = block.Count - (field.Error is null ? 0 : 1) - popupRows.Count;
+        var popupItems = PickListRenderer.PopupItems(popup);
+        var start = block.Count - (field.Error is null ? 0 : 1) - popupItems.Count;
 
-        for (var row = 0; row < popupRows.Count; row++)
+        for (var row = 0; row < popupItems.Count; row++)
         {
-            if (popupRows[row].Item >= 0)
+            if (popupItems[row] >= 0)
             {
-                tags[start + row] = new RowTag(MouseTarget.FormChoice, popupRows[row].Item);
+                tags[start + row] = new RowTag(MouseTarget.FormChoice, popupItems[row]);
             }
         }
 

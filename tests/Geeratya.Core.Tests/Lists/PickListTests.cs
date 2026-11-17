@@ -2,6 +2,7 @@ using Geeratya.Core.Lists;
 
 namespace Geeratya.Core.Tests.Lists;
 
+[Trait("Os", "Independent")]
 public class PickListTests
 {
     [Fact]

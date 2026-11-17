@@ -1,6 +1,6 @@
-using Geeratya.Core.Lists;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.Lists;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.Views;

@@ -7,6 +7,7 @@ using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
 
+[Trait("Os", "Independent")]
 public class PickListRendererTests
 {
     private static readonly SuggestionSource _source = new(SuggestionKind.Labels, "A-1", []);
