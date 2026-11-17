@@ -381,6 +381,44 @@ public class InPaneEditTests
         Assert.Contains("No permission", Plain(Build(failed.State, 100, 30)));
     }
 
+    [Fact]
+    public void GivenTheSummaryEditorWithTypedText_WhenTheIssueReloadsAndArrives_ThenTheDraftAndTheEditStateStay()
+    {
+        var state = Loaded(Press(OnTarget(Opened(null), DetailFieldIds.Summary), "Enter"), SummaryField());
+        var typed = Press(state, "!", "?").State;
+        var tab = Active(typed);
+
+        var reloading = ViewReducer.RefreshActive(typed).State;
+        var requestId = Active(reloading).Detail[^1].IssueRequest;
+        var changed = Issue(null) with { Summary = "Changed elsewhere" };
+        var arrived = _reducer.Reduce(reloading, new IssueDetailLoaded(tab.Id, requestId, changed, _now)).State;
+
+        var form = Active(arrived).Form!;
+        Assert.Equal(PaneIds.Title, form.Pane);
+        Assert.Equal("Issue 1!?", form.Fields[0].Value.Text);
+        Assert.Contains("Issue 1!?", Plain(Build(arrived, 100, 30)));
+    }
+
+    [Fact]
+    public void GivenTheDescriptionEditorWithTypedText_WhenTheIssueReloadsAndArrives_ThenTheDraftAndTheEditStateStay()
+    {
+        var state = Press(OnTarget(Opened(Described("Hello")), DetailFieldIds.Description), "Enter");
+        var typed = Press(Loaded(state, DescriptionField("Hello")), "!", "?").State;
+        var tab = Active(typed);
+
+        var reloading = ViewReducer.RefreshActive(typed).State;
+        var requestId = Active(reloading).Detail[^1].IssueRequest;
+        var changed = Issue(Described("Rewritten elsewhere"));
+        var arrived = _reducer.Reduce(reloading, new IssueDetailLoaded(tab.Id, requestId, changed, _now)).State;
+
+        var form = Active(arrived).Form!;
+        Assert.Equal(PaneIds.Description, form.Pane);
+        Assert.Contains("?", form.Fields[0].Value.Text);
+        Assert.Contains("Hello", form.Fields[0].Value.Text);
+        Assert.DoesNotContain("Rewritten", form.Fields[0].Value.Text);
+        Assert.Contains("Hello", Plain(Build(arrived, 100, 30)));
+    }
+
     private static IReadOnlyList<StyledSpan> CaretRow(DetailDocument document)
     {
         return document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret)).Spans;
