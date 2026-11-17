@@ -2,7 +2,6 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -15,7 +14,6 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class DetailDropdown
 {
-    private const int PopupRows = 5;
     private const int SidebarInset = 1;
     private const int MaxNarrowWidth = 40;
     private const int Chrome = 4;
@@ -182,24 +180,10 @@ public static class DetailDropdown
             return;
         }
 
-        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
-        var first = FormOverlay.PopupFirst(popup);
-        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
-
-        foreach (var index in Enumerable.Range(first, shown))
+        foreach (var row in PickListRenderer.Popup(popup, Math.Max(1, inner - 2)))
         {
-            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), Math.Max(1, inner - 2));
-            var highlighted = index == cursor;
-            var pointer = " ";
-
-            lines.Add(StyledLine.Of($"{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
-            indexes.Add(index);
-        }
-
-        if (FormOverlay.PopupStatus(popup) is { } status)
-        {
-            lines.Add(StyledLine.Of(TextWidth.Fit(status.Text, inner), status.Role));
-            indexes.Add(-1);
+            lines.Add(row.Line);
+            indexes.Add(row.Item);
         }
     }
 

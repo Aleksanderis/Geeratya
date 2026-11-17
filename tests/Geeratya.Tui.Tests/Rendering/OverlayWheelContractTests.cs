@@ -1,8 +1,8 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
-using Geeratya.Core.Suggestions;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -130,6 +130,63 @@ public class OverlayWheelContractTests
         Assert.Equal(DefaultMouseMap.PopupWheelRows, down.State.SettingsScreen!.Choice);
     }
 
+    [Theory]
+    [MemberData(nameof(BoxUsers))]
+    [MemberData(nameof(PopupUsers))]
+    public void GivenAPickList_WhenClickingTheSecondRow_ThenThatRowIsChosenAndNotTheHighlightedOne(string user)
+    {
+        var scenario = Scenario.For(user);
+        var frame = FrameBuilder.BuildStyled(scenario.State, Width, Height, _keymap)!;
+        var rows = RegionProbe.Rows(frame, scenario.RowTarget);
+        var second = rows.First(row => row.Index == 1);
+
+        var clicked = RegionProbe.Click(scenario.State, frame, second.Region, MouseGesture.Click);
+
+        Assert.NotNull(clicked);
+        Assert.True(Scenario.Chose(user, scenario.State, clicked.State), $"{user}: the click did not choose row 1");
+    }
+
+    [Theory]
+    [MemberData(nameof(BoxUsers))]
+    [MemberData(nameof(PopupUsers))]
+    public void GivenAPickList_WhenDrawn_ThenEveryRowRegionSitsOnItsDrawnRow(string user)
+    {
+        var scenario = Scenario.For(user);
+        var frame = FrameBuilder.BuildStyled(scenario.State, Width, Height, _keymap)!;
+
+        var rows = RegionProbe.Rows(frame, scenario.RowTarget);
+
+        Assert.True(rows.Count >= 2, $"{user}: fewer than two clickable rows");
+        Assert.Equal(rows.Count, rows.Select(row => row.Region.Top).Distinct().Count());
+        Assert.All(rows, row => Assert.False(string.IsNullOrWhiteSpace(row.Text.Trim('│', ' ', '▲', '▼'))));
+    }
+
+    [Fact]
+    public void GivenTheContextMenu_WhenClickingTheSecondItem_ThenItRuns()
+    {
+        var state = ContextMenuOverlayTests.Sample();
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var second = RegionProbe.Rows(frame, MouseTarget.ContextMenu).First(row => row.Index == 1);
+
+        var clicked = RegionProbe.Click(state, frame, second.Region, MouseGesture.Click);
+
+        Assert.NotNull(clicked);
+        Assert.Null(clicked.State.ContextMenu);
+    }
+
+    [Fact]
+    public void GivenTheSettingsChoiceList_WhenClickingTheSecondWord_ThenItIsTaken()
+    {
+        var state = SettingsScreenTests.WithThemeList();
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var second = RegionProbe.Rows(frame, MouseTarget.SettingsChoice).First(row => row.Index == 1);
+
+        var clicked = RegionProbe.Click(state, frame, second.Region, MouseGesture.Click);
+
+        Assert.NotNull(clicked);
+        Assert.Null(clicked.State.SettingsScreen!.Choice);
+    }
+
     private sealed record Scenario(AppState State, MouseTarget RowTarget, int Down)
     {
         public static Scenario For(string user)
@@ -154,13 +211,27 @@ public class OverlayWheelContractTests
                     DefaultMouseMap.WheelRows),
                 Profiles => new Scenario(ProfileManagerScreenTests.Sample(), MouseTarget.ProfileRow, 1),
                 "form" => new Scenario(
-                    FormSuggestionOverlayTests.WithForm(FormSuggestionOverlayTests.LabelsForm(SuggestionStatus.Loaded)),
+                    FormSuggestionOverlayTests.WithForm(FormSuggestionOverlayTests.LabelsForm(PickStatus.Ready)),
                     MouseTarget.FormChoice,
                     DefaultMouseMap.PopupWheelRows),
                 _ => new Scenario(
                     CommentEditorOverlayTests.StateWith(CommentEditorOverlayTests.EditorWithPopup()),
                     MouseTarget.EditorChoice,
                     DefaultMouseMap.PopupWheelRows),
+            };
+        }
+
+        public static bool Chose(string user, AppState before, AppState after)
+        {
+            return user switch
+            {
+                "palette" => after.Mode != InputMode.Command,
+                "jump" => after.Jump is null,
+                "picker" => after.Picker is null,
+                "settings" => after.SettingsScreen!.Selected == 1,
+                Profiles => after.ProfileList is null,
+                "form" => Chosen(after) == Chosen(before) + 1,
+                _ => after.Editor!.Suggest is null,
             };
         }
 
@@ -176,6 +247,13 @@ public class OverlayWheelContractTests
                 "form" => FormReducer.OpenForm(state)!.Suggest!.Cursor,
                 _ => state.Editor!.Suggest!.Cursor,
             };
+        }
+
+        private static int Chosen(AppState state)
+        {
+            var form = FormReducer.OpenForm(state)!;
+
+            return form.Fields[form.Focus].Value.Chosen.Count;
         }
     }
 }

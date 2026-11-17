@@ -366,10 +366,12 @@ Each has a pure part in Core and, where it draws, one renderer in Tui; the plan 
 |---|---|---|
 | `ListCursor` | `Core/Lists` | Clamp, step, half page, target of a move, `Reveal` (scroll with one margin, `ScrollOff`) and `FirstVisible` (the same rule for a popup drawn from its selection alone). `ListMotion` and `BoardScroll` build on it. |
 | `Matcher` | `Core/Lists` | The one case-insensitive text matcher: `Matches` filters, `Rank` orders (exact, prefix, substring, letters in order); `PaletteFuzzy` and `SuggestionRanker` use it. |
+| `PickList`, `PickWindow`, `PickStatus` | `Core/Lists` | The state of every "choose one" list: the highlight (`Selected`, -1 for none yet), the lookup status (`Ready`, `Waiting`, `Loading`, `Failed`) and its message. Moves go through `ListCursor`; `Window` and `WindowAt` give the rows that fit. Held by the source picker, Jump, the palette (`PalettePick`), the context menu, the form, create-pane, dropdown and comment popups (`SuggestionState.Pick`), the Settings rows and choice list, the type chooser (`FormState.TypePick`) and the profile list. Each user derives its own rows (a typed filter goes through `Matcher`) and passes only their count. |
+| `PickListRenderer`, `AnswerRows` | `Tui/Rendering` | One renderer for the rows of those lists: the highlighted row (`Row`), the windowed rows with scroll markers (`Walls`), the notice for a slow, failed or empty list (`Notice`), the five-row field popup (`Popup`) and the mouse regions of the rows (`Mark`); `AnswerRows` draws the typed answer rows of a Confirm dialog (`y  Delete`, `n  Cancel`) and marks them from the same list. |
 | `HintLabels`, `DialogFooter`, `ChipButtons` | `Tui/Rendering` | One word per action, dialog footers from typed `HintChip` values (an unbound action gives no chip), clickable button rows whose line and regions come from one list. |
 | Wheel by context | `Core/Mouse` | `MouseContext.WheelTarget` plus `WheelScope` (screen, box or rows) decide what the notch acts on; `OverlayWheeled` moves the highlight of the overlay under the pointer. |
 
-Not yet shared (planned, `ui-consistency.md` phases 2 to 7): `ValueText`, `FieldKind`, `FormShell`, `NavigationStack`, `TextEditor`, and the `PickList` state and renderer that would replace the four popup list renderers and merge `SuggestionState` with the picker, Jump and palette states.
+Not yet shared (planned, `ui-consistency.md` phases 6 and 7): `FormShell` (it uses `PickList` for its dropdown) and `TextEditor`. The overlay boxes still compose their own frame, title, prompt line and footer: `PickListRenderer` owns the rows, not the box.
 
 ## Terminal.Gui
 

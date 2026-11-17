@@ -47,7 +47,7 @@ public static class PaletteOverlay
 
         var rows = PaletteRows.For(state, keymap);
         var count = rows.Count(row => row.IsSelectable);
-        var selected = Math.Clamp(state.PaletteSelected, 0, Math.Max(0, count - 1));
+        var selected = Math.Max(0, state.PalettePick.Index(count));
         var available = Math.Min(height - TopGap, MaxBoxHeight);
         var footer = available >= FooterMinimumHeight ? 2 : 0;
         var area = available - ChromeRows - footer;
@@ -64,7 +64,7 @@ public static class PaletteOverlay
             lines = ListLines(rows, selected, boxWidth - 4, gaps: false);
         }
 
-        var first = ListCursor.FirstVisible(lines.FindIndex(line => line.Selected), lines.Count, area);
+        var first = PickList.WindowAt(lines.FindIndex(line => line.Selected), lines.Count, area).First;
         var shown = lines.Skip(first).Take(area).ToList();
         var stable = StableRows(state, keymap, boxWidth - 4, area);
 

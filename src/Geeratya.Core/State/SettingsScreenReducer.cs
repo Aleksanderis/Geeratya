@@ -142,7 +142,7 @@ public static class SettingsScreenReducer
         {
             var choices = SettingsRows.ChoicesOf(state, setting);
 
-            return Previewed(state, screen with { Choice = ListCursor.Step(choice, delta, choices.Count) }, setting);
+            return Previewed(state, screen with { Choices = new PickList(choice).Moved(delta, choices.Count) }, setting);
         }
 
         return Select(state, Selected(state, rows.Count) + delta);

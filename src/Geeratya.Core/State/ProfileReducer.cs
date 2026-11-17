@@ -1,5 +1,4 @@
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Lists;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Text;
 
@@ -204,9 +203,10 @@ public static partial class ProfileReducer
             return state;
         }
 
-        var selected = ListCursor.Step(ClampedRow(state, list), delta, state.Profiles.Profiles.Count);
+        var pick = list.Pick.At(ClampedRow(state, list), state.Profiles.Profiles.Count)
+            .Moved(delta, state.Profiles.Profiles.Count);
 
-        return state with { ProfileList = list with { Selected = selected } };
+        return state with { ProfileList = list with { Pick = pick } };
     }
 
     /// <summary>Enter in the profile list: switches to the highlighted profile (as the palette command does).</summary>

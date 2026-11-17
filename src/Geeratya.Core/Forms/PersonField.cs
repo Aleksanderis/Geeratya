@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
@@ -48,7 +49,7 @@ internal static class PersonField
             return null;
         }
 
-        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, SuggestionStatus.Loaded, 0, null);
+        return new SuggestionState(form.Focus, source, string.Empty, [], rows, -1, PickStatus.Ready, 0, null);
     }
 
     /// <summary>The people search of a person field in the context of <paramref name="target"/>; null with no context.</summary>

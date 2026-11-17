@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
@@ -177,7 +178,7 @@ public class EditorSuggestionsTests
         var slow = _reducer.Reduce(open.State, new SuggestionsSlow(_tab, id));
         var failed = _reducer.Reduce(slow.State, new SuggestionsFailed(_tab, id, "boom"));
 
-        Assert.Equal(SuggestionStatus.Loading, slow.State.Editor!.Suggest!.Status);
+        Assert.Equal(PickStatus.Loading, slow.State.Editor!.Suggest!.Status);
         Assert.Equal("boom", failed.State.Editor!.Suggest!.Error);
     }
 

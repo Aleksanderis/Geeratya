@@ -45,7 +45,7 @@ public static class JumpOverlay
         }
 
         var rows = JumpRows.For(state, jump);
-        var selected = Math.Clamp(jump.Selected, 0, Math.Max(0, rows.Count - 1));
+        var selected = Math.Max(0, jump.Pick.Index(rows.Count));
         var lines = RowLines(rows, selected, boxWidth - 4);
         var inner = Math.Min(Math.Min(height, MaxBoxHeight), lines.Count + 1 + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
@@ -57,13 +57,11 @@ public static class JumpOverlay
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         var area = Math.Max(0, inner - 1 - footer);
+        var window = PickList.WindowAt(selected, rows.Count, area);
 
         if (rows.Count > 0)
         {
-            var first = ListCursor.FirstVisible(selected, rows.Count, area);
-            var shown = Math.Max(0, Math.Min(area, rows.Count - first));
-
-            OverlayBox.Mark(regions, MouseTarget.JumpRow, top, left, boxWidth, 2, Enumerable.Range(first, shown));
+            PickListRenderer.Mark(regions, MouseTarget.JumpRow, new BoxPlace(top, left, boxWidth), 2, window);
         }
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
@@ -85,21 +83,13 @@ public static class JumpOverlay
     {
         var contentWidth = boxWidth - 2;
         var area = Math.Max(0, inner - 1 - footer);
-        var first = ListCursor.FirstVisible(selected, rows.Count, area);
         var lines = new List<StyledLine>
         {
             OverlayBox.Top(boxWidth, Title),
             OverlayBox.Wall(Prompt(jump, contentWidth), contentWidth),
         };
 
-        var shown = rows.Skip(first).Take(area).ToList();
-
-        for (var row = 0; row < shown.Count; row++)
-        {
-            var marker = OverlayBox.ScrollMarker(row, area, first, rows.Count);
-
-            lines.Add(OverlayBox.Wall(shown[row], contentWidth, marker));
-        }
+        lines.AddRange(PickListRenderer.Walls(rows, PickList.WindowAt(selected, rows.Count, area), area, contentWidth));
 
         while (lines.Count < inner + 1 - footer)
         {

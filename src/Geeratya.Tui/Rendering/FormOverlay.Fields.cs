@@ -1,5 +1,4 @@
 using Geeratya.Core.Forms;
-using Geeratya.Core.Suggestions;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -221,40 +220,9 @@ public static partial class FormOverlay
         }
 
         var width = Math.Max(1, valueWidth - 2 - PopupMargin);
-        var margin = new string(' ', PopupMargin);
-        var lines = new List<StyledLine>();
-        var cursor = Math.Clamp(popup.Cursor, -1, Math.Max(0, popup.Items.Count - 1));
-        var first = PopupFirst(popup);
-        var shown = Math.Min(PopupRows, Math.Max(0, popup.Items.Count - first));
+        var margin = new string(' ', Indent + PopupMargin);
 
-        foreach (var index in Enumerable.Range(first, shown))
-        {
-            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
-            var highlighted = index == cursor;
-            var pointer = " ";
-
-            lines.Add(Indented($"{margin}{pointer} {text}", highlighted ? TextRole.Selected : TextRole.Body));
-        }
-
-        if (PopupStatus(popup) is { } status)
-        {
-            lines.Add(Indented($"{margin}  {TextWidth.Fit(status.Text, width)}", status.Role));
-        }
-
-        return lines;
-    }
-
-    internal static PopupNotice? PopupStatus(SuggestionState popup)
-    {
-        return popup.Status switch
-        {
-            SuggestionStatus.Loading => new PopupNotice(SearchingText, TextRole.Loading),
-            SuggestionStatus.Failed => new PopupNotice($"{LookupFailedText}: {popup.Error}", TextRole.Error),
-            SuggestionStatus.Loaded when popup.Items.Count == 0 && popup.Query.Length == 0
-                => new PopupNotice(NoMoreText, TextRole.Muted),
-            SuggestionStatus.Loaded when popup.Items.Count == 0 => new PopupNotice(NoMatchText, TextRole.Muted),
-            _ => null,
-        };
+        return [.. PickListRenderer.Popup(popup, width, margin).Select(static row => row.Line)];
     }
 
     // A choice shows its chosen values like chips and, while focused, the typed filter and the suggestion popup.

@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Suggestions.Models;
 
@@ -36,7 +37,7 @@ public static class ChoicePopup
 
         var cursor = query.Length > 0 || IsUnansweredRequired(field) ? 0 : -1;
 
-        return new SuggestionState(index, _source, query, pool, items, cursor, SuggestionStatus.Loaded, 0, null);
+        return new SuggestionState(index, _source, query, pool, items, cursor, PickStatus.Ready, 0, null);
     }
 
     // A required single choice without a value starts on its first value, so Enter picks it; every other field starts

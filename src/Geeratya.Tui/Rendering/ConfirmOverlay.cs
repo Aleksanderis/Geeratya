@@ -13,8 +13,6 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class ConfirmOverlay
 {
-    private const int KeyGap = 2;
-
     /// <summary>
     /// Draws the dialog of <paramref name="request"/> over <paramref name="body"/> (exactly <paramref name="height"/>
     /// lines), or returns null when it does not fit: nothing is drawn then, so the caller keeps the question in the
@@ -34,18 +32,14 @@ public static class ConfirmOverlay
         }
 
         var kind = KindOf(request);
-        var box = BoxLines(layout, keymap, kind);
+        var answers = Answers(layout, keymap);
+        var box = BoxLines(layout, answers, kind);
         var top = (height - box.Count) / 2;
         var left = (width - layout.BoxWidth) / 2;
         var result = OverlayBox.Backdrop(body);
 
         regions?.Add(new OverlayRegion(MouseTarget.ConfirmBox, top, left, layout.BoxWidth, box.Count, 0));
-        OverlayBox.Mark(regions, MouseTarget.ConfirmYes, top, left, layout.BoxWidth, layout.YesRow, [0]);
-
-        if (!layout.Notice)
-        {
-            OverlayBox.Mark(regions, MouseTarget.ConfirmNo, top, left, layout.BoxWidth, layout.NoRow, [0]);
-        }
+        AnswerRows.Mark(regions, new BoxPlace(top, left, layout.BoxWidth), layout.YesRow, answers);
 
         for (var index = 0; index < box.Count; index++)
         {
@@ -69,7 +63,7 @@ public static class ConfirmOverlay
         return request.Destructive ? OverlayKind.Destructive : OverlayKind.Warn;
     }
 
-    private static List<StyledLine> BoxLines(ConfirmDialogLayout layout, KeymapTable keymap, OverlayKind kind)
+    private static List<StyledLine> BoxLines(ConfirmDialogLayout layout, IReadOnlyList<AnswerRow> answers, OverlayKind kind)
     {
         var contentWidth = layout.BoxWidth - 2;
         var lines = new List<StyledLine> { OverlayBox.Top(layout.BoxWidth, layout.Title, kind) };
@@ -91,18 +85,11 @@ public static class ConfirmOverlay
             }
         }
 
-        var yes = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
-        var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo) ?? string.Empty;
-        var keyWidth = Math.Max(TextWidth.Of(yes), TextWidth.Of(no));
-
         lines.Add(OverlayBox.Wall(StyledLine.Empty, contentWidth, kind));
-        lines.Add(OverlayBox.Wall(AnswerLine(yes, layout.YesLabel, keyWidth, layout.TextColumns), contentWidth, kind));
 
-        if (!layout.Notice)
+        foreach (var answer in AnswerRows.Lines(answers, layout.TextColumns))
         {
-            var cancel = AnswerLine(no, ConfirmDialog.CancelLabel, keyWidth, layout.TextColumns);
-
-            lines.Add(OverlayBox.Wall(cancel, contentWidth, kind));
+            lines.Add(OverlayBox.Wall(answer, contentWidth, kind));
         }
 
         lines.Add(OverlayBox.Bottom(layout.BoxWidth, kind));
@@ -110,16 +97,19 @@ public static class ConfirmOverlay
         return lines;
     }
 
-    private static StyledLine AnswerLine(string keys, string label, int keyWidth, int width)
+    // The answers: the confirming one with the name of the action, then Cancel (a notice has only the first).
+    private static List<AnswerRow> Answers(ConfirmDialogLayout layout, KeymapTable keymap)
     {
-        var gap = new string(' ', KeyGap);
-        var room = Math.Max(0, width - keyWidth - KeyGap);
+        var yes = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmYes) ?? string.Empty;
+        var answers = new List<AnswerRow> { new(new HintChip(yes, layout.YesLabel), MouseTarget.ConfirmYes) };
 
-        return new StyledLine(
-        [
-            new StyledSpan(TextWidth.Pad(keys, keyWidth), TextRole.Key),
-            new StyledSpan(gap, TextRole.Body),
-            new StyledSpan(TextWidth.Fit(label, room), TextRole.Strong),
-        ]);
+        if (!layout.Notice)
+        {
+            var no = keymap.FindKeyLabel(InputMode.Confirm, ActionIds.ConfirmNo) ?? string.Empty;
+
+            answers.Add(new AnswerRow(new HintChip(no, ConfirmDialog.CancelLabel), MouseTarget.ConfirmNo));
+        }
+
+        return answers;
     }
 }

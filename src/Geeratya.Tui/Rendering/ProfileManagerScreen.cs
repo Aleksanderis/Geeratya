@@ -57,7 +57,7 @@ public static class ProfileManagerScreen
         List<OverlayRegion>? regions = null)
     {
         var profiles = state.Profiles.Profiles;
-        var selected = Math.Clamp(state.ProfileList?.Selected ?? 0, 0, Math.Max(0, profiles.Count - 1));
+        var selected = Math.Max(0, state.ProfileList?.Pick.Index(profiles.Count) ?? 0);
         var withDetails = width >= DetailsMinimumWidth;
         var listWidth = withDetails ? Math.Clamp(width * 2 / 5, MinListWidth, MaxListWidth) : width;
         var framed = FrameGrid.CanFrame(width, height);
@@ -65,7 +65,7 @@ public static class ProfileManagerScreen
         var listRoom = Math.Max(0, listWidth - (framed ? 3 : 0));
         var footer = inner >= FooterMinimumInner ? FooterRows : 0;
         var area = Math.Max(0, inner - ButtonRows - footer);
-        var first = ListCursor.FirstVisible(selected, profiles.Count, area);
+        var first = PickList.WindowAt(selected, profiles.Count, area).First;
         var left = ListLines(state, context, selected, first, area, listRoom, inner, footer);
         var right = withDetails ? DetailLines(state, selected, width - listWidth - 1) : [];
 

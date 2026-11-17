@@ -3,7 +3,7 @@ using Geeratya.Core.Mouse;
 
 namespace Geeratya.Core.Tests.Mouse;
 
-public class MouseMapTests
+public partial class MouseMapTests
 {
     private const string SolutionFile = "Geeratya.slnx";
 

@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Suggestions;
 using Geeratya.Jira.Create.Models;
 
@@ -48,8 +49,15 @@ public sealed record FormState(
     /// </summary>
     public string? Pane { get; init; }
 
+    /// <summary>The highlight of <see cref="TypeChoices"/> (<see cref="PickList"/>).</summary>
+    public PickList TypePick { get; init; }
+
     /// <summary>The highlighted type of <see cref="TypeChoices"/>.</summary>
-    public int TypeCursor { get; init; }
+    public int TypeCursor
+    {
+        get => TypePick.Selected;
+        init => TypePick = TypePick with { Selected = value };
+    }
 
     /// <summary>
     /// The form has a navigate state besides editing (the create form today, #650; the others follow in UI consistency phase 6): in it

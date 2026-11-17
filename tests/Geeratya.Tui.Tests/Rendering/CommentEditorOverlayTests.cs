@@ -1,3 +1,4 @@
+using Geeratya.Core.Lists;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
@@ -220,7 +221,7 @@ public class CommentEditorOverlayTests
             new Suggestion("acc-2", "Oleg Two", null, true),
         };
         var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
-        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, PickStatus.Ready, 3, null);
 
         var frame = Frame(Editor("hi @ol") with { Suggest = popup }, 80, 24);
         var plain = string.Join('\n', frame.PlainLines());
@@ -260,10 +261,10 @@ public class CommentEditorOverlayTests
     }
 
     [Theory]
-    [InlineData(SuggestionStatus.Loading, "searching…")]
-    [InlineData(SuggestionStatus.Failed, "lookup failed: boom")]
-    [InlineData(SuggestionStatus.Loaded, "No match")]
-    public void GivenAPopupWithoutRows_WhenRendering_ThenTheLookupStateShows(SuggestionStatus status, string expected)
+    [InlineData(PickStatus.Loading, "searching…")]
+    [InlineData(PickStatus.Failed, "lookup failed, showing what is loaded: boom")]
+    [InlineData(PickStatus.Ready, "No match")]
+    public void GivenAPopupWithoutRows_WhenRendering_ThenTheLookupStateShows(PickStatus status, string expected)
     {
         var source = new SuggestionSource(SuggestionKind.Issues, "A-1", []);
         var popup = new SuggestionState(0, source, "GCM", [], [], 0, status, 3, "boom");
@@ -311,7 +312,7 @@ public class CommentEditorOverlayTests
             new Suggestion("acc-2", "Oleg Two", null, true),
         };
         var source = new SuggestionSource(SuggestionKind.IssueUsers, "A-1", []);
-        var popup = new SuggestionState(0, source, "ol", [], rows, 1, SuggestionStatus.Loaded, 3, null);
+        var popup = new SuggestionState(0, source, "ol", [], rows, 1, PickStatus.Ready, 3, null);
 
         return Editor("hi @ol") with { Suggest = popup };
     }
