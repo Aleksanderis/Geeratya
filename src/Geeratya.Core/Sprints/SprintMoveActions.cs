@@ -216,9 +216,16 @@ public static class SprintMoveActions
             return false;
         }
 
+        // An issue left in a closed sprint still has it in its Sprint field: moving it to the backlog clears that
+        // field, so it is not "already in" the backlog (the Details dropdown offers the same move, #1018).
+        if (target is null)
+        {
+            return row.CurrentSprint is null;
+        }
+
         var sprint = row.CurrentSprint is { State: SprintState.Active or SprintState.Future } open ? open : null;
 
-        return target is null ? sprint is null : sprint is not null && sprint.Id == target.Id;
+        return sprint is not null && sprint.Id == target.Id;
     }
 
     private static string AlreadyInText(int count, IssueSprint? target)

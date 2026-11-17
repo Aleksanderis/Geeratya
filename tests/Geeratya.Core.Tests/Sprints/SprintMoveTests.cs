@@ -530,8 +530,9 @@ public class SprintMoveTests
         Assert.Equal(["A-3"], Request(result).Keys);
     }
 
-    // The sprint as in issue-gcs-closed-sprint.json (company-managed, id 6) and issue-gts-closed-sprint.json (team-managed,
-    // id 9); the team-managed id is shifted because 9 is a sprint of this tab's board fixture.
+    // A company-managed (6, as in issue-gcs-closed-sprint.json) and a team-managed (59, id 9 of issue-gts-closed-sprint.json
+    // shifted: 9 is a sprint of this tab's fixture) closed sprint; the reducer has no project-kind branch, the mapping of
+    // both fixtures is tested in SprintFieldMappingTests.
     [Theory]
     [InlineData(6L, "Seed Sprint 1")]
     [InlineData(59L, "Seed Sprint 1")]
@@ -557,6 +558,20 @@ public class SprintMoveTests
         var saved = Press(chosen, "Ctrl-s");
 
         var request = Request(saved);
+        Assert.Equal(["A-4"], request.Keys);
+        Assert.Null(request.Target);
+    }
+
+    [Fact]
+    public void GivenAnIssueLeftInAClosedSprint_WhenMovingToTheBacklogByKey_ThenItIsSentNotAlreadyInTheBacklog()
+    {
+        var state = At(Loaded(), "A-4");
+        var tab = Tab(state);
+        var closed = new IssueSprint(59, "Seed Sprint 1", SprintState.Closed);
+        state = Replace(state, tab with { Rows = [.. tab.Rows.Select(row => row.Key == "A-4" ? row with { Sprints = [closed] } : row)] });
+
+        var request = Request(Chord(state, "Space s b"));
+
         Assert.Equal(["A-4"], request.Keys);
         Assert.Null(request.Target);
     }
