@@ -40,6 +40,16 @@ public class SubtaskWriteTests
     }
 
     [Fact]
+    public void GivenTheCursorOnASubtask_WhenOpeningTheEditForm_ThenItStillTargetsTheShownIssue()
+    {
+        var state = OnLine(Opened(), "A-2");
+
+        var result = Press(state, "Space", "i", "e");
+
+        Assert.Equal("A-1", Active(result.State).Form!.Target.IssueKey);
+    }
+
+    [Fact]
     public void GivenTheCursorOnTheHeader_WhenPressingTheStatusKey_ThenThePickerOpensForTheShownIssue()
     {
         var result = Press(Opened(), "Space", "i", "s");

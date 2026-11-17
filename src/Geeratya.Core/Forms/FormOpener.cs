@@ -131,7 +131,7 @@ public static class FormOpener
     /// <summary><c>issue.assign</c>: the people picker (the form with the searchable Assignee field).</summary>
     public static ReduceResult Assign(AppState state)
     {
-        if (Subject.Of(state) is not { } subject)
+        if (Subject.Of(state, true) is not { } subject)
         {
             return Say(state, NoIssueText);
         }
@@ -144,7 +144,7 @@ public static class FormOpener
     /// <summary><c>issue.assign-me</c>: assigns the shown or selected issue to the account of the profile.</summary>
     public static ReduceResult AssignMe(AppState state, DateTimeOffset at)
     {
-        if (Subject.Of(state) is not { } subject)
+        if (Subject.Of(state, true) is not { } subject)
         {
             return Say(state, NoIssueText);
         }
@@ -231,7 +231,7 @@ public static class FormOpener
         bool DescriptionKnown,
         AdfDocument? Description)
     {
-        public static Subject? Of(AppState state)
+        public static Subject? Of(AppState state, bool preferSubtask = false)
         {
             var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
 
@@ -242,7 +242,7 @@ public static class FormOpener
 
             if (tab.Detail.Count > 0)
             {
-                return OfDetail(tab, tab.Detail[^1]);
+                return OfDetail(tab, tab.Detail[^1], preferSubtask);
             }
 
             var key = BrowserReducer.SelectedKey(state);
@@ -251,9 +251,9 @@ public static class FormOpener
             return row is null ? null : OfRow(tab, row);
         }
 
-        private static Subject? OfDetail(TabState tab, DetailState shown)
+        private static Subject? OfDetail(TabState tab, DetailState shown, bool preferSubtask)
         {
-            if (DetailReducer.SubtaskUnderCursor(shown) is { } subtask)
+            if (preferSubtask && DetailReducer.SubtaskUnderCursor(shown) is { } subtask)
             {
                 return OfSubtask(tab, shown, subtask);
             }
