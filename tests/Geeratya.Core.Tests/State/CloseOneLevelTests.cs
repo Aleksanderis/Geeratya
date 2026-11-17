@@ -1,3 +1,5 @@
+using Geeratya.Core.Comments;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Jump;
@@ -8,8 +10,10 @@ using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
+using Geeratya.Core.Writes;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Tests.State;
 
@@ -39,7 +43,7 @@ public sealed class CloseOneLevelTests
         [
             "issue", "zoom", "visual", "rank-pickup", "settings", "settings-choice", "profile-manager",
             "manager-from-settings", "context-menu", "confirm", "form-navigate", "form-type-chooser",
-            "form-discard-prompt",
+            "form-discard-prompt", "messages", "messages-with-settings",
         ];
     }
 
@@ -231,6 +235,167 @@ public sealed class CloseOneLevelTests
         Assert.Single(quit.Effects.OfType<QuitEffect>());
     }
 
+    [Fact]
+    public void GivenTheTransitionFieldsEditedWithoutChanges_WhenPressingEsc_ThenTheStatusPickerReturnsAndNothingQuits()
+    {
+        var fields = TransitionFields();
+
+        var esc = Press(fields, "Esc");
+
+        Assert.IsType<TransitionFormTarget>(fields.Session.Tabs[0].Form!.Target);
+        Assert.IsType<TransitionPickTarget>(esc.State.Session.Tabs[0].Form!.Target);
+        Assert.Equal(InputMode.Insert, esc.State.Mode);
+        Assert.Empty(esc.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenTheTransitionFieldsInTheNavigateState_WhenPressingQ_ThenTheStatusPickerReturns()
+    {
+        var navigating = WithTab(
+            TransitionFields(),
+            tab => tab with { Form = tab.Form! with { Navigable = true, Navigating = true } });
+
+        var result = Press(navigating, "q");
+
+        Assert.IsType<TransitionPickTarget>(result.State.Session.Tabs[0].Form!.Target);
+        Assert.Empty(result.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenTheTransitionFieldsBeingEdited_WhenPressingQ_ThenItIsTextAndTheFormStays()
+    {
+        var fields = TransitionFields();
+
+        var result = Press(fields, "q");
+
+        Assert.IsType<TransitionFormTarget>(result.State.Session.Tabs[0].Form!.Target);
+        Assert.Empty(result.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenTheMessagesOverlay_WhenPressingEscThenQ_ThenEachClosesItAndOnlyQAtTheRootQuits()
+    {
+        var open = StatusMessages.OpenHistory(Tabbed());
+
+        var closed = Press(open, "Esc");
+        var quit = Press(closed.State, "q");
+
+        Assert.False(closed.State.MessagesOpen);
+        Assert.Empty(closed.Effects);
+        Assert.Single(quit.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenTheCommentEditorWithAPopup_WhenPressingEsc_ThenOnlyThePopupClosesAndQIsText()
+    {
+        var editing = EditorWithPopup();
+
+        var typed = Press(editing, "q");
+        var esc = Press(editing, "Esc");
+
+        Assert.NotNull(editing.Editor!.Suggest);
+        Assert.EndsWith("oq", typed.State.Editor!.Buffer.Text, StringComparison.Ordinal);
+        Assert.Empty(typed.Effects.OfType<QuitEffect>());
+        Assert.NotNull(esc.State.Editor);
+        Assert.Null(esc.State.Editor.Suggest);
+        Assert.Equal(InputMode.Insert, esc.State.Mode);
+    }
+
+    [Fact]
+    public void GivenTheFormWithAFilteredPopup_WhenPressingEsc_ThenTheFilterClearsThenTheFormLeavesAndQIsText()
+    {
+        var form = TransitionFields();
+        var tab = form.Session.Tabs[0];
+        var popup = tab.Form!.Suggest! with { Query = "do" };
+        var open = WithTab(form, _ => tab with { Form = tab.Form with { Suggest = popup } });
+
+        var cleared = Press(open, "Esc");
+        var left = Press(cleared.State, "Esc");
+        var typed = Press(open, "q");
+
+        Assert.Equal(string.Empty, cleared.State.Session.Tabs[0].Form!.Suggest!.Query);
+        Assert.IsType<TransitionFormTarget>(cleared.State.Session.Tabs[0].Form!.Target);
+        Assert.IsType<TransitionPickTarget>(left.State.Session.Tabs[0].Form!.Target);
+        Assert.Empty(typed.Effects.OfType<QuitEffect>());
+        Assert.IsType<TransitionFormTarget>(typed.State.Session.Tabs[0].Form!.Target);
+    }
+
+    [Fact]
+    public void GivenWritesRunningAtTheRoot_WhenPressingQ_ThenItAsksFirstAndEscOrQAnswerNoAndYQuits()
+    {
+        var running = WithRunningWrite(Tabbed());
+
+        var asked = Press(running, "q");
+        var viaEsc = Press(asked.State, "Esc");
+        var viaQ = Press(asked.State, "q");
+        var yes = Press(asked.State, "y");
+
+        Assert.Empty(asked.Effects);
+        Assert.Equal(InputMode.Confirm, asked.State.Mode);
+        Assert.Contains("1 write is still running", asked.State.Confirm!.Message, StringComparison.Ordinal);
+        Assert.Equal(InputMode.Normal, viaEsc.State.Mode);
+        Assert.Null(viaEsc.State.Confirm);
+        Assert.Empty(viaEsc.Effects);
+        Assert.Equal(InputMode.Normal, viaQ.State.Mode);
+        Assert.Null(viaQ.State.Confirm);
+        Assert.Empty(viaQ.Effects);
+        Assert.Single(yes.Effects.OfType<QuitEffect>());
+    }
+
+    [Fact]
+    public void GivenWritesRunningInsideAnIssue_WhenPressingQ_ThenTheIssueClosesWithoutAskingToQuit()
+    {
+        var detail = WithRunningWrite(Press(Tabbed(), "Enter").State);
+
+        var popped = Press(detail, "q");
+
+        Assert.Equal(InputMode.Normal, popped.State.Mode);
+        Assert.Empty(popped.State.Session.Tabs[0].Detail);
+        Assert.Empty(popped.Effects);
+    }
+
+    private static AppState WithRunningWrite(AppState state)
+    {
+        var running = new Operation(
+            99,
+            new AssignRequest("A-1", null),
+            state.Session.Tabs[0].Id,
+            OperationPhase.Sending,
+            [],
+            _at);
+
+        return state with { Session = state.Session with { Operations = [running] } };
+    }
+
+    private AppState EditorWithPopup()
+    {
+        var tab = Tabbed().Session.Tabs[0];
+        var editing = Tabbed() with
+        {
+            Mode = InputMode.Insert,
+            Editor = new CommentEditor(tab.Id, "A-1", null, TextBuffer.Empty, string.Empty),
+        };
+
+        return Press(editing, "@", "o").State;
+    }
+
+    private AppState TransitionFields()
+    {
+        var done = new IssueStatus("3", "Done", "done");
+        var resolution = new FieldMeta("resolution", "Resolution", true, "resolution", false, [new("10000", "Done")]);
+        var transition = new Transition("41", "Done", done, true, true, [resolution]);
+        var opened = Press(Tabbed(), "Space", "i", "s").State;
+        var tab = opened.Session.Tabs[0];
+        var pick = ((TransitionPickTarget)tab.Form!.Target).With([transition]);
+        var loadedPicker = new FormMetadataLoaded(tab.Id, tab.Form.RequestId, pick.Fields(), pick, _at);
+        var picker = _reducer.Reduce(opened, loadedPicker).State;
+        var chosen = Press(picker, "Enter").State;
+        var form = chosen.Session.Tabs[0].Form!;
+        var loaded = new FormMetadataLoaded(tab.Id, form.RequestId, FormFieldMapper.FromTransition([resolution]));
+
+        return _reducer.Reduce(chosen, loaded).State;
+    }
+
     private AppState Build(string surface)
     {
         return surface switch
@@ -248,6 +413,8 @@ public sealed class CloseOneLevelTests
             "form-navigate" => WithForm(form => form with { Navigable = true, Navigating = true }),
             "form-type-chooser" => WithForm(form => form with { TypeChoices = [new CreateIssueType("1", "Task", "", 0, false)] }),
             "form-discard-prompt" => WithForm(form => form with { DiscardPending = true }),
+            "messages" => StatusMessages.OpenHistory(Tabbed()),
+            "messages-with-settings" => StatusMessages.OpenSettings(Tabbed()),
             "profile-form" => Press(Palette(Tabbed(), "profile add"), "w", "o", "r").State,
             "picker" => Tabbed() with
             {
@@ -280,6 +447,8 @@ public sealed class CloseOneLevelTests
             "confirm" => after.Confirm is null && after.Mode == InputMode.Normal,
             "form-navigate" or "form-type-chooser" => tab.Form is null && after.Mode == InputMode.Normal,
             "form-discard-prompt" => tab.Form is { DiscardPending: false } && start.Mode == after.Mode,
+            "messages" or "messages-with-settings"
+                => !after.MessagesOpen && !after.MessagesShowSettings && after.Mode == InputMode.Normal,
             _ => false,
         };
     }
