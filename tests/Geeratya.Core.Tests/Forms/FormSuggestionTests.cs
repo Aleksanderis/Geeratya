@@ -107,8 +107,8 @@ public class FormSuggestionTests
     [Fact]
     public void GivenTwoAcceptedLabels_WhenTheFieldIsSubmitted_ThenBothAreWrittenAsAdds()
     {
-        var state = Press(Press(Press(Loaded(), "b").State, "Enter").State, "f").State;
-        state = Press(state, "Enter").State;
+        var state = Press(Press(Press(Loaded(), "b").State, "Tab").State, "f").State;
+        state = Press(state, "Tab").State;
 
         var submitted = Press(state, "Ctrl-s", _start);
 

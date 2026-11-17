@@ -301,7 +301,7 @@ public partial class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(Press(state, "Esc").State, "Esc");
+        var asked = Press(state, "Esc");
         var kept = Press(asked.State, "n");
 
         Assert.True(DiscardPrompts.Is(asked.State.Confirm));
@@ -315,7 +315,7 @@ public partial class CreateFormReducerTests
     {
         var state = Type(ChosenForm(_task, false, SummaryField()), "Draft");
 
-        var asked = Press(Press(state, "Esc").State, "Esc");
+        var asked = Press(state, "Esc");
         var discarded = Press(asked.State, "y");
 
         Assert.Null(discarded.State.Session.Tabs[0].Form);

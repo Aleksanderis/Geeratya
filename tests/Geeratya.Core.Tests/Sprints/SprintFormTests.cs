@@ -117,7 +117,7 @@ public class SprintFormTests
     public void GivenAnEditThatEmptiesTheEnd_WhenSubmitted_ThenTheEditAsksToClearTheEndAndKeepsTheStart()
     {
         var state = Press(Backlog(), "Space", "s", "e").State;
-        var emptied = Type(state, ["Enter", "Enter", "Enter", "Enter", .. Enumerable.Repeat("Backspace", 16)]);
+        var emptied = Type(state, ["Tab", "Tab", "Tab", .. Enumerable.Repeat("Backspace", 16)]);
 
         var submitted = Press(emptied, "Ctrl-s");
 
@@ -163,7 +163,7 @@ public class SprintFormTests
     public void GivenTheFilledCreateForm_WhenSubmitted_ThenOneCreateWriteStartsWithNameGoalAndDates()
     {
         var state = Press(Backlog(), "Space", "s", "n").State;
-        state = Type(state, "Sprint 9", "Enter", "Hit it", "Enter", "2026-11-04 09:00", "Enter", "2026-11-18 17:30");
+        state = Type(state, "Sprint 9", "Tab", "Hit it", "Tab", "2026-11-04 09:00", "Tab", "2026-11-18 17:30");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -192,7 +192,7 @@ public class SprintFormTests
     public void GivenNoName_WhenSubmitted_ThenNothingIsSentAndTheNameIsRequired()
     {
         var state = Press(Backlog(), "Space", "s", "n").State;
-        state = Type(state, "Enter", "just a goal");
+        state = Type(state, "Tab", "just a goal");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -204,7 +204,7 @@ public class SprintFormTests
     public void GivenADateThatDoesNotRead_WhenSubmitted_ThenNothingIsSentAndTheDateFieldSaysWhy()
     {
         var state = Press(Backlog(), "Space", "s", "n").State;
-        state = Type(state, "S", "Enter", "Enter", "tomorrow");
+        state = Type(state, "S", "Tab", "Tab", "tomorrow");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -216,7 +216,7 @@ public class SprintFormTests
     public void GivenAnEditThatChangesOnlyTheGoal_WhenSubmitted_ThenOnlyTheGoalIsSent()
     {
         var state = Press(Backlog(), "Space", "s", "e").State;
-        state = Type(state, "Enter", "!");
+        state = Type(state, "Tab", "!");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -230,7 +230,7 @@ public class SprintFormTests
     public void GivenAnEditThatChangesOnlyTheEnd_WhenSubmitted_ThenTheStartGoesAlongSoJiraCanCompare()
     {
         var state = Press(Backlog(), "Space", "s", "e").State;
-        state = Type(state, "Enter", "Enter", "Enter", "Backspace", "5");
+        state = Type(state, "Tab", "Tab", "Tab", "Backspace", "5");
 
         var submitted = Press(state, "Ctrl-s");
 
@@ -256,7 +256,7 @@ public class SprintFormTests
     {
         var state = Type(Press(Backlog(), "Space", "s", "n").State, "x");
 
-        var asked = Press(state, "Esc");
+        var asked = Press(state, "Esc", "Esc");
         var discarded = Press(asked.State, "y");
 
         Assert.True(DiscardPrompts.Is(asked.State.Confirm));
@@ -371,7 +371,7 @@ public class SprintFormTests
     {
         foreach (var part in parts)
         {
-            var isKey = part is "Enter" or "Backspace" or "Esc";
+            var isKey = part is "Tab" or "Enter" or "Backspace" or "Esc";
             var keys = isKey ? [part] : part.Select(KeyOf).ToArray();
 
             state = Press(state, keys).State;

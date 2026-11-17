@@ -23,7 +23,7 @@ public class FormReducerTests
         var result = Palette(Tabbed(["backend"]), "labels");
 
         var tab = result.State.Session.Tabs[0];
-        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var effect = Assert.Single(result.Effects.OfType<LoadFormMetadataEffect>());
         Assert.Equal(InputMode.Insert, result.State.Mode);
         Assert.True(tab.Form!.IsLoading);
         Assert.Equal(effect.RequestId, tab.Form.RequestId);
@@ -75,7 +75,6 @@ public class FormReducerTests
         var state = Loaded(["backend"]);
 
         state = Type(state, "ui team");
-        state = Press(state, "Enter").State;
         var submitted = Press(state, "Enter");
 
         var effect = Assert.IsType<ExecuteWriteEffect>(Assert.Single(submitted.Effects));
@@ -192,7 +191,7 @@ public class FormReducerTests
     }
 
     [Fact]
-    public void GivenADropdownWhoseWriteJiraRefuses_WhenItUnlocks_ThenTheRefusalIsAtTheFieldAndEscClosesIt()
+    public void GivenADropdownWhoseWriteJiraRefuses_WhenItUnlocks_ThenTheRefusalIsAtTheFieldAndEscThenYClosesIt()
     {
         var dropdown = DropdownSaving();
         var error = new WriteError(
@@ -203,9 +202,11 @@ public class FormReducerTests
             ["Issues with this Issue Type must be created in the same project as the parent."]);
 
         var failed = _reducer.Reduce(dropdown, new WriteFailed(dropdown.Session.Operations[0].Id, _start, error));
-        var closed = Press(failed.State, "Esc");
+        var asked = Press(failed.State, "Esc");
+        var closed = Press(asked.State, "y");
 
         var form = failed.State.Session.Tabs[0].Form!;
+        Assert.True(DiscardPrompts.Is(asked.State.Confirm));
         Assert.False(form.IsSaving);
         Assert.StartsWith("Issues with this Issue Type must be created", form.Fields[0].Error);
         Assert.EndsWith("(A-1 → Labels mine)", form.Fields[0].Error);
@@ -278,16 +279,24 @@ public class FormReducerTests
     }
 
     [Fact]
-    public void GivenAnUnchangedForm_WhenSubmitted_ThenNothingIsSentAndEscClosesWithoutAsking()
+    public void GivenAnUnchangedForm_WhenSubmitted_ThenNothingIsSentAndTheFormClosesSayingSo()
     {
         var state = Loaded(["backend"]);
 
         var submitted = Press(state, "Ctrl-s", _start);
-        var closed = Press(submitted.State, "Esc");
 
         Assert.Empty(submitted.Effects);
-        Assert.Equal("Nothing changed", submitted.State.Session.Tabs[0].Form!.TopError);
+        Assert.Null(submitted.State.Session.Tabs[0].Form);
+        Assert.Equal(FormShell.NothingChangedText, submitted.State.Message);
+    }
+
+    [Fact]
+    public void GivenAnUnchangedForm_WhenEscIsPressed_ThenItClosesWithoutAsking()
+    {
+        var closed = Press(Loaded(["backend"]), "Esc");
+
         Assert.Null(closed.State.Session.Tabs[0].Form);
+        Assert.Null(closed.State.Confirm);
     }
 
     [Fact]

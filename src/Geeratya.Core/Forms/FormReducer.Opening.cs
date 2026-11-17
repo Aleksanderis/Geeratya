@@ -80,7 +80,7 @@ public static partial class FormReducer
 
         var requestId = state.Sequence + 1;
         var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
-        var form = opened with { Fields = fields, IsLoading = false };
+        var form = opened with { Fields = fields, IsLoading = false, Navigable = FormShell.IsNavigable(fields) };
         var next = ViewReducer.Replace(state, tab with { Form = form with { Focus = Step(form, 0) } }) with
         {
             Mode = InputMode.Insert,
