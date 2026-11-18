@@ -37,7 +37,7 @@ done
 work=$(mktemp -d)
 fake_pid=""
 trap 'if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi; rm -rf "$work"' EXIT
-trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap runs on exit; bash skips it on a bare signal
 
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }

@@ -307,7 +307,7 @@ render() {
   noactive_pid=""
   sockets=()
   trap stop_render EXIT
-  trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
+  trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap runs on exit; bash skips it on a bare signal
   mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
 
   dotnet build "$root/tools/AnsiToSvg" -c Release -o "$work/ansitosvg" -v q --nologo > "$work/build.log" 2>&1 \

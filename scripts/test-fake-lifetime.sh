@@ -15,7 +15,7 @@ cleanup() {
   rm -rf "$work"
 }
 trap cleanup EXIT
-trap 'exit 130' INT TERM HUP
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap runs on exit; bash skips it on a bare signal
 
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }

@@ -45,7 +45,7 @@ cleanup() {
   rm -rf "$work"
 }
 trap cleanup EXIT
-trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap runs on exit; bash skips it on a bare signal
 
 export XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache
 export GEERATYA_TOKEN=fake
