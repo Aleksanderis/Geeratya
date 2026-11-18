@@ -268,9 +268,9 @@ public static class SettingsScreen
         var cursor = "  ";
         var control = Control(row);
         var labelRoom = Math.Max(1, Math.Min(LabelColumn, room - cursor.Length));
-        var label = TextWidth.Pad(TextWidth.Fit(row.Label, labelRoom - 1), labelRoom);
+        var label = TextWidth.Pad(DisplayText.Cut(row.Label, labelRoom - 1), labelRoom);
         var rest = Math.Max(0, room - cursor.Length - labelRoom);
-        var value = row.Setting is null ? TextWidth.Pad(TextWidth.Fit(control, rest), rest) : RightAligned(control, rest);
+        var value = row.Setting is null ? TextWidth.PadCut(control, rest) : RightAligned(control, rest);
 
         if (selected)
         {

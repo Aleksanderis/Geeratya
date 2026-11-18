@@ -233,12 +233,12 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         {
             var goal = $"{new string(' ', GoalIndent)}{GoalPrefix}{section.Sprint!.Goal}";
 
-            return StyledLine.Of(TextWidth.Fit(goal, width), TextRole.Muted);
+            return StyledLine.Of(DisplayText.Cut(goal, width), TextRole.Muted);
         }
 
         var text = section.IsBacklog ? EmptyBacklogText : EmptySprintText;
 
-        return StyledLine.Of(TextWidth.Fit($"{new string(' ', GoalIndent)}{text}", width), TextRole.Muted);
+        return StyledLine.Of(DisplayText.Cut($"{new string(' ', GoalIndent)}{text}", width), TextRole.Muted);
     }
 
     private static StyledLine HeaderLine(TabState tab, BacklogSection section, int width, Glyphs glyphs)
@@ -249,15 +249,15 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
         {
             var selected = text;
 
-            return StyledLine.Of(TextWidth.Pad(TextWidth.Fit(selected, width), width), TextRole.Selected);
+            return StyledLine.Of(TextWidth.PadCut(selected, width), TextRole.Selected);
         }
 
         var nameEnd = text.IndexOf(glyphs.Separator, StringComparison.Ordinal);
         var name = nameEnd < 0 ? text : text[..nameEnd];
         var rest = nameEnd < 0 ? string.Empty : text[nameEnd..];
         var lead = new string(' ', Indent);
-        var head = TextWidth.Fit($"{lead}{name}", width);
-        var tail = TextWidth.Fit(rest, Math.Max(0, width - TextWidth.Of(head)));
+        var head = DisplayText.Cut($"{lead}{name}", width);
+        var tail = DisplayText.Cut(rest, Math.Max(0, width - TextWidth.Of(head)));
 
         return new StyledLine([new StyledSpan(head, TextRole.Strong), new StyledSpan(tail, TextRole.Muted)]);
     }

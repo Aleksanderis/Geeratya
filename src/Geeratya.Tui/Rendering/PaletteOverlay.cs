@@ -208,7 +208,7 @@ public static class PaletteOverlay
         var gap = keyText.Length == 0 ? string.Empty : new string(' ', KeyGap);
         var room = Math.Max(0, width - 2 - TextWidth.Of(keyText) - gap.Length);
         var title = row.Enabled ? row.Title : $"{row.Title}{UnavailableText}";
-        var text = TextWidth.Pad(TextWidth.Fit(title, room), room);
+        var text = TextWidth.PadCut(title, room);
 
         if (selected)
         {

@@ -7,7 +7,7 @@
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ Issue                                                                    │ │
 │ │   Assign the issue: search people, or unassign                 <space>ia │ │
-│ │   Assign the sub-task under the cursor: search people, or una  <space>ta │ │
+│ │   Assign the sub-task under the cursor: search people, or un…  <space>ta │ │
 │ │                                                                          │ │
 │ │                                                                          │ │
 │ │                                                                          │ │

@@ -120,7 +120,7 @@ internal static class IssueRelationsBuilder
                 child.Key,
                 child.Summary,
                 child.Status.Name,
-                StatusRoles.Of(child.Status),
+                ValueText.StatusRole(child.Status),
                 IssueTarget(child.Key),
                 child.Assignee?.DisplayName,
                 true))
@@ -166,7 +166,7 @@ internal static class IssueRelationsBuilder
             stub.Key,
             stub.Summary,
             stub.Status.Name,
-            StatusRoles.Of(stub.Status),
+            ValueText.StatusRole(stub.Status),
             IssueTarget(stub.Key),
             assignee,
             assigneeKnown);

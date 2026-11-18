@@ -3,8 +3,8 @@
 ╭─╭─ Jump to an issue ───────────────╮─╮
 │ │ > gcm                            │S│
 │ │   GCM-12      Fix the login redi │○│
-│ │   GCM-120     日本語の見出しを含 │○│
-│ │   GCM-7       A rather long summ │○│
+│ │   GCM-120     日本語の見出しを…  │○│
+│ │   GCM-7       A rather long sum… │○│
 │ │   GCM-4       recent             │○│
 ╰─╰──────────────────────────────────╯─╯
  INSERT  jump to an issue               

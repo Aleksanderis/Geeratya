@@ -2,9 +2,9 @@
                                         
 ╭─ My open issues ─ 10+ · Loading mo… ─╮
 │  Key    T Summary                   S│
-│  GCM-12 T Fix login redirect after  ◐│
-│  GCM-14 B Crash when the board has  ○│
-│  GCM-15 S As a user I can filter b...│
-│  GCM-17 E Reporting overhaul with a ◐│
+│  GCM-12 T Fix login redirect after… ◐│
+│  GCM-14 B Crash when the board has… ○│
+│  GCM-15 S As a user I can filter b… ○│
+│  GCM-17 E Reporting overhaul with … ◐│
 ╰──────────────────────────────────────╯
  NORMAL  loading · GCM-15 To Do         

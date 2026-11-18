@@ -5,6 +5,6 @@
 │w│ Boards                           │l│
 │ │   Board   GCM board (scrum, GCM) │ │
 │ │   Backlog GCM board (scrum, GCM) │ │
-│ │   Board   GTM 日本語 board with ▼│ │
+│ │   Board   GTM 日本語 board with…▼│ │
 ╰─╰──────────────────────────────────╯─╯
  INSERT  open a view                    

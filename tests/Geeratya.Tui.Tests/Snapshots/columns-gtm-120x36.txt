@@ -5,8 +5,8 @@
 │ ┃ Seed: Onboarding flow   ┃ │ │ Seed: Reporting         │ │ │ Backlog: dark mode      │ │ │ Export report as CSV   │ │
 │ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
 │ ┃  geeratya-seed          ┃ │ │  geeratya-seed          │ │ │  geeratya-seed          │ │ │  geeratya-seed         │ │
-│ ┃  geeratya-seed-GTM-ep...┃ │ │  geeratya-seed-GTM-ep…  │ │ │  geeratya-seed-GTM-ba…  │ │ │  geeratya-seed-GTM-s…  │ │
-│ ┃                         ┃ │ │                         │ │ │                         │ │ │                        │ │
+│ ┃  geeratya-seed-GTM-ep…  ┃ │ │  geeratya-seed-GTM-ep…  │ │ │  geeratya-seed-GTM-ba…  │ │ │  geeratya-seed-GTM-s…  │ │
+│ ┃                      ...┃ │ │                         │ │ │                         │ │ │                        │ │
 │ ┃ GTM-9  Epic      = [--] ┃ │ │ GTM-10  Epic     = [--] │ │ │ GTM-21  Task     = [--] │ │ │ GTM-13  Story   = [--] │ │
 │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ ├─────────────────────────┤ │ └─────────────────────────┘ │ └────────────────────────┘ │
 │ │   Welcome screen        │ │ │   Pick a chart library  │ │ ┌─────────────────────────┐ │ ┌────────────────────────┐ │

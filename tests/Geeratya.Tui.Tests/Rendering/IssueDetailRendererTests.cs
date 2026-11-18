@@ -148,7 +148,7 @@ public class IssueDetailRendererTests
         var status = lines.Single(line => line.PlainText.Contains("In Progress ▾"));
         var priority = lines.Single(line => line.PlainText.Contains("High"));
         Assert.Contains(status.Spans, span => span.Role == TextRole.SelectionBar);
-        Assert.Contains(status.Spans, span => span.Role == TextRole.Selected && span.Text.Contains("In Progress"));
+        Assert.Contains(status.Spans, span => span.Role == TextRole.StatusInProgress && span.Text.Contains("In Progress"));
         Assert.Contains(status.Spans, span => span.Role == TextRole.Selected && span.Text.Contains('▾'));
         Assert.DoesNotContain(priority.Spans, span => span.Role is TextRole.Selected or TextRole.SelectionBar);
     }
@@ -253,7 +253,7 @@ public class IssueDetailRendererTests
         Assert.Contains("1-6 of", body[3]);
         Assert.EndsWith("-+", body[0]);
         Assert.EndsWith("-+", body[2].TrimEnd());
-        Assert.Contains(body, line => line.Contains("^ |") || line.Contains("# |") || line.Contains(". |"));
+        Assert.Contains(body, line => line.Contains("^|") || line.Contains("#|") || line.Contains(".|"));
         Assert.DoesNotContain(body, line => line.Any(character => character is '╭' or '│' or '─' or '╮'));
         Assert.DoesNotContain(lines, line => line.Contains('▾') || line.Contains('●'));
         Assert.All(lines, line => Assert.Equal(80, DisplayWidth.Of(line)));
@@ -796,7 +796,7 @@ public class IssueDetailRendererTests
     }
 
     [Fact]
-    public void GivenAnOpenedIssue_WhenBuilding_ThenTheCursorLineEndsInTheRowMenuMarker()
+    public void GivenAnOpenedIssue_WhenBuilding_ThenTheCursorLineShowsTheRowMenuMarkerInBlankCells()
     {
         var frame = FrameBuilder.BuildStyled(Loaded(80, 24), 80, 24, _keymap)!;
         var marker = Assert.IsType<OverlayRegion>(frame.RowMenuMarker);
@@ -815,7 +815,8 @@ public class IssueDetailRendererTests
         var line = frame.Body[marker.Top - FrameBuilder.HeaderRows].PlainText;
 
         Assert.True(marker.Left + marker.Width < box.Left + box.Width);
-        Assert.EndsWith("...│ │ │", line.TrimEnd());
+        Assert.Equal(RowMenuMarker.Text, line.Substring(marker.Left, marker.Width));
+        Assert.Contains("moves via transition", line, StringComparison.Ordinal);
     }
 
     [Fact]
