@@ -265,6 +265,22 @@ public class FormPresentationContractTests
         Assert.Contains("None ▾", glyphs, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("box")]
+    [InlineData("create")]
+    public void GivenADateTimeField_WhenDrawn_ThenOnlyTheBoxTitleCarriesTheFormat(string presentation)
+    {
+        var field = FormField.Create("customfield_10303", "Starts", FormFieldKind.DateTime, false, []);
+        var lines = Frame(Keys(Open(presentation, field), "2"), 120, 36).Body.Select(static line => line.PlainText);
+        var carrying = lines
+            .Where(static line => line.Contains("yyyy-MM-dd HH:mm", StringComparison.Ordinal))
+            .Where(static line => !line.Contains("! Use", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.Contains(carrying, static line => line.Contains("╭─ Starts (yyyy-MM-dd HH:mm)", StringComparison.Ordinal));
+        Assert.Single(carrying);
+    }
+
     // The cells of a row from <column> for <width> columns: glyph and role of each (one cell per character).
     private static string Cut(StyledLine line, int column, int width)
     {
