@@ -7,4 +7,4 @@
 │ ├──────────────────────────────────┤ │
 │ │   Assign the issue: …  <space>ia▲│ │
 ╰─╰──────────────────────────────────╯─╯
- COMMAND  :search                       
+ COMMAND  :search              Esc close

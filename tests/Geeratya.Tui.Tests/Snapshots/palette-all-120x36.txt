@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- COMMAND  :                                                                          Up/Down move  Enter run  Esc cancel
+ COMMAND  :                                                                           Up/Down move  Enter run  Esc close

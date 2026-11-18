@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- INSERT  Edit A-1                                                           Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+ INSERT  Edit A-1 · Summary                                                 Tab/Shift-Tab field  Ctrl-s save  Esc cancel

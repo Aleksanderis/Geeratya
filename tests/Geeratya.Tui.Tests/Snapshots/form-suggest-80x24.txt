@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- INSERT  Edit A-1                   Up/Down move  Enter choose  Esc clear filter
+ INSERT  Edit A-1 · Labels          Up/Down move  Enter choose  Esc clear filter

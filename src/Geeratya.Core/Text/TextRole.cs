@@ -115,6 +115,9 @@ public enum TextRole
     /// <summary>The Confirm mode badge.</summary>
     BadgeConfirm,
 
+    /// <summary>The Confirm badge of a question that loses nothing in Jira (the frame is yellow, not red).</summary>
+    BadgeConfirmWarn,
+
     /// <summary>The Help mode (and Messages) badge.</summary>
     BadgeHelp,
 

@@ -187,7 +187,7 @@ public static class WhichKeyOverlay
 
     private static StyledLine Footer(KeymapTable keymap)
     {
-        return DialogFooter.Line([DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.Cancel, HintLabels.Cancel)]);
+        return DialogFooter.Line(SurfaceHints.WhichKey(keymap));
     }
 
     private static StyledLine Line(WhichKeyRow row)

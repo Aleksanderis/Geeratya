@@ -21,4 +21,4 @@
 |   | i         +issue (6)                                                     |
 |   | . 4 more                                                                 |
 +---+--------------------------------------------------------------------------+
-[NORMAL] <space>                                      ? help  : commands  q back
+[NORMAL] <space>                                                      Esc cancel

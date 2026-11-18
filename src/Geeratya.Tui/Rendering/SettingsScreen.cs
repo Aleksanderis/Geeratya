@@ -1,4 +1,3 @@
-using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Settings;
@@ -369,35 +368,10 @@ public static class SettingsScreen
 
     private static StyledLine HintLine(AppState state, BodyContext context, int inner)
     {
-        var keymap = context.Keymap;
-        var down = keymap.FindKeyLabel(InputMode.Normal, ActionIds.NavigateDown) ?? "j";
-        var up = keymap.FindKeyLabel(InputMode.Normal, ActionIds.NavigateUp) ?? "k";
-        var open = keymap.FindKeyLabel(InputMode.Normal, ActionIds.ItemOpen) ?? "Enter";
-        var cancel = keymap.FindKeyLabel(InputMode.Normal, ActionIds.Cancel) ?? "Esc";
-        var listOpen = state.SettingsScreen?.Choice is not null;
-        var chips = new List<HintChip?>
-        {
-            new HintChip($"{down}/{up}", HintLabels.Move),
-            new HintChip(open, listOpen ? HintLabels.Keep : HintLabels.Change),
-        };
+        var chips = SurfaceHints.Settings(context.Keymap, state.SettingsScreen?.Choice is not null);
 
-        if (!listOpen)
-        {
-            chips.Add(DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.SettingsReset, HintLabels.Reset));
-        }
-
-        chips.Add(new HintChip(cancel, HintLabels.Close));
-
-        // Narrow boxes keep the close chip: drop reset, then move, when the row does not fit.
-        var line = DialogFooter.Line(chips);
-
-        while (TextWidth.Of(line.PlainText) > inner && chips.Count > 2)
-        {
-            chips.RemoveAt(chips.Count > 3 ? chips.Count - 2 : 0);
-            line = DialogFooter.Line(chips);
-        }
-
-        return line;
+        // Narrow boxes keep the close chip and drop the others from the end, as the status line does.
+        return DialogFooter.Fitted(SurfaceChips.KeepLast(chips), inner);
     }
 
     private static void MarkRegions(

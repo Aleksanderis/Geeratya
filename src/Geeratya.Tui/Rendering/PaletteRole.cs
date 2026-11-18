@@ -57,6 +57,7 @@ public enum PaletteRole
     BadgeInsert,
     BadgeCommand,
     BadgeConfirm,
+    BadgeConfirmWarn,
     BadgeHelp,
     OverlayFrame,
     OverlayFrameWarn,

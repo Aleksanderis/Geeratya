@@ -21,4 +21,4 @@
 │                                                                              │
 │ j/k move   Esc close                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- MESSAGES                                                j down  k up  Esc close
+ MESSAGES                                                    j/k move  Esc close

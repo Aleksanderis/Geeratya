@@ -135,24 +135,7 @@ public static class HelpOverlay
     /// <summary>The footer of the Help and of the Messages screen (Help mode); the page chips only for the Help.</summary>
     internal static StyledLine Footer(KeymapTable keymap, bool withPages, bool filtering = false)
     {
-        if (filtering)
-        {
-            // While the filter line is typed j, k and / are text, Enter keeps the filter and Esc clears it.
-            return DialogFooter.Line(
-            [
-                DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.KeepFilter),
-                DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page),
-                DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.ClearFilter),
-            ]);
-        }
-
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Help, ActionIds.NavigateDown, ActionIds.NavigateUp, HintLabels.Move),
-            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page) : null,
-            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpFilter, HintLabels.Filter) : null,
-            DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.Close),
-        ]);
+        return DialogFooter.Line(SurfaceHints.Help(keymap, withPages, filtering));
     }
 
     private static string TitleText(AppState state, int boxWidth)

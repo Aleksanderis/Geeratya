@@ -19,7 +19,7 @@
 │                       │   Token        ******************                                    │                       │
 │                       │                                                                      │                       │
 │                       │ Test connection   Save   Cancel                                      │                       │
-│                       │ Tab field   Ctrl-s save   Alt-t test   Esc close                     │                       │
+│                       │ Enter save   Tab field   Alt-t test   Esc cancel                     │                       │
 │                       ╰──────────────────────────────────────────────────────────────────────╯                       │
 │                                                                                                                      │
 │                                                                                                                      │
@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- INSERT  API token (hidden)                                                           Enter save  Alt-t test  Esc cancel
+ INSERT  API token (hidden)                                                Enter save  Tab field  Alt-t test  Esc cancel

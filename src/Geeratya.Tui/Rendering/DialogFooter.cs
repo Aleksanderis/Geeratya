@@ -32,6 +32,30 @@ public static class DialogFooter
         return keys.Count == 0 ? null : new HintChip(string.Join('/', keys), label);
     }
 
+    /// <summary>
+    /// The footer of <paramref name="surface"/> in <paramref name="width"/> columns: the chips of the status line, and
+    /// when they do not fit the same rule drops them from the end before the kept way out (the status line's rule).
+    /// </summary>
+    public static StyledLine Fitted(SurfaceChips surface, int width)
+    {
+        var chips = surface.Chips.ToList();
+        var line = LineOf(chips);
+
+        while (TextWidth.Of(line.PlainText) > width && chips.Count > surface.Kept)
+        {
+            chips.RemoveAt(chips.Count - surface.Kept - 1);
+            line = LineOf(chips);
+        }
+
+        return line;
+    }
+
+    /// <summary>The footer as one line of chips that all have a key.</summary>
+    public static StyledLine LineOf(IEnumerable<HintChip> chips)
+    {
+        return Line(chips.Select(static chip => (HintChip?)chip));
+    }
+
     /// <summary>The footer as one line: chips in the key and muted roles, <see cref="Gap"/> between them.</summary>
     public static StyledLine Line(IEnumerable<HintChip?> chips)
     {

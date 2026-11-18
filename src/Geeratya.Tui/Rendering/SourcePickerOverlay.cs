@@ -57,8 +57,9 @@ public static class SourcePickerOverlay
         }
 
         var rows = Rows(picker, state.Session.Sources, boxWidth - 4);
-        var inner = Math.Min(Math.Min(height, MaxBoxHeight), rows.Lines.Count + QueryRows + FooterHeight + 2) - 2;
-        var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
+        var room = Math.Min(height, MaxBoxHeight) - 2;
+        var footer = room >= FooterMinimumInner ? FooterHeight : 0;
+        var inner = Math.Min(room, rows.Lines.Count + QueryRows + footer);
         var count = CountText(picker, state.Session.Sources, rows);
         var box = BoxLines(picker, rows, keymap, boxWidth, inner, footer, count);
         var top = Math.Min(TopGap, height - box.Count);
@@ -132,7 +133,8 @@ public static class SourcePickerOverlay
         return $"{shown.ToString(CultureInfo.InvariantCulture)}/{total.ToString(CultureInfo.InvariantCulture)}";
     }
 
-    private static string TitleOf(SourcePickerState picker)
+    /// <summary>The title of the box; the status line says the same words.</summary>
+    public static string TitleOf(SourcePickerState picker)
     {
         if (picker.Scope == PickerScope.Tabs)
         {
@@ -162,37 +164,7 @@ public static class SourcePickerOverlay
 
     private static StyledLine Footer(KeymapTable keymap, SourcePickerState picker)
     {
-        var move = DialogFooter.Pair(
-            keymap,
-            InputMode.Insert,
-            ActionIds.PickerPrevious,
-            ActionIds.PickerNext,
-            HintLabels.Move);
-        var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
-        var newTab = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.PickerOpenNewTab, HintLabels.NewTab);
-
-        return DialogFooter.Line(
-        [
-            move,
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, EnterLabel(picker)),
-            picker is { Scope: PickerScope.Sprints, Sprint.MoveKeys: null } ? newTab : null,
-            close,
-        ]);
-    }
-
-    private static string EnterLabel(SourcePickerState picker)
-    {
-        if (picker.Scope == PickerScope.Tabs)
-        {
-            return HintLabels.Switch;
-        }
-
-        if (picker.Scope != PickerScope.Sprints)
-        {
-            return HintLabels.OpenInNewTab;
-        }
-
-        return picker.Sprint?.MoveKeys is not null ? HintLabels.MoveIssues : HintLabels.Open;
+        return DialogFooter.Line(SurfaceHints.Picker(keymap, picker));
     }
 
     private static PickerRows Rows(SourcePickerState picker, SourceLists lists, int width)

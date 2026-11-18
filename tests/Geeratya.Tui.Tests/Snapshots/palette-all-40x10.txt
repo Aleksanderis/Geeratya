@@ -7,4 +7,4 @@
 │ ├──────────────────────────────────┤ │
 │ │   Jump to an issue by…  <space>g▲│ │
 ╰─╰──────────────────────────────────╯─╯
- COMMAND  :                             
+ COMMAND  :      Up/Down move  Esc close

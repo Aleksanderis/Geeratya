@@ -75,7 +75,7 @@ public class FlashOverlayTests
         var status = StatusBar.Render(state, 100, _keymap);
 
         Assert.Contains("INSERT", status);
-        Assert.Contains("jump to a row: Su", status);
+        Assert.Contains("Jump to a row: Su", status);
     }
 
     [Fact]

@@ -142,12 +142,7 @@ public static class PaletteOverlay
 
     private static StyledLine Footer(KeymapTable keymap)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Command, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.PaletteSubmit, HintLabels.Run),
-            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Line(SurfaceHints.Palette(keymap));
     }
 
     // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the

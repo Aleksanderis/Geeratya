@@ -7,4 +7,4 @@
 |                                      |
 | Add   Edit                           |
 +--------------------------------------+
-[INSERT] Active: work                   
+[NORMAL] Active: work          Esc close

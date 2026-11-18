@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- COMMAND  :jql project                                                               Up/Down move  Enter run  Esc cancel
+ COMMAND  :jql project                                                                Up/Down move  Enter run  Esc close

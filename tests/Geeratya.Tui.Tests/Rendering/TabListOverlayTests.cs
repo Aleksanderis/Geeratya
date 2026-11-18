@@ -45,7 +45,7 @@ public class TabListOverlayTests
         Assert.Contains(lines, line => line.Contains("switch", StringComparison.Ordinal));
     }
 
-    private static AppState Opened(int count)
+    internal static AppState Opened(int count)
     {
         var reducer = new AppReducer(_keymap);
         var profiles = ProfileCatalog.Empty.With(_work);

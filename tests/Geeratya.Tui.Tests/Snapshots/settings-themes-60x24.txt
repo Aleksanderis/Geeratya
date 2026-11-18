@@ -21,4 +21,4 @@
 │ j/k move   Enter keep   Esc close                        │
 ╰──────────────────────────────────────────────────────────╯
 ╰──────────────────────────────────────────────────────────╯
- NORMAL  Settings: a change applies at once and is saved    
+ NORMAL  Settings: a chang…  j/k move  Enter keep  Esc close

@@ -240,32 +240,6 @@ public static class CommentEditorOverlay
 
     private static StyledLine Footer(KeymapTable keymap, CommentEditor editor)
     {
-        var move = DialogFooter.Pair(
-            keymap,
-            InputMode.Insert,
-            ActionIds.PickerPrevious,
-            ActionIds.PickerNext,
-            HintLabels.Move);
-        var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
-
-        if (editor.Suggest is { Items.Count: > 0 })
-        {
-            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
-            var enter = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-            var keys = string.Join('/', new[] { accept, enter }.Where(static key => key is { Length: > 0 }));
-
-            return DialogFooter.Line([move, keys.Length == 0 ? null : new HintChip(keys, HintLabels.Choose), close]);
-        }
-
-        return DialogFooter.Line(
-        [
-            DialogFooter.Chip(
-                keymap,
-                InputMode.Insert,
-                ActionIds.FormSubmit,
-                editor.IsEdit ? HintLabels.Save : HintLabels.Send),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.NewLine),
-            close,
-        ]);
+        return DialogFooter.Line(SurfaceHints.Editor(keymap, editor));
     }
 }
