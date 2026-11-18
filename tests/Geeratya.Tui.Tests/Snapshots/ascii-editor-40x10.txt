@@ -5,6 +5,6 @@
 | | second line                      | |
 | |                                  | |
 | | -------------------------------- | |
-| | Ctrl-s send   Enter new line   E | |
+| | Ctrl-s send   Enter new line   . | |
 +-+----------------------------------+-+
 [INSERT] Commenting on A-1              

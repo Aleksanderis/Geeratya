@@ -130,7 +130,7 @@ public static class ContextMenuOverlay
         var keyText = TextWidth.Fit(keys, Math.Max(0, width / 2));
         var gap = keyText.Length == 0 ? string.Empty : new string(' ', KeyGap);
         var room = Math.Max(0, width - 2 - TextWidth.Of(keyText) - gap.Length);
-        var text = TextWidth.Pad(TextWidth.Fit(title, room), room);
+        var text = TextWidth.PadCut(title, room);
 
         if (selected)
         {

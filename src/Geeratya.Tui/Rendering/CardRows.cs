@@ -1,9 +1,7 @@
 using Geeratya.Core.Boards;
-using Geeratya.Core.Detail;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Text;
 using Geeratya.Jira.Search.Models;
-using Geeratya.Platform.Terminal;
 
 namespace Geeratya.Tui.Rendering;
 
@@ -153,7 +151,7 @@ public static class CardRows
         }
 
         var spare = room - ChipCells;
-        var glyph = PriorityGlyph(issue.Priority);
+        var glyph = ValueText.PriorityGlyph(issue.Priority);
 
         if (glyph.Length > 0 && spare >= GlyphCells + counterCells)
         {
@@ -199,19 +197,6 @@ public static class CardRows
             spans.Add(new StyledSpan(estimate, TextRole.Muted));
         }
 
-        spans.Add(new StyledSpan(chip, StatusRoles.Of(issue.Status)));
-    }
-
-    private static string PriorityGlyph(string? priority)
-    {
-        var glyphs = Glyphs.For(GlyphSet.Unicode);
-
-        return PriorityTierOf.Name(priority) switch
-        {
-            PriorityTier.High => glyphs.PriorityHigh,
-            PriorityTier.Medium => glyphs.PriorityMedium,
-            PriorityTier.Low => glyphs.PriorityLow,
-            _ => string.Empty,
-        };
+        spans.Add(new StyledSpan(chip, ValueText.StatusRole(issue.Status)));
     }
 }

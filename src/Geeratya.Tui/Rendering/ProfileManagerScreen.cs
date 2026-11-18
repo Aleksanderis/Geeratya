@@ -209,7 +209,7 @@ public static class ProfileManagerScreen
     private static StyledLine RowLine(Profile profile, string? activeName, bool selected, string mark, int room)
     {
         var active = profile.Name == activeName;
-        var name = TextWidth.Pad(TextWidth.Fit(profile.Name, NameColumn - 1), NameColumn);
+        var name = TextWidth.Pad(DisplayText.Cut(profile.Name, NameColumn - 1), NameColumn);
         var cursor = " ";
         var dot = active ? mark : " ";
         var marker = $"{cursor}{dot} ";

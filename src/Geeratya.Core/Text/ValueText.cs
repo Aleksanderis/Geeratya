@@ -88,13 +88,18 @@ public static class ValueText
         return StatusRoles.Of(status);
     }
 
-    /// <summary>The dot and name of a status.</summary>
-    public static IReadOnlyList<StyledSpan> Status(IssueStatus status, TextRole name)
+    /// <summary>
+    /// The dot and name of a status, both in the role of its category (the list, backlog, card and relation rows draw
+    /// the name in the same role, so a status never reads plain in one place and coloured in another).
+    /// </summary>
+    public static IReadOnlyList<StyledSpan> Status(IssueStatus status)
     {
+        var role = StatusRoles.Of(status);
+
         return
         [
-            new StyledSpan(StatusDot, StatusRoles.Of(status)),
-            new StyledSpan($" {TextClean.Of(status.Name)}", name),
+            new StyledSpan(StatusDot, role),
+            new StyledSpan($" {TextClean.Of(status.Name)}", role),
         ];
     }
 

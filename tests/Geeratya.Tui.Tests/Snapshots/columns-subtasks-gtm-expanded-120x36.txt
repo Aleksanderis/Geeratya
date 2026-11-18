@@ -20,8 +20,8 @@
 │ │   copy                  │ │ ┃ Sign up with email      ┃ │ └─────────────────────────┘ │                            │
 │ │                         │ │ ┃                         ┃ │ ┌─────────────────────────┐ │                            │
 │ │    geeratya-seed        │ │ ┃  geeratya-seed          ┃ │ │ Backlog: tooltip        │ │                            │
-│ │    geeratya-seed-GTM-…  │ │ ┃  geeratya-seed-GTM-st...┃ │ │ clipped                 │ │                            │
-│ │                         │ │ ┃                         ┃ │ │                         │ │                            │
+│ │    geeratya-seed-GTM-…  │ │ ┃  geeratya-seed-GTM-st…  ┃ │ │ clipped                 │ │                            │
+│ │                         │ │ ┃                      ...┃ │ │                         │ │                            │
 │ │   GTM-14  Task   = [--] │ │ ┃ GTM-11  Story ▾1/2 [--] ┃ │ │  geeratya-seed          │ │                            │
 │ └─────────────────────────┘ │ ┣━━━━━━━━━━━━━━━━━━━━━━━━━┫ │ │  geeratya-seed-GTM-ba…  │ │                            │
 │                             │ │   Build the form        │ │ │                         │ │                            │

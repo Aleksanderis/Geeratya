@@ -12,11 +12,11 @@
 │ │   Copy the key of the issue under the cursor                   <space>yy │ │
 │ │   Copy the issue link                                          <space>yu │ │
 │ │   Copy the issue key and summary                               <space>ys │ │
-│ │   Edit the issue title in place (opens the detail from a list  <space>ie │ │
+│ │   Edit the issue title in place (opens the detail from a lis…  <space>ie │ │
 │ │   Assign the issue: search people, or unassign                 <space>ia │ │
 │ │   Assign the issue to me                                       <space>im │ │
 │ │   Change the status of the sub-task under the cursor           <space>ts │ │
-│ │   Assign the sub-task under the cursor: search people, or una  <space>ta▼│ │
+│ │   Assign the sub-task under the cursor: search people, or un…  <space>ta▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
