@@ -70,7 +70,7 @@ Design in `architecture.md`, "Write pipeline". What the user sees:
 
 **One behaviour for every form (#1001, `FormShell`).** The box (edit, transition, sprint, link, assign), the create panes, the dropdown under a Details field and the in-place edit of Summary and Description all behave the same, and differ only in layout:
 
-- A form with more than one editable field has the navigate state besides editing (`[navigate]` and `[editing]` in the status bar): `j`/`k`/`Tab` move between fields, `Enter` or `i` edits the focused one. A form of one field is always editing.
+- A form with more than one editable field has the navigate state besides editing (`[navigate]` in the status line while moving; no label carries the state): `j`/`k`/`Tab` move between fields, `Enter` or `i` edits the focused one. A form of one field is always editing.
 - `Esc` and `q` (where `q` is not text) step back one level: popup, then filter, then editing back to navigate, then close.
 - Closing a form with a changed field asks `Discard the changes to GCM-3? Nothing has been saved.` (one wording from `ConfirmWording.Discard` for every editor: a new issue: `Discard the new issue? ...`; a new or edited comment: `Discard the new comment? ...`, `Discard the changes to the comment? ...`; the profile form: `Discard the changes to the profile? ...`; a new sprint: `Discard the new sprint? ...`; the start and complete forms of a sprint: `Discard the changes to <sprint name>? ...`) in the same Confirm dialog the comment editor and the profile form use: `y` discards, `n`, `q` or `Esc` goes back to the form as it was, `Enter` never answers it. An unchanged form closes at once.
 - Saving with no changed field closes the form, sends nothing and says `Nothing changed.`

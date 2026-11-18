@@ -55,25 +55,30 @@ public static class Palette
         switch (tier)
         {
             case ColorSupport.TrueColor:
-                var foreground = dim ? theme.Dimmed(entry.TrueForeground) : entry.TrueForeground;
-                var background = PageBackground(theme, entry, ground);
-                // A box under another overlay is part of the dimmed view, so on a transparent theme it keeps the terminal too.
+                var block = BlockFill(theme, entry, ground);
+                var own = block is null || IsCap(role) ? entry.TrueForeground : OnBlock(theme, entry, block);
+                var foreground = dim ? theme.Dimmed(own) : own;
+                var background = block?.TrueBackground ?? PageBackground(theme, entry, ground);
+                // A box under another overlay is part of the dimmed view, so on a transparent theme it keeps the
+                // terminal too.
                 var raised = ground.HasFlag(SpanGround.Surface) && !ground.HasFlag(SpanGround.Dim);
-                var keep = KeepsTerminal(theme, entry) && !raised;
+                var keep = KeepsTerminal(theme, entry) && !raised && block is null;
 
                 return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry), keep);
             case ColorSupport.Basic16:
-                var plain = entry.Background16 is Ansi16Color.Black or Ansi16Color.White;
+                var fill = BlockFill(theme, entry, ground);
+                var back16 = fill?.Background16 ?? entry.Background16;
+                var plain = back16 is Ansi16Color.Black or Ansi16Color.White;
                 var faint = dim && plain && faintSupported;
                 var named = dim && plain && !faintSupported ? Ansi16Color.DarkGray : entry.Foreground16;
 
                 return new ResolvedStyle(
                     Ansi16.ToRgb(named, theme.Variant),
-                    Ansi16.ToRgb(entry.Background16, theme.Variant),
+                    Ansi16.ToRgb(back16, theme.Variant),
                     named,
-                    entry.Background16,
+                    back16,
                     faint ? ColourStyle(entry) | RoleStyle.Faint : ColourStyle(entry),
-                    KeepsTerminal(theme, entry) || (theme.KeepTerminalBackground && entry.IsBar16));
+                    (fill is null && KeepsTerminal(theme, entry)) || (theme.KeepTerminalBackground && entry.IsBar16));
             default:
                 return new ResolvedStyle(
                     null,
@@ -152,6 +157,25 @@ public static class Palette
             TintContrast);
 
         return readable ? value : fallback;
+    }
+
+    // The fill of a field block's value row (SpanGround.Value, ValueFocus) for a role that sits on the page: such a
+    // role takes the block's tint as its background, so no cell of the row is left on the page colour. A role with a fill
+    // of its own keeps it. Null for any other ground.
+    // The text colour of a role on a block fill: its own where it stays readable, else the fill's text colour.
+    private static Rgb OnBlock(Theme theme, PaletteEntry entry, PaletteEntry block)
+    {
+        return Readable(theme, entry.TrueForeground, block.TrueBackground, block.TrueForeground) ?? entry.TrueForeground;
+    }
+
+    private static PaletteEntry? BlockFill(Theme theme, PaletteEntry entry, SpanGround ground)
+    {
+        if (!entry.OnPage || (ground & (SpanGround.Value | SpanGround.ValueFocus)) == 0)
+        {
+            return null;
+        }
+
+        return theme.Entry(ground.HasFlag(SpanGround.ValueFocus) ? PaletteRole.Selected : PaletteRole.ValueBlock);
     }
 
     // A role on the page keeps the terminal's own background when the theme is drawn transparent; the overlay box

@@ -645,19 +645,26 @@ public class FieldChoiceContractTests
 
     private AppState OpenNavigable(string presentation, FormField field)
     {
+        var other = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
+        var tail = FormField.Create("duedate", "Due date", FormFieldKind.Text, false, []);
+        var loaded = OpenForm(presentation, [other, field, tail]);
+
+        return _reducer.Reduce(loaded, new KeyPressed("Tab", _now)).State;
+    }
+
+    /// <summary>The form of a navigable presentation with these fields loaded, the first one focused.</summary>
+    internal AppState OpenForm(string presentation, IReadOnlyList<FormField> fields)
+    {
         var state = Loaded();
         var tab = state.Session.Tabs[0];
-        var other = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
         var form = FormState.Opened(NavigableTarget(presentation), 7, null);
         var withForm = state with
         {
             Session = state.Session with { Tabs = [tab with { Form = form }] },
             Mode = InputMode.Insert,
         };
-        var tail = FormField.Create("duedate", "Due date", FormFieldKind.Text, false, []);
-        var loaded = _reducer.Reduce(withForm, new FormMetadataLoaded(tab.Id, 7, [other, field, tail])).State;
 
-        return _reducer.Reduce(loaded, new KeyPressed("Tab", _now)).State;
+        return _reducer.Reduce(withForm, new FormMetadataLoaded(tab.Id, 7, fields)).State;
     }
 
     private AppState OpenSingle(string presentation, FormField field)

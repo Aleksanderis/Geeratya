@@ -25,7 +25,6 @@ internal sealed class CreatePaneLayout
     private const string SavingText = "Saving…";
     private const string TitlePlaceholder = "What needs to be done?";
     private const string DescriptionPlaceholder = "Describe it.";
-    private const string RequiredText = "required *";
     private const int NotEditableMinimum = 6;
     private const int StackedNotEditableMinimum = 16;
     private const int StackedMinimum = 11;
@@ -163,8 +162,10 @@ internal sealed class CreatePaneLayout
     {
         var index = CreatePanes.Shown(_form, PaneIds.Title) is [var first, ..] ? first : -1;
         var create = (CreateFormTarget)_form.Target;
-        var named = $"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}";
-        var heading = new StyledSpan(named, TextRole.Heading);
+        var required = index >= 0 && _form.Fields[index].Required;
+        var heading = $"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}";
+        var named = FieldLabels.With(heading, required);
+        var title = new StyledSpan(named, TextRole.Heading);
         var rows = new List<CreatePaneRow>();
 
         if (index >= 0)
@@ -181,26 +182,16 @@ internal sealed class CreatePaneLayout
 
         var openAfter = create.OpenAfter ? new[] { new StyledSpan(OpenAfterText, TextRole.Muted) } : null;
 
-        return new CreatePaneSpec([heading], openAfter, rows, focused);
+        return new CreatePaneSpec([title], openAfter, rows, focused);
     }
 
     private StyledLine SummaryLine(int index, int inner)
     {
         var field = _form.Fields[index];
         var editing = index == _form.Focus && !_form.Navigating && !_form.IsSaving;
-        var required = field.Required ? RequiredText : string.Empty;
-        var room = Math.Max(1, inner - (required.Length == 0 ? 0 : required.Length + 1));
-        var look = new FieldLook(room) { Editing = editing, Placeholder = TitlePlaceholder };
-        var spans = FieldRows.Value(field, look)[0].Spans.ToList();
-        var used = spans.Sum(static span => DisplayWidth.Of(span.Text));
+        var look = new FieldLook(Math.Max(1, inner)) { Editing = editing, Placeholder = TitlePlaceholder };
 
-        if (required.Length > 0 && inner - used > required.Length)
-        {
-            spans.Add(new StyledSpan(new string(' ', inner - used - required.Length), TextRole.Body));
-            spans.Add(new StyledSpan(required, TextRole.Muted));
-        }
-
-        return new StyledLine(spans);
+        return FieldRows.Value(field, look)[0];
     }
 
     private static IEnumerable<CreatePaneRow> ErrorRows(string error, int index, int inner)

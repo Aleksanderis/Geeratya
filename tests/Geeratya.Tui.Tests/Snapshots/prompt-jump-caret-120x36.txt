@@ -4,14 +4,14 @@
 │  Key T Summary                                                                        Status         Assignee        │
 │  GCM T Fix the log╭─ Jump to an issue ───────────────────────────────────────────────────────────╮   Unassigned      │
 │  GCM T 日本語の見 │ > gcm                                                                        │   Unassigned      │
-│  GTM T Not shown w│   GCM-12      Fix the login redirect                                         │   Unassigned      │
-│  GCM T A rather lo│   GCM-120     日本語の見出しを含む課題                                       │   Unassigned      │
+│  GTM T Not shown w├──────────────────────────────────────────────────────────────────────────────┤   Unassigned      │
+│  GCM T A rather lo│   GCM-12      Fix the login redirect                                         │   Unassigned      │
+│                   │   GCM-120     日本語の見出しを含む課題                                       │                   │
 │                   │   GCM-7       A rather long summary that cannot possibly fit into the narro… │                   │
 │                   │   GCM-4       recent                                                         │                   │
-│                   │                                                                              │                   │
-│                   │                                                                              │                   │
+│                   │ ──────────────────────────────────────────────────────────────────────────── │                   │
+│                   │ Up/Down move   Enter open   Esc close                                        │                   │
 │                   ╰──────────────────────────────────────────────────────────────────────────────╯                   │
-│                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

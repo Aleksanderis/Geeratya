@@ -40,16 +40,6 @@ public class FormShellTests
     }
 
     [Fact]
-    public void GivenANavigableForm_WhenTheStateNoteIsAsked_ThenItNamesNavigateOrEditing()
-    {
-        var navigable = Form(Field("a", FormFieldKind.Text), Field("b", FormFieldKind.Text)) with { Navigable = true };
-
-        Assert.Equal(FormShell.NavigateNote, FormShell.StateNote(navigable with { Navigating = true }));
-        Assert.Equal(FormShell.EditingNote, FormShell.StateNote(navigable));
-        Assert.Null(FormShell.StateNote(navigable with { Navigable = false }));
-    }
-
-    [Fact]
     public void GivenAFormOfAnIssue_WhenTheDiscardIsAsked_ThenItIsOneConfirmThatNamesTheIssueAndSaysNothingWasSaved()
     {
         var form = Form(Field("a", FormFieldKind.Text));

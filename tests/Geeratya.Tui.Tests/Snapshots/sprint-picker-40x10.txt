@@ -1,10 +1,10 @@
                                         
                                         
-╭─╭─ Switch sprint ──────────────────╮─╮
+╭─╭─ Switch sprint ────────── 13/13 ─╮─╮
 │ │ >                                │ │
-│w│ Active                           │l│
+│w├──────────────────────────────────┤l│
+│ │ Active                           │ │
 │ │           Sprint 12 日本語 (19 O │ │
-│ │ Future                           │ │
-│ │           Future F1             ▼│ │
+│ │ Future                          ▼│ │
 ╰─╰──────────────────────────────────╯─╯
  INSERT  switch sprint                  

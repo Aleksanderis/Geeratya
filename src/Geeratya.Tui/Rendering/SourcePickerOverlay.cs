@@ -34,6 +34,7 @@ public static class SourcePickerOverlay
     private const int MinimumBoxHeight = 4;
     private const int FooterHeight = 2;
     private const int FooterMinimumInner = 8;
+    private const int QueryRows = 2;
     private const int KindColumn = 8;
     private const int TopGap = 2;
     private const int MaxBoxHeight = 18;
@@ -56,21 +57,22 @@ public static class SourcePickerOverlay
         }
 
         var rows = Rows(picker, state.Session.Sources, boxWidth - 4);
-        var inner = Math.Min(Math.Min(height, MaxBoxHeight), rows.Lines.Count + 1 + FooterHeight + 2) - 2;
+        var inner = Math.Min(Math.Min(height, MaxBoxHeight), rows.Lines.Count + QueryRows + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
-        var box = BoxLines(picker, rows, keymap, boxWidth, inner, footer);
+        var count = CountText(picker, state.Session.Sources, rows);
+        var box = BoxLines(picker, rows, keymap, boxWidth, inner, footer, count);
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
         var result = OverlayBox.Backdrop(body);
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
-        var area = inner - 1 - footer;
+        var area = inner - QueryRows - footer;
         var window = PickList.WindowAt(rows.SelectedLine, rows.Lines.Count, area);
 
         var place = new BoxPlace(top, left, boxWidth);
 
-        PickListRenderer.Mark(regions, MouseTarget.PickerRow, place, 2, window, rows.ChoiceOfLine);
+        PickListRenderer.Mark(regions, MouseTarget.PickerRow, place, 1 + QueryRows, window, rows.ChoiceOfLine);
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -86,15 +88,17 @@ public static class SourcePickerOverlay
         KeymapTable keymap,
         int boxWidth,
         int inner,
-        int footer)
+        int footer,
+        string count)
     {
         var contentWidth = boxWidth - 2;
-        var area = inner - 1 - footer;
+        var area = inner - QueryRows - footer;
         var window = PickList.WindowAt(rows.SelectedLine, rows.Lines.Count, area);
         var lines = new List<StyledLine>
         {
-            OverlayBox.Top(boxWidth, TitleOf(picker)),
+            OverlayBox.Top(boxWidth, TitleOf(picker), count),
             OverlayBox.Wall(Prompt(picker, contentWidth), contentWidth),
+            OverlayBox.Divider(boxWidth),
         };
 
         lines.AddRange(PickListRenderer.Walls(rows.Lines, window, area, contentWidth));
@@ -115,6 +119,17 @@ public static class SourcePickerOverlay
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         return lines;
+    }
+
+    // The count chip of the query header, as the palette's: the rows shown over the rows of the unfiltered list.
+    private static string CountText(SourcePickerState picker, SourceLists lists, PickerRows rows)
+    {
+        var shown = rows.ChoiceOfLine.Count(static choice => choice >= 0);
+        var all = SourceChoices.For(picker with { Text = string.Empty }, lists).Count;
+
+        var total = Math.Max(shown, all);
+
+        return $"{shown.ToString(CultureInfo.InvariantCulture)}/{total.ToString(CultureInfo.InvariantCulture)}";
     }
 
     private static string TitleOf(SourcePickerState picker)

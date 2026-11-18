@@ -123,10 +123,11 @@ public class PickerLookContractTests
         var field = FieldOf("assignee");
         var frame = Frame(Scene("subtask", field, "open"));
         var lines = frame.Body.Select(static line => line.PlainText).ToList();
-        var fieldRow = lines.FindIndex(static line => line.Contains("Assignee  [editing]", StringComparison.Ordinal));
+        var fieldRow = lines.FindIndex(static line => line.Contains("│ Assignee ", StringComparison.Ordinal));
         var boxTop = lines.FindIndex(line => line.Contains($"{Corner}─ Assignee", StringComparison.Ordinal));
 
         Assert.True(fieldRow >= 0 && boxTop > fieldRow, string.Join("\n", lines));
+        Assert.DoesNotContain(lines, static line => line.Contains("[editing]", StringComparison.Ordinal));
         Assert.Contains("acc-eve", lines[fieldRow + 1], StringComparison.Ordinal);
     }
 
@@ -203,7 +204,8 @@ public class PickerLookContractTests
         var start = -1;
         var top = -1;
 
-        for (var row = 0; row < rows.Count && top < 0; row++)
+        // The field's own box has the same label and corner: the picker box is the last one, under it.
+        for (var row = rows.Count - 1; row >= 0 && top < 0; row--)
         {
             var text = string.Concat(rows[row].Select(static cell => cell.Glyph));
 

@@ -204,7 +204,7 @@ public static class PaletteOverlay
     private static StyledLine RowLine(PaletteRow row, bool selected, int width)
     {
         var marker = " ";
-        var keyText = TextWidth.Fit(row.Keys, Math.Max(0, width / 2));
+        var keyText = DisplayText.Cut(row.Keys, Math.Max(0, width / 2));
         var gap = keyText.Length == 0 ? string.Empty : new string(' ', KeyGap);
         var room = Math.Max(0, width - 2 - TextWidth.Of(keyText) - gap.Length);
         var title = row.Enabled ? row.Title : $"{row.Title}{UnavailableText}";

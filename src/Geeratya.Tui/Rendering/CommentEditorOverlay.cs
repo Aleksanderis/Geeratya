@@ -92,7 +92,11 @@ public static class CommentEditorOverlay
         var lines = new List<StyledLine> { OverlayBox.Top(boxWidth, heading) };
 
         lines.AddRange(TextLines(editor, rows, area).Select(line => OverlayBox.Wall(line, contentWidth)));
-        lines.AddRange(notes.Select(note => OverlayBox.Wall(note, contentWidth)));
+
+        var markers = PopupMarkers(editor);
+
+        lines.AddRange(notes.Select((note, row) => OverlayBox.Wall(note, contentWidth, MarkerAt(markers, row))));
+
         lines.Add(OverlayBox.Wall(Divider(contentWidth), contentWidth));
         lines.Add(OverlayBox.Wall(footer, contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -202,6 +206,22 @@ public static class CommentEditorOverlay
         lines.AddRange(PickListRenderer.Popup(popup, width, string.Empty, false).Select(static row => row.Line));
 
         return lines;
+    }
+
+    private static string MarkerAt(List<string> markers, int row)
+    {
+        return row < markers.Count ? markers[row] : " ";
+    }
+
+    // The scroll marker of each suggestion row (the popup rows come first among the notes under the text).
+    private static List<string> PopupMarkers(CommentEditor editor)
+    {
+        if (editor.Suggest is not { } popup)
+        {
+            return [];
+        }
+
+        return [.. PickListRenderer.Popup(popup, 1, string.Empty, false).Select(static row => row.Marker)];
     }
 
     private static void AddWrapped(List<StyledLine> lines, string? text, TextRole role, int inner)

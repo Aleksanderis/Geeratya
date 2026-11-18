@@ -63,17 +63,28 @@ internal static class PickerBox
         items.AddRange(content.Indexes);
         items.Add(-1);
 
-        return new PickerLines(Frame(field.Label, content.Lines, width), items);
+        return new PickerLines(Frame(field.Label, content.Lines, width, content.Markers), items);
     }
 
     /// <summary>
-    /// The box around <paramref name="content"/>: the title in the top edge, the walls, the bottom edge.
+    /// The box around <paramref name="content"/>: the title in the top edge, the walls (the right padding column of a
+    /// row carries its entry of <paramref name="markers"/>, the scroll marker of a cut list), the bottom edge.
     /// </summary>
-    public static List<StyledLine> Frame(string title, IReadOnlyList<StyledLine> content, int width)
+    public static List<StyledLine> Frame(
+        string title,
+        IReadOnlyList<StyledLine> content,
+        int width,
+        IReadOnlyList<string>? markers = null)
     {
         var lines = new List<StyledLine> { OverlayBox.Top(width, title) };
 
-        lines.AddRange(content.Select(line => OverlayBox.Wall(line, width - 2)));
+        for (var row = 0; row < content.Count; row++)
+        {
+            var marker = markers is not null && row < markers.Count ? markers[row] : " ";
+
+            lines.Add(OverlayBox.Wall(content[row], width - 2, marker));
+        }
+
         lines.Add(OverlayBox.Bottom(width));
 
         return lines;
@@ -87,6 +98,7 @@ internal static class PickerBox
     {
         var lines = new List<StyledLine> { FieldRows.Entry(field, inner) };
         var indexes = new List<int> { -1 };
+        var markers = new List<string> { " " };
 
         if (form.Suggest is { } popup && popup.FieldIndex == form.Focus)
         {
@@ -94,12 +106,14 @@ internal static class PickerBox
             {
                 lines.Add(row.Line);
                 indexes.Add(row.Item);
+                markers.Add(row.Marker);
             }
         }
         else if (FieldRows.ShowsSearchHint(form) || FormFieldKinds.IsChoice(field.Kind))
         {
             lines.Add(StyledLine.Of(FieldRows.TypeToSearchText, TextRole.Muted));
             indexes.Add(-1);
+            markers.Add(" ");
         }
 
         if (field.Error is { } error)
@@ -109,14 +123,15 @@ internal static class PickerBox
 
             lines.AddRange(rows);
             indexes.AddRange(rows.Select(static _ => -1));
+            markers.AddRange(rows.Select(static _ => " "));
         }
 
-        return new PickerContent(lines, indexes);
+        return new PickerContent(lines, indexes, markers);
     }
 }
 
-/// <summary>The rows inside a picker box and the suggestion each stands for (-1 for none).</summary>
-internal sealed record PickerContent(List<StyledLine> Lines, List<int> Indexes);
+/// <summary>The rows inside a picker box, the suggestion each stands for (-1 for none) and its scroll marker.</summary>
+internal sealed record PickerContent(List<StyledLine> Lines, List<int> Indexes, List<string> Markers);
 
 /// <summary>The whole box of a picker (edges included) and the suggestion each line stands for (-1 for none).</summary>
 internal sealed record PickerLines(List<StyledLine> Lines, List<int> Items);

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -71,19 +72,18 @@ public class FormOverlaySnapshotTests
     {
         var lines = FrameBuilder.Build(Sample(), 120, 36, _keymap);
 
-        var tops = lines.Count(line => line.Contains("┌─", StringComparison.Ordinal));
-        var bottoms = lines.Count(line => line.Contains("└──", StringComparison.Ordinal));
-        var summary = lines.ToList().FindIndex(line => line.Contains("┌─ Summary *", StringComparison.Ordinal));
+        var tops = lines.Count(line => line.Contains("│ ╭─", StringComparison.Ordinal));
+        var summary = lines.ToList().FindIndex(line => line.Contains("╭─ Summary *", StringComparison.Ordinal));
         var error = lines.ToList().FindIndex(line => line.Contains("! Required", StringComparison.Ordinal));
 
         Assert.True(tops >= 5);
-        Assert.Equal(tops, bottoms);
+        Assert.DoesNotContain(lines, line => line.Contains('┌'));
         Assert.Equal(summary + 3, error);
-        Assert.Contains(lines, line => line.Contains("┌─ Team  (not editable here)", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("╭─ Team  (not editable here)", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void GivenAFocusedField_WhenCollectingSpans_ThenItsBoxIsAccentAndTheReadOnlyBoxIsMuted()
+    public void GivenAFocusedField_WhenCollectingSpans_ThenItsBoxHasTheFocusBorderAndTheReadOnlyBoxHasNot()
     {
         var box = FormOverlay.Compose(
             Enumerable.Repeat(StyledLine.Of(new string(' ', 120)), 36).ToList(),
@@ -94,8 +94,18 @@ public class FormOverlaySnapshotTests
         var focused = box.First(line => line.ToString().Contains("Labels", StringComparison.Ordinal));
         var readOnly = box.First(line => line.ToString().Contains("Team  (not", StringComparison.Ordinal));
 
-        Assert.Contains(focused.Spans, span => span.Role == TextRole.OverlayFrame && span.Text.StartsWith("┌─", StringComparison.Ordinal));
-        Assert.Contains(readOnly.Spans, span => span.Role == TextRole.Muted && span.Text.StartsWith("┌─", StringComparison.Ordinal));
+        Assert.Contains(focused.Spans, span => IsCorner(span, TextRole.FrameFocus));
+        Assert.Contains(readOnly.Spans, span => IsCorner(span, TextRole.Border));
+    }
+
+    [Theory]
+    [InlineData(14, 10)]
+    [InlineData(11, 8)]
+    public void GivenAnUnusablyNarrowFrame_WhenAFormIsOpen_ThenEveryLineKeepsTheWidth(int width, int height)
+    {
+        var lines = FrameBuilder.Build(WithForm(SampleForm()), width, height, _keymap);
+
+        Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
     }
 
     [Fact]
@@ -125,11 +135,12 @@ public class FormOverlaySnapshotTests
     {
         var form = SampleForm() with { Focus = focus };
 
-        var lines = FrameBuilder.Build(WithForm(form), 60, 18, _keymap).ToList();
-        var last = lines.FindLastIndex(static line => line.Contains('└'));
+        var frame = FrameBuilder.BuildStyled(WithForm(form), 60, 18, _keymap)!;
+        var lines = frame.PlainLines().ToList();
+        var last = lines.FindLastIndex(static line => Regex.IsMatch(line, "│ ╰─+╯[ ▲▼]│"));
         var below = lines[last + 1].Replace("│", string.Empty, StringComparison.Ordinal).Trim();
 
-        Assert.Contains(lines, static line => line.Contains("┌─ > ", StringComparison.Ordinal));
+        Assert.Contains(frame.Body, static line => line.Spans.Any(static span => span.Role == TextRole.FrameFocus));
         Assert.StartsWith("──", below, StringComparison.Ordinal);
     }
 
@@ -260,6 +271,11 @@ public class FormOverlaySnapshotTests
     internal static AppState Sample()
     {
         return WithForm(SampleForm());
+    }
+
+    private static bool IsCorner(StyledSpan span, TextRole role)
+    {
+        return span.Role == role && span.Text.StartsWith("╭─", StringComparison.Ordinal);
     }
 
     internal static FormState SampleForm()

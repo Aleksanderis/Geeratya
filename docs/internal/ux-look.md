@@ -260,9 +260,9 @@ The frame and chip use the `bad` role for every write to Jira (delete, remove a 
 
 ```
       ╭─ Edit GEN-1 · Labels ───────────────────────────────────────╮
-      │ ┌─ > Labels ──────────────────────────────────────────────┐ │
+      │ ╭─ Labels ────────────────────────────────────────────────╮ │
       │ │ urgent_                                                 │ │
-      │ └─────────────────────────────────────────────────────────┘ │
+      │ ╰─────────────────────────────────────────────────────────╯ │
       │   > urgent (new)                                            │
       │     geeratya-seed                                           │
       ├─────────────────────────────────────────────────────────────┤
@@ -270,7 +270,7 @@ The frame and chip use the `bad` role for every write to Jira (delete, remove a 
       ╰─────────────────────────────────────────────────────────────╯
 ```
 
-**Form fields (#651; the multi-field edit form is gone, #762).** Every field of a form is a labelled box: the label sits in the top edge (`┌─ Summary * ──┐`; `*` marks a required field), the value rows inside the walls, the validation error (a `bad` line) under the box. An open picker is a second box under it, titled with the field name (input line, quick rows, results; #1027). The focused box is drawn in the accent role and its label is bold, so focus also shows without colour (no `> ` mark since #772); other boxes are muted (a box with an error is `bad`); a read-only field is a muted box with `(not editable here)` in the label and the browser link as value. Each field costs two rows more than its value (the box edges), so the form scrolls to keep the focused box in view; label text is cut to the box width. Angular corners (`┌└`) separate the field boxes from the rounded overlay frame, and they become `+` in the ASCII tier.
+**Form fields (#651; the multi-field edit form is gone, #762).** Every field of a form is a labelled box: the label sits in the top edge (`╭─ Summary * ──╮`; `FieldLabels` puts the one required mark, ` *`, directly after the label, in every presentation), the value rows inside the walls, the validation error (a `bad` line) under the box. The frame is `FieldBox`, the rounded border of the detail's panes and of the create form's Summary and Description boxes (`ui-consistency.md`, component 3, #1034), so the same box is the same cells in every place. An open picker is a second box under it, titled with the field name (input line, quick rows, results; #1027). The focused box has the focus border and a filled label chip, so focus also shows without colour; other boxes have the plain border; a read-only field is a plain box with `(not editable here)` in the label and the browser link as value. No label or box title carries the state of the form: `[navigate]` is in the status line only, `[editing]` nowhere (owner-visible decision of #1034, P1). Each field costs two rows more than its value (the box edges), so the form scrolls to keep the focused box in view, with the same `▲`/`▼` scroll marker as every list; label and value text that does not fit ends in `…`. The ASCII tier maps the border to `+-|` like every frame.
 
 Single-field forms (labels, priority, assign, link, transition pickers) use the same box. An open picker is a titled box under the field's box (#1027, the one look of `ui-consistency.md`, component 3); the selection is the tint. `Tab`/`Shift-Tab` move the focus (accent box follows). The comment editor is the same box with a taller input pane (at most body height minus 6).
 

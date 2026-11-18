@@ -56,7 +56,8 @@ public static class DetailDropdown
             return body;
         }
 
-        var lines = PickerBox.Frame(form.Fields.Count == 0 ? string.Empty : Title(form), content.Lines, wide);
+        var title = form.Fields.Count == 0 ? string.Empty : Title(form);
+        var lines = PickerBox.Frame(title, content.Lines, wide, content.Markers);
 
         var result = new List<StyledLine>(body);
 
@@ -142,7 +143,7 @@ public static class DetailDropdown
         {
             var picker = PickerBox.Content(form, field, inner);
 
-            return new Content(picker.Lines, picker.Indexes);
+            return new Content(picker.Lines, picker.Indexes, picker.Markers);
         }
 
         var lines = new List<StyledLine>();
@@ -165,7 +166,7 @@ public static class DetailDropdown
             indexes.AddRange(rows.Select(static _ => -1));
         }
 
-        return new Content(lines, indexes);
+        return new Content(lines, indexes, []);
     }
 
     private static Content Notice(string text, TextRole role)
@@ -175,8 +176,8 @@ public static class DetailDropdown
 
     private static Content Notice(List<StyledLine> lines)
     {
-        return new Content(lines, [.. lines.Select(static _ => -1)]);
+        return new Content(lines, [.. lines.Select(static _ => -1)], []);
     }
 
-    private sealed record Content(List<StyledLine> Lines, List<int> Indexes);
+    private sealed record Content(List<StyledLine> Lines, List<int> Indexes, List<string> Markers);
 }

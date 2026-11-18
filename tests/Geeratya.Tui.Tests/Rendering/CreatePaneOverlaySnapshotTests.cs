@@ -71,7 +71,8 @@ public class CreatePaneOverlaySnapshotTests
         var lines = FrameBuilder.Build(Open(Form()), 120, 36, _keymap);
 
         Assert.Contains(lines, line => line.Contains("Create · A · Task", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("required *", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("Create · A · Task *", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("required", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("╭─ Description", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("╭─ Details", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("╭─ Not editable here", StringComparison.Ordinal));
@@ -114,8 +115,8 @@ public class CreatePaneOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(Open(form with { Fields = fields }), 120, 36, _keymap);
 
-        var summary = lines.ToList().FindIndex(line => line.Contains("required *", StringComparison.Ordinal));
-        Assert.Contains("! Required", lines[summary + 1], StringComparison.Ordinal);
+        var summary = lines.ToList().FindIndex(line => line.Contains("Create · A · Task *", StringComparison.Ordinal));
+        Assert.Contains("! Required", lines[summary + 2], StringComparison.Ordinal);
         Assert.Contains(lines, line => line.Contains("! Summary: Required", StringComparison.Ordinal));
     }
 

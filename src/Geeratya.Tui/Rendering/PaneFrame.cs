@@ -1,3 +1,4 @@
+using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Tui.Rendering;
@@ -9,6 +10,9 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class PaneFrame
 {
+    // Frame rows above the first row of a list: the top edge and the column titles.
+    private const int TitleRows = 1;
+
     public static List<StyledLine> Build(
         int width,
         int height,
@@ -16,7 +20,8 @@ public static class PaneFrame
         IReadOnlyList<StyledSpan>? right,
         IReadOnlyList<StyledLine> content,
         IReadOnlyList<PaneDivider> dividers,
-        int focusContentIndex = -1)
+        int focusContentIndex = -1,
+        PaneScroll? scroll = null)
     {
         if (!FrameGrid.CanFrame(width, height))
         {
@@ -61,7 +66,63 @@ public static class PaneFrame
             }
         }
 
+        return scroll is { Scrollable: true } ? Marked(lines, scroll, edgeRows.Keys) : lines;
+    }
+
+    /// <summary>
+    /// The frame with the scroll markers of a cut list in its right border column (the frame has no padding column):
+    /// <c>▲</c> on the first and <c>▼</c> on the last row of the list that is no shared edge, when rows are hidden
+    /// above
+    /// or below, the same marker an overlay box shows in its right padding column
+    /// (<see cref="OverlayBox.ScrollMarker"/>). <paramref name="scroll"/> counts the rows of the list below its title
+    /// line.
+    /// </summary>
+    private static List<StyledLine> Marked(List<StyledLine> lines, PaneScroll scroll, IEnumerable<int> edgeRows)
+    {
+        var rows = Enumerable.Range(TitleRows + 1, Math.Max(0, lines.Count - TitleRows - 2))
+            .Where(row => !edgeRows.Contains(row))
+            .ToList();
+
+        if (rows.Count == 0)
+        {
+            return lines;
+        }
+
+        var first = scroll.ClampedOffset;
+
+        if (first > 0)
+        {
+            var marker = OverlayBox.ScrollMarker(0, scroll.Viewport, first, scroll.Total);
+
+            lines[rows[0]] = WithMarker(lines[rows[0]], marker);
+        }
+
+        if (first + scroll.Viewport < scroll.Total)
+        {
+            var last = rows[^1];
+
+            var marker = OverlayBox.ScrollMarker(scroll.Viewport - 1, scroll.Viewport, first, scroll.Total);
+
+            lines[last] = WithMarker(lines[last], marker);
+        }
+
         return lines;
+    }
+
+    private static StyledLine WithMarker(StyledLine line, string marker)
+    {
+        var border = line.Spans.Count > 0 ? line.Spans[^1] : default;
+
+        if (border is not { Role: TextRole.Border or TextRole.FrameFocus, Text.Length: 1 })
+        {
+            return line;
+        }
+
+        var spans = line.Spans.ToList();
+
+        spans[^1] = new StyledSpan(marker, TextRole.Muted);
+
+        return new StyledLine(spans);
     }
 
     /// <summary>The pane that holds the frame row (the last one starting at or above it); the first when none is given.</summary>
