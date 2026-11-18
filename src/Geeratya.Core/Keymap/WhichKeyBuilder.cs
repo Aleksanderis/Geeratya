@@ -12,6 +12,15 @@ public static class WhichKeyBuilder
     private const string GroupMarker = "+";
     private const string OtherHeader = "Other";
     private const string MoreHeader = "More";
+    private const string NoActionsNoun = "keys";
+
+    private static readonly char[] _wordSeparators = ['.', '-'];
+
+    /// <summary>Group nouns whose id word is not how the UI spells it.</summary>
+    private static readonly Dictionary<string, string> _nounText = new(StringComparer.Ordinal)
+    {
+        ["subtask"] = "sub-task",
+    };
 
     private sealed record Part(string Name, List<WhichKeyRow> Rows);
 
@@ -127,18 +136,80 @@ public static class WhichKeyBuilder
         return dot < 0 ? action : action[..dot];
     }
 
+    /// <summary>
+    /// The noun of a group: the last whole word that every action id under it shares (<c>issue.subtask-*</c> gives
+    /// <c>sub-task</c>, so <c>Space t</c> and <c>Space i</c> do not both read "+issue").
+    /// </summary>
     private static string Noun(KeymapTable keymap, InputMode mode, string pending, CommandLevel level)
     {
-        var next = keymap.NextKeys(mode, pending, level);
+        var actions = new List<string>();
 
-        while (next.Count > 0 && next[0].Action is null)
+        CollectActions(keymap, mode, pending, level, actions);
+
+        if (actions.Count == 0)
         {
-            pending = $"{pending} {next[0].Key}";
-            next = keymap.NextKeys(mode, pending, level);
+            return NoActionsNoun;
         }
 
-        var prefix = next.Count > 0 ? PrefixOf(next[0].Action!) : "keys";
+        var shared = SharedWords(actions);
+        var start = shared.LastIndexOfAny(_wordSeparators) + 1;
+        var noun = shared.Length == 0 ? PrefixOf(actions[0]) : shared[start..];
 
-        return prefix;
+        return _nounText.GetValueOrDefault(noun, noun);
+    }
+
+    private static void CollectActions(
+        KeymapTable keymap,
+        InputMode mode,
+        string pending,
+        CommandLevel level,
+        List<string> actions)
+    {
+        foreach (var next in keymap.NextKeys(mode, pending, level))
+        {
+            if (next.Action is null)
+            {
+                CollectActions(keymap, mode, $"{pending} {next.Key}", level, actions);
+            }
+            else
+            {
+                actions.Add(next.Action);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The longest start that all <paramref name="actions"/> share, cut back to whole words and without the trailing
+    /// separator: <c>issue.subtask-assign</c> and <c>issue.subtask-transition</c> give <c>issue.subtask</c>.
+    /// </summary>
+    private static string SharedWords(List<string> actions)
+    {
+        var length = actions[0].Length;
+
+        foreach (var action in actions)
+        {
+            length = Math.Min(length, action.Length);
+
+            for (var index = 0; index < length; index++)
+            {
+                if (action[index] != actions[0][index])
+                {
+                    length = index;
+                    break;
+                }
+            }
+        }
+
+        var common = actions[0][..length];
+        var wholeWords = actions.All(action => action.Length == length || _wordSeparators.Contains(action[length]));
+
+        if (wholeWords)
+        {
+            return common;
+        }
+
+        var cut = common.LastIndexOfAny(_wordSeparators);
+
+        return cut < 0 ? string.Empty : common[..cut];
     }
 }

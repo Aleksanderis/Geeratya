@@ -36,6 +36,33 @@ public class WhichKeyBuilderTests
     }
 
     [Fact]
+    public void GivenSpace_WhenBuildingRows_ThenTheSubtaskGroupIsNamedSubTaskNotIssue()
+    {
+        var rows = WhichKeyBuilder.Build(_keymap, InputMode.Normal, "Space");
+        var subtaskCount = _keymap.NextKeys(InputMode.Normal, "Space").First(next => next.Key == "t").Count;
+
+        Assert.Contains(rows, row => row.Key == "t" && row.Label == $"+sub-task ({subtaskCount})");
+        Assert.Single(rows, row => row.Label.StartsWith("+issue (", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAGroupWithMixedActionIds_WhenBuildingRows_ThenItsNounIsTheLastSharedWord()
+    {
+        var keymap = new KeymapTable(
+        [
+            new KeyBinding(InputMode.Normal, "Space g a", "issue.link-add"),
+            new KeyBinding(InputMode.Normal, "Space g d", "issue.link-delete"),
+            new KeyBinding(InputMode.Normal, "Space h a", "issue.assign"),
+            new KeyBinding(InputMode.Normal, "Space h c", "comment.add"),
+        ]);
+
+        var labels = WhichKeyBuilder.Build(keymap, InputMode.Normal, "Space").Select(row => row.Label).ToList();
+
+        Assert.Contains("+link (2)", labels);
+        Assert.Contains("+issue (2)", labels);
+    }
+
+    [Fact]
     public void GivenAnActionListWithSharedPrefixes_WhenBuilding_ThenEachClusterHasAHeaderAndABlankRowBeforeIt()
     {
         var keymap = new KeymapTable(

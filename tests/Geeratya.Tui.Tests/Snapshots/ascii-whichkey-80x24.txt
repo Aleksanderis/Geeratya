@@ -18,7 +18,7 @@
 |   | ,         Open or close the settings screen                              |
 |   | z         Zoom the focused pane, or leave the zoom                       |
 |   | m         +comment (4)                                                   |
-|   | t         +issue (3)                                                     |
+|   | i         +issue (6)                                                     |
 |   | . 4 more                                                                 |
 +---+--------------------------------------------------------------------------+
 [NORMAL] <space>                                      ? help  : commands  q back
