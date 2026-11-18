@@ -8,9 +8,16 @@
 #   dropdown (Details of the issue view): a choice field popup, a typed filter, Esc clears it first and closes next,
 #       a click on a row writes at once;
 #   in place (Summary of the issue view): typed j/k as text, Esc asks before discarding, y discards;
-#   link form (box): the choice field and the issue field, typed text, the Esc ladder, a click on a row.
-# The transition fields, the sprint forms and Estimate are not reached: the fake offers no transition with fields and
-# the sprint forms need a Scrum backlog; the reducers cover them (FieldBehaviourContractTests).
+#   link form (box): the choice field and the issue field, typed text, the Esc ladder, a click on a row;
+#   transition fields (the Done transition of GCM-10 asks for Resolution and Components, that of GTM-20 for a text and
+#       Labels): typed filter, Esc clears it first, a click takes a row, q like Esc in the navigate state, the discard
+#       question names the issue and a yes returns to the status picker;
+#   Estimate (Details dropdown of GCS-8 on the Scrum backlog): the typed number field says "Enter save" (no rows to
+#       choose) and a wrong text shows the format error;
+#   sprint forms (Scrum backlog of the fake's GCS board): create (typed text, the Esc ladder, the discard question names
+#       the new sprint), start (the date format error, the discard question names the sprint), complete (the choice
+#       popup opens at once, typed filter, Esc clears it, a click asks to complete) and the sprint of the Details
+#       dropdown (a click on a row writes at once).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -19,7 +26,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-field-contract.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-field-contract.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -110,7 +117,7 @@ mkdir -p "$work/config/geeratya"
 # Row two (GCM-6) is the issue the fake serves a detail for, so the steps below move onto it first.
 # start: a fresh binary on the GCM board in list layout (a company-managed project, so the create and edit metadata
 # carry labels, parent, components and dates), with the start picker closed.
-start() {
+launch() {
   tmux -L "$socket" kill-server 2> /dev/null || true
   sleep 0.5
   rm -rf "$work/state" "$work/cache"
@@ -122,6 +129,29 @@ start() {
       GEERATYA_TOKEN=fake XDG_CONFIG_HOME=$work/config XDG_STATE_HOME=$work/state XDG_CACHE_HOME=$work/cache '$binary'"
   wait_for "fake: fake@example.com"
   dismiss_start_picker
+}
+
+# start_scrum: a fresh binary on the Scrum backlog of the fake's GCS board (company-managed, with sprints), cursor on
+# the first issue of the active sprint.
+start_scrum() {
+  launch
+  text ":backlog GCS"
+  key Enter
+  wait_for "Seed Sprint 2"
+}
+
+# open_issue <key>: a fresh binary with the issue open in the detail (a search of that one key, then Enter on its row).
+open_issue() {
+  launch
+  text ":jql key = $1"
+  key Enter
+  wait_for "1 issue"
+  key Enter
+  wait_for "Details"
+}
+
+start() {
+  launch
   key C-t
   text "GCM board"
   key Enter
@@ -257,5 +287,144 @@ key Escape
 wait_for "Discard the changes to GCM-6?"
 key y
 wait_gone "Link GCM"
+
+# ---- Transition fields -------------------------------------------------------------------------------------------
+# status_form <key> <field label>: the status picker of the open issue, Done chosen (the fourth row), its fields form.
+status_form() {
+  text " is"
+  wait_for "Move to"
+  key Down
+  key Down
+  key Down
+  key Enter
+  wait_for "Move $1 to Done"
+  wait_for "$2"
+  wait_status "Esc stop editing"
+}
+
+# leave_transition <key>: from the navigate state of the transition fields: q acts like Esc (discard question, no),
+# Esc asks again, yes goes back to the status picker, Esc closes it.
+leave_transition() {
+  wait_status "Enter edit"
+  key q
+  wait_for "Discard the changes to $1?"
+  key n
+  wait_status "[navigate]"
+  key Escape
+  wait_for "Discard the changes to $1?"
+  key y
+  wait_for "Move to"
+  key Escape
+  wait_gone "Move to"
+}
+
+echo "== transition fields (company-managed, GCM-10)"
+open_issue GCM-10
+status_form GCM-10 "Resolution"
+text "jk"
+wait_for "No match"
+wait_status "Esc clear filter"
+key Escape
+wait_for "Duplicate"
+wait_status "Esc stop editing"
+click "Duplicate"
+wait_status "[navigate]"
+wait_for "Duplicate"
+leave_transition GCM-10
+
+echo "== transition fields (team-managed, GTM-20)"
+open_issue GTM-20
+status_form GTM-20 "Release note"
+text "jk"
+wait_for "jk"
+key Escape
+wait_status "[navigate]"
+leave_transition GTM-20
+
+# ---- Estimate ----------------------------------------------------------------------------------------------------
+echo "== Estimate (Details dropdown of a Scrum issue)"
+start_scrum
+key Enter
+wait_for "Details"
+text ":estimate"
+key Enter
+wait_for "Story Points"
+wait_status "Enter save"
+text "x"
+wait_for "Not a number"
+wait_status "Esc close"
+key Escape
+wait_for "Discard the changes to GCS-8?"
+key y
+wait_gone "Not a number"
+
+# ---- Sprint forms ------------------------------------------------------------------------------------------------
+echo "== sprint create"
+start_scrum
+text " sn"
+wait_for "Create sprint"
+wait_status "Esc stop editing"
+text "jk"
+wait_for "jk"
+key Escape
+wait_status "[navigate]"
+wait_status "Enter edit"
+key q
+wait_for "Discard the new sprint?"
+key n
+wait_status "[navigate]"
+key Escape
+wait_for "Discard the new sprint?"
+key y
+wait_gone "Create sprint"
+
+echo "== sprint start"
+start_scrum
+key g
+key g
+text "jjjjjjj"
+text " ss"
+wait_for "Start sprint"
+wait_status "Esc stop editing"
+text "jk"
+wait_for "Use yyyy-MM-dd HH:mm"
+key Escape
+wait_status "Enter edit"
+key q
+wait_for "Discard the changes to GCS Sprint 1?"
+key n
+wait_status "Enter edit"
+key Escape
+wait_for "Discard the changes to GCS Sprint 1?"
+key y
+wait_gone "Start sprint"
+
+echo "== sprint complete"
+start_scrum
+text " sc"
+wait_for "Complete sprint Seed Sprint 2"
+wait_for "Next sprint"
+wait_status "Enter choose"
+text "jk"
+wait_for "No match"
+wait_status "Esc clear filter"
+key Escape
+wait_for "Next sprint"
+click "Next sprint"
+wait_for 'will be moved to sprint "GCS Sprint 1"'
+key n
+wait_gone "Complete sprint"
+
+echo "== sprint of the Details dropdown"
+start_scrum
+key Enter
+wait_for "Details"
+key C-l
+text "jjjjjj"
+key Enter
+wait_status "Sprint of GCS-8"
+wait_status "Enter choose"
+click "Seed Sprint 3"
+wait_status 'Moved GCS-8 to sprint "Seed Sprint 3"'
 
 echo "PASS: every scenario ran"
