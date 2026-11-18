@@ -590,7 +590,8 @@ public class CommentEditingTests
 
         Assert.Equal(InputMode.Confirm, asked.State.Mode);
         Assert.Contains("A-1", asked.State.Confirm!.Message);
-        Assert.Contains("Jira cannot undo", asked.State.Confirm.Message);
+        Assert.True(asked.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", asked.State.Confirm.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Olga Other", asked.State.Confirm.Message);
         Assert.Contains("Please remove this", asked.State.Confirm.Message);
         Assert.Empty(asked.Effects);

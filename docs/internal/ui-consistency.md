@@ -18,7 +18,7 @@ Recommended defaults, open for the owner to override:
 
 6. **Typed text** uses the normal text colour everywhere. The caret gets its own theme slot, not `Warn`.
 7. **Wheel over a form,** outside its popup: it does nothing, so a stray scroll never moves you out of a field. Over a small popup (about 5 rows) a notch moves 1 row; elsewhere it moves 3.
-8. **Confirm boxes** have a red frame when Jira cannot undo the action (delete, transition, sprint complete) and a yellow frame when the action can be reversed in Geeratya (unlink, rank across sections).
+8. **Confirm boxes** have a red frame when Jira cannot undo the action and a yellow frame otherwise. *Changed 2026-11-18 (#1031): every write to Jira, also unlink, rank across sections and a single sprint move, is red and says `Jira cannot undo this.` once (Jira has no undo for any of them); yellow is for a discard, quit and a profile switch, which say nothing about undo.*
 9. **Key labels** use one role and one colour everywhere: footers, hint bar, Help, which-key, palette shortcuts and the context menu.
 10. **A typed filter:** the first Esc clears it and the next one closes. This applies everywhere: picker, Jump, palette, Help and choice fields.
 11. **The navigate state** is used by every form with more than one editable field, not only the create form.

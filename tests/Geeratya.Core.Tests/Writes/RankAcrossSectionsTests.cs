@@ -94,7 +94,9 @@ public class RankAcrossSectionsTests
         Assert.Empty(result.Effects);
         var question = result.State.Confirm!.Message;
         Assert.Contains("Move 2 issues (A-4, A-6)", question, StringComparison.Ordinal);
-        Assert.Contains("Two calls, Jira has no undo", question, StringComparison.Ordinal);
+        Assert.Contains("It takes two calls.", question, StringComparison.Ordinal);
+        Assert.True(result.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", question, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

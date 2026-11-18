@@ -7,29 +7,50 @@ namespace Geeratya.Core.Tests.State;
 public class ConfirmDialogTests
 {
     [Fact]
-    public void GivenAQuestionWithAWarning_WhenSplitting_ThenTheUndoSentenceIsTheWarningAndWordsAreKept()
+    public void GivenADestructiveRequest_WhenLayingOut_ThenTheDialogAddsTheOneWarningSentence()
     {
-        var split = ConfirmDialog.Split("Delete PROJ-1? Jira cannot undo this");
+        var request = new ConfirmRequest("Delete PROJ-1?", "x", Destructive: true);
 
-        Assert.Equal("Delete PROJ-1?", split.Question);
-        Assert.Equal("Jira cannot undo this", split.Warning);
+        var layout = ConfirmDialog.Layout(request, 80, 30)!;
+
+        Assert.Equal(["Delete PROJ-1?"], layout.Question);
+        Assert.Equal([ConfirmWording.CannotUndo], layout.Warning);
     }
 
     [Fact]
-    public void GivenAQuotedCommentThatMentionsUndo_WhenSplitting_ThenTheQuoteStaysInTheQuestion()
+    public void GivenAQuotedCommentThatMentionsUndo_WhenLayingOut_ThenTheQuoteStaysInTheQuestion()
     {
-        const string message = "Delete the A-1 comment? Jira cannot undo this. By Eve: \"I cannot undo. Really? ok\"";
+        const string message = "Delete the A-1 comment? By Eve: \"I cannot undo. Really? ok\"";
 
-        var split = ConfirmDialog.Split(message);
+        var layout = ConfirmDialog.Layout(new ConfirmRequest(message, "x", Destructive: true), 120, 30)!;
 
-        Assert.Equal("Delete the A-1 comment? By Eve: \"I cannot undo. Really? ok\"", split.Question);
-        Assert.Equal("Jira cannot undo this.", split.Warning);
+        Assert.Equal(message, string.Join(' ', layout.Question));
+        Assert.Equal([ConfirmWording.CannotUndo], layout.Warning);
     }
 
     [Fact]
-    public void GivenAQuestionWithoutAWarning_WhenSplitting_ThenTheWarningIsEmpty()
+    public void GivenARequestThatIsNotDestructive_WhenLayingOut_ThenThereIsNoWarningEvenIfTheWordsMentionUndo()
     {
-        Assert.Equal(string.Empty, ConfirmDialog.Split("Quit anyway?").Warning);
+        var request = new ConfirmRequest("Quit anyway? Nothing to undo.", "x");
+
+        Assert.Empty(ConfirmDialog.Layout(request, 80, 30)!.Warning);
+    }
+
+    [Fact]
+    public void GivenADestructiveRequest_WhenSpoken_ThenTheWarningFollowsTheFirstSentenceBeforeTheQuote()
+    {
+        var request = new ConfirmRequest("Delete A-1? \"Fix login\"", "x", Destructive: true);
+
+        Assert.Equal("Delete A-1? Jira cannot undo this. \"Fix login\"", ConfirmDialog.Spoken(request));
+        Assert.Equal("Quit?", ConfirmDialog.Spoken(new ConfirmRequest("Quit?", "x")));
+    }
+
+    [Fact]
+    public void GivenARequestWithItsOwnWarning_WhenLayingOut_ThenThatWarningIsUsed()
+    {
+        var request = new ConfirmRequest("Remove profile work?", "x", Destructive: true, Warning: "This cannot be undone.");
+
+        Assert.Equal(["This cannot be undone."], ConfirmDialog.Layout(request, 80, 30)!.Warning);
     }
 
     [Fact]
@@ -46,7 +67,7 @@ public class ConfirmDialogTests
     [Fact]
     public void GivenTheRequest_WhenLayingOutAtTheEdgeOfFitting_ThenItFitsExactlyAtItsHeight()
     {
-        var request = new ConfirmRequest("Delete PROJ-1? Jira cannot undo this", "x");
+        var request = new ConfirmRequest("Delete PROJ-1?", "x", Destructive: true);
 
         Assert.Null(ConfirmDialog.Layout(request, 80, 7));
         Assert.NotNull(ConfirmDialog.Layout(request, 80, 8));

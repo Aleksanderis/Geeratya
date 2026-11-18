@@ -13,12 +13,12 @@
 │ │ │ Heading one                                                               ▲│ │  ▲ High                       │ │ │
 │ │ │                                                                           █│ │                               │ │ │
 │ │ │ Heading three                                                             ░│ │ Assignee                      │ │ │
-│ │ │                          ╭─ Confirm ─────────────────────────────────────────────╮D  Jane Doe                │ │ │
-│ │ │ Plain, bold, italic, stru│ Discard the changes to GCM-12? Nothing has been saved │                           │ │ │
-│ │ │ emoji 😄 and unicode: żół│                                                       │orter                      │ │ │
-│ │ │ after break              │ y  Discard                                            │N  Ola Nordmann            │ │ │
-│ │ │ … 33 more lines          │ n  Cancel                                             │                           │ │ │
-│ │ ╰──────────────────────────╰───────────────────────────────────────────────────────╯els                        │ │ │
+│ │ │                          ╭─ Confirm ──────────────────────────────────────────────╮  Jane Doe                │ │ │
+│ │ │ Plain, bold, italic, stru│ Discard the changes to GCM-12? Nothing has been saved. │                          │ │ │
+│ │ │ emoji 😄 and unicode: żół│                                                        │rter                      │ │ │
+│ │ │ after break              │ y  Discard                                             │  Ola Nordmann            │ │ │
+│ │ │ … 33 more lines          │ n  Cancel                                              │                          │ │ │
+│ │ ╰──────────────────────────╰────────────────────────────────────────────────────────╯ls                        │ │ │
 │ │ ╭─ Comments 3 ──────────────────────────────────────────────── oldest first ─╮ │   auth   bug-bash             │ │ │
 │ │ │ Jane Doe                                                           1 d ago │ │                               │ │ │
 │ │ │ Found it: the redirect target is dropped after the refresh.                │ │ Parent                        │ │ │

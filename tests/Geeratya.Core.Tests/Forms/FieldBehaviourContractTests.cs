@@ -512,7 +512,7 @@ public class FieldBehaviourContractTests
             }
 
             var asked = state.Confirm?.Message ?? "no question";
-            var expected = $"Discard {DiscardNames[presentation]}? Nothing has been saved";
+            var expected = $"Discard {DiscardNames[presentation]}? Nothing has been saved.";
 
             if (asked != expected)
             {
@@ -534,7 +534,7 @@ public class FieldBehaviourContractTests
         }
 
         // The destination is a value the form proposes, so it counts as typed (docs: intended differences).
-        Assert.Equal("Discard the changes to Sprint 5? Nothing has been saved", state.Confirm?.Message);
+        Assert.Equal("Discard the changes to Sprint 5? Nothing has been saved.", state.Confirm?.Message);
     }
 
     [Fact]

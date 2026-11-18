@@ -15,7 +15,7 @@
 │                                            ╭─ Confirm ──────────────────╮                                            │
 │                                            │ Delete PROJ-1?             │                                            │
 │                                            │                            │                                            │
-│                                            │ Jira cannot undo this      │                                            │
+│                                            │ Jira cannot undo this.     │                                            │
 │                                            │                            │                                            │
 │                                            │ y  Delete issue            │                                            │
 │                                            │ n  Cancel                  │                                            │

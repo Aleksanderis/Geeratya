@@ -61,7 +61,9 @@ public class TransitionFlowTests
         Assert.Empty(asked.Effects);
         Assert.Equal(InputMode.Confirm, asked.State.Mode);
         Assert.Contains("Move A-1 to Done?", asked.State.Confirm!.Message);
-        Assert.Contains("cannot undo", asked.State.Confirm.Message);
+        Assert.Contains("workflow may do more", asked.State.Confirm.Message);
+        Assert.True(asked.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", asked.State.Confirm.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("To Do", asked.State.Session.Tabs[0].Rows[0].Status.Name);
 
         var confirmed = Keys(asked.State, "y");

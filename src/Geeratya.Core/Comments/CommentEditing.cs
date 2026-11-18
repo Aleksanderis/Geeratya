@@ -120,7 +120,7 @@ internal static partial class CommentEditing
 
         var author = comment.Author?.DisplayName ?? "unknown";
         var message =
-            $"Delete the {top.Detail.Key} comment? Jira cannot undo this. By {Clean(author)}: \"{Quote(comment)}\"";
+            $"Delete the {top.Detail.Key} comment? By {Clean(author)}: \"{Quote(comment)}\"";
         var write = new DeleteCommentRequest(top.Detail.Key, comment.Id);
         var confirmed = new WriteRequested(top.Tab.Id, write, at);
         var request = new ConfirmRequest(
@@ -165,12 +165,9 @@ internal static partial class CommentEditing
             return Result(Closed(state));
         }
 
-        var request = new ConfirmRequest(
-            "Discard the unsent comment text? It is not saved anywhere",
-            DiscardAction,
-            Label: "Discard text");
+        var subject = editor.IsEdit ? "the changes to the comment" : "the new comment";
 
-        return Result(DiscardPrompts.Ask(state, request));
+        return Result(DiscardPrompts.Ask(state, DiscardPrompts.Request(subject, DiscardAction)));
     }
 
     /// <summary>The answer to the discard question was no: back to the editor with the text as it was.</summary>

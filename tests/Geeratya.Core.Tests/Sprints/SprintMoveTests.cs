@@ -57,7 +57,7 @@ public class SprintMoveTests
             "sprint \"Sprint 1\" and sprint \"Sprint 2\" to the backlog",
             question,
             StringComparison.Ordinal);
-        Assert.Contains("Jira has no undo", question, StringComparison.Ordinal);
+        Assert.DoesNotContain("undo", question, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -327,7 +327,7 @@ public class SprintMoveTests
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.Empty(result.Effects);
         Assert.Contains(
-            "Move A-3 from sprint \"Sprint 1\" to sprint \"Sprint 3\"? Jira has no undo.",
+            "Move A-3 from sprint \"Sprint 1\" to sprint \"Sprint 3\"?",
             result.State.Confirm!.Message,
             StringComparison.Ordinal);
         var yes = Press(result.State, "y");

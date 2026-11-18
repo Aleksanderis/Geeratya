@@ -21,6 +21,7 @@ Specs start at `docs/internal/ux.md`, which links the parts; the key reference i
 - Key notation is spelled out everywhere (`Ctrl-d`, `Alt-1`, `Shift-Tab`, `<space>o`), never `^d` or `c-d`.
 - `Esc` and `q` follow the precedence in `docs/internal/ux.md` ("Focus model and key style"). In Insert mode printable keys are text: only `Esc`, `Enter`, `Ctrl-` and `Alt-` combinations act.
 - Destructive actions go through Confirm mode (`y`/`n`/`Esc` only, never `Enter`) and say what they do and how to undo it, or that Jira cannot undo it.
+- Confirm and discard wording and frame come from one place: a write to Jira sets `ConfirmRequest.Destructive` and never writes its own "undo" sentence (the dialog adds `ConfirmWording.CannotUndo` and draws the red frame), an editor asks through `DiscardPrompts.Request` (`ConfirmWording.Discard`). A new place that asks is added to `ConfirmContractTests` (frame role, wording and answer rows compared cell for cell), not given its own test.
 
 ## Rendering and colour
 

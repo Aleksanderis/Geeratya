@@ -46,7 +46,7 @@ public sealed record RankBlockRequest(
     public override bool ReadsBack => false;
 
     public override string? AskText => Keys.Count > 1
-        ? $"Rank {Count} issues ({string.Join(", ", Keys)}) {Place}, as one block in this order? Jira has no undo."
+        ? $"Rank {Count} issues ({string.Join(", ", Keys)}) {Place}, as one block in this order?"
         : null;
 
     public override string AskLabel => "Rank issues";

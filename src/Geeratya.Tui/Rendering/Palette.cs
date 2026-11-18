@@ -18,7 +18,7 @@ public static class Palette
     /// Resolves a role where it sits: on the page, on an overlay's raised surface (the page background of the role
     /// becomes the surface; roles with a fill of their own keep it) and/or dimmed behind an overlay (the page
     /// background becomes the scrim and text is blended towards it at 24 bits; a box under another overlay keeps its
-    /// surface and only its text is dimmed; faint, or bright black when <paramref name="faintSupported"/> is false,
+    /// scrim like the view behind it, text dimmed; faint, or bright black when <paramref name="faintSupported"/> is false,
     /// at 16 colours; unchanged without colour). The ground never changes the page background at 16 colours or without colour.
     /// </summary>
     public static ResolvedStyle Resolve(
@@ -167,12 +167,14 @@ public static class Palette
             return entry.TrueBackground;
         }
 
-        if (ground.HasFlag(SpanGround.Surface))
+        // Dim wins over Surface: a box under another overlay is part of the view behind it, so it is scrimmed like the
+        // list (the overlay on top is drawn on Surface alone).
+        if (ground.HasFlag(SpanGround.Dim))
         {
-            return theme.Surface;
+            return theme.ScrimBackground;
         }
 
-        return ground.HasFlag(SpanGround.Dim) ? theme.ScrimBackground : entry.TrueBackground;
+        return ground.HasFlag(SpanGround.Surface) ? theme.Surface : entry.TrueBackground;
     }
 
     private static RoleStyle NoColourStyle(PaletteEntry entry)

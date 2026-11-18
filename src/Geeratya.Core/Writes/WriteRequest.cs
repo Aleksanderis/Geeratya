@@ -63,8 +63,9 @@ public abstract record WriteRequest
     public abstract string ActionText { get; }
 
     /// <summary>
-    /// The question to ask before the write starts (what changes, and that Jira cannot undo it), or null when the
-    /// write starts at once. The answer <c>y</c> runs the request again with <c>Confirmed</c> set.
+    /// The question to ask before the write starts (what changes; the dialog adds that Jira cannot undo it, so the text
+    /// never says so), or null when the write starts at once. The answer <c>y</c> runs the request again with
+    /// <c>Confirmed</c> set.
     /// </summary>
     public virtual string? AskText => null;
 
@@ -75,11 +76,6 @@ public abstract record WriteRequest
     /// The title chip of the Confirm dialog: the action and its target ("Move GCM-8"), or null for "Confirm".
     /// </summary>
     public virtual string? AskHeading => null;
-
-    /// <summary>
-    /// True when the question is about something hard to undo (side effects, many issues): the bad frame colour.
-    /// </summary>
-    public virtual bool AskSevere => false;
 
     /// <summary>
     /// The optimistic change for a row that shows this issue, or null when the row shows nothing of the write (or
