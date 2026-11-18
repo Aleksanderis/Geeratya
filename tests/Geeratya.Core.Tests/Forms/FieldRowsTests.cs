@@ -69,7 +69,8 @@ public class FieldRowsTests
     [Fact]
     public void GivenAnEditedText_WhenDrawn_ThenTheCaretSitsAfterItInTheCaretRole()
     {
-        var field = FormField.Create("a", "A", FormFieldKind.Text, false, []).WithInitial(FormValue.OfText("abc"));
+        var field = FormField.Create(FormFieldIds.Summary, "A", FormFieldKind.Text, false, [])
+            .WithInitial(FormValue.OfText("abc"));
 
         var row = Assert.Single(FieldRows.Value(field, new FieldLook(20, TextRole.Body) { Editing = true }));
 
@@ -78,10 +79,29 @@ public class FieldRowsTests
         Assert.Contains(row.Spans, span => span.Role == TextRole.Body && span.Text == "abc");
     }
 
+    [Theory]
+    [InlineData(FormFieldKind.Text)]
+    [InlineData(FormFieldKind.Number)]
+    [InlineData(FormFieldKind.Date)]
+    [InlineData(FormFieldKind.DateTime)]
+    public void GivenATypedDetailsField_WhenEdited_ThenItsRowKeepsTheValueAndOnlyTheBoxInputLineHasTheCaret(
+        FormFieldKind kind)
+    {
+        var field = FormField.Create("customfield_1", "A", kind, false, []).WithInitial(FormValue.OfText("12"));
+
+        var row = Assert.Single(FieldRows.Value(field, new FieldLook(20, TextRole.Body) { Editing = true }));
+        var input = FieldRows.Entry(field, 20);
+
+        Assert.Equal("12", row.PlainText);
+        Assert.DoesNotContain(row.Spans, span => span.Role == TextRole.EditCaret);
+        Assert.Equal("12 ", input.PlainText);
+        Assert.Contains(input.Spans, span => span.Role == TextRole.EditCaret);
+    }
+
     [Fact]
     public void GivenAnEmptyFieldWithAPlaceholder_WhenEdited_ThenThePlaceholderShowsMutedBeforeTheCaret()
     {
-        var field = FormField.Create("a", "A", FormFieldKind.Text, true, []);
+        var field = FormField.Create(FormFieldIds.Summary, "A", FormFieldKind.Text, true, []);
 
         var row = Assert.Single(FieldRows.Value(field, new FieldLook(30) { Editing = true, Placeholder = "What now?" }));
 

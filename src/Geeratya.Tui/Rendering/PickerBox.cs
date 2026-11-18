@@ -4,13 +4,14 @@ using Geeratya.Core.Text;
 namespace Geeratya.Tui.Rendering;
 
 /// <summary>
-/// The one look of an open picker (<c>docs/internal/ui-consistency.md</c>, component 3; owner decision 2026-11-18,
-/// #1027): a box titled with the field name, an input line with the caret, then the quick rows and the search results
-/// (or the search hint), then the field's error. The field's own row keeps showing its value. Every presentation of a
-/// form draws an open picker through this class and decides only where the box goes: the Details dropdown overlays it
-/// under the sidebar field, the create pane and the field form box insert its rows under the field. The picker kinds
-/// are person, parent, priority, labels, components, sprint and custom choice or user fields
-/// (<see cref="FormFieldKinds.HasPopup"/>).
+/// The one look of a field being edited (<c>docs/internal/ui-consistency.md</c>, component 3; owner decisions
+/// 2026-11-18, #1027 and #1048): a box titled with the field name, an input line with the caret, then for a picker the
+/// quick rows and the search results (or the search hint), then the field's error. The field's own row keeps showing
+/// its value. Every presentation of a form draws the box through this class and decides only where it goes: the
+/// Details dropdown overlays it under the sidebar field, the create pane and the field form box insert its rows
+/// under the field. The kinds are the pickers (person, parent, priority, labels, components, sprint, custom choice
+/// or user: <see cref="FormFieldKinds.HasPopup"/>) and the typed Details fields (text, number, date, date-time:
+/// <see cref="FormFieldKinds.IsTyped"/>); see <see cref="FormFieldKinds.HasEditBox"/>.
 /// Pure.
 /// </summary>
 internal static class PickerBox
@@ -23,7 +24,7 @@ internal static class PickerBox
 
     private const int PopupInset = 2;
 
-    /// <summary>Whether the focused field of <paramref name="form"/> has an open picker to draw.</summary>
+    /// <summary>Whether the focused field of <paramref name="form"/> has an edit box to draw.</summary>
     public static bool Applies(FormState form)
     {
         if (form.IsSaving || form.IsLoading || form.Navigating || form.Fields.Count == 0)
@@ -33,7 +34,7 @@ internal static class PickerBox
 
         var field = form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)];
 
-        return field.IsEditable && FormFieldKinds.HasPopup(field.Kind);
+        return field.IsEditable && FormFieldKinds.HasEditBox(field);
     }
 
     /// <summary>The box width for <paramref name="available"/> columns: the room, at most <see cref="MaxWidth"/>.
@@ -91,7 +92,7 @@ internal static class PickerBox
     }
 
     /// <summary>
-    /// The rows inside the box of a picker field, <paramref name="inner"/> columns wide: the input line, the rows of
+    /// The rows inside the edit box of a field, <paramref name="inner"/> columns wide: the input line, the rows of
     /// the open list (or the search hint) and the error. Item indexes match the lines (-1 for no click).
     /// </summary>
     public static PickerContent Content(FormState form, FormField field, int inner)
@@ -130,8 +131,8 @@ internal static class PickerBox
     }
 }
 
-/// <summary>The rows inside a picker box, the suggestion each stands for (-1 for none) and its scroll marker.</summary>
+/// <summary>The rows inside an edit box, the suggestion each stands for (-1 for none) and its scroll marker.</summary>
 internal sealed record PickerContent(List<StyledLine> Lines, List<int> Indexes, List<string> Markers);
 
-/// <summary>The whole box of a picker (edges included) and the suggestion each line stands for (-1 for none).</summary>
+/// <summary>The whole box of a field (edges included) and the suggestion each line stands for (-1 for none).</summary>
 internal sealed record PickerLines(List<StyledLine> Lines, List<int> Items);

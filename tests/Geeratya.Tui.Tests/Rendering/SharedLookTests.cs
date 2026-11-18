@@ -55,7 +55,7 @@ public class SharedLookTests
 
         Assert.Contains(lines, line => line.Contains("! Estimate must", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("cannot be negative", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.Contains("  all  ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("letters at all ", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains('…') && line.Contains('!'));
     }
 

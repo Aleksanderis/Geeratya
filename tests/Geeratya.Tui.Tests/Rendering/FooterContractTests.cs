@@ -72,9 +72,9 @@ public class FooterContractTests
         new("sprint form", "INSERT", "Create sprint · First", ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|cancel"]),
         new("create navigating", "NORMAL", "Create GCM · Task · Summary",
             ["Tab/Shift-Tab|field", "Enter|edit", "Ctrl-h/j/k/l|pane", "Ctrl-s|create", "Esc|cancel"], false, false, 2),
-        new("create due date", "INSERT", "Create GCM · Task · Due date (yyyy-MM-dd)",
+        new("create due date", "INSERT", "Create GCM · Task · Due date",
             ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, false, 2),
-        new("dropdown due date", "INSERT", "Edit GCM-12 · Due date (yyyy-MM-dd)", ["Enter|save", "Esc|close"], false),
+        new("dropdown due date", "INSERT", "Edit GCM-12 · Due date", ["Enter|save", "Esc|close"], false),
         new("create editing", "INSERT", "Create GCM · Task · Summary",
             ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
     ];
@@ -86,12 +86,7 @@ public class FooterContractTests
         foreach (var surface in _surfaces)
         {
             data.Add(surface.Name, 120, 36);
-
-            // At 80 columns the long prompt of a create Date field leaves no room for any hint (#1046).
-            if (surface.Name != "create due date")
-            {
-                data.Add(surface.Name, 80, 24);
-            }
+            data.Add(surface.Name, 80, 24);
         }
 
         return data;

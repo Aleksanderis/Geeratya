@@ -21,6 +21,8 @@
 #   picker look (#1027): the open Assignee and Reporter picker of the create sub-task form and of the Details of the issue
 #       view are the same box (title, input line, quick rows), compared as text cell for cell, whatever the position;
 #       CAPTURE_DIR=<dir> keeps the two frames of each field there.
+#   typed field look (#1048): the Due date of the create form (issue and sub-task) opens the same box as the issue view
+#       (title with the format, the typed text, the format error inside the box, the key hints kept in the status line).
 #   due date (#1036): the Due date block of the issue view (company-managed and team-managed): the date dropdown with the
 #       create form's label, the format error as typed, a valid date saved.
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
@@ -32,7 +34,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,29p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,31p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-field-contract.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-field-contract.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -167,6 +169,40 @@ start() {
   wait_for "<space>l columns"
 }
 
+# keep <name> <frame file>: copies the frame to CAPTURE_DIR when it is set.
+keep() {
+  [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR"; cp "$2" "$CAPTURE_DIR/$1.txt"; }
+}
+
+# box_rows <title>: the rows of the box titled <title> from the frame on stdin, cut to the box's own columns.
+box_rows() {
+  local title="╭─ $1 ─" line prefix rest head start width inbox=0 seg
+  while IFS= read -r line; do
+    if [ "$inbox" = 0 ]; then
+      case $line in
+        *"$title"*) ;;
+        *) continue ;;
+      esac
+      prefix=${line%%"$title"*}
+      start=${#prefix}
+      rest=${line:start}
+      head=${rest%%╮*}
+      width=$((${#head} + 1))
+      inbox=1
+    fi
+    seg=${line:start:width}
+    echo "$seg"
+    case $seg in "╰"*) break ;; esac
+  done
+}
+
+# box_has_error <frame file> <title>: the box titled <title> holds the "! Use yyyy-MM-dd" error inside its walls.
+box_has_error() {
+  local rows
+  rows=$(box_rows "$2" < "$1")
+  printf '%s\n' "$rows" | grep -qF -- "! Use yyyy-MM-dd" || fail "the format error is not inside the '$2' box"
+}
+
 # ---- Create form: the issue and the sub-task --------------------------------------------------------------------
 # create_form <keys that open it>: the type chooser answers with its own hints, Task is the fourth row.
 create_form() {
@@ -184,6 +220,7 @@ create_form() {
 # The one key script of the create form (decision 2 and 11): j/k are text, Esc steps to navigate, q acts like Esc there,
 # the discard question names the new issue, a date field checks its format as you type, a choice field lists its rows.
 create_script() {
+  # $1 names the form in the kept captures.
   text "jk"
   wait_for "jk"
   key Escape
@@ -195,10 +232,17 @@ create_script() {
   wait_status "[navigate]"
   text "l"
   text "jjjj"
-  wait_status "Due date (yyyy-MM-dd)"
+  wait_status "Due date"
   key Enter
   text "2026-1"
   wait_for "Use yyyy-MM-dd"
+  # The one look (#1048): the field row keeps its value, a box titled with the field name opens under it, the format
+  # error is inside the box and the status line keeps its key hints. CAPTURE_DIR keeps the frame.
+  frame > "$work/create-due.txt"
+  keep "create-due-typed-bad-$1" "$work/create-due.txt"
+  wait_for "╭─ Due date (yyyy-MM-dd) ─"
+  wait_status "Esc stop editing"
+  box_has_error "$work/create-due.txt" "Due date (yyyy-MM-dd)"
   key C-u
   wait_gone "Use yyyy-MM-dd"
   key Escape
@@ -222,13 +266,13 @@ create_script() {
 echo "== create issue"
 start
 create_form " ic"
-create_script
+create_script issue
 
 echo "== create sub-task"
 start
 create_form " iC"
 wait_for "Parent *"
-create_script
+create_script subtask
 
 # ---- Details dropdown --------------------------------------------------------------------------------------------
 echo "== dropdown (Details of the issue view)"
@@ -265,11 +309,11 @@ due_date() {
   key C-l
   for step in $(seq 1 14); do
     key Enter
-    status | grep -qF -- "Due date (yyyy-MM-dd)" && break
+    status | grep -qF -- "Due date" && break
     key Escape
     key j
   done
-  wait_status "Due date (yyyy-MM-dd)"
+  wait_status "Due date"
   wait_status "Enter save"
   wait_status "Esc close"
   text "2026-1"
@@ -320,11 +364,6 @@ region() {
     echo "$seg"
     case $seg in "╰"*) break ;; esac
   done
-}
-
-# keep <name> <frame file>: copies the frame to CAPTURE_DIR when it is set.
-keep() {
-  [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR"; cp "$2" "$CAPTURE_DIR/$1.txt"; }
 }
 
 # The comparison is text only; the roles (colour, highlight) are compared by PickerLookContractTests.

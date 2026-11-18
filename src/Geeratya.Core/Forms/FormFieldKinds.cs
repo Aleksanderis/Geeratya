@@ -38,10 +38,50 @@ public static class FormFieldKinds
         return IsChoice(kind) || TakesEntry(kind);
     }
 
+    /// <summary>True for the single-line typed kinds: text, number, date and date-time (not a paragraph).</summary>
+    public static bool IsTyped(FormFieldKind kind)
+    {
+        return kind is FormFieldKind.Text or FormFieldKind.Number or FormFieldKind.Date or FormFieldKind.DateTime;
+    }
+
+    /// <summary>
+    /// True when <paramref name="field"/> is edited in a box under its row (the one look, #1048): every picker kind and
+    /// every typed Details field. The Summary and Description are panes with their own in-pane editors, so they are
+    /// not.
+    /// </summary>
+    public static bool HasEditBox(FormField field)
+    {
+        if (field.Id is FormFieldIds.Summary or FormFieldIds.Description)
+        {
+            return false;
+        }
+
+        return HasPopup(field.Kind) || IsTyped(field.Kind);
+    }
+
     /// <summary>True for the kinds whose typed text has a format that is checked as it is typed.</summary>
     public static bool HasFormat(FormFieldKind kind)
     {
         return kind is FormFieldKind.Number or FormFieldKind.Date or FormFieldKind.DateTime;
+    }
+
+    /// <summary>
+    /// The label without the format that <see cref="Labelled"/> added: the name for a status line prompt, where the
+    /// format is already in the title of the field's box and would push the key hints out at 80 columns (#1046).
+    /// </summary>
+    public static string Named(FormField field)
+    {
+        var format = field.Kind switch
+        {
+            FormFieldKind.Date => FormValueParser.DateFormat,
+            FormFieldKind.DateTime => FormValueParser.DateTimeFormat,
+            _ => null,
+        };
+        var suffix = $" ({format})";
+
+        return format is not null && field.Label.EndsWith(suffix, StringComparison.Ordinal)
+            ? field.Label[..^suffix.Length]
+            : field.Label;
     }
 
     /// <summary>The label with the format of a date or date-time field spelled out once, before any error.</summary>
