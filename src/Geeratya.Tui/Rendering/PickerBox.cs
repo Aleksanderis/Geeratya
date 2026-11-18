@@ -85,7 +85,7 @@ internal static class PickerBox
     /// </summary>
     public static PickerContent Content(FormState form, FormField field, int inner)
     {
-        var lines = new List<StyledLine> { FieldRows.Entry(field, inner, TextRole.Body) };
+        var lines = new List<StyledLine> { FieldRows.Entry(field, inner) };
         var indexes = new List<int> { -1 };
 
         if (form.Suggest is { } popup && popup.FieldIndex == form.Focus)

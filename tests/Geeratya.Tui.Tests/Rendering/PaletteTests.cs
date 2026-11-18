@@ -187,30 +187,24 @@ public class PaletteTests
 
     [Theory]
     [MemberData(nameof(ThemeNames))]
-    public void GivenAnyTheme_WhenResolvingTheEditFieldAndCaret_ThenEveryTierSetsThemApartFromThePage(string name)
+    public void GivenAnyTheme_WhenResolvingTheCaret_ThenEveryTierSetsItApartFromTheTypedText(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
         var page = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body);
-        var field = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.EditField);
         var caret = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.EditCaret);
 
-        Assert.NotEqual(page.Background, field.Background);
-        Assert.NotEqual(field.Background, caret.Background);
-        Assert.Equal(Ansi16Color.Blue, Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.EditField).Background16);
-        Assert.NotEqual(Ansi16Color.Blue, Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.EditCaret).Background16);
+        Assert.NotEqual(page.Background, caret.Background);
+        Assert.NotEqual(
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.Body).Background16,
+            Palette.Resolve(theme, ColorSupport.Basic16, PaletteRole.EditCaret).Background16);
 
         foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16 })
         {
-            var style = Palette.Resolve(theme, tier, PaletteRole.EditField).Style;
-
-            Assert.False(style.HasFlag(RoleStyle.Underline) || style.HasFlag(RoleStyle.Reverse));
+            Assert.False(Palette.Resolve(theme, tier, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Reverse));
         }
 
-        var plainField = Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditField).Style;
-        var plainCaret = Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style;
-
-        Assert.True(plainField.HasFlag(RoleStyle.Reverse));
-        Assert.False(plainCaret.HasFlag(RoleStyle.Reverse));
+        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Reverse));
+        Assert.Equal(RoleStyle.None, Palette.Resolve(theme, ColorSupport.None, PaletteRole.Body).Style);
     }
 
     [Fact]
@@ -405,12 +399,12 @@ public class PaletteTests
     }
 
     [Fact]
-    public void GivenNoColour_WhenResolvingTypedTextAndCaret_ThenBothAreUnderlinedAndTheColourTiersAreNot()
+    public void GivenNoColour_WhenResolvingAnEditableValue_ThenItIsUnderlinedAndTheCaretIsReversedNotUnderlined()
     {
         var theme = BuiltInThemes.Default;
 
         Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.Editable).Style.HasFlag(RoleStyle.Underline));
-        Assert.True(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Underline));
+        Assert.False(Palette.Resolve(theme, ColorSupport.None, PaletteRole.EditCaret).Style.HasFlag(RoleStyle.Underline));
         Assert.False(Palette.Resolve(theme, ColorSupport.None, PaletteRole.FieldLabel).Style.HasFlag(RoleStyle.Underline));
 
         foreach (var tier in new[] { ColorSupport.TrueColor, ColorSupport.Basic16 })

@@ -85,9 +85,9 @@ public static class FieldRows
     /// The typed filter (or search text) of a choice, labels or picked field with its caret: the input line of the
     /// picker box.
     /// </summary>
-    public static StyledLine Entry(FormField field, int width, TextRole role)
+    public static StyledLine Entry(FormField field, int width)
     {
-        return new StyledLine(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width, role));
+        return new StyledLine(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width));
     }
 
     /// <summary>
@@ -123,12 +123,7 @@ public static class FieldRows
         {
             var prompt = TextBuffer.FromBack(text, field.Back);
 
-            if (look.Boxed)
-            {
-                return CaretText.Field(prompt, width);
-            }
-
-            return new StyledLine(CaretText.Spans(prompt, width, look.Role));
+            return look.Boxed ? CaretText.Field(prompt, width) : new StyledLine(CaretText.Spans(prompt, width));
         }
 
         if (text.Length == 0)
@@ -166,7 +161,7 @@ public static class FieldRows
 
         if (look.Editing)
         {
-            return new StyledLine(CaretText.Spans(TextBuffer.Empty, width, look.Role));
+            return new StyledLine(CaretText.Spans(TextBuffer.Empty, width));
         }
 
         var empty = ValueText.Empty(field.Kind == FormFieldKind.User);
@@ -217,7 +212,7 @@ public static class FieldRows
             return new StyledLine(CaretText.Cut(row, width, look.Role));
         }
 
-        return new StyledLine(CaretText.ParagraphSpans(prompt, row, index, width, look.Role));
+        return new StyledLine(CaretText.ParagraphSpans(prompt, row, index, width));
     }
 
     private static List<StyledLine> ChosenValue(FormField field, FieldLook look)

@@ -8,14 +8,18 @@ namespace Geeratya.Core.Text;
 /// sits on (a space after the last one), so moving it never shifts the text. Used for the one row of a single-line
 /// field or prompt, the rows of a paragraph and the wrapped rows of the comment editor: the palette, pickers, jump
 /// prompt, form fields, the profile form and the comment editor all draw their caret here, in
-/// <see cref="TextRole.EditCaret"/>. <see cref="Marked"/> is the plain-text variant for the two surfaces that are one
+/// <see cref="TextRole.EditCaret"/>, and the typed text itself is always in <see cref="TypedRole"/>: no surface picks
+/// a role of its own, so the same text and caret draw the same cells in every colour tier. <see cref="Marked"/> is the plain-text variant for the two surfaces that are one
 /// string (the status bar and the Help title). Pure.
 /// </summary>
 public static class CaretText
 {
+    /// <summary>The role of typed text on every surface (the body text; the caret cell is <see cref="TextRole.EditCaret"/>).</summary>
+    public const TextRole TypedRole = TextRole.Body;
+
     /// <summary>
-    /// The one row of a single-line input drawn as a text box: the text on the field fill, the caret as a block, the
-    /// rest of the <paramref name="width"/> filled, so the row reads as an input and not as text.
+    /// The one row of a single-line input: the typed text, the caret as a block, the rest of the
+    /// <paramref name="width"/> filled with blanks, so the row is as wide as its field.
     /// </summary>
     public static StyledLine Field(TextBuffer prompt, int width)
     {
@@ -23,8 +27,8 @@ public static class CaretText
     }
 
     /// <summary>
-    /// One row of a paragraph input drawn as a text box (see <see cref="Field"/>); the row with the caret gets the
-    /// caret block, the other rows are cut to the width.
+    /// One row of a paragraph input (see <see cref="Field"/>); the row with the caret gets the caret block, the other
+    /// rows are cut to the width.
     /// </summary>
     public static StyledLine FieldRow(TextBuffer prompt, string row, int index, int width)
     {
@@ -37,12 +41,12 @@ public static class CaretText
     }
 
     /// <summary>
-    /// The text cut around its caret to fit, as spans in <paramref name="role"/> with the caret as a styled cell over
+    /// The text cut around its caret to fit, as spans in <see cref="TypedRole"/> with the caret as a styled cell over
     /// the character it sits on (a space after the last one), so moving it never shifts the text. No fill.
     /// </summary>
-    public static IReadOnlyList<StyledSpan> Spans(TextBuffer prompt, int width, TextRole role)
+    public static IReadOnlyList<StyledSpan> Spans(TextBuffer prompt, int width)
     {
-        return CutOf(PromptWindow.Of(prompt, width), width).ToSpans(role, false, width);
+        return CutOf(PromptWindow.Of(prompt, width), width).ToSpans(false, width);
     }
 
     /// <summary>A row without the caret, cut to the width (the end of a long row stays, behind an ellipsis).</summary>
@@ -58,15 +62,14 @@ public static class CaretText
         TextBuffer prompt,
         string row,
         int index,
-        int width,
-        TextRole role)
+        int width)
     {
         if (index != prompt.Line)
         {
-            return Cut(row, width, role);
+            return Cut(row, width, TypedRole);
         }
 
-        return Spans(TextBuffer.FromBack(row, row.Length - prompt.Column), width, role);
+        return Spans(TextBuffer.FromBack(row, row.Length - prompt.Column), width);
     }
 
     /// <summary>
@@ -74,9 +77,14 @@ public static class CaretText
     /// character under the caret (a space when it is past the last one). For rows the caller wraps itself (the
     /// comment editor), where a mention or issue reference is one cell.
     /// </summary>
-    public static IReadOnlyList<StyledSpan> Over(string before, string cell, string after, TextRole role)
+    public static IReadOnlyList<StyledSpan> Over(string before, string cell, string after)
     {
-        return [new StyledSpan(before, role), new StyledSpan(cell, TextRole.EditCaret), new StyledSpan(after, role)];
+        return
+        [
+            new StyledSpan(before, TypedRole),
+            new StyledSpan(cell, TextRole.EditCaret),
+            new StyledSpan(after, TypedRole),
+        ];
     }
 
     /// <summary>
@@ -98,7 +106,7 @@ public static class CaretText
 
     private static StyledLine FieldOf(PromptWindow window, int width)
     {
-        return new StyledLine(CutOf(window, width).ToSpans(TextRole.EditField, true, width));
+        return new StyledLine(CutOf(window, width).ToSpans(true, width));
     }
 
     // The window with the caret as a cell over the character it sits on, cut to the width.
@@ -127,22 +135,22 @@ public static class CaretText
 
     private sealed record CaretCut(string Before, string? Cell, string After)
     {
-        public List<StyledSpan> ToSpans(TextRole role, bool fill, int width)
+        public List<StyledSpan> ToSpans(bool fill, int width)
         {
-            var spans = new List<StyledSpan> { new(Before, role) };
+            var spans = new List<StyledSpan> { new(Before, TypedRole) };
 
             if (Cell is not null)
             {
                 spans.Add(new StyledSpan(Cell, TextRole.EditCaret));
             }
 
-            spans.Add(new StyledSpan(After, role));
+            spans.Add(new StyledSpan(After, TypedRole));
 
             var used = spans.Sum(static span => DisplayWidth.Of(span.Text));
 
             if (fill && used < width)
             {
-                spans.Add(new StyledSpan(new string(' ', width - used), role));
+                spans.Add(new StyledSpan(new string(' ', width - used), TypedRole));
             }
 
             return spans;

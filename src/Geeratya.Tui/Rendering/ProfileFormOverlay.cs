@@ -161,7 +161,7 @@ public static class ProfileFormOverlay
             return StyledLines.Fit(new StyledLine(spans), width);
         }
 
-        spans.AddRange(CaretText.Spans(prompt, room, TextRole.Body));
+        spans.AddRange(CaretText.Spans(prompt, room));
 
         return StyledLines.Fit(new StyledLine(spans), width);
     }

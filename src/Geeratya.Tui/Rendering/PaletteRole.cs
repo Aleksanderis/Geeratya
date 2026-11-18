@@ -81,6 +81,5 @@ public enum PaletteRole
     UnassignedChip,
     ValueBlock,
     SelectionBar,
-    EditField,
     EditCaret,
 }

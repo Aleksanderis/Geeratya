@@ -140,7 +140,7 @@ public static class SourcePickerOverlay
     private static StyledLine Prompt(SourcePickerState picker, int contentWidth)
     {
         var buffer = TextBuffer.FromBack(picker.Text, picker.Back);
-        var text = CaretText.Spans(buffer, contentWidth - PromptMargin, TextRole.Body);
+        var text = CaretText.Spans(buffer, contentWidth - PromptMargin);
 
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }

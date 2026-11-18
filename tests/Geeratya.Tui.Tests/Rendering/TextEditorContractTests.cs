@@ -197,7 +197,7 @@ public class TextEditorContractTests
         return FrameBuilder.BuildStyled(state, 100, 30, _keymap)!;
     }
 
-    private static AppState Open(string surface)
+    internal static AppState Open(string surface)
     {
         return surface switch
         {
@@ -262,7 +262,7 @@ public class TextEditorContractTests
         }
     }
 
-    private AppState Keys(AppState state, params string[] keys)
+    internal AppState Keys(AppState state, params string[] keys)
     {
         return keys.Aggregate(state, (current, key) => _reducer.Reduce(current, new KeyPressed(key, _now)).State);
     }

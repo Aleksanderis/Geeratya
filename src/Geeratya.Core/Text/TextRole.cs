@@ -190,9 +190,6 @@ public enum TextRole
     /// <summary>The accent bar at the left of a selected row or value: a left-half-block glyph in the accent on the page colour, beside the selection tint.</summary>
     SelectionBar,
 
-    /// <summary>Text in an input being edited in place: the field fill, so the edit state reads as a text box.</summary>
-    EditField,
-
-    /// <summary>The caret of an input being edited in place: a filled block (reverse video without colour).</summary>
+    /// <summary>The caret of every text input: one filled block over the character it sits on (reverse video without colour).</summary>
     EditCaret,
 }
