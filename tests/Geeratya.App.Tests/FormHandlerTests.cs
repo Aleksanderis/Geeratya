@@ -229,6 +229,42 @@ public sealed class FormHandlerTests
         Assert.DoesNotContain("customfield_10000", asked);
     }
 
+    [Theory]
+    [InlineData("metadata/editmeta-gcm-26.json")]
+    [InlineData("metadata/editmeta-gtm-40.json")]
+    public async Task GivenTheDueDateOfTheIssueView_WhenTheFormLoads_ThenOnlyTheDateFieldIsOfferedWithItsKnownValue(
+        string metadataFixture)
+    {
+        using var fixture = await ConnectedAsync(
+            h => h.Reply(HttpStatusCode.OK, RecordedFixtures.Read(metadataFixture)));
+        var known = new Dictionary<string, FormValue> { [FormFieldIds.DueDate] = FormValue.OfText("2026-12-24") };
+        var target = new EditFormTarget("A-1", known, true, null, FormFieldIds.DueDate);
+
+        await fixture.Metadata.StartAsync(new LoadFormMetadataEffect(_tab, 7, target));
+
+        var loaded = Assert.IsType<FormMetadataLoaded>(Assert.Single(fixture.Posted));
+        var field = Assert.Single(loaded.Fields);
+        Assert.Equal(FormFieldKind.Date, field.Kind);
+        Assert.Equal("2026-12-24", field.Value.Text);
+        Assert.Equal("Due date (yyyy-MM-dd)", field.Label);
+        Assert.Single(fixture.Http.Requests);
+    }
+
+    [Theory]
+    [InlineData("2026-12-24", "\"duedate\":\"2026-12-24\"")]
+    [InlineData("", "\"duedate\":null")]
+    public async Task GivenADueDateChange_WhenExecuted_ThenOnePutWritesTheDateThroughTheSameConverterAsTheCreateForm(
+        string text,
+        string expected)
+    {
+        using var fixture = await ConnectedAsync(h => h.Reply(HttpStatusCode.NoContent, string.Empty));
+        var change = new FieldChange(FormFieldIds.DueDate, FormFieldKind.Date, FormValue.OfText(text), null, []);
+
+        await fixture.Writes.StartAsync(new ExecuteWriteEffect(5, new EditRequest("A-1", [change])));
+
+        Assert.Contains(expected, fixture.Http.Bodies.ElementAt(0).Replace(" ", string.Empty));
+    }
+
     [Fact]
     public async Task GivenTheIssueReadFails_WhenTheFormLoads_ThenOnlyTheKnownFieldsAreOffered()
     {

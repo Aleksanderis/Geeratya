@@ -57,7 +57,7 @@ internal static class DetailFieldActions
             DetailFieldIds.Sprint => Dropdown(SprintMoveActions.OpenField(state), fieldId),
             DetailFieldIds.Parent or DetailFieldIds.Epic
                 => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId),
-            DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter
+            DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter or DetailFieldIds.DueDate
                 => Dropdown(FormOpener.EditField(state, fieldId), fieldId),
             DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditInPane(state, fieldId),
             _ => Say(state, $"{Title(fieldId)} is read-only here."),
@@ -68,7 +68,7 @@ internal static class DetailFieldActions
     private static bool Refused(AppState state, string fieldId)
     {
         if (fieldId is not (DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Reporter
-            or DetailFieldIds.Labels or DetailFieldIds.Parent or DetailFieldIds.Epic))
+            or DetailFieldIds.Labels or DetailFieldIds.Parent or DetailFieldIds.Epic or DetailFieldIds.DueDate))
         {
             return false;
         }

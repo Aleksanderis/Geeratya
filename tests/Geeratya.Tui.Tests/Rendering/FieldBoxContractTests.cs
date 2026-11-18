@@ -27,6 +27,7 @@ public class FieldBoxContractTests
     private static readonly DateTimeOffset _now = new(2026, 11, 4, 12, 0, 0, TimeSpan.Zero);
 
     private readonly FieldChoiceContractTests _opener = new();
+    private readonly FormPresentationContractTests _forms = new();
     private readonly AppReducer _reducer = new(_keymap);
 
     /// <summary>The places that draw a field box, with the label of the box focused and of one that is not.</summary>
@@ -109,15 +110,28 @@ public class FieldBoxContractTests
     [InlineData("create", true, ColorSupport.Basic16)]
     [InlineData("dropdown", true, ColorSupport.TrueColor)]
     [InlineData("dropdown", true, ColorSupport.Basic16)]
-    public void GivenAnEmptyPersonValue_WhenResolved_ThenEveryCellOfTheValueRowIsOnTheBlockFill(
+    [InlineData("details-due", true, ColorSupport.TrueColor)]
+    [InlineData("details-due", true, ColorSupport.Basic16)]
+    public void GivenAnEmptyValue_WhenResolved_ThenEveryCellOfTheValueRowIsOnTheBlockFill(
         string place,
         bool focused,
         ColorSupport tier)
     {
         var theme = BuiltInThemes.Default;
         var assignee = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.User, false, []);
-        var state = place == "dropdown" ? _opener.Open("dropdown", assignee) : ValueScene(assignee, focused);
-        var (rowText, firstText) = place == "dropdown" ? ("High ▾", "▲") : ("Unassigned ▾", "[--]");
+        var due = FormField.Create(FormFieldIds.DueDate, "Due date", FormFieldKind.Date, false, []);
+        var state = place switch
+        {
+            "dropdown" => _opener.Open("dropdown", assignee),
+            "details-due" => _forms.Open("details-due", due),
+            _ => ValueScene(assignee, focused),
+        };
+        var (rowText, firstText) = place switch
+        {
+            "dropdown" => ("High ▾", "▲"),
+            "details-due" => ("None ▾", "None"),
+            _ => ("Unassigned ▾", "[--]"),
+        };
         var line = Frame(state).Body.Single(row => row.PlainText.Contains(rowText, StringComparison.Ordinal));
         var first = line.Spans.ToList().FindIndex(span => span.Text.Contains(firstText, StringComparison.Ordinal));
         var last = line.Spans.ToList().FindIndex(static span => span.Text.Contains('▾'));

@@ -15,6 +15,7 @@ public static class DetailFieldIds
     public const string Epic = "epic";
     public const string Sprint = "sprint";
     public const string Estimate = "estimate";
+    public const string DueDate = FormFieldIds.DueDate;
     public const string Updated = "updated";
     public const string Attachments = "attachments";
     public const string Description = FormFieldIds.Description;

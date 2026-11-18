@@ -1,5 +1,6 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Adf;
@@ -173,6 +174,11 @@ public static class FormOpener
 
         known[FormFieldIds.Parent] = subject.ParentKey is { } parent ? FormValue.OfChosen([parent]) : FormValue.Empty;
 
+        if (subject.DueKnown)
+        {
+            known[FormFieldIds.DueDate] = DueValue(subject.DueDate);
+        }
+
         var lossy = new List<string>();
         var people = new Dictionary<string, FieldOption>();
 
@@ -199,6 +205,11 @@ public static class FormOpener
             People: people);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
+    }
+
+    private static FormValue DueValue(DateOnly? due)
+    {
+        return due is { } date ? FormValue.OfText(ValueText.Due(date)) : FormValue.Empty;
     }
 
     // A description is known only in the opened issue. One that does not survive the Markdown-like text would lose
@@ -243,7 +254,9 @@ public static class FormOpener
         int? ParentLevel,
         bool DescriptionKnown,
         AdfDocument? Description,
-        IssueAssignee? Reporter = null)
+        IssueAssignee? Reporter = null,
+        DateOnly? DueDate = null,
+        bool DueKnown = false)
     {
         public static Subject? Of(AppState state)
         {
@@ -280,7 +293,9 @@ public static class FormOpener
                     ParentLevels.Accepted(issue.IssueType.HierarchyLevel, issue.IssueType.IsSubtask),
                     true,
                     issue.Description,
-                    issue.Reporter);
+                    issue.Reporter,
+                    issue.DueDate,
+                    true);
             }
 
             return shown.Row is { } row ? OfRow(tab, row) : null;

@@ -1,5 +1,6 @@
 using Geeratya.Core.Forms;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Tests.Writes;
@@ -22,13 +23,25 @@ public class EditRequestTests
         Assert.Equal(["reloaded"], newer.Labels);
     }
 
-    [Fact]
-    public void GivenAnEditOfFieldsARowDoesNotShow_WhenPlanned_ThenThereIsNoRowChangeAndNoReadCanProveIt()
+    [Theory]
+    [InlineData("2026-11-30", 2026, 11, 30)]
+    [InlineData("", 0, 0, 0)]
+    public void GivenADueDateEdit_WhenPlanned_ThenTheOpenedIssueShowsItAtOnceAndTheRowIsLeftAlone(
+        string text,
+        int year,
+        int month,
+        int day)
     {
-        var change = new FieldChange("duedate", FormFieldKind.Date, FormValue.OfText("2026-11-30"));
+        var change = new FieldChange("duedate", FormFieldKind.Date, FormValue.OfText(text));
         var request = new EditRequest("A-1", [change]);
+        var issue = Issue() with { DueDate = new DateOnly(2026, 1, 1) };
 
-        Assert.Null(request.Plan(Row("x")));
+        var row = Row("x");
+        var planned = request.Plan(row)!;
+
+        Assert.Equal(year == 0 ? null : new DateOnly(year, month, day), planned.Patch(issue).DueDate);
+        Assert.Same(row.Labels, planned.Patch(row).Labels);
+        Assert.Equal(row.Summary, planned.Patch(row).Summary);
         Assert.False(request.IsShownBy(Row("x")));
     }
 
@@ -70,5 +83,29 @@ public class EditRequestTests
             null,
             null,
             "A");
+    }
+
+    private static IssueDetail Issue()
+    {
+        var status = new IssueStatus("1", "To Do", "new");
+
+        return new IssueDetail(
+            "1",
+            "A-1",
+            "x",
+            status,
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            null,
+            [],
+            null,
+            null,
+            "A",
+            null,
+            null,
+            [],
+            [],
+            []);
     }
 }

@@ -47,7 +47,9 @@ public class TypedTextLookContractTests
         "create-summary",
         "create-description",
         "create-detail-text",
+        "create-detail-date",
         "dropdown-text",
+        "dropdown-due-date",
         "in-place-title",
         "dropdown-assignee",
         "dropdown-labels",
@@ -227,6 +229,10 @@ public class TypedTextLookContractTests
                 return Create(1);
             case "create-detail-text":
                 return Create(6);
+            case "create-detail-date":
+                return Create(6, DateField());
+            case "dropdown-due-date":
+                return _editors.Keys(_forms.Open("details-due", DateField()), _typing);
             case "dropdown-text":
                 return _editors.Keys(_forms.Open("dropdown", TextField()), _typing);
             case "in-place-title":
@@ -243,10 +249,15 @@ public class TypedTextLookContractTests
     }
 
     // The create form with the focus on one field and the word typed into it.
-    private static AppState Create(int focus)
+    private static AppState Create(int focus, FormField? replacing = null)
     {
         var form = CreatePaneOverlaySnapshotTests.Form();
         var fields = form.Fields.ToArray();
+
+        if (replacing is not null)
+        {
+            fields[focus] = replacing;
+        }
 
         fields[focus] = fields[focus].WithInitial(FormValue.OfText(Typed)) with { Back = Typed.Length - CaretIndex };
 
@@ -268,6 +279,11 @@ public class TypedTextLookContractTests
         var form = ProfileForm.Start with { Field = ProfileFormField.Email, Error = message };
 
         return AppState.Initial with { Mode = InputMode.Insert, Form = form };
+    }
+
+    private static FormField DateField()
+    {
+        return FormField.Create(FormFieldIds.DueDate, "Due date", FormFieldKind.Date, false, []);
     }
 
     private static FormField TextField()
