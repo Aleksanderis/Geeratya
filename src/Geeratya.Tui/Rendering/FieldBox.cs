@@ -40,13 +40,18 @@ internal static class FieldBox
         return [.. lines.Select((line, index) => Restyle(line, index == 0, focused))];
     }
 
+    private static StyledSpan FocusBorder(StyledSpan span)
+    {
+        return span.Role == TextRole.Border ? IssueDetailRenderer.FocusBorder(span) : span;
+    }
+
     private static StyledLine Restyle(StyledLine line, bool top, bool focused)
     {
         var spans = top ? IssueDetailRenderer.Chips([.. line.Spans], focused) : [.. line.Spans];
 
         if (focused)
         {
-            spans = [.. spans.Select(static span => span.Role == TextRole.Border ? IssueDetailRenderer.FocusBorder(span) : span)];
+            spans = [.. spans.Select(FocusBorder)];
         }
 
         return new StyledLine(spans);

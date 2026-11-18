@@ -94,8 +94,18 @@ public class FormOverlaySnapshotTests
         var focused = box.First(line => line.ToString().Contains("Labels", StringComparison.Ordinal));
         var readOnly = box.First(line => line.ToString().Contains("Team  (not", StringComparison.Ordinal));
 
-        Assert.Contains(focused.Spans, span => span.Role == TextRole.FrameFocus && span.Text.StartsWith("╭─", StringComparison.Ordinal));
-        Assert.Contains(readOnly.Spans, span => span.Role == TextRole.Border && span.Text.StartsWith("╭─", StringComparison.Ordinal));
+        Assert.Contains(focused.Spans, span => IsCorner(span, TextRole.FrameFocus));
+        Assert.Contains(readOnly.Spans, span => IsCorner(span, TextRole.Border));
+    }
+
+    [Theory]
+    [InlineData(14, 10)]
+    [InlineData(11, 8)]
+    public void GivenAnUnusablyNarrowFrame_WhenAFormIsOpen_ThenEveryLineKeepsTheWidth(int width, int height)
+    {
+        var lines = FrameBuilder.Build(WithForm(SampleForm()), width, height, _keymap);
+
+        Assert.All(lines, line => Assert.Equal(width, DisplayWidth.Of(line)));
     }
 
     [Fact]
@@ -261,6 +271,11 @@ public class FormOverlaySnapshotTests
     internal static AppState Sample()
     {
         return WithForm(SampleForm());
+    }
+
+    private static bool IsCorner(StyledSpan span, TextRole role)
+    {
+        return span.Role == role && span.Text.StartsWith("╭─", StringComparison.Ordinal);
     }
 
     internal static FormState SampleForm()

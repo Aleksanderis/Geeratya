@@ -105,9 +105,7 @@ public static class FieldBlock
             }
             else
             {
-                var focused = span.Ground.HasFlag(SpanGround.Value)
-                    ? span with { Ground = (span.Ground & ~SpanGround.Value) | SpanGround.ValueFocus }
-                    : span;
+                var focused = OnFocusedBlock(span);
 
                 spans.Add(focused.Role == TextRole.ValueBlock ? focused with { Role = TextRole.Selected } : focused);
             }
@@ -128,6 +126,17 @@ public static class FieldBlock
         }
 
         return new StyledLine(spans);
+    }
+
+    // The span on the fill of the focused block: the block ground becomes the focused one.
+    private static StyledSpan OnFocusedBlock(StyledSpan span)
+    {
+        if (!span.Ground.HasFlag(SpanGround.Value))
+        {
+            return span;
+        }
+
+        return span with { Ground = (span.Ground & ~SpanGround.Value) | SpanGround.ValueFocus };
     }
 
     // A span of the value sits on the block's fill: a role on the page takes the tint (see SpanGround.Value).

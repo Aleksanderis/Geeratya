@@ -159,9 +159,15 @@ public static class Palette
         return readable ? value : fallback;
     }
 
-    // The fill of a field block's value row (SpanGround.Value, ValueFocus) for a role that sits on the page: such a role
-    // takes the block's tint as its background, so no cell of the row is left on the page colour. A role with a fill
+    // The fill of a field block's value row (SpanGround.Value, ValueFocus) for a role that sits on the page: such a
+    // role takes the block's tint as its background, so no cell of the row is left on the page colour. A role with a fill
     // of its own keeps it. Null for any other ground.
+    // The text colour of a role on a block fill: its own where it stays readable, else the fill's text colour.
+    private static Rgb OnBlock(Theme theme, PaletteEntry entry, PaletteEntry block)
+    {
+        return Readable(theme, entry.TrueForeground, block.TrueBackground, block.TrueForeground) ?? entry.TrueForeground;
+    }
+
     private static PaletteEntry? BlockFill(Theme theme, PaletteEntry entry, SpanGround ground)
     {
         if (!entry.OnPage || (ground & (SpanGround.Value | SpanGround.ValueFocus)) == 0)

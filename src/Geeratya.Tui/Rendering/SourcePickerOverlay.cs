@@ -127,7 +127,9 @@ public static class SourcePickerOverlay
         var shown = rows.ChoiceOfLine.Count(static choice => choice >= 0);
         var all = SourceChoices.For(picker with { Text = string.Empty }, lists).Count;
 
-        return $"{shown.ToString(CultureInfo.InvariantCulture)}/{Math.Max(shown, all).ToString(CultureInfo.InvariantCulture)}";
+        var total = Math.Max(shown, all);
+
+        return $"{shown.ToString(CultureInfo.InvariantCulture)}/{total.ToString(CultureInfo.InvariantCulture)}";
     }
 
     private static string TitleOf(SourcePickerState picker)

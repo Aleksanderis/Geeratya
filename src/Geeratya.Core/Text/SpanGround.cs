@@ -34,7 +34,8 @@ public enum SpanGround
     Tail = 32,
 
     /// <summary>
-    /// On the fill of a field block's value row (<c>FieldBlock</c>): a role that sits on the page takes the block's tint
+    /// On the fill of a field block's value row (<c>FieldBlock</c>): a role that sits on the page takes the block's
+    /// tint
     /// as its background, so a value such as <c>None</c>, <c>Unassigned</c> or a status dot never leaves a gap in the
     /// block; a role with a fill of its own (a person chip) keeps it.
     /// </summary>

@@ -65,8 +65,8 @@ public class SharedLookTests
         var body = FrameBuilder.BuildStyled(FormOverlaySnapshotTests.Sample(), 120, 36, _keymap)!.Body;
 
         Assert.Single(body, static line => line.PlainText.Contains("╭─ Labels", StringComparison.Ordinal)
-            && line.Spans.Any(static span => span.Role == TextRole.FrameFocus && span.Text.StartsWith("╭─", StringComparison.Ordinal)));
-        Assert.Single(body, static line => line.Spans.Any(static span => span.Role == TextRole.ChipFocus && span.Text.Contains("Labels", StringComparison.Ordinal)));
+            && line.Spans.Any(static span => IsFocusCorner(span)));
+        Assert.Single(body, static line => line.Spans.Any(static span => IsFocusedLabel(span)));
     }
 
     [Theory]
@@ -79,6 +79,16 @@ public class SharedLookTests
 
         Assert.Equal(fill, caret.Background16);
         Assert.NotEqual(caret.Foreground16, caret.Background16);
+    }
+
+    private static bool IsFocusCorner(StyledSpan span)
+    {
+        return span.Role == TextRole.FrameFocus && span.Text.StartsWith("╭─", StringComparison.Ordinal);
+    }
+
+    private static bool IsFocusedLabel(StyledSpan span)
+    {
+        return span.Role == TextRole.ChipFocus && span.Text.Contains("Labels", StringComparison.Ordinal);
     }
 
     private static List<StyledSpan> Spans(AppState state, int width, int height)

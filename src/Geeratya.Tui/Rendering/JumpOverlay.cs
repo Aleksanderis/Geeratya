@@ -63,7 +63,9 @@ public static class JumpOverlay
 
         if (rows.Count > 0)
         {
-            PickListRenderer.Mark(regions, MouseTarget.JumpRow, new BoxPlace(top, left, boxWidth), 1 + QueryRows, window);
+            var place = new BoxPlace(top, left, boxWidth);
+
+            PickListRenderer.Mark(regions, MouseTarget.JumpRow, place, 1 + QueryRows, window);
         }
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)

@@ -8,8 +8,9 @@ public static partial class FormOverlay
     /// <summary>
     /// One field as a labelled box (<see cref="FieldBox"/>, the frame of the create form's boxes): the label with the
     /// required mark in the top edge, the value rows inside the walls, then the suggestion rows and the error line
-    /// under the box. The focused box has the focus border and a filled label, a read-only field is dimmed. The state
-    /// of the form is in the status line, not in the label.
+    /// under the box. The focused box has the focus border and a filled label; a read-only field and a field with an
+    /// error have the plain border (the error shows in its line under the box). The state of the form is in the status
+    /// line, not in the label.
     /// </summary>
     private static List<StyledLine> Block(FormState form, int index, int valueWidth)
     {

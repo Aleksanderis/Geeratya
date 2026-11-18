@@ -22,7 +22,9 @@ internal static class CreateFieldBlocks
         var editing = focused && !form.Navigating;
         var room = Math.Max(1, width - Lead - DropdownCells);
 
-        return new FieldBlockSpec(FieldLabels.Of(field), Items(field, editing, room), Dropdown(field), Note(form, field));
+        var items = Items(field, editing, room);
+
+        return new FieldBlockSpec(FieldLabels.Of(field), items, Dropdown(field), Note(form, field));
     }
 
     /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown.</summary>

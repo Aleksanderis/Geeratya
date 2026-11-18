@@ -71,7 +71,8 @@ public static class PaneFrame
 
     /// <summary>
     /// The frame with the scroll markers of a cut list in its right border column (the frame has no padding column):
-    /// <c>▲</c> on the first and <c>▼</c> on the last row of the list that is no shared edge, when rows are hidden above
+    /// <c>▲</c> on the first and <c>▼</c> on the last row of the list that is no shared edge, when rows are hidden
+    /// above
     /// or below, the same marker an overlay box shows in its right padding column
     /// (<see cref="OverlayBox.ScrollMarker"/>). <paramref name="scroll"/> counts the rows of the list below its title
     /// line.
@@ -91,14 +92,18 @@ public static class PaneFrame
 
         if (first > 0)
         {
-            lines[rows[0]] = WithMarker(lines[rows[0]], OverlayBox.ScrollMarker(0, scroll.Viewport, first, scroll.Total));
+            var marker = OverlayBox.ScrollMarker(0, scroll.Viewport, first, scroll.Total);
+
+            lines[rows[0]] = WithMarker(lines[rows[0]], marker);
         }
 
         if (first + scroll.Viewport < scroll.Total)
         {
             var last = rows[^1];
 
-            lines[last] = WithMarker(lines[last], OverlayBox.ScrollMarker(scroll.Viewport - 1, scroll.Viewport, first, scroll.Total));
+            var marker = OverlayBox.ScrollMarker(scroll.Viewport - 1, scroll.Viewport, first, scroll.Total);
+
+            lines[last] = WithMarker(lines[last], marker);
         }
 
         return lines;
@@ -106,7 +111,9 @@ public static class PaneFrame
 
     private static StyledLine WithMarker(StyledLine line, string marker)
     {
-        if (line.Spans.Count == 0 || line.Spans[^1] is not { Role: TextRole.Border or TextRole.FrameFocus, Text.Length: 1 })
+        var border = line.Spans.Count > 0 ? line.Spans[^1] : default;
+
+        if (border is not { Role: TextRole.Border or TextRole.FrameFocus, Text.Length: 1 })
         {
             return line;
         }

@@ -95,7 +95,7 @@ public static class CommentEditorOverlay
 
         var markers = PopupMarkers(editor);
 
-        lines.AddRange(notes.Select((note, row) => OverlayBox.Wall(note, contentWidth, row < markers.Count ? markers[row] : " ")));
+        lines.AddRange(notes.Select((note, row) => OverlayBox.Wall(note, contentWidth, MarkerAt(markers, row))));
 
         lines.Add(OverlayBox.Wall(Divider(contentWidth), contentWidth));
         lines.Add(OverlayBox.Wall(footer, contentWidth));
@@ -206,6 +206,11 @@ public static class CommentEditorOverlay
         lines.AddRange(PickListRenderer.Popup(popup, width, string.Empty, false).Select(static row => row.Line));
 
         return lines;
+    }
+
+    private static string MarkerAt(List<string> markers, int row)
+    {
+        return row < markers.Count ? markers[row] : " ";
     }
 
     // The scroll marker of each suggestion row (the popup rows come first among the notes under the text).

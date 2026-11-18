@@ -8,7 +8,8 @@ namespace Geeratya.Tui.Rendering;
 
 /// <summary>
 /// The field form box (<c>docs/internal/ux-screens.md</c>, "Field form overlay"): one block per field (label, value or
-/// options, error) in a centred box over the body, the focused box with the focus border (<see cref="FieldBox"/>), a key footer. Pure.
+/// options, error) in a centred box over the body, the focused box with the focus border (<see cref="FieldBox"/>),
+/// a key footer. Pure.
 /// The focused block scrolls into view; a field the form cannot edit is listed read-only with the browser link.
 /// </summary>
 public static partial class FormOverlay

@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Menus;
+using Geeratya.Core.Panes;
+using Geeratya.Core.Text;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -15,7 +17,8 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// <summary>
 /// The rendered-frame contract of the scroll markers (<c>docs/internal/ui-consistency.md</c>, finding L1; #1034): a
 /// list that shows only part of its rows says so in every place it is drawn, with the same marker: <c>▼</c> in the
-/// last row when rows are hidden below, <c>▲</c> in the first when rows are hidden above. The frame is built by the real
+/// last row when rows are hidden below, <c>▲</c> in the first when rows are hidden above. The frame is built by the
+/// real
 /// <see cref="FrameBuilder"/> for the list view, the actions menu, the tab list, the command palette and the popup of a
 /// field, and the marker is read from the drawn cells. A new place that cuts a list is added to
 /// <see cref="Places"/>.
@@ -35,7 +38,7 @@ public class ScrollMarkerContractTests
     private readonly FieldChoiceContractTests _opener = new();
 
     /// <summary>The places that cut a list.</summary>
-    public static TheoryData<string> Places { get; } = ["list", "actions-menu", "tab-list", "palette", "popup"];
+    public static TheoryData<string> Places { get; } = ["list", "actions-menu", "tab-list", "palette", "popup", "create-popup", "dropdown-popup"];
 
     /// <summary>The places whose list fits in a tall frame (the others are capped in height or in rows).</summary>
     public static TheoryData<string> Fitting { get; } = ["list", "actions-menu"];
@@ -108,19 +111,42 @@ public class ScrollMarkerContractTests
         Assert.Equal(counted, Regex.IsMatch(lines[top], @" \d+/\d+ "));
     }
 
+    [Theory]
+    [InlineData(2, 3)]
+    [InlineData(2, 9)]
+    public void GivenABacklogFrameWithSectionEdges_WhenCut_ThenTheMarkersSitOnRowsNotOnSharedEdges(int first, int edge)
+    {
+        var content = Enumerable.Range(0, 10).Select(index => StyledLine.Of($"row {index}")).ToList();
+        var dividers = new[] { new PaneDivider(edge, [new StyledSpan("Sprint", TextRole.Strong)], []) };
+
+        var title = new[] { new StyledSpan("Backlog", TextRole.Heading) };
+        var scroll = new PaneScroll(first, 40, 9);
+        var lines = PaneFrame.Build(30, 12, title, [], content, dividers, -1, scroll)
+            .Select(static line => line.PlainText)
+            .ToList();
+        var marked = lines.Where(static line => MarksAbove(line) || MarksBelow(line)).ToList();
+
+        Assert.Equal(2, marked.Count);
+        Assert.DoesNotContain(marked, static line => line.StartsWith('├'));
+        Assert.EndsWith(Above, marked[0], StringComparison.Ordinal);
+        Assert.EndsWith(Below, marked[1], StringComparison.Ordinal);
+    }
+
     private static bool MarksBelow(string line)
     {
-        return line.Contains($"{Below}│", StringComparison.Ordinal) || line.TrimEnd().EndsWith(Below, StringComparison.Ordinal);
+        return line.Contains($"{Below}│", StringComparison.Ordinal)
+            || line.TrimEnd().EndsWith(Below, StringComparison.Ordinal);
     }
 
     private static bool MarksAbove(string line)
     {
-        return line.Contains($"{Above}│", StringComparison.Ordinal) || line.TrimEnd().EndsWith(Above, StringComparison.Ordinal);
+        return line.Contains($"{Above}│", StringComparison.Ordinal)
+            || line.TrimEnd().EndsWith(Above, StringComparison.Ordinal);
     }
 
     private static List<string> Frame(AppState state, string place, int rowsFit = 0)
     {
-        var height = rowsFit > 0 ? rowsFit : place == "popup" ? 36 : 18;
+        var height = rowsFit > 0 ? rowsFit : place.EndsWith("popup", StringComparison.Ordinal) ? 36 : 18;
         var frame = FrameBuilder.BuildStyled(state, 120, height, _keymap)!;
 
         return [.. frame.Body.Select(static line => line.PlainText)];
@@ -136,7 +162,9 @@ public class ScrollMarkerContractTests
             "actions-menu" => Menu(end),
             "tab-list" => Tabs(end),
             "palette" => Palette(end),
-            _ => Popup(end),
+            "create-popup" => Popup(end, "create"),
+            "dropdown-popup" => Popup(end, "dropdown"),
+            _ => Popup(end, "box"),
         };
     }
 
@@ -154,10 +182,12 @@ public class ScrollMarkerContractTests
         var opened = _reducer.Reduce(state, new ViewOpenRequested(definition));
         var tab = opened.State.Session.Tabs[0];
         var rows = Enumerable.Range(1, count)
-            .Select(index => new IssueSummary($"{index}", $"GCM-{index}", $"Issue {index}", _status, _type, null, null, [], null, null, "GCM"))
+            .Select(static index => Issue(index))
             .ToList();
 
-        return _reducer.Reduce(opened.State, new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(rows, null, null), _now)).State;
+        var loaded = new ViewPageLoaded(tab.Id, tab.RequestId, new IssuePage(rows, null, null), _now);
+
+        return _reducer.Reduce(opened.State, loaded).State;
     }
 
     private AppState List(bool end)
@@ -172,7 +202,9 @@ public class ScrollMarkerContractTests
         var state = Rows(5);
         var menu = ContextMenus.For(state)!;
 
-        return state with { ContextMenu = end ? menu with { Pick = menu.Pick.Moved(menu.Items.Count, menu.Items.Count) } : menu };
+        var last = menu with { Pick = menu.Pick.Moved(menu.Items.Count, menu.Items.Count) };
+
+        return state with { ContextMenu = end ? last : menu };
     }
 
     private AppState Tabs(bool end)
@@ -181,7 +213,8 @@ public class ScrollMarkerContractTests
 
         for (var index = 2; index <= 14; index++)
         {
-            var definition = new ViewDefinition(ViewSourceKind.Jql, $"project = P{index}", ViewLayout.List, $"P{index}");
+            var query = $"project = P{index}";
+            var definition = new ViewDefinition(ViewSourceKind.Jql, query, ViewLayout.List, $"P{index}");
 
             state = _reducer.Reduce(state, new ViewOpenRequested(definition)).State;
         }
@@ -200,17 +233,29 @@ public class ScrollMarkerContractTests
         return end ? Keys(state, [.. Enumerable.Repeat("Down", 200)]) : state;
     }
 
-    private AppState Popup(bool end)
+    private AppState Popup(bool end, string presentation)
     {
         var field = FormField.Create(FormFieldIds.Assignee, "Assignee", FormFieldKind.User, false, []);
-        var state = Keys(_opener.Open("box", field), "a");
+        var state = Keys(_opener.Open(presentation, field), "a");
         var tab = state.Session.Tabs[0];
         var form = tab.Form!;
-        Suggestion[] items = [.. Enumerable.Range(1, 9).Select(static index => new Suggestion($"s{index}", $"Alpha {index}", null, false))];
+        Suggestion[] items = [.. Enumerable.Range(1, 9).Select(static index => Alpha(index))];
 
         state = _reducer.Reduce(state, new SuggestionsLoaded(tab.Id, form.Suggest!.RequestId, items)).State;
 
         return end ? Keys(state, [.. Enumerable.Repeat("Down", 12)]) : state;
+    }
+
+    private static IssueSummary Issue(int index)
+    {
+        var key = $"GCM-{index}";
+
+        return new IssueSummary($"{index}", key, $"Issue {index}", _status, _type, null, null, [], null, null, "GCM");
+    }
+
+    private static Suggestion Alpha(int index)
+    {
+        return new Suggestion($"s{index}", $"Alpha {index}", null, false);
     }
 
     private AppState Keys(AppState state, params string[] keys)

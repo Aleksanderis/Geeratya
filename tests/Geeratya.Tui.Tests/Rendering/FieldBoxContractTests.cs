@@ -12,7 +12,8 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// The rendered-frame contract of a field box (<c>docs/internal/ui-consistency.md</c>, component 3; #1034, findings F1
 /// to F3 and P1): the box of a field is the same cells wherever it is drawn. The frame is built by the real
 /// <see cref="FrameBuilder"/> for the create form (its Summary and Description boxes), a create sub-task form and the
-/// field boxes of the box forms (the transition and the assign forms, which the sprint, link and edit forms share), the
+/// field boxes of the box forms (the transition and the assign forms; the sprint, link and edit forms draw their boxes
+/// through the same <c>FormOverlay.Block</c>, so one target stands for them), the
 /// box is cut out of the frame and compared cell by cell (glyph and text role) with the same box of the other places,
 /// focused and not focused. A new place that draws a field box is added to <see cref="Places"/>.
 /// </summary>
@@ -128,9 +129,11 @@ public class FieldBoxContractTests
         {
             var style = Palette.Resolve(theme, tier, PaletteTable.For(span.Role), span.Ground, true);
 
-            Assert.True(
-                tier == ColorSupport.Basic16 ? style.Background16 == fill.Background16 : style.Background == fill.Background,
-                $"'{span.Text}' ({span.Role}, {span.Ground}) is not on the block fill");
+            var onFill = tier == ColorSupport.Basic16
+                ? style.Background16 == fill.Background16
+                : style.Background == fill.Background;
+
+            Assert.True(onFill, $"'{span.Text}' ({span.Role}, {span.Ground}) is not on the block fill");
         }
     }
 

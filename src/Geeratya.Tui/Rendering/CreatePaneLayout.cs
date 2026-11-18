@@ -163,8 +163,9 @@ internal sealed class CreatePaneLayout
         var index = CreatePanes.Shown(_form, PaneIds.Title) is [var first, ..] ? first : -1;
         var create = (CreateFormTarget)_form.Target;
         var required = index >= 0 && _form.Fields[index].Required;
-        var named = FieldLabels.With($"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}", required);
-        var heading = new StyledSpan(named, TextRole.Heading);
+        var heading = $"{TitleText}{Separator}{create.ProjectKey}{Separator}{create.IssueType?.Name}";
+        var named = FieldLabels.With(heading, required);
+        var title = new StyledSpan(named, TextRole.Heading);
         var rows = new List<CreatePaneRow>();
 
         if (index >= 0)
@@ -181,7 +182,7 @@ internal sealed class CreatePaneLayout
 
         var openAfter = create.OpenAfter ? new[] { new StyledSpan(OpenAfterText, TextRole.Muted) } : null;
 
-        return new CreatePaneSpec([heading], openAfter, rows, focused);
+        return new CreatePaneSpec([title], openAfter, rows, focused);
     }
 
     private StyledLine SummaryLine(int index, int inner)

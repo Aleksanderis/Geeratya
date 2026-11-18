@@ -56,7 +56,8 @@ public static class DetailDropdown
             return body;
         }
 
-        var lines = PickerBox.Frame(form.Fields.Count == 0 ? string.Empty : Title(form), content.Lines, wide, content.Markers);
+        var title = form.Fields.Count == 0 ? string.Empty : Title(form);
+        var lines = PickerBox.Frame(title, content.Lines, wide, content.Markers);
 
         var result = new List<StyledLine>(body);
 
