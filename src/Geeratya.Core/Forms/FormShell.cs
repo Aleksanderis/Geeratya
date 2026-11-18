@@ -62,10 +62,8 @@ public static class FormShell
     /// <summary>The discard question of a form with changes, naming what would be lost.</summary>
     public static ConfirmRequest DiscardRequest(FormState form, TabId tab)
     {
-        var what = form.Target.IssueKey is { } key ? $"the changes to {key}" : "the new issue";
-
         return new ConfirmRequest(
-            $"Discard {what}? Nothing has been saved",
+            $"Discard {form.Target.DiscardSubject}? Nothing has been saved",
             DiscardPrompts.FormAction,
             OnConfirm: new DiscardFormRequested(tab),
             Label: DiscardLabel);

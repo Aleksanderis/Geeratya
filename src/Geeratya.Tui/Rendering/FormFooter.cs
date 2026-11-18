@@ -54,26 +54,30 @@ public static class FormFooter
     /// <summary>
     /// The footer of a form while a popup with rows is open on its focused field (a choice, a person, a label, a
     /// parent): one set for every presentation and every kind, so the box, the create panes and the Details dropdown
-    /// say the same (#1021). Null when no popup with rows is open.
+    /// say the same (#1021). A popup whose typed filter matches nothing keeps the form keys and Esc, which still
+    /// clears the filter (#1024), but has no rows to move over or choose. Null when no popup is open.
     /// </summary>
     public static List<HintChip?>? PopupChips(FormState form, KeymapTable keymap)
     {
-        if (form.IsChoosingType || form.Navigating || form.Suggest is not { Items.Count: > 0 } popup)
+        if (form.IsChoosingType || form.Navigating || form.Suggest is not { } popup
+            || (popup.Items.Count == 0 && popup.Query.Length == 0))
         {
             return null;
         }
 
         var escape = EscapeLabel(form, popup);
-        var chips = new List<HintChip?>
+        var chips = new List<HintChip?>();
+
+        if (popup.Items.Count > 0)
         {
-            DialogFooter.Pair(
+            chips.Add(DialogFooter.Pair(
                 keymap,
                 InputMode.Insert,
                 ActionIds.PickerPrevious,
                 ActionIds.PickerNext,
-                HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose),
-        };
+                HintLabels.Move));
+            chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose));
+        }
 
         if (form.Navigable)
         {

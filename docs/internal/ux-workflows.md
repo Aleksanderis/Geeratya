@@ -72,7 +72,7 @@ Design in `architecture.md`, "Write pipeline". What the user sees:
 
 - A form with more than one editable field has the navigate state besides editing (`[navigate]` and `[editing]` in the status bar): `j`/`k`/`Tab` move between fields, `Enter` or `i` edits the focused one. A form of one field is always editing.
 - `Esc` and `q` (where `q` is not text) step back one level: popup, then filter, then editing back to navigate, then close.
-- Closing a form with a changed field asks `Discard the changes to GCM-3? Nothing has been saved` (a new issue: `Discard the new issue? ...`) in the same Confirm dialog the comment editor and the profile form use: `y` discards, `n`, `q` or `Esc` goes back to the form as it was, `Enter` never answers it. An unchanged form closes at once.
+- Closing a form with a changed field asks `Discard the changes to GCM-3? Nothing has been saved` (a new issue: `Discard the new issue? ...`; a new sprint: `Discard the new sprint? ...`; the start and complete forms of a sprint: `Discard the changes to <sprint name>? ...`) in the same Confirm dialog the comment editor and the profile form use: `y` discards, `n`, `q` or `Esc` goes back to the form as it was, `Enter` never answers it. An unchanged form closes at once.
 - Saving with no changed field closes the form, sends nothing and says `Nothing changed.`
 - An error shows at its field (or at the top of the form for one that belongs to no field), wrapped under a `! ` mark, at most six rows.
 - Every kind of field is drawn by one renderer (`FieldRows`): the same empty word, caret, chosen values and filter row in the box, the panes, the dropdown and in place. The picked-list popup is the shared `PickList` popup.

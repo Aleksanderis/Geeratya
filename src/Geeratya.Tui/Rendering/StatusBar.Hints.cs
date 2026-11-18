@@ -187,6 +187,16 @@ public static partial class StatusBar
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
+    /// <summary>
+    /// The hints of a dropdown whose field is typed (the Estimate): there are no rows to move over or choose, so
+    /// <c>Enter</c> saves the value, as it does in the box.
+    /// </summary>
+    public static IReadOnlyList<StatusHint> DropdownTextHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.FormNext, HintLabels.Save),
+        new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
     /// <summary>The hints shown while the title or Description of the detail is edited in place (#709).</summary>
     public static IReadOnlyList<StatusHint> PaneEditHints { get; } =
     [
@@ -206,7 +216,10 @@ public static partial class StatusBar
 
         if (form.Dropdown is not null)
         {
-            return DropdownHints;
+            var focused = form.Focus >= 0 && form.Focus < form.Fields.Count ? form.Fields[form.Focus] : null;
+            var typed = focused is not null && !FormFieldKinds.HasPopup(focused.Kind);
+
+            return typed ? DropdownTextHints : DropdownHints;
         }
 
         if (form.Pane is not null)

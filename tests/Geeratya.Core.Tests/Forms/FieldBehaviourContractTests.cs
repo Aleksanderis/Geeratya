@@ -1,14 +1,18 @@
+using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Links;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.Sprints;
 using Geeratya.Core.State;
+using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
+using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Transitions.Models;
 
@@ -32,6 +36,9 @@ public class FieldBehaviourContractTests
     private static readonly Profile _work = new("work", "https://work.atlassian.net", "me@work.test");
 
     private readonly AppReducer _reducer = new(DefaultKeymap.Load());
+
+    /// <summary>What the quick rows read when a field opens with no popup.</summary>
+    public const string NoPopup = "no popup";
 
     /// <summary>The ways a form is shown. Each opens the given fields; the first is the field under test.</summary>
     public static IReadOnlyList<string> PresentationNames { get; } =
@@ -86,10 +93,17 @@ public class FieldBehaviourContractTests
             "2026-12-01|Space|1",
             "text=2026-12-01 10:30;chosen=",
             true),
-        new(FormFieldKind.Select, "Down|Down|Enter", null, "text=;chosen=low", true),
-        new(FormFieldKind.MultiSelect, "Down|Enter", null, "text=;chosen=low", true),
-        new(FormFieldKind.Labels, "x|Enter", null, "text=;chosen=x", true),
-        new(FormFieldKind.Parent, "ab-12|Enter", null, "text=;chosen=AB-12", true),
+        new(FormFieldKind.Select, "Down|Down|Enter", null, "text=;chosen=low", true, ",low,base", "click:1"),
+        new(FormFieldKind.MultiSelect, "Down|Enter", null, "text=;chosen=low", true, "low,base", "click:0"),
+        new(FormFieldKind.Labels, "x|Enter", null, "text=;chosen=x", true, NoPopup, "x|click:0"),
+        new(
+            FormFieldKind.Parent,
+            "a-9|Enter",
+            null,
+            "text=;chosen=A-9",
+            true,
+            NoPopup,
+            "a-|reply:A-9=A-9 Epic|click:0"),
         new(FormFieldKind.User, string.Empty, null, string.Empty, false),
         new(FormFieldKind.Unsupported, string.Empty, null, string.Empty, false),
     ];
@@ -116,10 +130,76 @@ public class FieldBehaviourContractTests
     };
 
     /// <summary>
+    /// The keys that take the second row of each one-choice form. The status picker is required and has no value,
+    /// so it starts on its first row; the sprint move and the completed sprint start with a value and nothing
+    /// highlighted (<c>ChoicePopup</c>), so they need one key more.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> OwnChoiceKeys { get; } = new Dictionary<string, string>
+    {
+        ["transition-pick"] = "Down|Enter",
+        ["sprint-move"] = "Down|Down|Enter",
+        ["sprint-complete"] = "Down|Down|Enter",
+    };
+
+    /// <summary>
     /// The presentations with no issue and no project to search in: a parent field has no source there, so none is
     /// offered (a sprint form holds names and dates only).
     /// </summary>
     public static IReadOnlySet<string> NoSearch { get; } = new HashSet<string> { "sprint", "sprint-start" };
+
+    /// <summary>
+    /// The presentations that open with their fields known and fetch nothing (<c>FormReducer.OpenReady</c>); the
+    /// others load their metadata first. They must end the same: quick rows, popup, focus.
+    /// </summary>
+    public static IReadOnlySet<string> Prepared { get; } = new HashSet<string>
+    {
+        "sprint",
+        "sprint-start",
+        "sprint-complete",
+        "sprint-move",
+    };
+
+    /// <summary>
+    /// The presentations whose write carries the changed fields (an edit, a create or a transition), so the payload
+    /// of the field under test can be read from the queued request.
+    /// </summary>
+    public static IReadOnlySet<string> ChangeCarriers { get; } = new HashSet<string>
+    {
+        "create",
+        "create-subtask",
+        "edit",
+        "dropdown",
+        "in-place",
+        "transition",
+    };
+
+    /// <summary>
+    /// The presentations whose request reads named fields of its own (the status picker, the link with its type and
+    /// issue, the sprint forms with their name and dates), so a field of the table is not in its payload.
+    /// </summary>
+    public static IReadOnlySet<string> NoChanges { get; } = new HashSet<string>
+    {
+        "transition-pick",
+        "link",
+        "sprint",
+        "sprint-start",
+        "sprint-complete",
+        "sprint-move",
+    };
+
+    /// <summary>What the discard question names in each presentation that asks one (a form with a typed change).</summary>
+    public static IReadOnlyDictionary<string, string> DiscardNames { get; } = new Dictionary<string, string>
+    {
+        ["create"] = "the new issue",
+        ["create-subtask"] = "the new issue",
+        ["edit"] = "the changes to A-1",
+        ["dropdown"] = "the changes to A-1",
+        ["in-place"] = "the changes to A-1",
+        ["transition"] = "the changes to A-1",
+        ["link"] = "the changes to A-1",
+        ["sprint"] = "the new sprint",
+        ["sprint-start"] = "the changes to Sprint 5",
+    };
 
     public static TheoryData<FormFieldKind, string> Cells
     {
@@ -145,7 +225,20 @@ public class FieldBehaviourContractTests
     /// <param name="Wrong">A script that types a text the format refuses, or null for a kind with no format.</param>
     /// <param name="Expected">The value the field holds after the valid script (text and chosen values).</param>
     /// <param name="Editable">False for a kind this contract does not drive (a person field, a read-only kind).</param>
-    public sealed record KindRow(FormFieldKind Kind, string Valid, string? Wrong, string Expected, bool Editable)
+    /// <param name="Quick">
+    /// The ids of the rows the popup offers on open (the quick rows), joined by <c>,</c>, or <see cref="NoPopup"/>:
+    /// typed text has no rows, and labels and a parent have none until something is typed (no label applied yet,
+    /// no search yet).
+    /// </param>
+    /// <param name="Click">The script that takes the value by a click on a row instead of the key.</param>
+    public sealed record KindRow(
+        FormFieldKind Kind,
+        string Valid,
+        string? Wrong,
+        string Expected,
+        bool Editable,
+        string Quick = NoPopup,
+        string? Click = null)
     {
         /// <summary>The presentations that offer the kind: the in-place edit holds only the text of a pane.</summary>
         public IEnumerable<string> Presentations()
@@ -168,6 +261,12 @@ public class FieldBehaviourContractTests
 
     /// <summary>What a script leaves behind: whether a write started, the error of the field and its value.</summary>
     public sealed record Outcome(bool Sent, string Error, string Value);
+
+    /// <summary>
+    /// Where a script ends: the phase of the form (<c>editing</c>, <c>navigating</c>, <c>closed</c>), the value the
+    /// form holds or the write carries, and whether a write started.
+    /// </summary>
+    public sealed record Ending(string Phase, string Value, bool Sent);
 
     [Fact]
     public void GivenTheFieldKinds_WhenTheTableIsChecked_ThenEveryKindIsInIt()
@@ -296,6 +395,170 @@ public class FieldBehaviourContractTests
         Assert.Equal(byEsc, byQ);
     }
 
+    [Fact]
+    public void GivenAFieldKind_WhenItOpens_ThenEveryPresentationOffersTheSameQuickRows()
+    {
+        var differences = new List<string>();
+
+        foreach (var row in Kinds.Where(static row => row.Editable))
+        {
+            foreach (var presentation in row.Presentations())
+            {
+                var seen = QuickRows(Edit(Open(presentation, Field(row.Kind))));
+
+                if (seen != row.Quick)
+                {
+                    differences.Add($"{row.Kind}: {presentation} offers '{seen}', expected '{row.Quick}'");
+                }
+            }
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenARowOfTheList_WhenItIsClicked_ThenEveryPresentationDoesWhatTheKeyDoes()
+    {
+        var differences = new List<string>();
+
+        foreach (var row in Kinds.Where(static row => row.Click is not null))
+        {
+            foreach (var presentation in row.Writing())
+            {
+                var byKey = Trace(row, presentation, row.Valid);
+                var byClick = Trace(row, presentation, row.Click!);
+
+                if (byKey != byClick)
+                {
+                    differences.Add($"{row.Kind}: {presentation} click = {byClick}, key = {byKey}");
+                }
+            }
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenAClickedRow_WhenTheFormEnds_ThenEveryPresentationHoldsOrWritesTheExpectedValue()
+    {
+        var differences = new List<string>();
+
+        foreach (var row in Kinds.Where(static row => row.Click is not null))
+        {
+            foreach (var presentation in row.Writing())
+            {
+                var trace = Trace(row, presentation, row.Click!);
+
+                if (!trace.Value.EndsWith($"|{row.Kind}|{row.Expected}", StringComparison.Ordinal))
+                {
+                    differences.Add($"{row.Kind}: {presentation} clicked to {trace.Value}, expected {row.Expected}");
+                }
+            }
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenAValidScript_WhenTheFormIsSaved_ThenEveryPresentationQueuesTheSamePayloadForTheField()
+    {
+        var differences = new List<string>();
+
+        foreach (var row in Kinds.Where(static row => row.Editable))
+        {
+            var field = Field(row.Kind);
+            var expected = $"{field.Id}|{row.Kind}|{row.Expected}";
+
+            foreach (var presentation in row.Writing().Where(static name => ChangeCarriers.Contains(name)))
+            {
+                var state = Edit(Open(presentation, field));
+
+                state = Script(state, row.Valid);
+                state = Press(state, "Ctrl-s").State;
+
+                var seen = Payload(state, row.Kind);
+
+                if (seen != expected)
+                {
+                    differences.Add($"{row.Kind}: {presentation} queued '{seen}', expected '{expected}'");
+                }
+            }
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenTheChangeCarriers_WhenTheTableIsChecked_ThenEachIsAPresentationAndTheOthersAreListedAsIntended()
+    {
+        Assert.All(ChangeCarriers, name => Assert.Contains(name, PresentationNames));
+        Assert.All(NoChanges, name => Assert.Contains(name, PresentationNames));
+        Assert.Equal(PresentationNames.Order(), ChangeCarriers.Concat(NoChanges).Order());
+    }
+
+    [Fact]
+    public void GivenATypedText_WhenEscLeavesTheForm_ThenTheDiscardQuestionNamesWhatWouldBeLost()
+    {
+        var differences = new List<string>();
+        var text = Kinds.Single(static row => row.Kind == FormFieldKind.Text);
+
+        foreach (var presentation in text.Presentations())
+        {
+            var state = Type(Edit(Open(presentation, Field(text.Kind))), "jk");
+
+            for (var step = 0; step < 3 && state.Confirm is null; step++)
+            {
+                state = Press(state, "Esc").State;
+            }
+
+            var asked = state.Confirm?.Message ?? "no question";
+            var expected = $"Discard {DiscardNames[presentation]}? Nothing has been saved";
+
+            if (asked != expected)
+            {
+                differences.Add($"{presentation}: asks '{asked}', expected '{expected}'");
+            }
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenTheCompletedSprintForm_WhenEscIsPressedUntouched_ThenItAsksWhatWouldBeLost()
+    {
+        var state = Edit(Open("sprint-complete", OwnChoice("sprint-complete")));
+
+        for (var step = 0; step < 3 && state.Confirm is null; step++)
+        {
+            state = Press(state, "Esc").State;
+        }
+
+        // The destination is a value the form proposes, so it counts as typed (docs: intended differences).
+        Assert.Equal("Discard the changes to Sprint 5? Nothing has been saved", state.Confirm?.Message);
+    }
+
+    [Fact]
+    public void GivenAOneChoiceForm_WhenItsSecondRowIsClicked_ThenItDoesWhatTheKeysDo()
+    {
+        var differences = new List<string>();
+
+        foreach (var presentation in OneChoice)
+        {
+            var byKey = OwnEnding(presentation, OwnChoiceKeys[presentation]);
+            var byClick = OwnEnding(presentation, "click:1");
+
+            if (byKey != byClick)
+            {
+                differences.Add($"{presentation}: click = {byClick}, key = {byKey}");
+            }
+
+            // The status picker and the sprint move write at once; the completed sprint asks Complete on save.
+            Assert.Equal(presentation != "sprint-complete", byClick.Sent);
+        }
+
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
     // Unsupported is the only read-only kind here; person fields are PersonFieldContractTests.
     [Fact]
     public void GivenAReadOnlyKind_WhenKeysAreTyped_ThenNothingChangesOnAnyPresentation()
@@ -313,6 +576,62 @@ public class FieldBehaviourContractTests
             Assert.Equal(string.Empty, field.Value.Text);
             Assert.Equal(string.Empty, field.Entry);
         }
+    }
+
+    // The ids of the popup rows of the focused field, or "no popup".
+    private static string QuickRows(AppState state)
+    {
+        if (state.Session.Tabs[0].Form?.Suggest is not { } popup)
+        {
+            return NoPopup;
+        }
+
+        return string.Join(',', popup.Items.Select(static item => item.Id));
+    }
+
+    // The field after a script (a click or keys), without a Ctrl-s: its value is the form's or, when the script
+    // wrote at once (a one-field form), the one of the queued request.
+    private Ending Trace(KindRow row, string presentation, string script)
+    {
+        var state = Script(Edit(Open(presentation, Field(row.Kind))), script);
+        var sent = state.Session.Operations.Count > 0;
+        var form = state.Session.Tabs[0].Form;
+
+        if (sent)
+        {
+            return new Ending("closed", Payload(state, row.Kind), true);
+        }
+
+        var field = form!.Fields.First(candidate => candidate.Kind == row.Kind);
+        var phase = form.Navigating ? "navigating" : "editing";
+
+        return new Ending(phase, $"{field.Id}|{row.Kind}|{Describe(field.Value)}", false);
+    }
+
+    // The change of the given kind in the last queued request, as id, kind and value.
+    private static string Payload(AppState state, FormFieldKind kind)
+    {
+        if (state.Session.Operations.Count == 0)
+        {
+            return "nothing queued";
+        }
+
+        var changes = state.Session.Operations[^1].Request switch
+        {
+            EditRequest edit => edit.Changes,
+            CreateRequest create => create.Changes,
+            TransitionRequest transition => transition.Changes,
+            _ => null,
+        };
+
+        if (changes is null)
+        {
+            return "no changes in the request";
+        }
+
+        var change = changes.FirstOrDefault(candidate => candidate.Kind == kind);
+
+        return change is null ? "field missing" : $"{change.FieldId}|{kind}|{Describe(change.Value)}";
     }
 
     // Esc until the form is gone or the discard question is asked; one label per step.
@@ -410,10 +729,39 @@ public class FieldBehaviourContractTests
     {
         foreach (var part in script.Split('|'))
         {
-            state = part.Length > 1 && char.IsUpper(part[0]) ? Press(state, part).State : Type(state, part);
+            state = Step(state, part);
         }
 
         return state;
+    }
+
+    // A click on row n of the open list (the mouse path), a key name or typed text.
+    private AppState Step(AppState state, string part)
+    {
+        if (part.StartsWith("click:", StringComparison.Ordinal))
+        {
+            var index = int.Parse(part["click:".Length..], CultureInfo.InvariantCulture);
+            var clicked = new OverlayRowClicked(MouseTarget.FormChoice, index, string.Empty, _start);
+
+            return _reducer.Reduce(state, clicked).State;
+        }
+
+        if (part.StartsWith("reply:", StringComparison.Ordinal))
+        {
+            return Reply(state, part["reply:".Length..]);
+        }
+
+        return part.Length > 1 && char.IsUpper(part[0]) ? Press(state, part).State : Type(state, part);
+    }
+
+    // The open search answers with one row, written id=Label.
+    private AppState Reply(AppState state, string row)
+    {
+        var parts = row.Split('=');
+        var tab = state.Session.Tabs[0];
+        var item = new Suggestion(parts[0], parts[1], null, false);
+
+        return _reducer.Reduce(state, new SuggestionsLoaded(tab.Id, tab.Form!.Suggest!.RequestId, [item])).State;
     }
 
     private AppState Type(AppState state, string text)
@@ -453,11 +801,60 @@ public class FieldBehaviourContractTests
         return FormField.Create(CompanionId, "Note", FormFieldKind.Text, false, []);
     }
 
+    // The one choice field that a one-choice form builds from its own data.
+    private static FormField OwnChoice(string presentation)
+    {
+        return TargetOf(presentation) switch
+        {
+            TransitionPickTarget pick => pick.Fields()[0],
+            SprintMoveTarget move => move.Field(),
+            CompleteSprintFormTarget complete => complete.Fields()[0],
+            _ => throw new ArgumentOutOfRangeException(nameof(presentation), presentation, null),
+        };
+    }
+
+    private Ending OwnEnding(string presentation, string script)
+    {
+        var state = Script(Edit(Open(presentation, OwnChoice(presentation))), script);
+
+        if (state.Session.Operations.Count > 0)
+        {
+            return new Ending("closed", WrittenChoice(state.Session.Operations[^1].Request), true);
+        }
+
+        var form = state.Session.Tabs[0].Form;
+
+        if (form is null)
+        {
+            return new Ending("closed", $"confirm={state.Confirm is not null}", false);
+        }
+
+        return new Ending(form.Navigating ? "navigating" : "editing", Describe(form.Fields[0].Value), false);
+    }
+
+    private static string WrittenChoice(WriteRequest request)
+    {
+        return request switch
+        {
+            TransitionRequest transition => $"transition {transition.Choice.Id}",
+            SprintMoveRequest move => $"sprint {move.Target?.Id}",
+            _ => request.GetType().Name,
+        };
+    }
+
     private AppState Open(string presentation, FormField field)
     {
         var single = presentation is "dropdown" or "in-place" or "transition-pick" or "sprint-move"
             or "sprint-complete";
         FormField[] fields = single ? [field] : [field, Companion()];
+
+        if (Prepared.Contains(presentation))
+        {
+            var tabbed = Tabbed();
+
+            return FormReducer.OpenReady(tabbed, tabbed.Session.Tabs[0].Id, TargetOf(presentation), fields).State;
+        }
+
         var form = FormState.Opened(TargetOf(presentation), 7, null);
 
         if (presentation == "dropdown")
@@ -493,7 +890,7 @@ public class FieldBehaviourContractTests
             "create" => new CreateFormTarget("A", null, false, type),
             "create-subtask" => new CreateFormTarget("A", "A-1", true, subtask),
             "transition" => new TransitionFormTarget("A-1", Transition()),
-            "transition-pick" => new TransitionPickTarget("A-1", [], null, []),
+            "transition-pick" => new TransitionPickTarget("A-1", [], null, PickChoices()),
             "link" => new LinkFormTarget("A-1"),
             "sprint" => new SprintFormTarget(1, null),
             "sprint-start" => new StartSprintFormTarget(1, sprint, tally),
@@ -501,6 +898,18 @@ public class FieldBehaviourContractTests
             "sprint-move" => new SprintMoveTarget("A-1", [sprint], null, "board"),
             _ => new EditFormTarget("A-1", new Dictionary<string, FormValue>(), false, null),
         };
+    }
+
+    private static TransitionChoice[] PickChoices()
+    {
+        var todo = new IssueStatus("1", "To Do", "new");
+        var started = new IssueStatus("2", "In Progress", "indeterminate");
+
+        return
+        [
+            new TransitionChoice("11", "To Do", todo, false, false, []),
+            new TransitionChoice("21", "In Progress", started, false, false, []),
+        ];
     }
 
     private static TransitionChoice Transition()

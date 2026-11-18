@@ -381,6 +381,65 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Theory]
+    [InlineData("GCS-8", "Story Points")]
+    [InlineData("GTS-8", "Story point estimate")]
+    public async Task GivenAScrumIssue_WhenEditMetaIsRead_ThenTheEstimateFieldIsOfferedBesidesTheOthers(
+        string key,
+        string estimate)
+    {
+        Start(0);
+
+        var meta = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/{key}/editmeta"));
+
+        var names = meta.GetProperty("fields").EnumerateObject()
+            .Select(field => field.Value.GetProperty("name").GetString())
+            .ToList();
+
+        Assert.Contains(estimate, names);
+        Assert.Contains("Labels", names);
+    }
+
+    [Theory]
+    [InlineData("GCM-10", "resolution", "components")]
+    [InlineData("GTM-20", "customfield_10100", "labels")]
+    public async Task GivenTheIssuesWithAScreen_WhenTransitionsAreRead_ThenDoneAsksForFieldsAndTheOthersDoNot(
+        string key,
+        string required,
+        string optional)
+    {
+        Start(0);
+
+        var path = $"{_baseUrl}/rest/api/3/issue/{key}/transitions?expand=transitions.fields";
+        var list = Parse(await _client.GetStringAsync(path));
+        var done = list.GetProperty("transitions").EnumerateArray().Single(
+            transition => transition.GetProperty("name").GetString() == "Done");
+        var fields = done.GetProperty("fields");
+        var plain = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GCM-13/transitions"));
+
+        Assert.True(done.GetProperty("hasScreen").GetBoolean());
+        Assert.True(fields.GetProperty(required).GetProperty("required").GetBoolean());
+        Assert.False(fields.GetProperty(optional).GetProperty("required").GetBoolean());
+        Assert.All(
+            plain.GetProperty("transitions").EnumerateArray(),
+            transition => Assert.Empty(transition.GetProperty("fields").EnumerateObject()));
+    }
+
+    [Fact]
+    public async Task GivenTheDoneTransitionWithFields_WhenPosted_ThenTheIssueMovesToDone()
+    {
+        Start(0);
+        var path = "/rest/api/3/issue/GTM-20/transitions";
+
+        var body = """{"transition":{"id":"41"},"fields":{"customfield_10100":"ok"}}""";
+
+        var done = await Send(HttpMethod.Post, path, body);
+        var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GTM-20"));
+
+        Assert.Equal(HttpStatusCode.NoContent, done.StatusCode);
+        Assert.Equal("Done", issue.GetProperty("fields").GetProperty("status").GetProperty("name").GetString());
+    }
+
+    [Theory]
     [InlineData("components")]
     [InlineData("fixVersions")]
     public async Task GivenAGcmIssue_WhenEditMetaIsRead_ThenComponentAndVersionAllowedValuesAreServed(string field)

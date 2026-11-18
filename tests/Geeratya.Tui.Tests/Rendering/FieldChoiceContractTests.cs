@@ -46,6 +46,8 @@ public class FieldChoiceContractTests
     private static readonly IssueTypeSummary _type = new("10", "Task", 0, false);
     private static readonly string[] _navigableFooter = ["move", "choose", "field", "save", "stop editing"];
     private static readonly string[] _singleFooter = ["move", "choose", "close"];
+    private static readonly string[] _noMatchNavigableFooter = ["field", "save", "clear filter"];
+    private static readonly string[] _noMatchSingleFooter = ["clear filter"];
     private static readonly string[] _none = [];
 
     private readonly AppReducer _reducer = new(_keymap);
@@ -209,6 +211,16 @@ public class FieldChoiceContractTests
             null,
             null),
         new(
+            "priority",
+            "no-match",
+            ["text:zz"],
+            Phase.Editing,
+            Phase.Editing,
+            _none,
+            [],
+            _noMatchNavigableFooter,
+            _noMatchSingleFooter),
+        new(
             "parent",
             "search-result",
             ["text:A", "reply:A-9=A-9 Epic", "Enter"],
@@ -279,6 +291,26 @@ public class FieldChoiceContractTests
             null,
             null),
         new(
+            "labels",
+            "click-a-label-keeps-editing",
+            ["click:0"],
+            Phase.Editing,
+            Phase.Saved,
+            ["frontend"],
+            null,
+            null,
+            null),
+        new(
+            "components",
+            "click-a-value-keeps-editing",
+            ["click:0"],
+            Phase.Editing,
+            Phase.Saved,
+            ["a"],
+            null,
+            null,
+            null),
+        new(
             "components",
             "take-a-value-keeps-editing",
             ["Down", "Enter"],
@@ -313,7 +345,9 @@ public class FieldChoiceContractTests
         var outcome = Run(presentation, row);
 
         Assert.Equal(navigable ? row.AfterNavigable : row.AfterSingle, outcome.Phase);
-        Assert.Equal(string.Empty, outcome.Entry);
+
+        // The typed filter stays while nothing matches it; every other script ends with an empty one.
+        Assert.Equal(row.Scenario == "no-match" ? "zz" : string.Empty, outcome.Entry);
 
         if (outcome.Phase != Phase.Closed)
         {
@@ -328,7 +362,12 @@ public class FieldChoiceContractTests
         if (row.FooterNavigable is not null)
         {
             Assert.Equal(navigable ? row.FooterNavigable : row.FooterSingle, outcome.Footer);
-            Assert.Contains("Enter choose", outcome.DrawnFooter, StringComparison.Ordinal);
+
+            // A filter that matches nothing leaves no row to choose: the status line says so by leaving Enter out.
+            var hasRows = outcome.PopupRowIds.Length > 0;
+
+            Assert.Equal(hasRows, outcome.DrawnFooter.Contains("Enter choose", StringComparison.Ordinal));
+            Assert.Contains("Esc ", outcome.DrawnFooter, StringComparison.Ordinal);
         }
     }
 

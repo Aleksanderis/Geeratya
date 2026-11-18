@@ -52,6 +52,11 @@ public sealed partial class FakeJiraRouter
     private const string TeamManagedPrefix = "GTM-";
     private const string EditMetaGcmFixture = "metadata/editmeta-gcm-26.json";
     private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
+    private const string EditMetaGcsFixture = "metadata/synthetic-editmeta-gcs-story.json";
+    private const string EditMetaGtsFixture = "metadata/synthetic-editmeta-gts-task.json";
+    private const string SummaryFieldId = "summary";
+    private const string CompanyScrumPrefix = "GCS-";
+    private const string TeamScrumPrefix = "GTS-";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;
 
@@ -420,10 +425,7 @@ public sealed partial class FakeJiraRouter
 
         if (parts[1] == EditMetaPart)
         {
-            var isTeamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal);
-            var fixtureName = isTeamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
-
-            return new FakeReply(200, ReadFixture(fixtureName));
+            return new FakeReply(200, EditMetaOf(key));
         }
 
         if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || IsListedIssue(key) || _writes.Knows(key)))
@@ -460,6 +462,44 @@ public sealed partial class FakeJiraRouter
         }
 
         return new FakeReply(200, Encoding.UTF8.GetBytes(matches.ToJsonString()));
+    }
+
+    /// <summary>
+    /// The edit metadata of a key's project kind (the recorded GCM or GTM list). The Scrum projects (<c>GCS</c>,
+    /// <c>GTS</c>) add the story point field that the Estimate form edits, taken from the synthetic Scrum fixtures,
+    /// so the other fields stay editable there.
+    /// </summary>
+    private byte[] EditMetaOf(string key)
+    {
+        var teamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal)
+            || key.StartsWith(TeamScrumPrefix, StringComparison.Ordinal);
+        var baseFixture = teamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
+        var scrumFixture = ScrumEditMetaFixture(key);
+
+        if (scrumFixture is null || JsonNode.Parse(ReadFixture(baseFixture)) is not { } meta
+            || meta["fields"] is not JsonObject fields)
+        {
+            return ReadFixture(baseFixture);
+        }
+
+        var estimate = JsonNode.Parse(ReadFixture(scrumFixture))?["fields"] as JsonObject ?? [];
+
+        foreach (var (id, field) in estimate.Where(pair => pair.Key != SummaryFieldId))
+        {
+            fields[id] = field?.DeepClone();
+        }
+
+        return Encoding.UTF8.GetBytes(meta.ToJsonString());
+    }
+
+    private static string? ScrumEditMetaFixture(string key)
+    {
+        if (key.StartsWith(CompanyScrumPrefix, StringComparison.Ordinal))
+        {
+            return EditMetaGcsFixture;
+        }
+
+        return key.StartsWith(TeamScrumPrefix, StringComparison.Ordinal) ? EditMetaGtsFixture : null;
     }
 
     /// <summary>True for an issue that a board or backlog list serves, so it can be ranked.</summary>

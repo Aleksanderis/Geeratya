@@ -15,6 +15,12 @@ public abstract record FormTarget
     /// <summary>The issue the form is about, or null for a form with no issue yet (create).</summary>
     public abstract string? IssueKey { get; }
 
+    /// <summary>
+    /// What the discard question says would be lost: <c>the changes to GCM-3</c> for a form about an issue, <c>the
+    /// changes</c> for one with nothing to name (a target that has a name of its own overrides this).
+    /// </summary>
+    public virtual string DiscardSubject => IssueKey is { } key ? $"the changes to {key}" : "the changes";
+
     /// <summary>The project a person field searches in while the issue does not exist yet (create); else null.</summary>
     public virtual string? SearchProjectKey => null;
 

@@ -66,6 +66,13 @@ public sealed partial class FakeJiraWriteStore
     private const string GtmTransitionsFixture = "transitions/transitions-gtm-5.json";
     private const string GcmTransitionsFixture = "transitions/transitions-gcm-1.json";
     private const string GcmPrefix = "GCM-";
+    private const string GcmFieldedTransitionsFixture = "transitions/transitions-gcm-5-resolution-components.json";
+    private const string GtmFieldedTransitionsFixture = "transitions/synthetic-transitions-gtm-with-fields.json";
+
+    // The two issues whose Done transition asks for fields on a screen (company-managed: Resolution and Components,
+    // recorded; team-managed: a required text and Labels, synthetic), for the form contract smoke (#1024).
+    private const string GcmFieldedKey = "GCM-10";
+    private const string GtmFieldedKey = "GTM-20";
 
     private const string PriorityName = "priority";
     private const string ReporterName = "reporter";
@@ -723,8 +730,15 @@ public sealed partial class FakeJiraWriteStore
 
     private FakeReply Reply(int status, string fixture) => new(status, _readFixture(fixture));
 
-    private static string TransitionsFixtureOf(string key) =>
-        key.StartsWith(GcmPrefix, StringComparison.Ordinal) ? GcmTransitionsFixture : GtmTransitionsFixture;
+    private static string TransitionsFixtureOf(string key)
+    {
+        return key switch
+        {
+            GcmFieldedKey => GcmFieldedTransitionsFixture,
+            GtmFieldedKey => GtmFieldedTransitionsFixture,
+            _ => key.StartsWith(GcmPrefix, StringComparison.Ordinal) ? GcmTransitionsFixture : GtmTransitionsFixture,
+        };
+    }
 
     private JsonNode? StatusAfter(string key, string transitionId)
     {

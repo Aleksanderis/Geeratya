@@ -20,6 +20,8 @@ public sealed record CompleteSprintFormTarget(long BoardId, Sprint Sprint, Sprin
 
     public override string? IssueKey => null;
 
+    public override string DiscardSubject => $"the changes to {Sprint.Name}";
+
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
         var chosen = changes.FirstOrDefault(change => change.FieldId == DestinationId)?.Value.Chosen;

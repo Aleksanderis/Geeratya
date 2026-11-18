@@ -62,10 +62,13 @@ public static partial class FormReducer
     }
 
     /// <summary>
-    /// Opens a form whose fields the caller already knows (the sprint form): nothing is fetched and the first
-    /// editable field has the focus.
+    /// Opens a form whose fields the caller already knows (the sprint forms): nothing is fetched and the first
+    /// editable field has the focus. It ends as a loaded form does (<c>Loaded</c>): the quick rows are listed and a
+    /// choice field shows its popup at once, so a one-choice form opens the same from either route. Public because
+    /// the contract tests of the form presentations open the sprint forms through it (Core has no
+    /// <c>InternalsVisibleTo</c>).
     /// </summary>
-    internal static ReduceResult OpenReady(
+    public static ReduceResult OpenReady(
         AppState state,
         TabId tabId,
         FormTarget target,
@@ -81,15 +84,17 @@ public static partial class FormReducer
         var requestId = state.Sequence + 1;
         var opened = FormState.Opened(target, requestId, BrowserUrl(state, target));
         var form = opened with { Fields = fields, IsLoading = false, Navigable = FormShell.IsNavigable(fields) };
-        var next = ViewReducer.Replace(state, tab with { Form = form with { Focus = Step(form, 0) } }) with
+        var focused = form with { Focus = Step(form, 0) };
+        var next = state with
         {
             Mode = InputMode.Insert,
             Sequence = requestId,
             Message = null,
             PendingKeys = string.Empty,
         };
+        var shown = ViewReducer.Replace(next, tab with { Form = WithQuickRows(next, focused) });
 
-        return Result(next);
+        return Choosing(Result(shown), tabId);
     }
 
     // The assignee is a person field like any other: typing opens the suggestion popup, which searches the people who

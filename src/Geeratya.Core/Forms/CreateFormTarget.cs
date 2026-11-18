@@ -50,6 +50,8 @@ public sealed record CreateFormTarget(
 
     public override string? IssueKey => null;
 
+    public override string DiscardSubject => "the new issue";
+
     public override string SearchProjectKey => ProjectKey;
 
     public override string ParentProjectKey => ProjectKey;
