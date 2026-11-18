@@ -127,7 +127,7 @@ public static class ContextMenuOverlay
     private static StyledLine RowLine(string title, string keys, bool selected, int width)
     {
         var marker = " ";
-        var keyText = TextWidth.Fit(keys, Math.Max(0, width / 2));
+        var keyText = DisplayText.Cut(keys, Math.Max(0, width / 2));
         var gap = keyText.Length == 0 ? string.Empty : new string(' ', KeyGap);
         var room = Math.Max(0, width - 2 - TextWidth.Of(keyText) - gap.Length);
         var text = TextWidth.PadCut(title, room);

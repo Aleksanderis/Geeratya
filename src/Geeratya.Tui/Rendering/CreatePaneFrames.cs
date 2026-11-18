@@ -45,7 +45,7 @@ internal sealed class CreatePaneFrames
             var bleed = shown is { Bleed: true };
             var rowWidth = bleed ? width - 2 : contentWidth;
 
-            content.Add(StyledLines.Fit(shown?.Line ?? StyledLine.Empty, rowWidth));
+            content.Add(StyledLines.FitMarked(shown?.Line ?? StyledLine.Empty, rowWidth));
 
             if (bleed)
             {
@@ -60,7 +60,7 @@ internal sealed class CreatePaneFrames
 
         if (pinned > 0)
         {
-            content.Add(StyledLines.Fit(spec.Pinned!, contentWidth));
+            content.Add(StyledLines.FitMarked(spec.Pinned!, contentWidth));
             _regions.Add(new OverlayRegion(MouseTarget.FormMoreFields, top + 1 + room, left + 1, width - 2, 1, 0));
         }
 
@@ -83,7 +83,7 @@ internal sealed class CreatePaneFrames
             }
         }
 
-        return [.. lines.Select((line, index) => Styled(line, index, spec.Focused, cells))];
+        return FieldBox.Restyle([.. lines.Select((line, index) => Scrolled(line, index, cells))], spec.Focused);
     }
 
     // An open picker box runs from edge to edge of the pane, as it does under a Details field of the issue view.
@@ -94,30 +94,14 @@ internal sealed class CreatePaneFrames
         return new StyledLine([edge, .. box.Spans, edge]);
     }
 
-    private StyledLine Styled(StyledLine line, int index, bool focused, IReadOnlyList<ScrollCell> cells)
+    private StyledLine Scrolled(StyledLine line, int index, IReadOnlyList<ScrollCell> cells)
     {
-        var spans = line.Spans.ToList();
-
-        if (index == 0)
+        if (index == 0 || index - 1 >= cells.Count || line.Spans.Count <= 1)
         {
-            spans = IssueDetailRenderer.Chips(spans, focused);
-        }
-        else if (index - 1 < cells.Count && spans.Count > 1)
-        {
-            spans = Scrollbar(spans, cells[index - 1]);
+            return line;
         }
 
-        if (focused)
-        {
-            spans = [.. spans.Select(FocusBorder)];
-        }
-
-        return new StyledLine(spans);
-    }
-
-    private static StyledSpan FocusBorder(StyledSpan span)
-    {
-        return span.Role == TextRole.Border ? IssueDetailRenderer.FocusBorder(span) : span;
+        return new StyledLine(Scrollbar([.. line.Spans], cells[index - 1]));
     }
 
     // The right padding cell of a content row becomes the scrollbar cell of its row.

@@ -60,11 +60,13 @@ public class SharedLookTests
     }
 
     [Fact]
-    public void GivenTheFocusedBoxedField_WhenBuildingTheFrame_ThenItsLabelCarriesTheFocusMark()
+    public void GivenTheFocusedBoxedField_WhenBuildingTheFrame_ThenOnlyItsBoxHasTheFocusBorderAndAFilledLabel()
     {
-        var lines = FrameBuilder.Build(FormOverlaySnapshotTests.Sample(), 120, 36, _keymap);
+        var body = FrameBuilder.BuildStyled(FormOverlaySnapshotTests.Sample(), 120, 36, _keymap)!.Body;
 
-        Assert.Single(lines, line => line.Contains("┌─ > ", StringComparison.Ordinal));
+        Assert.Single(body, static line => line.PlainText.Contains("╭─ Labels", StringComparison.Ordinal)
+            && line.Spans.Any(static span => span.Role == TextRole.FrameFocus && span.Text.StartsWith("╭─", StringComparison.Ordinal)));
+        Assert.Single(body, static line => line.Spans.Any(static span => span.Role == TextRole.ChipFocus && span.Text.Contains("Labels", StringComparison.Ordinal)));
     }
 
     [Theory]

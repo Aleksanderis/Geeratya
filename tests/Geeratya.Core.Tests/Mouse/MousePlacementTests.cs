@@ -129,7 +129,7 @@ public class MousePlacementTests
 
         var actions = result.ContextMenu!.Items.Select(item => item.Action).ToArray();
 
-        Assert.Contains(ActionIds.IssueTransitionPrevious, actions);
+        Assert.DoesNotContain(ActionIds.IssueTransitionPrevious, actions);
         Assert.DoesNotContain(ActionIds.RankUp, actions);
         Assert.DoesNotContain(ActionIds.CommentDelete, actions);
     }

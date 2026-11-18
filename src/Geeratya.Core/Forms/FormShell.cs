@@ -18,11 +18,12 @@ public static class FormShell
     /// <summary>The status line after the discard question was answered yes.</summary>
     public const string DiscardedText = "Discarded the changes";
 
-    /// <summary>The state note of a navigable form that moves between fields.</summary>
+    /// <summary>
+    /// The state note of a navigable form that moves between fields, shown in the status line only (the mode badge
+    /// says the rest); no field label or box title carries a state (owner decision 2026-11-18, #1034).
+    /// </summary>
     public const string NavigateNote = "[navigate]";
 
-    /// <summary>The state note of a navigable form while its focused field is edited.</summary>
-    public const string EditingNote = "[editing]";
 
     /// <summary>
     /// A form with more than one editable field has the navigate state besides editing (decision 11): <c>j</c>,
@@ -41,20 +42,6 @@ public static class FormShell
     public static bool HasOneField(FormState form)
     {
         return form.Fields.Count(static field => field.IsEditable) == 1;
-    }
-
-    /// <summary>
-    /// The note that says which state the focused field of a navigable form is in (<see cref="NavigateNote"/> or
-    /// <see cref="EditingNote"/>), null for a form that only edits.
-    /// </summary>
-    public static string? StateNote(FormState form)
-    {
-        if (!form.Navigable)
-        {
-            return null;
-        }
-
-        return form.Navigating ? NavigateNote : EditingNote;
     }
 
     /// <summary>The discard question of a form with changes, naming what would be lost.</summary>

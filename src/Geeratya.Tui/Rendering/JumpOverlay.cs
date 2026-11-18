@@ -24,6 +24,7 @@ public static class JumpOverlay
     private const int MinimumBoxHeight = 4;
     private const int FooterHeight = 2;
     private const int FooterMinimumInner = 8;
+    private const int QueryRows = 2;
     private const int KeyColumn = 12;
     private const int TopGap = 2;
     private const int MaxBoxHeight = 18;
@@ -48,7 +49,7 @@ public static class JumpOverlay
         var rows = JumpRows.For(state, jump);
         var selected = Math.Max(0, jump.Pick.Index(rows.Count));
         var lines = RowLines(rows, selected, boxWidth - 4);
-        var inner = Math.Min(Math.Min(height, MaxBoxHeight), lines.Count + 1 + FooterHeight + 2) - 2;
+        var inner = Math.Min(Math.Min(height, MaxBoxHeight), lines.Count + QueryRows + FooterHeight + 2) - 2;
         var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
         var box = BoxLines(jump, lines, selected, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
@@ -57,12 +58,12 @@ public static class JumpOverlay
 
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
-        var area = Math.Max(0, inner - 1 - footer);
+        var area = Math.Max(0, inner - QueryRows - footer);
         var window = PickList.WindowAt(selected, rows.Count, area);
 
         if (rows.Count > 0)
         {
-            PickListRenderer.Mark(regions, MouseTarget.JumpRow, new BoxPlace(top, left, boxWidth), 2, window);
+            PickListRenderer.Mark(regions, MouseTarget.JumpRow, new BoxPlace(top, left, boxWidth), 1 + QueryRows, window);
         }
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
@@ -83,11 +84,12 @@ public static class JumpOverlay
         int footer)
     {
         var contentWidth = boxWidth - 2;
-        var area = Math.Max(0, inner - 1 - footer);
+        var area = Math.Max(0, inner - QueryRows - footer);
         var lines = new List<StyledLine>
         {
             OverlayBox.Top(boxWidth, Title),
             OverlayBox.Wall(Prompt(jump, contentWidth), contentWidth),
+            OverlayBox.Divider(boxWidth),
         };
 
         lines.AddRange(PickListRenderer.Walls(rows, PickList.WindowAt(selected, rows.Count, area), area, contentWidth));

@@ -10,7 +10,6 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 internal static class CreateFieldBlocks
 {
-    private const string RequiredMark = " *";
     private const string FromSelection = "from selection";
     private const int Lead = 1;
     private const int DropdownCells = 2;
@@ -22,9 +21,8 @@ internal static class CreateFieldBlocks
         var focused = index == form.Focus && !form.IsSaving;
         var editing = focused && !form.Navigating;
         var room = Math.Max(1, width - Lead - DropdownCells);
-        var label = field.Required ? $"{field.Label}{RequiredMark}" : field.Label;
 
-        return new FieldBlockSpec(label, Items(field, editing, room), Dropdown(field), Note(form, field, focused));
+        return new FieldBlockSpec(FieldLabels.Of(field), Items(field, editing, room), Dropdown(field), Note(form, field));
     }
 
     /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown.</summary>
@@ -33,13 +31,8 @@ internal static class CreateFieldBlocks
         return FormFieldKinds.HasPopup(field.Kind);
     }
 
-    private static string? Note(FormState form, FormField field, bool focused)
+    private static string? Note(FormState form, FormField field)
     {
-        if (focused && FormShell.StateNote(form) is { } state)
-        {
-            return state;
-        }
-
         var fromSelection = field.Id == FormFieldIds.Parent && form.Target is CreateFormTarget { ParentKey: { } parent }
             && field.Value.Chosen is [var chosen] && chosen == parent;
 

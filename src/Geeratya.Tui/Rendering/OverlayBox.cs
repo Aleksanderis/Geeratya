@@ -35,7 +35,7 @@ public static class OverlayBox
     public static StyledLine Top(int boxWidth, string title, OverlayKind kind = OverlayKind.Normal)
     {
         var frame = FrameRole(kind);
-        var chip = TextWidth.Fit($" {title} ", Math.Max(0, boxWidth - ChipChrome));
+        var chip = ChipText(title, Math.Max(0, boxWidth - ChipChrome));
         var fill = Math.Max(0, boxWidth - ChipChrome - TextWidth.Of(chip));
 
         return new StyledLine(
@@ -61,7 +61,7 @@ public static class OverlayBox
     public static StyledLine Top(int boxWidth, string title, string count, OverlayKind kind = OverlayKind.Normal)
     {
         var frame = FrameRole(kind);
-        var chip = TextWidth.Fit($" {title} ", Math.Max(0, boxWidth - ChipChrome));
+        var chip = ChipText(title, Math.Max(0, boxWidth - ChipChrome));
         var tag = $" {count} ";
         var fill = boxWidth - ChipChrome - TextWidth.Of(chip) - TextWidth.Of(tag) - 1;
 
@@ -134,7 +134,7 @@ public static class OverlayBox
         var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
 
         spans.AddRange(StyledLines.FitMarked(content, contentWidth - 2).Spans);
-        spans.Add(new StyledSpan(marker, TextRole.Muted));
+        spans.Add(new StyledSpan(marker, marker == " " ? TextRole.Body : TextRole.Muted));
         spans.Add(new StyledSpan(Vertical, frame));
 
         return new StyledLine(spans);
@@ -243,6 +243,12 @@ public static class OverlayBox
 
             row++;
         }
+    }
+
+    // The title as a chip, a space each side; a title that does not fit ends in the cut glyph.
+    private static string ChipText(string title, int room)
+    {
+        return room < 3 ? TextWidth.Fit($" {title} ", room) : $" {DisplayText.Cut(title, room - 2)} ";
     }
 
     private static StyledLine Grounded(StyledLine line, SpanGround ground)

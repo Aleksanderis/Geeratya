@@ -73,11 +73,11 @@ public static class FieldBlock
 
             if (current.Count > 0)
             {
-                current.Add(new StyledSpan(" ", TextRole.ValueBlock));
+                current.Add(OnBlock(new StyledSpan(" ", TextRole.ValueBlock)));
                 used++;
             }
 
-            current.AddRange(fitted);
+            current.AddRange(fitted.Select(OnBlock));
             used += size;
         }
 
@@ -100,12 +100,16 @@ public static class FieldBlock
         {
             if (!barred && span is { Role: TextRole.ValueBlock, Text: Lead })
             {
-                spans.Add(new StyledSpan(ascii ? ">" : Bar, TextRole.SelectionBar));
+                spans.Add(new StyledSpan(ascii ? ">" : Bar, TextRole.SelectionBar, SpanGround.ValueFocus));
                 barred = true;
             }
             else
             {
-                spans.Add(span.Role == TextRole.ValueBlock ? span with { Role = TextRole.Selected } : span);
+                var focused = span.Ground.HasFlag(SpanGround.Value)
+                    ? span with { Ground = (span.Ground & ~SpanGround.Value) | SpanGround.ValueFocus }
+                    : span;
+
+                spans.Add(focused.Role == TextRole.ValueBlock ? focused with { Role = TextRole.Selected } : focused);
             }
         }
 
@@ -126,9 +130,15 @@ public static class FieldBlock
         return new StyledLine(spans);
     }
 
+    // A span of the value sits on the block's fill: a role on the page takes the tint (see SpanGround.Value).
+    private static StyledSpan OnBlock(StyledSpan span)
+    {
+        return span with { Ground = span.Ground | SpanGround.Value };
+    }
+
     private static StyledLine ValueRow(List<StyledSpan> items, int columns, bool dropdown)
     {
-        var spans = new List<StyledSpan>(items.Count + 3) { new(Lead, TextRole.ValueBlock) };
+        var spans = new List<StyledSpan>(items.Count + 3) { OnBlock(new StyledSpan(Lead, TextRole.ValueBlock)) };
 
         spans.AddRange(items);
 
@@ -136,11 +146,11 @@ public static class FieldBlock
 
         if (dropdown)
         {
-            spans.Add(new StyledSpan($" {Dropdown}", TextRole.ValueBlock));
+            spans.Add(OnBlock(new StyledSpan($" {Dropdown}", TextRole.ValueBlock)));
             used += DropdownCells;
         }
 
-        spans.Add(new StyledSpan(new string(' ', Math.Max(0, columns - used)), TextRole.ValueBlock));
+        spans.Add(OnBlock(new StyledSpan(new string(' ', Math.Max(0, columns - used)), TextRole.ValueBlock)));
 
         return new StyledLine(spans);
     }

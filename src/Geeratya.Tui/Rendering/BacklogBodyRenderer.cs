@@ -3,6 +3,7 @@ using Geeratya.Core.Backlog;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -109,7 +110,15 @@ public sealed class BacklogBodyRenderer : IBodyRenderer
 
         var chips = ListBodyRenderer.ChipsOf(tab, note, glyphs);
 
-        return PaneFrame.Build(width, height, chips.Left, chips.Right, lines, dividers, focusLine);
+        return PaneFrame.Build(
+            width,
+            height,
+            chips.Left,
+            chips.Right,
+            lines,
+            dividers,
+            focusLine,
+            new PaneScroll(first, layout.LineCount, area));
     }
 
     private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner)

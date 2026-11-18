@@ -63,7 +63,9 @@ public static class PickListRenderer
         {
             var text = DisplayText.Cut(SuggestionText.Row(popup.Items[index]), width);
 
-            rows.Add(new PickRow(Row(text, index == highlighted, margin), index));
+            var marker = OverlayBox.ScrollMarker(rows.Count, PopupRows, window.First, popup.Items.Count);
+
+            rows.Add(new PickRow(Row(text, index == highlighted, margin), index, marker));
         }
 
         if (Notice(popup.Pick, popup.Items.Count, emptyListsAll && popup.Query.Length == 0) is { } notice)

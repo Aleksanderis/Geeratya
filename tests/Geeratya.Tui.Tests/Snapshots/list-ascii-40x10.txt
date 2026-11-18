@@ -3,6 +3,6 @@
 |  GCM-12 T Fix login redirect after. ~|
 |  GCM-14 B Crash when the board has. .|
 |  GCM-15 S As a user I can filter b. .|
-|  GCM-17 E Reporting overhaul with . ~|
+|  GCM-17 E Reporting overhaul with . ~v
 +--------------------------------------+
 [NORMAL] loading - GCM-15 To Do         

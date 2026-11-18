@@ -2,6 +2,7 @@ using Geeratya.Core.Detail;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Panes;
 using Geeratya.Core.Selection;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -69,7 +70,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
         {
             AddBodyMessage(lines, tab, context, glyphs);
 
-            return Framed(tab, note, glyphs, width, height, lines);
+            return Framed(tab, note, glyphs, width, height, lines, new PaneScroll(0, 0, area));
         }
 
         var first = FirstRow(tab);
@@ -93,7 +94,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
             lines.Add(footer!);
         }
 
-        return Framed(tab, note, glyphs, width, height, lines);
+        return Framed(tab, note, glyphs, width, height, lines, new PaneScroll(first, tab.Rows.Count, area));
     }
 
     /// <summary>The title chips of a one-pane frame: the source on the left, count, options and note on the right.</summary>
@@ -121,11 +122,12 @@ public sealed class ListBodyRenderer : IBodyRenderer
         Glyphs glyphs,
         int width,
         int height,
-        List<StyledLine> content)
+        List<StyledLine> content,
+        PaneScroll scroll)
     {
         var chips = ChipsOf(tab, note, glyphs);
 
-        return PaneFrame.Build(width, height, chips.Left, chips.Right, content, []);
+        return PaneFrame.Build(width, height, chips.Left, chips.Right, content, [], -1, scroll);
     }
 
     private static Dictionary<int, FlashLabel> FlashLabelsOf(AppState state, TabState tab, int inner, int area)

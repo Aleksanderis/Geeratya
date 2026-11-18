@@ -323,6 +323,18 @@ Verdict column: **bug** = register and fix; **intended** = deliberate, with the 
 - **V3**: the row menu marker is drawn only over blank cells (`ux-mouse.md`, `RowMenuButton`).
 - Contract test: `ValueDisplayContractTests` draws each value kind on the list, backlog, board, Details (with sub-task rows) and the form box with the real `FrameBuilder` and compares spans and roles; it also compares each selected row with and without the marker cell by cell at three sizes.
 
+### Field boxes and list overlays, fixed in #1034 (F1 to F3, L1, L2, L6, P1)
+
+- **F1** The sprint, link, edit, transition and assign forms drew square `┌` boxes with a `> ` focus mark and `[navigate]` in the title; the create form drew rounded boxes with a focus border. Every field box is now `FieldBox` (the rounded frame of the detail panes), focus is the focus border and a filled label chip.
+- **F2, P1** The state note (`[editing]`, `[navigate]`) is no longer part of any label or title, so it cannot cut a long label, and the create form and the issue view dropdown agree (neither shows it). The state stays in the status line (`[navigate]`) and the mode badge.
+- **F3** One required mark: ` *` after the label (`FieldLabels`), including the create Summary box (`Create · GCM · Story *`) and the sprint form (`Name *`).
+- **Value fill** In the create form and in the issue view a value in a field block (`None`, `Unassigned`, a status dot, a priority glyph) left a darker gap before `▾` because its role sits on the page colour. `SpanGround.Value` and `ValueFocus` give those roles the block's fill (a person chip keeps its own).
+- **L1** `▲`/`▼` markers: the popup of a field (5 rows) and the comment editor popup now show them (`PickRow.Marker`), and the list and backlog frames show them in the right border cell (`PaneFrame.Build`, `PaneScroll`). The actions menu, tab list, palette, picker and Jump already had them; the actions menu in the audit capture showed all its rows, so it was never cut at that size. The board columns keep their own scroll and were not changed.
+- **L2** The palette, Jump, source picker, sprint pickers and tab list share one header: input line, rule, and a `shown/all` count in the top edge (the palette, source picker, sprint pickers and tab list; Jump searches Jira, so it has no total). The actions menu has no input line (nothing to filter).
+- **L6** The actions menu lists each group once (the yank rows moved after the issue rows) and offers `Move the card to the previous column` only on the columns layout.
+- **V2 remainder** The field box label and row, the create pane rows, the box title chip and the key text of menu and palette rows end in `…` when cut (`FieldBox`, `StyledLines.FitMarked`, `OverlayBox.Top`, `DisplayText.Cut`).
+- Contract tests: `FieldBoxContractTests` (box frame cell for cell in the create form, the sub-task form and the box forms, focused and not; required mark; no state note; value row on the block fill in two colour tiers), `ScrollMarkerContractTests` (marker below and above in the list, actions menu, tab list, palette and popup; none when the list fits; one heading per menu group; the input line header). All of them fail on the code before the change.
+
 ### Not covered
 
 - Loading and failed states of the popups and pickers beyond the one `lookup failed` frame: the fake answers at once, so they need `--latency-ms` or a failing endpoint.

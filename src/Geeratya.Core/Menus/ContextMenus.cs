@@ -16,13 +16,11 @@ namespace Geeratya.Core.Menus;
 /// </summary>
 public static class ContextMenus
 {
+    // Actions of one group (the prefix of the action id) stay together, so the menu shows each heading once.
     private static readonly string[] _issueActions =
     [
         ActionIds.IssueOpenInBrowser,
         ActionIds.IssueOpenParent,
-        ActionIds.YankKey,
-        ActionIds.YankLink,
-        ActionIds.YankSummary,
         ActionIds.IssueEdit,
         ActionIds.IssueAssignMe,
         ActionIds.IssueTransitionPrevious,
@@ -30,6 +28,9 @@ public static class ContextMenus
         ActionIds.IssueLink,
         ActionIds.IssueUnlink,
         ActionIds.IssueDelete,
+        ActionIds.YankKey,
+        ActionIds.YankLink,
+        ActionIds.YankSummary,
     ];
 
     private static readonly string[] _rankActions =
@@ -61,6 +62,13 @@ public static class ContextMenus
         if (parent is null)
         {
             actions.Remove(ActionIds.IssueOpenParent);
+        }
+
+        // Only a card of the columns layout has a column to move to (the action's scope): a list row or an issue opened
+        // from a list has none.
+        if (tab.Definition.Layout != ViewLayout.Columns)
+        {
+            actions.Remove(ActionIds.IssueTransitionPrevious);
         }
 
         if (tab.Detail.Count > 0)
