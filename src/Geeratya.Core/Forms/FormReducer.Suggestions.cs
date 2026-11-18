@@ -32,6 +32,8 @@ public static partial class FormReducer
             ActionIds.Cancel when popup.Query.Length == 0 => null,
             ActionIds.Cancel when FormFieldKinds.IsChoice(form.Fields[form.Focus].Kind)
                 => Result(ClearedFilter(state, tab, form)),
+            ActionIds.Cancel when FormFieldKinds.IsPicked(form.Fields[form.Focus].Kind)
+                => Result(ClearedFilter(state, tab, form), tab.Id),
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
             ActionIds.PickerPrevious => Moved(state, tab, form, popup, -1),
@@ -43,8 +45,9 @@ public static partial class FormReducer
         };
     }
 
-    // A person, issue or label stays in its field after it is taken (Enter on the empty buffer then moves on); a
-    // single choice is done once taken, so Enter or Tab go on to the next field (Enter saves from the last one).
+    // A label stays in its field after it is taken (Enter on the empty buffer then moves on). A single choice, a
+    // person and a parent are done once taken (FormFieldKinds.TakesOneValue): Enter leaves editing for the navigate
+    // state (or saves a form of one field), Tab goes on to the next field. One rule for every kind and presentation.
     private static ReduceResult Accepting(
         AppState state,
         TabState tab,
@@ -56,7 +59,7 @@ public static partial class FormReducer
         var taken = Accepted(form, picked);
 
         // A form of one field (a Details dropdown, the labels or assign form) saves as soon as Enter takes a row.
-        if (form.Fields[form.Focus].Kind != FormFieldKind.Select && !(enter && FormShell.HasOneField(form)))
+        if (!FormFieldKinds.TakesOneValue(form.Fields[form.Focus].Kind) && !(enter && FormShell.HasOneField(form)))
         {
             return Result(Replace(state, tab, taken), tab.Id);
         }
@@ -69,12 +72,14 @@ public static partial class FormReducer
         return Result(Replace(state, tab, taken with { Focus = Step(taken, 1) }));
     }
 
-    // Esc in a choice field drops the typed filter; the list of its values stays.
+    // Esc in a choice or person field drops the typed filter (decision 10); the list of its values or its quick rows
+    // come back, and a running search stops.
     private static AppState ClearedFilter(AppState state, TabState tab, FormState form)
     {
         var field = form.Fields[form.Focus] with { Entry = string.Empty, Back = 0 };
+        var cleared = form with { Fields = WithField(form.Fields, form.Focus, field) };
 
-        return Replace(state, tab, form with { Fields = WithField(form.Fields, form.Focus, field) });
+        return Replace(state, tab, FormFieldKinds.IsPicked(field.Kind) ? cleared with { Suggest = null } : cleared);
     }
 
     // A choice field always shows its popup while it has the focus; any other field leaves a stale one to Edited.

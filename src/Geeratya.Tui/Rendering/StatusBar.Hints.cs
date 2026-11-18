@@ -173,8 +173,8 @@ public static partial class StatusBar
     /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
     public static IReadOnlyList<StatusHint> DropdownHints { get; } =
     [
-        new(InputMode.Insert, ActionIds.PickerPrevious, "choose", HintScope.Global, ActionIds.PickerNext),
-        new(InputMode.Insert, ActionIds.FormNext, "accept"),
+        new(InputMode.Insert, ActionIds.PickerPrevious, HintLabels.Move, HintScope.Global, ActionIds.PickerNext),
+        new(InputMode.Insert, ActionIds.FormNext, HintLabels.Choose),
         new(InputMode.Insert, ActionIds.Cancel, "close"),
     ];
 
@@ -253,6 +253,12 @@ public static partial class StatusBar
         if (FormReducer.IsOpen(state) && state.Mode != InputMode.Confirm)
         {
             var form = FormReducer.OpenForm(state)!;
+
+            // An open popup with rows has one footer in every presentation (FormFooter, #1021).
+            if (FormFooter.PopupChips(form, keymap) is { } popup)
+            {
+                return new HintList([], [.. popup.OfType<HintChip>()]);
+            }
 
             var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
 

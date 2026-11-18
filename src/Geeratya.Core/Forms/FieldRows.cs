@@ -19,6 +19,31 @@ public static class FieldRows
     private const string CommaGap = ", ";
     private const string SpaceGap = " ";
 
+    /// <summary>The muted row under an edited person, parent or labels field while no list is open for it.</summary>
+    public const string TypeToSearchText = "Type to search";
+
+    /// <summary>
+    /// Whether the focused field of <paramref name="form"/> is a searched field (person, parent, labels) that is being
+    /// edited with no list open for it: every presentation then shows <see cref="TypeToSearchText"/> under it, so an
+    /// empty person field never looks different in the create panes, the box and the Details dropdown (#1021).
+    /// </summary>
+    public static bool ShowsSearchHint(FormState form)
+    {
+        if (form.Focus >= form.Fields.Count || form.Navigating || form.IsSaving)
+        {
+            return false;
+        }
+
+        var field = form.Fields[form.Focus];
+
+        if (!field.IsEditable || !FormFieldKinds.TakesEntry(field.Kind))
+        {
+            return false;
+        }
+
+        return form.Suggest is null || form.Suggest.FieldIndex != form.Focus;
+    }
+
     /// <summary>The value rows of <paramref name="field"/> as <paramref name="look"/> says (at least one row).</summary>
     public static List<StyledLine> Value(FormField field, FieldLook look)
     {

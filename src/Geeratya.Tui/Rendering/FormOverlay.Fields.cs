@@ -89,13 +89,19 @@ public static partial class FormOverlay
     /// <summary>The suggestion popup under the focused field: ranked rows, the cursor row marked, a status line.</summary>
     private static List<StyledLine> PopupLines(bool focused, FormState form, int valueWidth)
     {
+        var margin = new string(' ', Indent + PopupMargin);
+
+        if (focused && FieldRows.ShowsSearchHint(form))
+        {
+            return [StyledLine.Of($"{margin}  {FieldRows.TypeToSearchText}", TextRole.Muted)];
+        }
+
         if (!focused || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
         {
             return [];
         }
 
         var width = Math.Max(1, valueWidth - 2 - PopupMargin);
-        var margin = new string(' ', Indent + PopupMargin);
 
         return [.. PickListRenderer.Popup(popup, width, margin).Select(static row => row.Line)];
     }

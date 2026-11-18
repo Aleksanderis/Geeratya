@@ -88,6 +88,20 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenRecordedIssue_WhenReporterEdited_ThenReadShowsTheNewReporter()
+    {
+        Start(0);
+
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", """{"fields":{"reporter":{"accountId":"acc-other"}}}""");
+        var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GTM-11"));
+
+        Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);
+        Assert.Equal(
+            "acc-other",
+            issue.GetProperty("fields").GetProperty("reporter").GetProperty("accountId").GetString());
+    }
+
+    [Fact]
     public async Task GivenAQuery_WhenAssignableUsersAreSearched_ThenOnlyNamedMatchesWithAnAccountComeBack()
     {
         Start(0);

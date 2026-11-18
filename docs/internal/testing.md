@@ -11,6 +11,7 @@ Strategy and layers. The procedure for writing, recording and running tests is t
 | Pure tests | State, commands, keymap, JQL building, mappers over recorded JSON, layout | `tests/Geeratya.<Project>.Tests`, no terminal, no socket |
 | Transport and store tests | Jira calls, paging, refresh, caches against the in-process fake | `FakeJiraHandler` in `tests/Geeratya.Jira.Tests/Fakes` |
 | Frame snapshots | Rendering as text at several sizes (help pages and scrolled, `--help-page`, `--help-scroll`) | Tui tests |
+| Form contract tables | One table of key scripts over field kind x form presentation (create panes, sub-task create, box, transition, Details dropdown); assert phase, chosen or written value, filter, rows and footer. Add a presentation, field kind or row there instead of a one-off test | `FieldChoiceContractTests` (Tui tests), `PersonFieldContractTests`, `FieldKindContractTests` |
 | Fake Jira server | The real binary against recorded data (tmux, screenshots, measurements) | `tools/FakeJira` |
 | Live tests | Behaviour the fake might get wrong, on the dev site only | Opt-in, `Live=true` |
 

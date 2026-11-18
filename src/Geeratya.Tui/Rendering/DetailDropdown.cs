@@ -20,7 +20,6 @@ public static class DetailDropdown
     private const string LoadingText = "Loading…";
     private const string SavingText = "Saving…";
     private const string ReadOnlyText = "Not editable here";
-    private const string TypeText = "Type to search";
     private const int TextRows = 4;
 
     /// <summary>Whether <paramref name="form"/> is drawn as a dropdown over the open detail.</summary>
@@ -177,9 +176,9 @@ public static class DetailDropdown
     {
         if (form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
         {
-            if (FormFieldKinds.HasPopup(field.Kind))
+            if (FieldRows.ShowsSearchHint(form) || FormFieldKinds.IsChoice(field.Kind))
             {
-                lines.Add(StyledLine.Of(TypeText, TextRole.Muted));
+                lines.Add(StyledLine.Of(FieldRows.TypeToSearchText, TextRole.Muted));
                 indexes.Add(-1);
             }
 
