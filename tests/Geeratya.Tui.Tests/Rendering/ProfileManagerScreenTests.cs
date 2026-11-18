@@ -33,7 +33,7 @@ public class ProfileManagerScreenTests
         var text = string.Join('\n', FrameBuilder.BuildStyled(Sample(), 100, 24, _keymap)!.PlainLines());
 
         Assert.Contains("●", text, StringComparison.Ordinal);
-        Assert.Contains("Ctrl-x remove", text, StringComparison.Ordinal);
+        Assert.Contains("Esc close", text, StringComparison.Ordinal);
         Assert.Contains("Enter switch", text, StringComparison.Ordinal);
     }
 

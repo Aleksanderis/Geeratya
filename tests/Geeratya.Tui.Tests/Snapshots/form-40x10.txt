@@ -7,4 +7,4 @@
 │ │ │ Type to search               │ │ │
 │ │ ╰──────────────────────────────╯▼│ │
 ╰─╰──────────────────────────────────╯─╯
- INSERT  Edit A-1                       
+ INSERT  Edit A-1 · Labels    Esc cancel

@@ -21,4 +21,4 @@
 │ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND  :theme:                            Up/Down move  Enter run  Esc cancel
+ COMMAND  :theme:                             Up/Down move  Enter run  Esc close

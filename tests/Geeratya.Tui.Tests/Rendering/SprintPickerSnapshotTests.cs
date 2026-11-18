@@ -110,7 +110,7 @@ public class SprintPickerSnapshotTests
         return new SourcePickerState(string.Empty, 0, PickerScope.Sprints, false, null) { Sprint = data };
     }
 
-    private static AppState Sample(int closed)
+    internal static AppState Sample(int closed)
     {
         var profile = new Profile("work", "https://work.atlassian.net", "me@work.test");
         var sprints = new List<Sprint>

@@ -42,6 +42,27 @@ public static class HintLabels
     /// <summary>Enter writes the form.</summary>
     public const string Save = "save";
 
+    /// <summary>Ctrl-s writes a new issue (the form of the create panes).</summary>
+    public const string Create = "create";
+
+    /// <summary>Enter moves to the next field of the profile form.</summary>
+    public const string Next = "next";
+
+    /// <summary>Starts a new profile.</summary>
+    public const string Add = "add";
+
+    /// <summary>Removes the highlighted profile.</summary>
+    public const string Remove = "remove";
+
+    /// <summary>Enter jumps to the nearest flash target.</summary>
+    public const string Nearest = "nearest";
+
+    /// <summary>Moves the focus between the panes of the create form.</summary>
+    public const string Pane = "pane";
+
+    /// <summary>Folds the more fields of the create form in or out.</summary>
+    public const string MoreFields = "more fields";
+
     /// <summary>Enter writes a new comment.</summary>
     public const string Send = "send";
 

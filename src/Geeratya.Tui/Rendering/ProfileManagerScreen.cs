@@ -190,20 +190,15 @@ public static class ProfileManagerScreen
 
         if (footer > 0)
         {
-            lines.Add(Footer(context.Keymap, state.Profiles.Profiles.Count > 0));
+            lines.Add(Footer(context.Keymap, state.Profiles.Profiles.Count > 0, room));
         }
 
         return lines;
     }
 
-    private static StyledLine Footer(KeymapTable keymap, bool anyProfile)
+    private static StyledLine Footer(KeymapTable keymap, bool anyProfile, int width)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            anyProfile ? DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Switch) : null,
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Fitted(SurfaceChips.KeepLast(SurfaceHints.ProfileList(keymap, anyProfile)), width);
     }
 
     private static StyledLine RowLine(Profile profile, string? activeName, bool selected, string mark, int room)

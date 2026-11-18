@@ -7,4 +7,4 @@
 | |   Edit the issue       <space>ie | |
 | |   Quit                    Ctrl-c | |
 +-+----------------------------------+-+
-[INSERT]                                
+[NORMAL] Actions               Esc close

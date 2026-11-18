@@ -19,7 +19,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 // The places of the contract: each one reaches its dialog through the reducer, as a user does.
 public partial class ConfirmContractTests
 {
-    private static AppState Asked(string place)
+    internal static AppState Asked(string place)
     {
         return place switch
         {

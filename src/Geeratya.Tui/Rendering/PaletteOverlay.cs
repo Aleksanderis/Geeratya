@@ -92,7 +92,7 @@ public static class PaletteOverlay
         if (footer > 0)
         {
             box.Add(OverlayBox.Divider(boxWidth));
-            box.Add(OverlayBox.Wall(Footer(keymap), inner));
+            box.Add(OverlayBox.Wall(Footer(keymap, inner), inner));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));
@@ -140,14 +140,9 @@ public static class PaletteOverlay
         return $"{shown.ToString(CultureInfo.InvariantCulture)}/{all.ToString(CultureInfo.InvariantCulture)}";
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Command, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.PaletteSubmit, HintLabels.Run),
-            DialogFooter.Chip(keymap, InputMode.Command, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Fitted(SurfaceHints.Palette(keymap), width - 2);
     }
 
     // The rows of the unfiltered list (up to the limit): a box that keeps this height does not jump while the

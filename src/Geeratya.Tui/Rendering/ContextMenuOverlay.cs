@@ -13,7 +13,9 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class ContextMenuOverlay
 {
-    private const string Title = "Actions";
+    /// <summary>The title of the box; the status line says the same word.</summary>
+    public const string Title = "Actions";
+
     private const int MaxBoxWidth = 60;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
@@ -56,7 +58,7 @@ public static class ContextMenuOverlay
         if (footer > 0)
         {
             lines.Add(OverlayBox.Divider(boxWidth));
-            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, contentWidth), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -114,14 +116,9 @@ public static class ContextMenuOverlay
         return rows;
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Run),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Fitted(SurfaceHints.ContextMenu(keymap), width - 2);
     }
 
     private static StyledLine RowLine(string title, string keys, bool selected, int width)

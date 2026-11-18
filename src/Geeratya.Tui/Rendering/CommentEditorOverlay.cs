@@ -46,7 +46,7 @@ public static class CommentEditorOverlay
 
         var inner = boxWidth - WallColumns;
         var notes = new List<StyledLine>([.. PopupLines(editor, inner), .. Notes(editor, inner)]);
-        var footer = Footer(keymap, editor);
+        var footer = Footer(keymap, editor, inner);
         var rows = EditorLayout.Rows(editor.Buffer.Text, EditorLayout.Capacity(inner));
         var area = Math.Clamp(height - 2 - notes.Count - FooterHeight, 1, Math.Max(MinimumTextRows, rows.Count));
         var box = BoxLines(editor, rows, notes, footer, boxWidth, area);
@@ -238,34 +238,8 @@ public static class CommentEditorOverlay
         }
     }
 
-    private static StyledLine Footer(KeymapTable keymap, CommentEditor editor)
+    private static StyledLine Footer(KeymapTable keymap, CommentEditor editor, int width)
     {
-        var move = DialogFooter.Pair(
-            keymap,
-            InputMode.Insert,
-            ActionIds.PickerPrevious,
-            ActionIds.PickerNext,
-            HintLabels.Move);
-        var close = DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close);
-
-        if (editor.Suggest is { Items.Count: > 0 })
-        {
-            var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
-            var enter = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-            var keys = string.Join('/', new[] { accept, enter }.Where(static key => key is { Length: > 0 }));
-
-            return DialogFooter.Line([move, keys.Length == 0 ? null : new HintChip(keys, HintLabels.Choose), close]);
-        }
-
-        return DialogFooter.Line(
-        [
-            DialogFooter.Chip(
-                keymap,
-                InputMode.Insert,
-                ActionIds.FormSubmit,
-                editor.IsEdit ? HintLabels.Save : HintLabels.Send),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.NewLine),
-            close,
-        ]);
+        return DialogFooter.Fitted(SurfaceHints.Editor(keymap, editor), width);
     }
 }

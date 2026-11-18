@@ -50,11 +50,12 @@ public class DialogFooterScreensTests
     }
 
     [Fact]
-    public void GivenTheProfileManager_WhenBuildingTheFrame_ThenTheFooterNamesMoveAndSwitch()
+    public void GivenTheProfileManager_WhenBuildingTheFrame_ThenTheFooterNamesMoveAndTheWayOut()
     {
         var text = Text(ProfileManagerScreenTests.Sample(), 100, 24);
 
-        Assert.Contains("Up/Down move   Enter switch", text, StringComparison.Ordinal);
+        Assert.Contains("Up/Down move   ", text, StringComparison.Ordinal);
+        Assert.Contains("Esc close", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -103,7 +104,8 @@ public class DialogFooterScreensTests
 
         foreach (var state in states)
         {
-            var text = Text(state, width, height);
+            var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
+            var text = string.Join('\n', frame.Body.Select(static line => line.PlainText));
 
             Assert.DoesNotContain("   Esc close", text, StringComparison.Ordinal);
         }

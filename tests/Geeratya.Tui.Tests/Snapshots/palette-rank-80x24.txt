@@ -21,4 +21,4 @@
 │ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND  :rank                              Up/Down move  Enter run  Esc cancel
+ COMMAND  :rank                               Up/Down move  Enter run  Esc close

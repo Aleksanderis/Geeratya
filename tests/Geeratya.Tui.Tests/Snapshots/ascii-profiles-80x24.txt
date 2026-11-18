@@ -19,6 +19,6 @@
 |                              |                                               |
 |                              |                                               |
 | Add   Edit                   |                                               |
-| Up/Down move   Enter switch  |                                               |
+| Up/Down move   Esc close     |                                               |
 +------------------------------+-----------------------------------------------+
-[INSERT] Active: work                                                           
+[NORMAL] Active: work          Up/Down move  Enter switch  Ctrl-a add  Esc close

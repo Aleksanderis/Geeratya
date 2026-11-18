@@ -7,4 +7,4 @@
 | x         Dismiss the status message |
 | . 18 more                            |
 +--------------------------------------+
-[NORMAL] <space>                        
+[NORMAL] <space>              Esc cancel

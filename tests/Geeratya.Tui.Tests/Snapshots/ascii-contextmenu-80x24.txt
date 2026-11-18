@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
-[INSERT]                                      Down choose  Enter open  Esc close
+[NORMAL] Actions                              Up/Down move  Enter run  Esc close

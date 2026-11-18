@@ -14,8 +14,10 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class JumpOverlay
 {
+    /// <summary>The title of the box; the status line says the same words.</summary>
+    public const string Title = "Jump to an issue";
+
     private const int PromptMargin = 4;
-    private const string Title = "Jump to an issue";
     private const string HintText = "Type a key like GCM-12, or a number in the current project.";
     private const string RecentText = "recent";
     private const int MaxBoxWidth = 80;
@@ -49,8 +51,9 @@ public static class JumpOverlay
         var rows = JumpRows.For(state, jump);
         var selected = Math.Max(0, jump.Pick.Index(rows.Count));
         var lines = RowLines(rows, selected, boxWidth - 4);
-        var inner = Math.Min(Math.Min(height, MaxBoxHeight), lines.Count + QueryRows + FooterHeight + 2) - 2;
-        var footer = inner >= FooterMinimumInner ? FooterHeight : 0;
+        var room = Math.Min(height, MaxBoxHeight) - 2;
+        var footer = room >= FooterMinimumInner ? FooterHeight : 0;
+        var inner = Math.Min(room, lines.Count + QueryRows + footer);
         var box = BoxLines(jump, lines, selected, keymap, boxWidth, inner, footer);
         var top = Math.Min(TopGap, height - box.Count);
         var left = (width - boxWidth) / 2;
@@ -106,7 +109,7 @@ public static class JumpOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, contentWidth), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -159,13 +162,8 @@ public static class JumpOverlay
         ]);
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Open),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Fitted(SurfaceHints.Jump(keymap), width - 2);
     }
 }

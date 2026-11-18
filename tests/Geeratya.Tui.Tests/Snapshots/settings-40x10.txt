@@ -7,4 +7,4 @@
 │                                      │
 │                                      │
 ╰──────────────────────────────────────╯
- NORMAL  Settings: a change applies at o
+ NORMAL  Settings: a change …  Esc close

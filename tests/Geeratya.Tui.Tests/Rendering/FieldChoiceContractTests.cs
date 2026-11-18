@@ -35,7 +35,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 public class FieldChoiceContractTests
 {
     private const string Eve = "acc-eve";
-    private const string Me = "acc-me";
+    internal const string Me = "acc-me";
     private const string Jo = "acc-jo";
     private const string Moving = "j";
 
@@ -381,7 +381,9 @@ public class FieldChoiceContractTests
 
         if (row.FooterNavigable is not null)
         {
-            Assert.Equal(navigable ? row.FooterNavigable : row.FooterSingle, outcome.Footer);
+            var expected = (navigable ? row.FooterNavigable : row.FooterSingle)!;
+
+            Assert.Equal(WithSubmitWord(expected, presentation), outcome.Footer);
 
             // A filter that matches nothing leaves no row to choose: the status line says so by leaving Enter out.
             var hasRows = outcome.PopupRowIds.Length > 0;
@@ -447,7 +449,7 @@ public class FieldChoiceContractTests
         return cases;
     }
 
-    private static FormField FieldOf(string name)
+    internal static FormField FieldOf(string name)
     {
         return name switch
         {
@@ -487,6 +489,14 @@ public class FieldChoiceContractTests
             "subtask" => new CreateFormTarget("GCM", "GCM-12", true, new CreateIssueType("11", "Sub", "", -1, true)),
             _ => new TransitionFormTarget("GCM-12", Choice()),
         };
+    }
+
+    // Ctrl-s is "create" in the forms that make a new issue and "save" everywhere else (#1030, H5).
+    private static string[] WithSubmitWord(string[] footer, string presentation)
+    {
+        var creates = presentation is "create" or "subtask";
+
+        return [.. footer.Select(label => creates && label == "save" ? "create" : label)];
     }
 
     private static string[] FooterOf(AppState state)

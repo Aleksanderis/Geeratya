@@ -7,4 +7,4 @@
 │ │   All actions  │        down    ▼│ │
 ╰─╰──────────────────────────────────╯─╯
 ╭─ Remote links ───────────────────────╮
- HELP                                   
+ HELP      j/k move  Tab page  Esc close

@@ -7,4 +7,4 @@
 │ │           Sprint 12 日本語 (19 O │ │
 │ │ Future                          ▼│ │
 ╰─╰──────────────────────────────────╯─╯
- INSERT  switch sprint                  
+ INSERT  Switch sprint         Esc close

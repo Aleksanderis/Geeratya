@@ -21,4 +21,4 @@
 │ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- HELP                                   j section  J scroll  / filter  Esc close
+ HELP                                    j/k move  Tab page  / filter  Esc close

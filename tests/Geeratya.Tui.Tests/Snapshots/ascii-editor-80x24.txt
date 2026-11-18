@@ -7,7 +7,7 @@
 | |                                                                          | |
 | |                                                                          | |
 | | ------------------------------------------------------------------------ | |
-| | Ctrl-s send   Enter new line   Esc close                                 | |
+| | Ctrl-s send   Enter new line   Esc cancel                                | |
 | +--------------------------------------------------------------------------+ |
 |                         No profile yet: :profile add                         |
 |                         ? help   : commands   q back                         |
@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
-[INSERT] Commenting on A-1                               Ctrl-s save  Esc cancel
+[INSERT] Commenting on A-1               Ctrl-s send  Enter new line  Esc cancel

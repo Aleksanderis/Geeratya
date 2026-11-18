@@ -40,10 +40,7 @@ public class StatusBarTests
     [Fact]
     public void GivenEveryHint_WhenCheckingTheDefaultKeymap_ThenItBindsTheNamedActionInTheHintMode()
     {
-        var hints = StatusBar.Hints
-            .Concat(StatusBar.FormHints)
-            .Concat(StatusBar.CreateHints)
-            .Concat(StatusBar.CreateEditingHints);
+        var hints = StatusBar.Hints;
 
         foreach (var hint in hints)
         {
@@ -56,15 +53,7 @@ public class StatusBarTests
     public void GivenEveryDefaultHint_WhenCheckingTheLevel_ThenNoneIsAdvanced()
     {
         var all = StatusBar.Hints
-            .Concat(StatusBar.ScreenHints)
-            .Concat(StatusBar.PickerHints)
-            .Concat(StatusBar.HelpHints)
-            .Concat(StatusBar.EditorHints)
-            .Concat(StatusBar.FormHints)
-            .Concat(StatusBar.CreateHints)
-            .Concat(StatusBar.CreateEditingHints)
-            .Concat(StatusBar.DropdownHints)
-            .Concat(StatusBar.DropdownTextHints);
+            .Concat(StatusBar.ScreenHints);
 
         Assert.All(all, hint => Assert.True(StatusBar.IsShownAt(hint, CommandLevel.Everyday), hint.ActionId));
     }
@@ -202,7 +191,7 @@ public class StatusBarTests
     [Fact]
     public void GivenDefaultKeymap_WhenRenderingHelpHints_ThenCloseShowsEscNotQ()
     {
-        Assert.Contains("Esc close", StatusBar.HintsFor(InputMode.Help, _keymap));
+        Assert.Contains("Esc close", StatusBar.Render(AppState.Initial with { Mode = InputMode.Help }, 80, _keymap));
     }
 
     [Fact]
@@ -210,8 +199,8 @@ public class StatusBarTests
     {
         var line = StatusBar.Render(AppState.Initial with { Mode = InputMode.Help }, 80, _keymap);
 
-        Assert.Contains("j section", line);
-        Assert.Contains("J scroll", line);
+        Assert.Contains("j/k move", line);
+        Assert.Contains("Tab page", line);
         Assert.Contains("/ filter", line);
     }
 

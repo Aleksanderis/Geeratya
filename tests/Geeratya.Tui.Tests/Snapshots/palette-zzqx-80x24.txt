@@ -21,4 +21,4 @@
 │ │ Up/Down move   Enter run   Esc close                                     │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- COMMAND  :zzqx                              Up/Down move  Enter run  Esc cancel
+ COMMAND  :zzqx                               Up/Down move  Enter run  Esc close

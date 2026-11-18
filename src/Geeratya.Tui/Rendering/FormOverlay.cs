@@ -127,9 +127,12 @@ public static partial class FormOverlay
             return CreateStatusText(form, focused);
         }
 
-        if (form.Navigating && focused is not null)
+        // Every form names the focused field after its title, whether it edits one field or several (#1030).
+        if (focused is not null)
         {
-            return $"{form.Target.Title} · {focused.Label}  {FormShell.NavigateNote}";
+            var text = $"{form.Target.Title} · {focused.Label}";
+
+            return form.Navigating ? $"{text}  {FormShell.NavigateNote}" : text;
         }
 
         return form.Target.Title;
@@ -176,7 +179,7 @@ public static partial class FormOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(FormFooter.Line(form, keymap), contentWidth));
+            lines.Add(OverlayBox.Wall(FormFooter.Line(form, keymap, contentWidth - 2), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));

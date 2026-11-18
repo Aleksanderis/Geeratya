@@ -7,4 +7,4 @@
 │ ├──────────────────────────────────┤ │
 │ │ jql [query]                     ▼│ │
 ╰─╰──────────────────────────────────╯─╯
- COMMAND  :jql project                  
+ COMMAND  :jql project         Esc close

@@ -40,7 +40,8 @@ public class CommentEditorOverlayTests
         Assert.Contains("Enter new line", text);
         Assert.Contains("Esc cancel", text);
         Assert.Contains("INSERT  Commenting on A-1", frame.StatusLine);
-        Assert.EndsWith("Ctrl-s save  Esc cancel", frame.StatusLine);
+        Assert.StartsWith("INSERT  Commenting on A-1", frame.StatusLine.TrimStart());
+        Assert.EndsWith("Esc cancel", frame.StatusLine);
     }
 
     [Fact]
@@ -289,12 +290,12 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
-    public void GivenTheEditorHints_WhenCheckingTheDefaultKeymap_ThenEachBindsItsActionInInsertMode()
+    public void GivenTheEditorHints_WhenCheckingTheDefaultKeymap_ThenEveryChipHasItsKey()
     {
-        foreach (var hint in StatusBar.EditorHints)
-        {
-            Assert.NotNull(_keymap.FindKeys(hint.Mode, hint.ActionId));
-        }
+        var chips = SurfaceHints.Editor(_keymap, Editor("draft"));
+
+        Assert.Equal(3, chips.Count);
+        Assert.All(chips, chip => Assert.NotNull(chip));
     }
 
     [Fact]

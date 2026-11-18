@@ -66,14 +66,27 @@ public static partial class StatusBar
         return visual ? "VISUAL" : Badge(ShownMode(state));
     }
 
-    // A form in its navigate state takes motion keys, not text, so its badge reads NORMAL like the views (the mode
-    // itself stays Insert for the key routing).
+    // The badge names what the keys do (#1030): INSERT where text is typed, NORMAL where keys only move (a form in its
+    // navigate state, the Actions menu, the profile list), HELP for a read-only notice, CONFIRM for a question. The
+    // mode itself stays what the key routing needs.
     private static InputMode ShownMode(AppState state)
     {
-        var navigating = state is { Mode: InputMode.Insert, Editor: null, Jump: null, FlashJump: null }
+        if (state is { Mode: InputMode.Confirm, Confirm.Title: not null })
+        {
+            return InputMode.Help;
+        }
+
+        if (state.Mode != InputMode.Insert)
+        {
+            return state.Mode;
+        }
+
+        var menu = state is { ContextMenu: not null, Picker: null, Jump: null };
+        var list = state is { ProfileList: not null, Form: null, Picker: null, Jump: null };
+        var navigating = state is { Editor: null, Jump: null, FlashJump: null }
             && FormReducer.OpenForm(state) is { Navigating: true };
 
-        return navigating ? InputMode.Normal : state.Mode;
+        return menu || list || navigating ? InputMode.Normal : InputMode.Insert;
     }
 
     private static TextRole BadgeRole(AppState state)
@@ -94,10 +107,16 @@ public static partial class StatusBar
         {
             InputMode.Command => TextRole.BadgeCommand,
             InputMode.Help => TextRole.BadgeHelp,
-            InputMode.Confirm => TextRole.BadgeConfirm,
+            InputMode.Confirm => ConfirmBadge(state),
             InputMode.Insert => TextRole.BadgeInsert,
             _ => TextRole.BadgeNormal,
         };
+    }
+
+    // Red for a write to Jira, yellow for a question that loses nothing there (the colour of the dialog's frame).
+    private static TextRole ConfirmBadge(AppState state)
+    {
+        return state.Confirm is { Destructive: false } ? TextRole.BadgeConfirmWarn : TextRole.BadgeConfirm;
     }
 
     private static string Badge(InputMode mode)
@@ -131,10 +150,12 @@ public static partial class StatusBar
             InputMode.Insert when state.PendingKeys.Length > 0 && FormReducer.OpenForm(state) is not null
                 => KeyNotation.Display(state.PendingKeys),
             InputMode.Insert when FormReducer.OpenForm(state) is { } form => FormOverlay.StatusText(form),
-            InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpPrompt,
+            InputMode.Insert when state.Jump is { } jump => jump.Notice ?? JumpOverlay.Title,
             InputMode.Insert when state.FlashJump is { } flash => state.Message ?? FlashText(flash, width),
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
+            InputMode.Insert when state is { ContextMenu: not null, Picker: null, Jump: null }
+                => ContextMenuOverlay.Title,
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now, viewRoom, withPosition, withGoal),
         };
@@ -181,12 +202,7 @@ public static partial class StatusBar
             return notice;
         }
 
-        if (picker.Scope != PickerScope.Sprints)
-        {
-            return PickerPrompt;
-        }
-
-        return picker.Sprint?.MoveKeys is null ? SprintPrompt : MovePrompt;
+        return SourcePickerOverlay.TitleOf(picker);
     }
 
     /// <summary>

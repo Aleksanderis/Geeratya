@@ -7,4 +7,4 @@
 │ │   Board   GCM board (scrum, GCM) │ │
 │ │   Backlog GCM board (scrum, GCM)▼│ │
 ╰─╰──────────────────────────────────╯─╯
- INSERT  open a view                    
+ INSERT  Open a view           Esc close

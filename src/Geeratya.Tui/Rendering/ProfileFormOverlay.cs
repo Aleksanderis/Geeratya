@@ -77,7 +77,7 @@ public static class ProfileFormOverlay
         }
 
         lines.Add(OverlayBox.Wall(ChipButtons.Line(_buttons), contentWidth));
-        lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+        lines.Add(OverlayBox.Wall(Footer(keymap, form.Field, contentWidth), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var top = (height - lines.Count) / 2;
@@ -127,9 +127,6 @@ public static class ProfileFormOverlay
             _ => new string(MaskChar, form.Token.Length),
         };
     }
-
-    /// <summary>What Enter does on <paramref name="field"/>; the status hint uses it.</summary>
-    internal static string AcceptVerb(ProfileFormField field) => field == ProfileFormField.Token ? "save" : "next";
 
     private static string LabelOf(ProfileFormField field)
     {
@@ -228,14 +225,8 @@ public static class ProfileFormOverlay
         ChipButtons.Mark(regions, buttonRow, left + 2, _buttons);
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, ProfileFormField field, int width)
     {
-        return DialogFooter.Line(
-        [
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormFieldNext, HintLabels.Field),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.ProfileTest, HintLabels.Test),
-            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, HintLabels.Close),
-        ]);
+        return DialogFooter.Fitted(SurfaceHints.ProfileForm(keymap, field), width - 2);
     }
 }

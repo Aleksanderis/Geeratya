@@ -21,4 +21,4 @@
 │ │ Up/Down move   Enter open   Ctrl-t new tab   Esc close                   │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- INSERT  switch sprint                        Down choose  Enter open  Esc close
+ INSERT  Switch sprint       Up/Down move  Enter open  Ctrl-t new tab  Esc close

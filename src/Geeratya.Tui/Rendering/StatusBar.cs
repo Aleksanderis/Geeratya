@@ -1,3 +1,4 @@
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Text;
@@ -10,13 +11,12 @@ public static partial class StatusBar
 {
     private const string HintGap = "  ";
     private const string Separator = " · ";
-    private const string PickerPrompt = "open a view";
-    private const string SprintPrompt = "switch sprint";
-    private const string MovePrompt = "move to sprint";
-    private const string JumpPrompt = "jump to an issue";
-    private const string FlashPrompt = "jump to a row: ";
+    private const string ErrorMark = "!";
+    private const string SettingsText = "Settings: a change applies at once and is saved";
+    private const string FlashPrompt = "Jump to a row: ";
     private const int MinViewRoom = 8;
     private const int MaxViewReserve = 40;
+    private const int OverlayTextReserve = 12;
 
     /// <summary>
     /// The status line for <paramref name="state"/>, exactly <paramref name="width"/> columns wide.
@@ -61,8 +61,23 @@ public static partial class StatusBar
         // MaxViewReserve cells are kept for it and the screen hints drop from the end to make room (the global
         // hints stay while they fit).
         var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
+        var overlay = SurfaceHints.Of(state, keymap) is not null
+            && state is { Form: null, FlashJump: null, Mode: not InputMode.Command }
+            && FormReducer.OpenForm(state) is null
+            && !text.StartsWith(ErrorMark, StringComparison.Ordinal);
+
+        // An overlay's hints are its keys: they win over a long prompt, which is cut with an ellipsis (#1030). The
+        // prompts that show typed text (the palette, the profile form, the flash jump), a field form (its state note)
+        // and an error keep the text and the hints drop instead.
+        if (overlay)
+        {
+            reserve = Math.Min(TextWidth.Of(text), OverlayTextReserve);
+        }
+
         var left = Left(state, text);
-        var room = width - TextWidth.Of(left);
+
+        // The prompt of an overlay is cut to what the hints leave, so its room is the line without it.
+        var room = width - TextWidth.Of(overlay ? Left(state, string.Empty) : left) - (overlay ? 1 : 0);
         var hints = ShownHints(state, keymap, room - reserve);
 
         // The global hints never give way to the view text: shrink the reserve until they fit again.
@@ -73,6 +88,19 @@ public static partial class StatusBar
         }
 
         var hintWidth = HintBar.Width(hints);
+
+        if (overlay && hints.Count > 0)
+        {
+            var chipWidth = TextWidth.Of($" {Badge(state)} ");
+            var textRoom = Math.Max(0, width - chipWidth - 1 - hintWidth - HintGap.Length);
+
+            if (TextWidth.Of(text.TrimEnd()) > textRoom)
+            {
+                text = DisplayText.Cut(text.TrimEnd(), textRoom);
+                left = Left(state, text);
+            }
+        }
+
         var spare = width - TextWidth.Of(left) - hintWidth - Separator.Length;
 
         if (hints.Count > 0)
@@ -183,7 +211,10 @@ public static partial class StatusBar
             return [];
         }
 
-        return Fit(Leveled(HintTexts(state, keymap), state), room);
+        var hints = HintTexts(state, keymap);
+
+        // Minimal thins the hints of a screen; an overlay keeps its keys.
+        return Fit(SurfaceHints.Of(state, keymap) is null ? Leveled(hints, state) : hints, room);
     }
 
     /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q back</c>).</summary>
