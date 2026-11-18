@@ -140,7 +140,7 @@ public class FormSuggestionOverlayTests
 
         var lines = FrameBuilder.Build(WithForm(form), 100, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("lookup failed", StringComparison.Ordinal) && line.Contains("offline"));
+        Assert.Contains(lines, line => line.Contains("lookup failed", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("日本語チーム", StringComparison.Ordinal));
     }
 

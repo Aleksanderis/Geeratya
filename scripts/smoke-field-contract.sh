@@ -17,16 +17,20 @@
 #   sprint forms (Scrum backlog of the fake's GCS board): create (typed text, the Esc ladder, the discard question names
 #       the new sprint), start (the date format error, the discard question names the sprint), complete (the choice
 #       popup opens at once, typed filter, Esc clears it, a click asks to complete) and the sprint of the Details
-#       dropdown (a click on a row writes at once).
+#       dropdown (a click on a row writes at once);
+#   picker look (#1027): the open Assignee and Reporter picker of the create sub-task form and of the Details of the issue
+#       view are the same box (title, input line, quick rows), compared as text cell for cell, whatever the position;
+#       CAPTURE_DIR=<dir> keeps the two frames of each field there.
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
+export LC_ALL=C.UTF-8
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-field-contract.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-field-contract.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -247,6 +251,87 @@ wait_for "Highest"
 click "High"
 wait_gone "Highest"
 wait_for "High ▾"
+
+# ---- Picker look: the same box in the create sub-task form and in the issue view ---------------------------------
+# focus_field <label>: Tab through the navigate state of the create form until the status line names the field.
+focus_field() {
+  local step
+  for step in $(seq 1 20); do
+    status | grep -qF -- "· $1" && return 0
+    key Tab
+  done
+  fail "no field '$1' in the form"
+}
+
+# region <title>: the rows of the picker box titled <title> from the frame on stdin, cut to the box's own columns.
+region() {
+  local title="╭─ $1 ─" line prefix rest head start width seg inbox=0
+  while IFS= read -r line; do
+    if [ "$inbox" = 0 ]; then
+      case $line in
+        *"$title"*) ;;
+        *) continue ;;
+      esac
+      prefix=${line%%"$title"*}
+      start=${#prefix}
+      rest=${line:start}
+      head=${rest%%╮*}
+      width=$((${#head} + 1))
+      inbox=1
+    fi
+    seg=${line:start:width}
+    echo "$seg"
+    case $seg in "╰"*) break ;; esac
+  done
+}
+
+# keep <name> <frame file>: copies the frame to CAPTURE_DIR when it is set.
+keep() {
+  [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR"; cp "$2" "$CAPTURE_DIR/$1.txt"; }
+}
+
+# The comparison is text only; the roles (colour, highlight) are compared by PickerLookContractTests.
+# picker_look <field> <keys that reach it in the issue view sidebar>: a team-managed sub-task (GTM-11, whose create
+# metadata offers the Reporter, as Jira's does for team-managed projects).
+picker_look() {
+  local field=$1 created viewed
+  open_issue GTM-11
+  text " iC"
+  wait_for "Choose the issue type"
+  key Enter
+  wait_for "Parent *"
+  key Escape
+  wait_status "[navigate]"
+  focus_field "$field"
+  key Enter
+  wait_for "╭─ $field ─"
+  sleep 0.6
+  frame > "$work/create-$field.txt"
+  keep "create-subtask-$field" "$work/create-$field.txt"
+  open_issue GTM-11
+  key C-l
+  text "$2"
+  key Enter
+  wait_for "╭─ $field ─"
+  sleep 0.6
+  frame > "$work/view-$field.txt"
+  keep "issue-view-$field" "$work/view-$field.txt"
+  created=$(region "$field" < "$work/create-$field.txt")
+  viewed=$(region "$field" < "$work/view-$field.txt")
+  [ "$(printf '%s\n' "$viewed" | wc -l)" -ge 3 ] || fail "no $field picker box in the issue view"
+  if [ "$created" != "$viewed" ]; then
+    echo "create sub-task:" >&2
+    echo "$created" >&2
+    echo "issue view:" >&2
+    echo "$viewed" >&2
+    fail "the $field picker differs between the create sub-task form and the issue view"
+  fi
+  echo "ok: $field picker is the same box in the create sub-task form and the issue view"
+}
+
+echo "== picker look (create sub-task form and issue view)"
+picker_look Assignee jj
+picker_look Reporter jjj
 
 # ---- In place (Summary) -----------------------------------------------------------------------------------------
 echo "== in place (Summary)"

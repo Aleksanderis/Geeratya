@@ -7,4 +7,10 @@ namespace Geeratya.Tui.Rendering;
 /// <param name="Line">The content, at most the pane's inner width.</param>
 /// <param name="Target">What a click on the row means, or null for none.</param>
 /// <param name="Index">The field index or popup row the click stands for.</param>
-internal sealed record CreatePaneRow(StyledLine Line, MouseTarget? Target = null, int Index = -1);
+internal sealed record CreatePaneRow(StyledLine Line, MouseTarget? Target = null, int Index = -1)
+{
+    /// <summary>
+    /// The line spans the pane between its side edges and replaces the padding too (an open picker box).
+    /// </summary>
+    public bool Bleed { get; init; }
+}

@@ -31,7 +31,6 @@ public static partial class FormOverlay
     private const int TopGap = 1;
     private const int Indent = 4;
     private const int ParagraphRows = 4;
-    private const int PopupMargin = 2;
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
@@ -221,7 +220,8 @@ public static partial class FormOverlay
             return 0;
         }
 
-        return Math.Min(content.FocusStart, end - area);
+        // An open picker is what the user acts on: it stays whole when it fits, else its top edge leads the view.
+        return Math.Min(content.PickerStart ?? content.FocusStart, end - area);
     }
 
     private static FormContent Content(FormState form, int valueWidth)
@@ -230,6 +230,7 @@ public static partial class FormOverlay
         var tags = new List<RowTag?>();
         var focusStart = 0;
         var focusLength = 0;
+        int? pickerStart = null;
 
         AddNotices(lines, form, valueWidth + Indent);
         PadTags(tags, lines.Count, null);
@@ -249,14 +250,26 @@ public static partial class FormOverlay
             {
                 focusStart = lines.Count;
                 focusLength = block.Count;
+                pickerStart = PickerTop(form, valueWidth, lines.Count, block.Count);
             }
 
             lines.AddRange(block);
 
-            tags.AddRange(BlockTags(form, index, block));
+            tags.AddRange(BlockTags(form, index, block, valueWidth));
         }
 
-        return new FormContent(lines, focusStart, focusLength, tags);
+        return new FormContent(lines, focusStart, focusLength, tags) { PickerStart = pickerStart };
+    }
+
+    // The content row where the open picker of the focused block starts, or null when none is open.
+    private static int? PickerTop(FormState form, int valueWidth, int blockStart, int blockLength)
+    {
+        if (PickerBox.Draw(form, Math.Max(6, valueWidth + Indent)) is not { } picker)
+        {
+            return null;
+        }
+
+        return blockStart + blockLength - picker.Lines.Count;
     }
 
     private static void PadTags(List<RowTag?> tags, int count, RowTag? tag)
@@ -268,29 +281,26 @@ public static partial class FormOverlay
     }
 
     // Every row of a field block focuses the field; the rows of its open popup take the popup row instead.
-    private static List<RowTag?> BlockTags(FormState form, int index, List<StyledLine> block)
+    private static List<RowTag?> BlockTags(FormState form, int index, List<StyledLine> block, int valueWidth)
     {
         var tags = new List<RowTag?>();
 
         PadTags(tags, block.Count, new RowTag(MouseTarget.FormField, index));
 
-        var field = form.Fields[index];
         var focused = index == form.Focus && !form.IsSaving;
-        var hasPopup = field.IsEditable && FormFieldKinds.HasPopup(field.Kind);
 
-        if (!focused || !hasPopup || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
+        if (!focused || PickerBox.Draw(form, Math.Max(6, valueWidth + Indent)) is not { } picker)
         {
             return tags;
         }
 
-        var popupItems = PickListRenderer.PopupItems(popup);
-        var start = block.Count - (field.Error is null ? 0 : 1) - popupItems.Count;
+        var start = block.Count - picker.Lines.Count;
 
-        for (var row = 0; row < popupItems.Count; row++)
+        for (var row = 0; row < picker.Items.Count; row++)
         {
-            if (popupItems[row] >= 0)
+            if (picker.Items[row] >= 0)
             {
-                tags[start + row] = new RowTag(MouseTarget.FormChoice, popupItems[row]);
+                tags[start + row] = new RowTag(MouseTarget.FormChoice, picker.Items[row]);
             }
         }
 
@@ -325,5 +335,8 @@ public static partial class FormOverlay
 
     private sealed record RowTag(MouseTarget Target, int Index);
 
-    private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength, List<RowTag?> Tags);
+    private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength, List<RowTag?> Tags)
+    {
+        public int? PickerStart { get; init; }
+    }
 }

@@ -17,7 +17,7 @@ internal sealed class CreateDetailsRows
     private const string MoreText = "show more fields";
     private const string FewerText = "fewer fields";
     private const string Separator = " · ";
-    private const int PopupMargin = 2;
+    private const int PanePadding = 2;
 
     private readonly FormState _form;
     private readonly KeymapTable _keymap;
@@ -75,42 +75,37 @@ internal sealed class CreateDetailsRows
             rows.Add(new CreatePaneRow(line, MouseTarget.FormField, index));
         }
 
-        if (focused && !_form.Navigating)
+        // The picker box runs edge to edge of the pane (the two padding columns included), as in the Details dropdown.
+        if (focused && PickerBox.Draw(_form, inner + PanePadding) is { } picker)
         {
-            AddPopup(rows, index, inner);
+            AddPicker(rows, picker);
+
+            return;
         }
 
         if (_form.Fields[index].Error is { } error)
         {
-            rows.AddRange(FieldRows.Error(error, inner).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
+            var errorRows = FieldRows.Error(error, inner);
+
+            rows.AddRange(errorRows.Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
         }
     }
 
-    // The suggestion popup of the focused field: ranked rows, the cursor row marked, a status row.
-    private void AddPopup(List<CreatePaneRow> rows, int index, int inner)
+    // The open picker of the focused field: a box under it, the rows of its list clickable.
+    private static void AddPicker(List<CreatePaneRow> rows, PickerLines picker)
     {
-        if (FieldRows.ShowsSearchHint(_form))
+        for (var line = 0; line < picker.Lines.Count; line++)
         {
-            var hint = StyledLine.Of($"{new string(' ', PopupMargin)}  {FieldRows.TypeToSearchText}", TextRole.Muted);
+            var item = picker.Items[line];
 
-            rows.Add(new CreatePaneRow(hint));
-
-            return;
-        }
-
-        if (_form.Suggest is not { } popup || popup.FieldIndex != index)
-        {
-            return;
-        }
-
-        var width = Math.Max(1, inner - 2 - PopupMargin);
-        var margin = new string(' ', PopupMargin);
-
-        foreach (var row in PickListRenderer.Popup(popup, width, margin))
-        {
-            rows.Add(row.Item >= 0
-                ? new CreatePaneRow(row.Line, MouseTarget.FormChoice, row.Item)
-                : new CreatePaneRow(row.Line));
+            if (item >= 0)
+            {
+                rows.Add(new CreatePaneRow(picker.Lines[line], MouseTarget.FormChoice, item) { Bleed = true });
+            }
+            else
+            {
+                rows.Add(new CreatePaneRow(picker.Lines[line]) { Bleed = true });
+            }
         }
     }
 

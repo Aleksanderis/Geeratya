@@ -12,13 +12,13 @@
 │ │ │ Heading one                                                               ▲│ │ Priority                      │ │ │
 │ │ │                                                                           █│ │ ▌▲ High ▾                     │ │ │
 │ │ │ Heading three                                                             ░│ │╭─ Priority ──────────────────╮│ │ │
-│ │ │                                                                           ░│ ││   (none)                    ││ │ │
-│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ ││   Highest                   ││ │ │
-│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ ││   High                      ││ │ │
-│ │ │ after break                                                               ░│ ││   Medium                    ││ │ │
-│ │ │ … 33 more lines                                                           ▼│ ││   Low                       ││ │ │
-│ │ ╰────────────────────────────────────────────────────────────────────────────╯ │╰─────────────────────────────╯│ │ │
-│ │ ╭─ Comments 3 ──────────────────────────────────────────────── oldest first ─╮ │ Labels                        │ │ │
+│ │ │                                                                           ░│ ││                             ││ │ │
+│ │ │ Plain, bold, italic, struck, code, a link <https://example.com/page>,     ░│ ││   (none)                    ││ │ │
+│ │ │ emoji 😄 and unicode: żółć 日本語 🚀                                      ░│ ││   Highest                   ││ │ │
+│ │ │ after break                                                               ░│ ││   High                      ││ │ │
+│ │ │ … 33 more lines                                                           ▼│ ││   Medium                    ││ │ │
+│ │ ╰────────────────────────────────────────────────────────────────────────────╯ ││   Low                       ││ │ │
+│ │ ╭─ Comments 3 ──────────────────────────────────────────────── oldest first ─╮ │╰─────────────────────────────╯│ │ │
 │ │ │ Jane Doe                                                           1 d ago │ │   auth   bug-bash  ▾          │ │ │
 │ │ │ Found it: the redirect target is dropped after the refresh.                │ │                               │ │ │
 │ │ │                                                                            │ │ Parent                        │ │ │
