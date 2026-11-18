@@ -104,7 +104,8 @@ public class DialogFooterScreensTests
 
         foreach (var state in states)
         {
-            var text = string.Join('\n', FrameBuilder.BuildStyled(state, width, height, _keymap)!.Body.Select(static line => line.PlainText));
+            var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
+            var text = string.Join('\n', frame.Body.Select(static line => line.PlainText));
 
             Assert.DoesNotContain("   Esc close", text, StringComparison.Ordinal);
         }

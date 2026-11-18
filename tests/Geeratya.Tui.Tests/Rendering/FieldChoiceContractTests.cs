@@ -381,7 +381,9 @@ public class FieldChoiceContractTests
 
         if (row.FooterNavigable is not null)
         {
-            Assert.Equal(WithSubmitWord((navigable ? row.FooterNavigable : row.FooterSingle)!, presentation), outcome.Footer);
+            var expected = (navigable ? row.FooterNavigable : row.FooterSingle)!;
+
+            Assert.Equal(WithSubmitWord(expected, presentation), outcome.Footer);
 
             // A filter that matches nothing leaves no row to choose: the status line says so by leaving Enter out.
             var hasRows = outcome.PopupRowIds.Length > 0;

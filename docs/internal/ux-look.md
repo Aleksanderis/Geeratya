@@ -235,7 +235,7 @@ Mockups below show the box on a few rows of the muted view.
 │               │             from a list or board)                            │
 │               │  <space>o   Open the issue in the browser                    │
 │ ──────────────┴────────────────────────────────────────────────────────────  │
-│ j section  J scroll  / filter  Esc close                                     │
+│ j/k move  Tab page  / filter  Esc close                                       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -288,7 +288,7 @@ Single-field forms (labels, priority, assign, link, transition pickers) use the 
   │ Recent                                                         │
   │   Recent  project = GCM                                        │
   │ ────────────────────────────────────────────────────────────── │
-  │ Up/Down move  Enter open in a new tab  Esc close             │
+  │ Up/Down move  Enter open in a new tab  Esc close               │
   ╰────────────────────────────────────────────────────────────────╯
 ```
 

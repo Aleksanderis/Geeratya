@@ -61,7 +61,7 @@ public sealed class MessagesBodyRenderer : IBodyRenderer
         {
             // The footer sits on the last inner row; the history above it keeps the rest.
             content = [.. content.Take(frameRows - 1), .. Enumerable.Repeat(StyledLine.Empty, Math.Max(0, frameRows - 1 - content.Count))];
-            content.Add(Padded(HelpOverlay.Footer(context.Keymap, withPages: false)));
+            content.Add(Padded(HelpOverlay.Footer(context.Keymap, withPages: false, width - 4)));
         }
 
         return PaneFrame.Build(

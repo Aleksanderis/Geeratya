@@ -77,7 +77,7 @@ public static class ProfileFormOverlay
         }
 
         lines.Add(OverlayBox.Wall(ChipButtons.Line(_buttons), contentWidth));
-        lines.Add(OverlayBox.Wall(Footer(keymap, form.Field), contentWidth));
+        lines.Add(OverlayBox.Wall(Footer(keymap, form.Field, contentWidth), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
 
         var top = (height - lines.Count) / 2;
@@ -225,8 +225,8 @@ public static class ProfileFormOverlay
         ChipButtons.Mark(regions, buttonRow, left + 2, _buttons);
     }
 
-    private static StyledLine Footer(KeymapTable keymap, ProfileFormField field)
+    private static StyledLine Footer(KeymapTable keymap, ProfileFormField field, int width)
     {
-        return DialogFooter.Line(SurfaceHints.ProfileForm(keymap, field));
+        return DialogFooter.Fitted(SurfaceHints.ProfileForm(keymap, field), width - 2);
     }
 }

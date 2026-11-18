@@ -41,7 +41,7 @@ public static class SurfaceHints
         return Of(state, keymap, state.Mode);
     }
 
-    /// <summary>The chips of the move, choose and close dialogs: Jump, pickers, the Actions menu, the palette.</summary>
+    /// <summary>The chips of Jump.</summary>
     public static List<HintChip?> Jump(KeymapTable keymap)
     {
         return [Move(keymap, InputMode.Insert), Enter(keymap, HintLabels.Open), Close(keymap, InputMode.Insert)];
@@ -78,7 +78,9 @@ public static class SurfaceHints
         ];
     }
 
-    /// <summary>The chips of the Help (pages and filter) or, with <paramref name="withPages"/> false, the Messages.</summary>
+    /// <summary>
+    /// The chips of the Help (pages and filter) or, with <paramref name="withPages"/> false, the Messages.
+    /// </summary>
     public static List<HintChip?> Help(KeymapTable keymap, bool withPages, bool filtering)
     {
         if (filtering)
@@ -165,7 +167,11 @@ public static class SurfaceHints
         return
         [
             DialogFooter.Pair(keymap, InputMode.Normal, ActionIds.NavigateDown, ActionIds.NavigateUp, HintLabels.Move),
-            DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.ItemOpen, listOpen ? HintLabels.Keep : HintLabels.Change),
+            DialogFooter.Chip(
+                keymap,
+                InputMode.Normal,
+                ActionIds.ItemOpen,
+                listOpen ? HintLabels.Keep : HintLabels.Change),
             listOpen ? null : DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.SettingsReset, HintLabels.Reset),
             DialogFooter.Chip(keymap, InputMode.Normal, ActionIds.Cancel, HintLabels.Close),
         ];
@@ -216,7 +222,8 @@ public static class SurfaceHints
         {
             InputMode.Command => SurfaceChips.KeepLast(Palette(keymap)),
             InputMode.Help => SurfaceChips.KeepLast(Help(keymap, !state.MessagesOpen, state.HelpFiltering)),
-            InputMode.Insert when state is { Form: { } profile } => SurfaceChips.KeepLast(ProfileForm(keymap, profile.Field)),
+            InputMode.Insert when state is { Form: { } profile }
+                => SurfaceChips.KeepLast(ProfileForm(keymap, profile.Field)),
             InputMode.Insert when state.ProfileList is not null => SurfaceChips.KeepLast(ProfileList(
                 keymap,
                 state.Profiles.Profiles.Count > 0)),

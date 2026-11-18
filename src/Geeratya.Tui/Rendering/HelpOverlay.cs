@@ -110,7 +110,7 @@ public static class HelpOverlay
         if (footer > 0)
         {
             box.Add(OverlayBox.Divider(boxWidth));
-            box.Add(OverlayBox.Wall(Footer(keymap, withPages: true, state.HelpFiltering), boxWidth - 2));
+            box.Add(OverlayBox.Wall(Footer(keymap, withPages: true, boxWidth - 4, state.HelpFiltering), boxWidth - 2));
         }
 
         box.Add(OverlayBox.Bottom(boxWidth));
@@ -133,9 +133,9 @@ public static class HelpOverlay
     }
 
     /// <summary>The footer of the Help and of the Messages screen (Help mode); the page chips only for the Help.</summary>
-    internal static StyledLine Footer(KeymapTable keymap, bool withPages, bool filtering = false)
+    internal static StyledLine Footer(KeymapTable keymap, bool withPages, int width, bool filtering = false)
     {
-        return DialogFooter.Line(SurfaceHints.Help(keymap, withPages, filtering));
+        return DialogFooter.Fitted(SurfaceHints.Help(keymap, withPages, filtering), width);
     }
 
     private static string TitleText(AppState state, int boxWidth)

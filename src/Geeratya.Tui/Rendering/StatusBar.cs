@@ -62,13 +62,13 @@ public static partial class StatusBar
         // hints stay while they fit).
         var reserve = Math.Min(Math.Max(0, wanted), MaxViewReserve);
         var overlay = SurfaceHints.Of(state, keymap) is not null
-            && state is { Form: null, FlashJump: null }
+            && state is { Form: null, FlashJump: null, Mode: not InputMode.Command }
             && FormReducer.OpenForm(state) is null
             && !text.StartsWith(ErrorMark, StringComparison.Ordinal);
 
         // An overlay's hints are its keys: they win over a long prompt, which is cut with an ellipsis (#1030). The
-        // prompts that show typed text (the profile form, the flash jump), a field form (its state note) and an error keep the
-        // text and the hints drop instead.
+        // prompts that show typed text (the palette, the profile form, the flash jump), a field form (its state note)
+        // and an error keep the text and the hints drop instead.
         if (overlay)
         {
             reserve = Math.Min(TextWidth.Of(text), OverlayTextReserve);
@@ -211,7 +211,10 @@ public static partial class StatusBar
             return [];
         }
 
-        return Fit(Leveled(HintTexts(state, keymap), state), room);
+        var hints = HintTexts(state, keymap);
+
+        // Minimal thins the hints of a screen; an overlay keeps its keys.
+        return Fit(SurfaceHints.Of(state, keymap) is null ? Leveled(hints, state) : hints, room);
     }
 
     /// <summary>Minimal keeps only the three global hints of Normal mode (<c>? help  : commands  q back</c>).</summary>

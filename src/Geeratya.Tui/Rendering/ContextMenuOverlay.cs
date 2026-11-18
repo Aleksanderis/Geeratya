@@ -15,6 +15,7 @@ public static class ContextMenuOverlay
 {
     /// <summary>The title of the box; the status line says the same word.</summary>
     public const string Title = "Actions";
+
     private const int MaxBoxWidth = 60;
     private const int NarrowBoxWidth = 24;
     private const int Margin = 4;
@@ -57,7 +58,7 @@ public static class ContextMenuOverlay
         if (footer > 0)
         {
             lines.Add(OverlayBox.Divider(boxWidth));
-            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, contentWidth), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -115,9 +116,9 @@ public static class ContextMenuOverlay
         return rows;
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(SurfaceHints.ContextMenu(keymap));
+        return DialogFooter.Fitted(SurfaceHints.ContextMenu(keymap), width - 2);
     }
 
     private static StyledLine RowLine(string title, string keys, bool selected, int width)

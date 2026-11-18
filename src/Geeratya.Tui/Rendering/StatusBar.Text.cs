@@ -107,10 +107,16 @@ public static partial class StatusBar
         {
             InputMode.Command => TextRole.BadgeCommand,
             InputMode.Help => TextRole.BadgeHelp,
-            InputMode.Confirm => state.Confirm is { Destructive: false } ? TextRole.BadgeConfirmWarn : TextRole.BadgeConfirm,
+            InputMode.Confirm => ConfirmBadge(state),
             InputMode.Insert => TextRole.BadgeInsert,
             _ => TextRole.BadgeNormal,
         };
+    }
+
+    // Red for a write to Jira, yellow for a question that loses nothing there (the colour of the dialog's frame).
+    private static TextRole ConfirmBadge(AppState state)
+    {
+        return state.Confirm is { Destructive: false } ? TextRole.BadgeConfirmWarn : TextRole.BadgeConfirm;
     }
 
     private static string Badge(InputMode mode)
@@ -148,7 +154,8 @@ public static partial class StatusBar
             InputMode.Insert when state.FlashJump is { } flash => state.Message ?? FlashText(flash, width),
             InputMode.Insert when confirmDialogShown && state is { Picker: null, Form: { } profile } => ProfileFormOverlay.StatusText(profile),
             InputMode.Insert when state is { ProfileList: not null, Form: null } => ManagerText(state),
-            InputMode.Insert when state is { ContextMenu: not null, Picker: null, Jump: null } => ContextMenuOverlay.Title,
+            InputMode.Insert when state is { ContextMenu: not null, Picker: null, Jump: null }
+                => ContextMenuOverlay.Title,
             InputMode.Insert => state.Picker is null ? FormText(state.Form, width) : PickerText(state.Picker),
             _ => NormalText(state, now, viewRoom, withPosition, withGoal),
         };

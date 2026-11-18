@@ -50,6 +50,15 @@ public static class DialogFooter
         return line;
     }
 
+    /// <summary>
+    /// The footer of <paramref name="chips"/> that keeps the last one (the way out) when the line has only
+    /// <paramref name="width"/> columns.
+    /// </summary>
+    public static StyledLine Fitted(IEnumerable<HintChip?> chips, int width)
+    {
+        return Fitted(SurfaceChips.KeepLast(chips), width);
+    }
+
     /// <summary>The footer as one line of chips that all have a key.</summary>
     public static StyledLine LineOf(IEnumerable<HintChip> chips)
     {

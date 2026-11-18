@@ -46,7 +46,7 @@ public static class CommentEditorOverlay
 
         var inner = boxWidth - WallColumns;
         var notes = new List<StyledLine>([.. PopupLines(editor, inner), .. Notes(editor, inner)]);
-        var footer = Footer(keymap, editor);
+        var footer = Footer(keymap, editor, inner);
         var rows = EditorLayout.Rows(editor.Buffer.Text, EditorLayout.Capacity(inner));
         var area = Math.Clamp(height - 2 - notes.Count - FooterHeight, 1, Math.Max(MinimumTextRows, rows.Count));
         var box = BoxLines(editor, rows, notes, footer, boxWidth, area);
@@ -238,8 +238,8 @@ public static class CommentEditorOverlay
         }
     }
 
-    private static StyledLine Footer(KeymapTable keymap, CommentEditor editor)
+    private static StyledLine Footer(KeymapTable keymap, CommentEditor editor, int width)
     {
-        return DialogFooter.Line(SurfaceHints.Editor(keymap, editor));
+        return DialogFooter.Fitted(SurfaceHints.Editor(keymap, editor), width);
     }
 }

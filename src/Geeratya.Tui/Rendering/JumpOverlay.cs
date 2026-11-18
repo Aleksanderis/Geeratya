@@ -14,9 +14,10 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class JumpOverlay
 {
-    private const int PromptMargin = 4;
     /// <summary>The title of the box; the status line says the same words.</summary>
     public const string Title = "Jump to an issue";
+
+    private const int PromptMargin = 4;
     private const string HintText = "Type a key like GCM-12, or a number in the current project.";
     private const string RecentText = "recent";
     private const int MaxBoxWidth = 80;
@@ -108,7 +109,7 @@ public static class JumpOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, contentWidth), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -161,8 +162,8 @@ public static class JumpOverlay
         ]);
     }
 
-    private static StyledLine Footer(KeymapTable keymap)
+    private static StyledLine Footer(KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(SurfaceHints.Jump(keymap));
+        return DialogFooter.Fitted(SurfaceHints.Jump(keymap), width - 2);
     }
 }

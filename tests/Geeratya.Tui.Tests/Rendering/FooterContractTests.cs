@@ -1,4 +1,6 @@
 using Geeratya.Core.Forms;
+using Geeratya.Core.Links;
+using Geeratya.Core.Sprints;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
@@ -30,30 +32,47 @@ public class FooterContractTests
         new("jump", "INSERT", "Jump to an issue", ["Up/Down|move", "Enter|open", "Esc|close"]),
         new("picker", "INSERT", "Open a view", ["Up/Down|move", "Enter|open in a new tab", "Esc|close"]),
         new("tab list", "INSERT", "Open tabs", ["Up/Down|move", "Enter|switch", "Esc|close"]),
-        new("sprint switcher", "INSERT", "Switch sprint", ["Up/Down|move", "Enter|open", "Ctrl-t|new tab", "Esc|close"]),
+        new("sprint switcher", "INSERT", "Switch sprint",
+            ["Up/Down|move", "Enter|open", "Ctrl-t|new tab", "Esc|close"]),
+        new("sprint move", "INSERT", "Move to sprint: A-1", ["Up/Down|move", "Enter|move here", "Esc|close"]),
         new("actions menu", "NORMAL", "Actions", ["Up/Down|move", "Enter|run", "Esc|close"]),
         new("palette", "COMMAND", ":", ["Up/Down|move", "Enter|run", "Esc|close"]),
         new("help", "HELP", string.Empty, ["j/k|move", "Tab|page", "/|filter", "Esc|close"]),
         new("help filter", "HELP", string.Empty, ["Enter|keep filter", "Tab|page", "Esc|clear filter"]),
         new("messages", "MESSAGES", string.Empty, ["j/k|move", "Esc|close"]),
         new("comment", "INSERT", "Commenting on A-1", ["Ctrl-s|send", "Enter|new line", "Esc|cancel"]),
-        new("profile form name", "INSERT", "Profile name", ["Enter|next", "Tab|field", "Ctrl-s|save", "Alt-t|test", "Esc|cancel"]),
-        new("profile form token", "INSERT", "API token (hidden)", ["Enter|save", "Tab|field", "Alt-t|test", "Esc|cancel"]),
-        new("profile list", "NORMAL", "Active: work", ["Up/Down|move", "Enter|switch", "Ctrl-a|add", "Ctrl-e|edit", "Ctrl-x|remove", "Esc|close"], false),
-        new("settings", "NORMAL", "Settings: a change applies at once and is saved", ["j/k|move", "Enter|change", "Alt-r|reset", "Esc|close"]),
+        new("profile form name", "INSERT", "Profile name",
+            ["Enter|next", "Tab|field", "Ctrl-s|save", "Alt-t|test", "Esc|cancel"]),
+        new("profile form token", "INSERT", "API token (hidden)",
+            ["Enter|save", "Tab|field", "Alt-t|test", "Esc|cancel"]),
+        new("profile list", "NORMAL", "Active: work",
+            ["Up/Down|move", "Enter|switch", "Ctrl-a|add", "Ctrl-e|edit", "Ctrl-x|remove", "Esc|close"], false),
+        new("settings", "NORMAL", "Settings: a change applies at once and is saved",
+            ["j/k|move", "Enter|change", "Alt-r|reset", "Esc|close"]),
         new("which-key", "NORMAL", "<space>i", ["Esc|cancel"]),
         new("type chooser", "INSERT", "Choose the issue type", ["Up/Down|move", "Enter|choose", "Esc|close"]),
         new("status picker", "INSERT", "Change status of A-1 · Move to", ["Up/Down|move", "Enter|choose", "Esc|close"]),
-        new("box assignee", "INSERT", "Assign GCM-12 · Assignee", ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|stop editing"]),
-        new("create assignee", "INSERT", "Create GCM · Task · Assignee", ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|create", "Esc|stop editing"], false),
-        new("subtask assignee", "INSERT", "Create GCM · Sub · Assignee", ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|create", "Esc|stop editing"], false),
-        new("dropdown assignee", "INSERT", "Edit GCM-12 · Assignee", ["Up/Down|move", "Enter|choose", "Esc|close"], false),
-        new("box reporter", "INSERT", "Assign GCM-12 · Reporter", ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|stop editing"]),
-        new("create reporter", "INSERT", "Create GCM · Task · Reporter", ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
-        new("subtask reporter", "INSERT", "Create GCM · Sub · Reporter", ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
+        new("box assignee", "INSERT", "Assign GCM-12 · Assignee",
+            ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|stop editing"]),
+        new("create assignee", "INSERT", "Create GCM · Task · Assignee",
+            ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|create", "Esc|stop editing"], false),
+        new("subtask assignee", "INSERT", "Create GCM · Sub · Assignee",
+            ["Up/Down|move", "Enter|choose", "Tab/Shift-Tab|field", "Ctrl-s|create", "Esc|stop editing"], false),
+        new("dropdown assignee", "INSERT", "Edit GCM-12 · Assignee",
+            ["Up/Down|move", "Enter|choose", "Esc|close"], false),
+        new("box reporter", "INSERT", "Assign GCM-12 · Reporter",
+            ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|stop editing"]),
+        new("create reporter", "INSERT", "Create GCM · Task · Reporter",
+            ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
+        new("subtask reporter", "INSERT", "Create GCM · Sub · Reporter",
+            ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
         new("dropdown reporter", "INSERT", "Edit GCM-12 · Reporter", ["Esc|close"], false),
-        new("create navigating", "NORMAL", "Create GCM · Task · Summary", ["Tab/Shift-Tab|field", "Enter|edit", "Ctrl-h/j/k/l|pane", "Ctrl-s|create", "Esc|cancel"], false, false, 2),
-        new("create editing", "INSERT", "Create GCM · Task · Summary", ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
+        new("link form", "INSERT", "Link A-1 · First", ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|cancel"]),
+        new("sprint form", "INSERT", "Create sprint · First", ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|cancel"]),
+        new("create navigating", "NORMAL", "Create GCM · Task · Summary",
+            ["Tab/Shift-Tab|field", "Enter|edit", "Ctrl-h/j/k/l|pane", "Ctrl-s|create", "Esc|cancel"], false, false, 2),
+        new("create editing", "INSERT", "Create GCM · Task · Summary",
+            ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
     ];
 
     public static TheoryData<string, int, int> Matrix()
@@ -91,7 +110,7 @@ public class FooterContractTests
 
         if (FooterChips(frame) is not { } footer)
         {
-            Assert.False(surface.HasFooter && width == 120, $"{name}: the box shows no footer at {width}x{height}");
+            Assert.False(surface.HasFooter, $"{name}: the box shows no footer at {width}x{height}");
 
             return;
         }
@@ -114,8 +133,9 @@ public class FooterContractTests
         var frame = FrameBuilder.BuildStyled(StateOf(name), width, height, _keymap)!;
         var line = frame.StatusStyled!;
         var badge = line.Spans[0].Text.Trim();
-        var rest = string.Concat(line.Spans.Skip(1).TakeWhile(static span => span.Role is not TextRole.BarKey).Select(static span => span.Text))
-            .Trim();
+
+        // The prompt is the span after the badge and its space; a line without one has none.
+        var rest = line.Spans.Count > 2 ? line.Spans[2].Text.Trim() : string.Empty;
 
         Assert.Equal(surface.Badge, badge);
 
@@ -124,6 +144,47 @@ public class FooterContractTests
             Assert.StartsWith(surface.Prompt, rest, StringComparison.Ordinal);
             Assert.True(char.IsUpper(surface.Prompt[0]) || surface.Prompt[0] is ':' or '<', name);
         }
+    }
+
+    [Theory]
+    [InlineData("quit", "CONFIRM", TextRole.BadgeConfirmWarn)]
+    [InlineData("edit form", "CONFIRM", TextRole.BadgeConfirmWarn)]
+    [InlineData("delete issue", "CONFIRM", TextRole.BadgeConfirm)]
+    [InlineData("complete sprint", "CONFIRM", TextRole.BadgeConfirm)]
+    public void GivenAQuestion_WhenDrawn_ThenTheConfirmBadgeFollowsTheFrameColour(
+        string place,
+        string badge,
+        TextRole role)
+    {
+        var frame = FrameBuilder.BuildStyled(ConfirmContractTests.Asked(place), 120, 36, _keymap)!;
+        var span = frame.StatusStyled!.Spans[0];
+
+        Assert.Equal(badge, span.Text.Trim());
+        Assert.Equal(role, span.Role);
+    }
+
+    [Fact]
+    public void GivenAnInformationOnlyNotice_WhenDrawn_ThenTheBadgeIsHelpAndTheKeyClosesIt()
+    {
+        var frame = FrameBuilder.BuildStyled(ConfirmNoticeTests.Open("Ship it"), 120, 36, _keymap)!;
+        var span = frame.StatusStyled!.Spans[0];
+
+        Assert.Equal("HELP", span.Text.Trim());
+        Assert.Equal(TextRole.BadgeHelp, span.Role);
+        Assert.Equal(["y|close"], StatusChips(frame));
+    }
+
+    [Theory]
+    [InlineData(120)]
+    [InlineData(80)]
+    public void GivenALongPaletteQuery_WhenDrawn_ThenTheTypedEchoIsNeverCutForTheHints(int width)
+    {
+        var query = "jql project = GEN and status = Done order by created desc";
+        var state = TextEditorContractTests.Open("palette") with { PaletteText = query };
+        var frame = FrameBuilder.BuildStyled(state, width, 24, _keymap)!;
+
+        Assert.Contains($":{query}", frame.StatusLine, StringComparison.Ordinal);
+        Assert.DoesNotContain("…", frame.StatusLine, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -147,8 +208,13 @@ public class FooterContractTests
     [Fact]
     public void GivenAnyOverlayHint_WhenRead_ThenItUsesTheWordsOfOneTable()
     {
-        var labels = _surfaces.SelectMany(static surface => surface.Chips).Select(static chip => chip.Split('|')[1]).Distinct();
-        var table = typeof(HintLabels).GetFields().Select(static field => (string)field.GetRawConstantValue()!).ToList();
+        var labels = _surfaces
+            .SelectMany(static surface => surface.Chips)
+            .Select(static chip => chip.Split('|')[1])
+            .Distinct();
+        var table = typeof(HintLabels).GetFields()
+            .Select(static field => (string)field.GetRawConstantValue()!)
+            .ToList();
 
         Assert.All(labels, label => Assert.True(
             table.Contains(label, StringComparer.Ordinal) || label.StartsWith("open after", StringComparison.Ordinal),
@@ -256,6 +322,9 @@ public class FooterContractTests
             "profile list" => ProfileManagerScreenTests.Sample(),
             "settings" => SettingsScreenTests.Sample(),
             "which-key" => WhichKeyOverlayTests.Opened("Space i"),
+            "sprint move" => SprintMove(),
+            "link form" => TwoFields(new LinkFormTarget("A-1")),
+            "sprint form" => TwoFields(new SprintFormTarget(1, null)),
             "type chooser" => TypeChooser(),
             "status picker" => StatusPicker(),
             "create navigating" => _editor.Keys(CreatePanes(), "Esc"),
@@ -277,6 +346,24 @@ public class FooterContractTests
         return _fields.Open(parts[0], field);
     }
 
+    private static AppState SprintMove()
+    {
+        var state = SprintPickerSnapshotTests.Sample(2);
+        var picker = state.Picker!;
+
+        return state with { Picker = picker with { Sprint = picker.Sprint! with { MoveKeys = ["A-1"] } } };
+    }
+
+    // A form of two text fields in its edit state, as the link and the sprint form open.
+    private static AppState TwoFields(FormTarget target)
+    {
+        var first = FormField.Create("first", "First", FormFieldKind.Text, false, []);
+        var second = FormField.Create("second", "Second", FormFieldKind.Text, false, []);
+        var form = FormState.Opened(target, 3, null) with { Fields = [first, second], IsLoading = false };
+
+        return FormOverlaySnapshotTests.WithForm(form);
+    }
+
     private static AppState TypeChooser()
     {
         var target = new CreateFormTarget("A", null, false, null);
@@ -289,7 +376,7 @@ public class FooterContractTests
     private static AppState StatusPicker()
     {
         var target = new TransitionPickTarget("A-1", [], null, [])
-            .With([new Transition("21", "In Progress", new IssueStatus("21", "In Progress", "indeterminate"), false, true, [])]);
+            .With([new Transition("21", "In Progress", new IssueStatus("21", "In Progress", "new"), false, true, [])]);
         var form = FormState.Opened(target, 3, null) with { Fields = target.Fields(), IsLoading = false };
         var shown = form with { Suggest = ChoicePopup.For(form.Fields[0], 0, null) };
 
@@ -300,7 +387,8 @@ public class FooterContractTests
     {
         var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
         var estimate = FormField.Create("estimate", "Estimate", FormFieldKind.Text, false, []);
-        var target = new CreateFormTarget("GCM", null, false, new CreateIssueType("10", "Task", string.Empty, 0, false));
+        var type = new CreateIssueType("10", "Task", string.Empty, 0, false);
+        var target = new CreateFormTarget("GCM", null, false, type);
         var form = FormState.Opened(target, 3, null) with
         {
             Fields = [summary, estimate],
@@ -314,5 +402,12 @@ public class FooterContractTests
 
     // One surface: its name, the badge and prompt of its status line, its chips at 120x36 and whether its box has
     // a footer (the panes, the Details dropdown and the profile list are narrower than their hints, or have none).
-    private sealed record Surface(string Name, string Badge, string Prompt, string[] Chips, bool HasFooter = true, bool Fits = true, int Kept = 1);
+    private sealed record Surface(
+        string Name,
+        string Badge,
+        string Prompt,
+        string[] Chips,
+        bool HasFooter = true,
+        bool Fits = true,
+        int Kept = 1);
 }

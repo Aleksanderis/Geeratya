@@ -5,6 +5,6 @@
 | | second line                      | |
 | |                                  | |
 | | -------------------------------- | |
-| | Ctrl-s send   Enter new line   . | |
+| | Ctrl-s send   Esc cancel         | |
 +-+----------------------------------+-+
 [INSERT] Commenting on A-1    Esc cancel

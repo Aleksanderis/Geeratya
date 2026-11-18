@@ -13,10 +13,12 @@ public static class FormFooter
 {
     private const string CtrlPrefix = "Ctrl-";
 
-    /// <summary>The footer of <paramref name="form"/> as one line.</summary>
-    public static StyledLine Line(FormState form, KeymapTable keymap)
+    /// <summary>The footer of <paramref name="form"/> in at most <paramref name="width"/> columns.</summary>
+    public static StyledLine Line(FormState form, KeymapTable keymap, int width)
     {
-        return DialogFooter.Line(Chips(form, keymap));
+        var chips = Chips(form, keymap).OfType<HintChip>().ToList();
+
+        return DialogFooter.Fitted(new SurfaceChips(chips, Kept(form, chips.Count)), width);
     }
 
     /// <summary>The chips of <paramref name="form"/>; a key the keymap does not bind gives null.</summary>
@@ -117,7 +119,8 @@ public static class FormFooter
         return form.Navigable ? HintLabels.StopEditing : HintLabels.Close;
     }
 
-    // A dropdown under a Details field: a typed field (the Estimate) saves with Enter, a popup still loading only closes.
+    // A dropdown under a Details field: a typed field (the Estimate) saves with Enter, a popup still loading only
+    // closes.
     private static List<HintChip?> DropdownChips(FormState form, KeymapTable keymap)
     {
         var focused = form.Focus >= 0 && form.Focus < form.Fields.Count ? form.Fields[form.Focus] : null;

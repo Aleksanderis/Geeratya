@@ -114,7 +114,7 @@ public static class SourcePickerOverlay
             var rule = StyledLine.Of(new string(OverlayBox.Horizontal, contentWidth - 2), TextRole.Muted);
 
             lines.Add(OverlayBox.Wall(rule, contentWidth));
-            lines.Add(OverlayBox.Wall(Footer(keymap, picker), contentWidth));
+            lines.Add(OverlayBox.Wall(Footer(keymap, picker, contentWidth), contentWidth));
         }
 
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -162,9 +162,9 @@ public static class SourcePickerOverlay
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }
 
-    private static StyledLine Footer(KeymapTable keymap, SourcePickerState picker)
+    private static StyledLine Footer(KeymapTable keymap, SourcePickerState picker, int width)
     {
-        return DialogFooter.Line(SurfaceHints.Picker(keymap, picker));
+        return DialogFooter.Fitted(SurfaceHints.Picker(keymap, picker), width - 2);
     }
 
     private static PickerRows Rows(SourcePickerState picker, SourceLists lists, int width)

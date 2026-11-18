@@ -72,7 +72,7 @@ public class ConfirmNoticeTests
         Assert.True(layout.Height <= 12);
     }
 
-    private static AppState Open(string goal)
+    internal static AppState Open(string goal)
     {
         var request = new ConfirmRequest($"Sprint 4\n\n{goal}", ActionIds.Cancel, Label: "Close", Title: "Sprint goal");
 
