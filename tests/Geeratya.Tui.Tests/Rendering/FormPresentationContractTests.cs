@@ -129,6 +129,48 @@ public class FormPresentationContractTests
         }
     }
 
+    [Theory]
+    [InlineData("box")]
+    [InlineData("create")]
+    public void GivenANavigableForm_WhenItIsEditedAndThenSteppedBack_ThenTheEscWordAndTheEnterEditHintAgree(
+        string presentation)
+    {
+        var editing = Frame(Open(presentation, Field("hello")), 140, 36);
+        var navigating = Frame(Keys(Open(presentation, Field("hello")), "Esc"), 140, 36);
+
+        Assert.Contains("Esc stop editing", editing.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Tab/Shift-Tab field", editing.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc cancel", navigating.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Enter edit", navigating.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Tab/Shift-Tab field", navigating.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheBoxForm_WhenItIsEdited_ThenItsFooterUsesTheWordsOfTheStatusLine()
+    {
+        var editing = Frame(Open("box", Field("hello")), 120, 36);
+        var navigating = Frame(Keys(Open("box", Field("hello")), "Esc"), 120, 36);
+
+        Assert.Contains(editing.Body, line => line.PlainText.Contains("Esc stop editing", StringComparison.Ordinal));
+        Assert.Contains(navigating.Body, line => line.PlainText.Contains("Esc cancel", StringComparison.Ordinal));
+        Assert.DoesNotContain(navigating.Body, line => line.PlainText.Contains("Esc close", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAFieldOpenedByCommand_WhenItsDropdownOpens_ThenTheCursorIsOnThatFieldLikeEnterOnIt()
+    {
+        var state = Loaded();
+        var tab = state.Session.Tabs[0];
+
+        state = _reducer.Reduce(state, new IssueEditableLoaded(tab.Id, "GCM-12", [DetailFieldIds.Priority])).State;
+        var opened = Keys(state, ":", "p", "r", "i", "o", "r", "i", "t", "y", "Enter");
+
+        var top = opened.Session.Tabs[0].Detail[^1];
+        Assert.NotNull(top.SideCursor);
+        Assert.Equal(DetailFieldIds.Priority, top.Document!.Side!.Targets[top.SideCursor.Value]!.Value);
+        Assert.Equal(DetailFieldIds.Priority, opened.Session.Tabs[0].Form!.Dropdown);
+    }
+
     private static bool IsValueRole(TextRole role)
     {
         return role is TextRole.Editable or TextRole.Body or TextRole.ValueBlock or TextRole.EditField or TextRole.Selected;

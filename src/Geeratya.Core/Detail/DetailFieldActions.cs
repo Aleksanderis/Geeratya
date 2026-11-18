@@ -90,9 +90,29 @@ internal static class DetailFieldActions
             return opened;
         }
 
-        return new ReduceResult(
-            ViewReducer.Replace(opened.State, tab with { Form = form with { Dropdown = fieldId } }),
-            opened.Effects);
+        var hung = tab with { Form = form with { Dropdown = fieldId }, Detail = AtField(tab.Detail, fieldId) };
+
+        return new ReduceResult(ViewReducer.Replace(opened.State, hung), opened.Effects);
+    }
+
+    // The dropdown hangs under the cursor field: a field opened by command (:priority, a list key) takes the cursor
+    // first, so it opens where the same field opens from Enter on it.
+    private static IReadOnlyList<DetailState> AtField(IReadOnlyList<DetailState> stack, string fieldId)
+    {
+        if (stack.Count == 0 || stack[^1] is not { Document.Side: { } side } top)
+        {
+            return stack;
+        }
+
+        for (var line = 0; line < side.Targets.Count; line++)
+        {
+            if (side.Targets[line] is { Kind: DetailTargetKind.Field } target && target.Value == fieldId)
+            {
+                return [.. stack.Take(stack.Count - 1), top with { SideCursor = side.Snap(line) }];
+            }
+        }
+
+        return stack;
     }
 
     private static TabState? ActiveTab(AppState state)

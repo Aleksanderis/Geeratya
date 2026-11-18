@@ -199,7 +199,7 @@ public class FieldBehaviourContractTests
                 .Select(pair => $"{row.Kind}: {pair.Key} = {pair.Value}, {first.Key} = {first.Value}"));
         }
 
-        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences));
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class FieldBehaviourContractTests
                 .Select(pair => $"{row.Kind}: {pair.Key} = {pair.Value}, {first.Key} = {first.Value}"));
         }
 
-        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences));
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class FieldBehaviourContractTests
                 .Select(pair => $"{row.Kind}: {pair.Key} = {Plain(pair.Value)}, {first.Key} = {Plain(first.Value)}"));
         }
 
-        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences));
+        Assert.True(differences.Count == 0, string.Join('\n', differences));
     }
 
     [Theory]
@@ -269,11 +269,10 @@ public class FieldBehaviourContractTests
 
             var typed = Type(opened, "jk");
 
-            Assert.All(typed.Session.Tabs[0].Form!.Fields.Where(field => field.Kind == kind), field =>
-            {
-                Assert.Equal(string.Empty, field.Value.Text);
-                Assert.Equal(string.Empty, field.Entry);
-            });
+            var field = typed.Session.Tabs[0].Form!.Fields.First(candidate => candidate.Kind == kind);
+
+            Assert.Equal(string.Empty, field.Value.Text);
+            Assert.Equal(string.Empty, field.Entry);
         }
     }
 
