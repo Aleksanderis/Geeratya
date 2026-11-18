@@ -6,7 +6,7 @@
 │                                                                                                                      │
 │ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │ ╭─ GCM-12 · Task ────────────────────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮ │ │
-│ │ │ Fix login redirect after token refresh                         In Progress │ │ Status  moves via transitio...│ │ │
+│ │ │ Fix login redirect after token refresh                     ... In Progress │ │ Status  moves via transition  │ │ │
 │ │ ╰────────────────────────────────────────────────────────────────────────────╯ │  ● In Progress ▾              │ │ │
 │ │ ╭─ Description ────────────────── 1-7 of 40 · za expand · (edit in browser) ─╮ │                               │ │ │
 │ │ │ Heading one                                                               ▲│ │ Priority                      │ │ │

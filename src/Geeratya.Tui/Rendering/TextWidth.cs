@@ -21,6 +21,15 @@ public static class TextWidth
         return $"{fitted}{new string(' ', Math.Max(0, width - Of(fitted)))}";
     }
 
+    /// <summary>
+    /// As <see cref="Pad"/>, for text a reader must be able to tell is cut: a cut ends in the one cut glyph
+    /// (<see cref="DisplayText.Cut"/>), never a hard cut.
+    /// </summary>
+    public static string PadCut(string text, int width)
+    {
+        return Pad(DisplayText.Cut(text, width), width);
+    }
+
     /// <summary>Cuts or pads on the left with spaces to exactly <paramref name="width"/> columns (right-aligned).</summary>
     public static string PadLeft(string text, int width)
     {

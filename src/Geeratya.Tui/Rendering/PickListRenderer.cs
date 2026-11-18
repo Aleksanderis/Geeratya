@@ -61,14 +61,14 @@ public static class PickListRenderer
 
         foreach (var index in window.Indexes)
         {
-            var text = TextWidth.Fit(SuggestionText.Row(popup.Items[index]), width);
+            var text = DisplayText.Cut(SuggestionText.Row(popup.Items[index]), width);
 
             rows.Add(new PickRow(Row(text, index == highlighted, margin), index));
         }
 
         if (Notice(popup.Pick, popup.Items.Count, emptyListsAll && popup.Query.Length == 0) is { } notice)
         {
-            var text = TextWidth.Fit(notice.Text, width);
+            var text = DisplayText.Cut(notice.Text, width);
 
             rows.Add(new PickRow(StyledLine.Of($"{margin}  {text}", notice.Role), -1));
         }

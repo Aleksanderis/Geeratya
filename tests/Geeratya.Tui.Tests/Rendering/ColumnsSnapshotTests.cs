@@ -72,7 +72,7 @@ public class ColumnsSnapshotTests
             var row = frame.Body.ToList().FindIndex(line => line.PlainText.Contains(RowMenuMarker.Text));
 
             Assert.DoesNotContain(first, frame.Body[row].PlainText);
-            Assert.Contains($"{first}  ", frame.Body[row + 2].PlainText);
+            Assert.Contains(frame.Body.Skip(row + 1).Take(3), line => line.PlainText.Contains($"{first}  "));
         }
 
         Assert.Equal(ActionIds.ContextMenuOpen, Assert.IsType<ActionRequested>(Assert.Single(commands)).Action);

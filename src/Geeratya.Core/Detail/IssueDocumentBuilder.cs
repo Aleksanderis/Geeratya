@@ -177,7 +177,7 @@ public static class IssueDocumentBuilder
             return Wrapped(header.Summary, inner);
         }
 
-        var status = new StyledSpan(DisplayText.Cut(Clean(current.Name), inner), StatusRoles.Of(current));
+        var status = new StyledSpan(DisplayText.Cut(Clean(current.Name), inner), ValueText.StatusRole(current));
         var statusWidth = DisplayWidth.Of(status.Text) + StatusGap;
         var wrapped = new WrappedText(Math.Max(1, inner - statusWidth), false);
 

@@ -286,9 +286,9 @@ public sealed class ListBodyRenderer : IBodyRenderer
     {
         var key = TextWidth.Pad(row.Key, columns.Key);
         var marker = IssueTypeMarker.For(row.IssueType);
-        var summary = TextWidth.Pad(row.Summary, columns.Summary);
+        var summary = TextWidth.PadCut(row.Summary, columns.Summary);
         var status = StatusText(row.Status, columns.Status, glyphs);
-        var assignee = TextWidth.Pad(ValueText.PersonName(row.Assignee?.DisplayName), columns.Assignee);
+        var assignee = TextWidth.PadCut(ValueText.PersonName(row.Assignee?.DisplayName), columns.Assignee);
 
         var extras = ExtraColumns(row, columns);
 
@@ -358,7 +358,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         if (columns.Sprint > 0)
         {
-            text += $" {TextWidth.Pad(row.CurrentSprint?.Name ?? string.Empty, columns.Sprint)}";
+            text += $" {TextWidth.PadCut(row.CurrentSprint?.Name ?? string.Empty, columns.Sprint)}";
         }
 
         if (columns.Points > 0)
@@ -369,7 +369,7 @@ public sealed class ListBodyRenderer : IBodyRenderer
 
         if (columns.Epic > 0)
         {
-            text += $" {TextWidth.Pad(row.Epic?.Key ?? string.Empty, columns.Epic)}";
+            text += $" {TextWidth.PadCut(row.Epic?.Key ?? string.Empty, columns.Epic)}";
         }
 
         return text;

@@ -12,7 +12,10 @@ namespace Geeratya.Tui.Rendering;
 /// the summary) and the cursor line of an opened issue (<c>docs/internal/ux-mouse.md</c>, <c>RowMenuButton</c>). It is text, so
 /// it shows in every colour tier and in ASCII. A click on it opens the actions menu without moving the cursor, a second mouse path to
 /// <c>&lt;space&gt;a</c> for terminals whose multiplexer swallows the right-click. The cells it covers are reported
-/// back so the hit test uses what was drawn.
+/// back so the hit test uses what was drawn. It is drawn only over blank cells (padding), never over a value: the
+/// last run of blank cells of the selected part of the row takes it (flush to the end of the row, else one cell before
+/// the content that follows it); a card whose first rows have no such room takes it on the next selected row that has
+/// (#1032), and a row with none shows no marker (right-click and <c>&lt;space&gt;a</c> still open the menu).
 /// </summary>
 public static class RowMenuMarker
 {
@@ -51,8 +54,12 @@ public static class RowMenuMarker
                 return null;
             }
 
-            var start = end - Text.Length;
-            body[row] = Replace(body[row], start, end);
+            if (BlankRoom(body[row], run.Start, end) is not { } start)
+            {
+                continue;
+            }
+
+            body[row] = Replace(body[row], start, start + Text.Length);
 
             return new OverlayRegion(MouseTarget.RowMenuButton, row, start, Text.Length, 1, 0);
         }
@@ -182,6 +189,59 @@ public static class RowMenuMarker
         }
 
         return new Cells(start.Value, end);
+    }
+
+    // The first column of the marker: in the last run of blank cells inside [from, to) that holds it, or null when no
+    // run does. A run that ends at `to` takes the marker flush to the end; a run followed by content leaves one blank
+    // cell between the marker and that content.
+    private static int? BlankRoom(StyledLine line, int from, int to)
+    {
+        var blank = new bool[Math.Max(0, to)];
+        var column = 0;
+
+        foreach (var span in line.Spans)
+        {
+            foreach (var rune in span.Text.EnumerateRunes())
+            {
+                var width = TextWidth.Of(rune);
+
+                for (var cell = column; cell < column + width && cell < blank.Length; cell++)
+                {
+                    blank[cell] = rune.Value == ' ';
+                }
+
+                column += width;
+            }
+        }
+
+        var end = to;
+
+        while (end > from)
+        {
+            if (!blank[end - 1])
+            {
+                end--;
+                continue;
+            }
+
+            var begin = end;
+
+            while (begin > from && blank[begin - 1])
+            {
+                begin--;
+            }
+
+            var gap = end < to ? 1 : 0;
+
+            if (end - begin - gap >= Text.Length)
+            {
+                return end - gap - Text.Length;
+            }
+
+            end = begin;
+        }
+
+        return null;
     }
 
     private static bool IsSelected(StyledSpan span)

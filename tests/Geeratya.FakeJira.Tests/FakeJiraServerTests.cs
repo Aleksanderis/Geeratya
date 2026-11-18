@@ -166,6 +166,27 @@ public sealed class FakeJiraServerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedIssues_WhenSearching_ThenEveryStatusCarriesItsCategoryAsJiraSendsIt()
+    {
+        var baseUrl = StartServer(12, 0, 0);
+        var body = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?maxResults=12");
+        using var document = JsonDocument.Parse(body);
+        var categories = new Dictionary<string, string>();
+
+        foreach (var issue in document.RootElement.GetProperty("issues").EnumerateArray())
+        {
+            var status = issue.GetProperty("fields").GetProperty("status");
+
+            categories[status.GetProperty("name").GetString()!] =
+                status.GetProperty("statusCategory").GetProperty("key").GetString()!;
+        }
+
+        Assert.Equal("done", categories["Done"]);
+        Assert.Equal("indeterminate", categories["In Progress"]);
+        Assert.Equal("new", categories["To Do"]);
+    }
+
+    [Fact]
     public async Task GivenGeneratedIssues_WhenReadingOneIssueItsCommentsAndRemoteLinks_ThenTheyAreServedAsJira()
     {
         var baseUrl = StartServer(10, 0, 0);

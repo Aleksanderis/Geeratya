@@ -7,6 +7,9 @@ namespace Geeratya.Tui.Rendering;
 /// <summary>Layout helpers for styled lines.</summary>
 public static class StyledLines
 {
+    /// <summary>The glyph that ends a cut row.</summary>
+    public const string Cut = "…";
+
     /// <summary>
     /// Cuts or pads a line to exactly <paramref name="width"/> columns without splitting a wide character; padding is a body-role space run.
     /// </summary>
@@ -18,11 +21,63 @@ public static class StyledLines
     /// <summary>As <see cref="Fit(StyledLine, int)"/>, with the padding drawn in <paramref name="padding"/>.</summary>
     public static StyledLine Fit(StyledLine line, int width, TextRole padding)
     {
+        return IsExactly(line, width) ? line : Pad(Clip(line, width), width, padding, string.Empty);
+    }
+
+    /// <summary>
+    /// As <see cref="Fit(StyledLine, int)"/> for the content of a row (a pick list row, a menu row, a field line): text
+    /// that is cut off ends in <see cref="Cut"/>, the one cut glyph (the ASCII tier maps it), so a clipped row never
+    /// looks complete. Blank cells that are cut off leave no mark.
+    /// </summary>
+    public static StyledLine FitMarked(StyledLine line, int width)
+    {
         if (IsExactly(line, width))
         {
             return line;
         }
 
+        if (width > 1 && CutsText(line, width))
+        {
+            return Pad(Clip(line, width - Cut.Length), width, TextRole.Body, Cut);
+        }
+
+        return Fit(line, width);
+    }
+
+    // Whether the text beyond `width` columns is more than spaces.
+    private static bool CutsText(StyledLine line, int width)
+    {
+        var used = 0;
+
+        foreach (var span in line.Spans)
+        {
+            var size = TextWidth.Of(span.Text);
+
+            if (used + size > width && !string.IsNullOrWhiteSpace(Slice(span.Text, Math.Max(0, width - used))))
+            {
+                return true;
+            }
+
+            if (used >= width && !string.IsNullOrWhiteSpace(span.Text))
+            {
+                return true;
+            }
+
+            used += size;
+        }
+
+        return false;
+    }
+
+    private static string Slice(string text, int from)
+    {
+        var kept = TextWidth.Fit(text, from);
+
+        return text[kept.Length..];
+    }
+
+    private static List<StyledSpan> Clip(StyledLine line, int width)
+    {
         var spans = new List<StyledSpan>();
         var used = 0;
 
@@ -40,6 +95,22 @@ public static class StyledLines
                 spans.Add(ReferenceEquals(text, span.Text) ? span : span with { Text = text });
                 used += TextWidth.Of(text);
             }
+        }
+
+        return spans;
+    }
+
+    private static StyledLine Pad(List<StyledSpan> spans, int width, TextRole padding, string mark)
+    {
+        var used = spans.Sum(static span => TextWidth.Of(span.Text));
+
+        if (mark.Length > 0)
+        {
+            spans.Add(new StyledSpan(mark, spans.Count > 0 ? spans[^1].Role : padding)
+            {
+                Ground = spans.Count > 0 ? spans[^1].Ground : SpanGround.Page,
+            });
+            used += TextWidth.Of(mark);
         }
 
         if (used < width)

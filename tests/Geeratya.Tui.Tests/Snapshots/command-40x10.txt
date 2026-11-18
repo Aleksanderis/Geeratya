@@ -5,6 +5,6 @@
 │ ╭─ Commands ──────────────── 2/93 ─╮ │
 │ │ : search                         │ │
 │ ├──────────────────────────────────┤ │
-│ │   Assign the issue: s  <space>ia▲│ │
+│ │   Assign the issue: …  <space>ia▲│ │
 ╰─╰──────────────────────────────────╯─╯
  COMMAND  :search                       

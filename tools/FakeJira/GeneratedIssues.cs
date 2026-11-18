@@ -194,6 +194,9 @@ public static class GeneratedIssues
         writer.WriteStartObject("status");
         writer.WriteString("id", StatusIdOf(_statuses[number % _statuses.Length]));
         writer.WriteString("name", _statuses[number % _statuses.Length]);
+        writer.WriteStartObject("statusCategory");
+        writer.WriteString("key", CategoryOf(_statuses[number % _statuses.Length]));
+        writer.WriteEndObject();
         writer.WriteEndObject();
         writer.WriteNull("assignee");
         WriteSubtasks(writer, "GEN-", number);
@@ -285,6 +288,9 @@ public static class GeneratedIssues
         writer.WriteStartObject("status");
         writer.WriteString("id", StatusIdOf(status));
         writer.WriteString("name", status);
+        writer.WriteStartObject("statusCategory");
+        writer.WriteString("key", CategoryOf(status));
+        writer.WriteEndObject();
         writer.WriteEndObject();
 
         if (index % 2 == 1)

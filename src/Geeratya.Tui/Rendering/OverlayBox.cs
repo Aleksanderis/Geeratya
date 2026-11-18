@@ -113,7 +113,7 @@ public static class OverlayBox
         var frame = FrameRole(kind);
         var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
 
-        spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
+        spans.AddRange(StyledLines.FitMarked(content, contentWidth - 2).Spans);
         spans.Add(new StyledSpan(" ", TextRole.Body));
         spans.Add(new StyledSpan(Vertical, frame));
 
@@ -133,7 +133,7 @@ public static class OverlayBox
         var frame = FrameRole(kind);
         var spans = new List<StyledSpan> { new(Vertical, frame), new(" ", TextRole.Body) };
 
-        spans.AddRange(StyledLines.Fit(content, contentWidth - 2).Spans);
+        spans.AddRange(StyledLines.FitMarked(content, contentWidth - 2).Spans);
         spans.Add(new StyledSpan(marker, TextRole.Muted));
         spans.Add(new StyledSpan(Vertical, frame));
 

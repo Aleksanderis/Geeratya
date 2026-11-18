@@ -216,7 +216,7 @@ internal static class DetailsPane
 
     private static List<StyledSpan> StatusValue(IssueStatus status)
     {
-        return [.. ValueText.Status(status, TextRole.ValueBlock)];
+        return [.. ValueText.Status(status)];
     }
 
     private static IReadOnlyList<IReadOnlyList<StyledSpan>> PriorityValue(string? priority)

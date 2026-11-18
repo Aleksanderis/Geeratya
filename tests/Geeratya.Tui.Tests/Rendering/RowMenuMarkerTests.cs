@@ -17,8 +17,6 @@ public class RowMenuMarkerTests
     [Theory]
     [InlineData(120, 36, GlyphSet.Unicode)]
     [InlineData(80, 24, GlyphSet.Unicode)]
-    [InlineData(40, 10, GlyphSet.Unicode)]
-    [InlineData(40, 10, GlyphSet.Ascii)]
     public void GivenAList_WhenBuildingTheFrame_ThenOnlyTheSelectedRowEndsInTheMarkerAndTheFrameReportsItsCells(
         int width,
         int height,
@@ -34,6 +32,17 @@ public class RowMenuMarkerTests
         Assert.Equal(RowMenuMarker.Text.Length, marker.Width);
         Assert.Equal(FrameBuilder.HeaderRows + frame.Body.ToList().IndexOf(line), marker.Top);
         Assert.Equal(RowMenuMarker.Text, line.PlainText.Substring(marker.Left, marker.Width));
+    }
+
+    [Theory]
+    [InlineData(GlyphSet.Unicode)]
+    [InlineData(GlyphSet.Ascii)]
+    public void GivenARowWithNoBlankCellsLeft_WhenBuildingTheFrame_ThenNoMarkerIsDrawnOverItsContent(GlyphSet glyphs)
+    {
+        var frame = FrameBuilder.BuildStyled(Sample(), 40, 10, _keymap, null, null, glyphs)!;
+
+        Assert.Null(frame.RowMenuMarker);
+        Assert.DoesNotContain(frame.Body, line => line.PlainText.Contains(RowMenuMarker.Text));
     }
 
     [Fact]

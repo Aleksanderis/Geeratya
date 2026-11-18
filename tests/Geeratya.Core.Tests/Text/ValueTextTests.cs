@@ -77,11 +77,11 @@ public class ValueTextTests
     [InlineData("new", TextRole.StatusToDo)]
     [InlineData("indeterminate", TextRole.StatusInProgress)]
     [InlineData("done", TextRole.StatusDone)]
-    public void GivenAStatus_WhenBuilding_ThenTheDotHasTheRoleOfItsCategory(string category, TextRole role)
+    public void GivenAStatus_WhenBuilding_ThenTheDotAndTheNameHaveTheRoleOfItsCategory(string category, TextRole role)
     {
         var status = new IssueStatus("1", "Open", category);
 
-        Assert.Equal(role, ValueText.Status(status, TextRole.ValueBlock)[0].Role);
+        Assert.All(ValueText.Status(status), span => Assert.Equal(role, span.Role));
         Assert.Equal(role, ValueText.StatusRole(status));
     }
 
