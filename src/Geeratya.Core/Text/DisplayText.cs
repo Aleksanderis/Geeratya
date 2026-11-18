@@ -5,6 +5,9 @@ namespace Geeratya.Core.Text;
 /// <summary>Cuts text to a number of terminal cells.</summary>
 public static class DisplayText
 {
+    /// <summary>The glyph that ends text that was cut (the ASCII tier maps it to one cell, <c>.</c>).</summary>
+    public const string Ellipsis = "…";
+
     /// <summary>The text cut to <paramref name="width"/> cells, ending in an ellipsis when something was cut.</summary>
     public static string Cut(string text, int width)
     {
@@ -34,6 +37,6 @@ public static class DisplayText
             used += size;
         }
 
-        return builder.Append('…').ToString();
+        return $"{builder}{Ellipsis}";
     }
 }

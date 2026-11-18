@@ -30,7 +30,7 @@ Recommended defaults, open for the owner to override:
 - **Status colours:** `ListBodyRenderer.StatusRole` duplicates `StatusRoles.Of`, and `SprintHeaderText` hardcodes `"done"` instead of using `StatusCategoryKeys.Done`.
 - **Priority glyphs:** `Glyphs.PriorityHigh/Medium/Low` is bypassed by literal `▲ = ▼` in `DetailsPane.cs:23-25` and `CreateFieldBlocks.cs:160-162`. Those copies also use other roles (Warning, ValueBlock, Muted) than cards do (PriorityHigh, Medium, Low).
 - **Number format:** `EstimateText` uses `0.##`, but `SprintHeaderText.Number` and `PointsText` use `0.#`.
-- **Truncation:** `DisplayText.Cut` and `CardText.Shorten` (with an ellipsis) are bypassed by `TextWidth.Fit`/`Pad` (hard cut) in the list, and by inline cuts in `FrameGrid`, `TabTitles`, `DeleteIssueRequest`, `CommentEditing` and `PromptWindow`.
+- **Truncation:** `DisplayText.Cut` and `CardText.Shorten` (with an ellipsis) were bypassed by `TextWidth.Fit`/`Pad` (hard cut) in the list (fixed in #1032: `TextWidth.PadCut`), and are still bypassed by inline cuts in `FrameGrid`, `TabTitles`, `DeleteIssueRequest`, `CommentEditing` and `PromptWindow`.
 - **Hint rows:** `HintBar` + `HintChip` is used only by the status bar. Overlay footers parse strings with `OverlayBox.Hints`, and buttons and confirm answers are spans built by hand. `.claude/rules/ui-changes.md` names `KeyedChip`/`ChipKeys`, which do not exist.
 - **Scroll markers:** `OverlayBox.ScrollMarker` is not used by the profile manager, Messages, the context menu or the 5-row popups.
 - **Scroll types:** `PaneScroll` (offset, chip, scrollbar) is used only by the detail panes and the create pane.
@@ -84,7 +84,7 @@ There are about 15 places where a target or field id decides behaviour that belo
 - An empty priority reads "None", empty labels read "none", and an empty due date reads "Due none". Empty sprint and estimate rows are hidden.
 - An estimate of 0.25 reads `0.25` in the list and Details, but `0.3` on cards and in backlog headers.
 - Priority is red on a card but yellow (Warning) in Details and the create form.
-- The list summary is cut without an ellipsis; cards and the relation table use one.
+- The list summary was cut without an ellipsis; cards and the relation table use one (the list takes it since #1032).
 - The issue type is coloured in the list and on cards, but not in the detail title or the relation table.
 - Status is coloured by category in the backlog, the sprint list and sub-task rows. In the JQL list rendered from the fake data it was not coloured; this may be down to the fake data.
 
@@ -319,7 +319,7 @@ Verdict column: **bug** = register and fix; **intended** = deliberate, with the 
 ### Value display, fixed in #1032 (V1 to V3)
 
 - **V1** was two things. The generated data of the fake Jira sent no `statusCategory` in its search replies (real Jira always does), so the JQL list could not colour a status; the fake now sends it. And Details drew the dot in the category colour but the name in the value role: `ValueText.Status(status)` now gives dot and name the category role, and the card and the relation and title rows take the role from `ValueText.StatusRole` too.
-- **V2** has one cut: text that does not fit ends in `…` (`DisplayText.Cut`; the ASCII tier maps it to `.`). The list and backlog columns (`TextWidth.PadCut`), popup rows and notices (`PickListRenderer.Popup`), menu, palette and Settings rows, and every box row (`OverlayBox.Wall` through `StyledLines.FitMarked`, which marks only cut text, not cut blanks) use it. The hard cut of `StyledLines.Fit` stays for frame clipping, where nothing is content. The `[editing]` note of a field label (F2) is owned by #1034.
+- **V2** has one cut: text that does not fit ends in `…` (`DisplayText.Cut`; the ASCII tier maps it to `.`). The list and backlog columns (`TextWidth.PadCut`), popup rows and notices (`PickListRenderer.Popup`), menu, palette and Settings rows, and every box row (`OverlayBox.Wall` through `StyledLines.FitMarked`, which marks only cut text, not cut blanks) use it. `StyledLines.Fit` stays a hard cut for frame clipping; the field box label and row, the create pane rows, the box title chip and the key text of menu and palette rows still use hard cuts and belong to the field box work in #1034 (F1, F2). The ASCII tier maps the one cut glyph to `.` like every other `…` (a width-preserving map), so a cut ASCII row ends in one `.`.
 - **V3**: the row menu marker is drawn only over blank cells (`ux-mouse.md`, `RowMenuButton`).
 - Contract test: `ValueDisplayContractTests` draws each value kind on the list, backlog, board, Details (with sub-task rows) and the form box with the real `FrameBuilder` and compares spans and roles; it also compares each selected row with and without the marker cell by cell at three sizes.
 

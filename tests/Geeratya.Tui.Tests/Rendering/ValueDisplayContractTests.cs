@@ -16,6 +16,7 @@ using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
+using Geeratya.Platform.Terminal;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -33,6 +34,7 @@ public class ValueDisplayContractTests
 {
     private const string Ada = "Ada Lovelace";
     private const int ChipCells = 2;
+    private const string LongTail = "with a summary that is far too long to fit on the first row of a card";
     private static readonly DateTimeOffset _now = new(2026, 11, 4, 12, 0, 0, TimeSpan.Zero);
     private static readonly Profile _profile = new("work", "https://work.atlassian.net", "me@work.test");
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
@@ -42,7 +44,8 @@ public class ValueDisplayContractTests
     private static readonly IssueTypeSummary _story = new("10", "Story", 0, false);
     private static readonly Sprint _sprint = new(7, "Sprint 1", SprintState.Active, null, null, null, null, 6);
 
-    private static readonly string[] _markerPlaces = ["list", "backlog", "board", "details", "details-focused-status"];
+    private static readonly string[] _markerPlaces =
+        ["list", "backlog", "board", "board-long", "details", "details-focused-status"];
     private static readonly (int, int)[] _sizes = [(120, 36), (80, 24), (40, 10)];
     private static readonly string[] _markerCells = [".", " "];
 
@@ -79,7 +82,7 @@ public class ValueDisplayContractTests
     {
         var spans = Spans(await FrameAsync(place, 120, 36));
         var names = new[] { _todo, _doing, _done }.ToDictionary(status => status.Name);
-        var found = 0;
+        var found = new HashSet<string>();
 
         foreach (var span in spans)
         {
@@ -88,11 +91,35 @@ public class ValueDisplayContractTests
             if (names.TryGetValue(text, out var status))
             {
                 Assert.Equal(ValueText.StatusRole(status), span.Role);
-                found++;
+                found.Add(text);
             }
         }
 
-        Assert.True(found > 0, $"no status drawn in {place}");
+        // The title status and the relation rows of Details draw the other two statuses; every place draws all three.
+        Assert.Equal(names.Keys.Order(), found.Order());
+    }
+
+    [Fact]
+    public async Task GivenTheSameStatusInEveryPlace_WhenDrawn_ThenTheRoleIsTheSameAcrossThePlaces()
+    {
+        var roles = new Dictionary<string, HashSet<TextRole>>();
+        var names = new[] { _todo.Name, _doing.Name, _done.Name };
+
+        foreach (var place in new[] { "list", "backlog", "details" })
+        {
+            foreach (var span in Spans(await FrameAsync(place, 120, 36)))
+            {
+                var text = span.Text.Trim('[', ']', ' ', '●');
+
+                if (names.Contains(text))
+                {
+                    roles.TryAdd(text, []);
+                    roles[text].Add(span.Role);
+                }
+            }
+        }
+
+        Assert.All(roles, pair => Assert.Single(pair.Value));
     }
 
     [Theory]
@@ -186,6 +213,12 @@ public class ValueDisplayContractTests
     {
         var state = await StateAsync(place);
         var marked = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
+
+        if (width == 120 && place != "details-focused-status")
+        {
+            Assert.NotNull(marked.RowMenuMarker);
+        }
+
         var plain = FrameBuilder.BuildStyled(state with { Mode = InputMode.Insert }, width, height, _keymap)!;
 
         Assert.Equal(plain.Body.Count, marked.Body.Count);
@@ -225,6 +258,17 @@ public class ValueDisplayContractTests
         var spans = Spans(await FrameAsync("list", 60, 20));
 
         Assert.Contains(spans, span => span.Text.Contains("Fix login") && span.Text.TrimEnd().EndsWith('…'));
+    }
+
+    [Fact]
+    public async Task GivenALongSummaryInAList_WhenDrawnInAscii_ThenTheCutEndsInTheAsciiMapOfTheCutGlyph()
+    {
+        var state = await StateAsync("list");
+        var frame = FrameBuilder.BuildStyled(state, 60, 20, _keymap, null, null, GlyphSet.Ascii)!;
+        var row = Assert.Single(frame.Body, line => line.PlainText.Contains("Fix login"));
+
+        Assert.DoesNotContain('…', row.PlainText);
+        Assert.Matches(@"[a-z]\.\s", row.PlainText);
     }
 
     [Fact]
@@ -301,7 +345,8 @@ public class ValueDisplayContractTests
         {
             "list" => Listed(ViewLayout.List, ViewSourceKind.Jql),
             "backlog" => Backlog(),
-            "board" => await BoardAsync(),
+            "board" => await BoardAsync(false),
+            "board-long" => await BoardAsync(true),
             "details" => Keys(Detailed(), "Ctrl-l", "j"),
             "details-focused-status" => Keys(Detailed(), "Ctrl-l"),
             _ => Box(),
@@ -373,14 +418,22 @@ public class ValueDisplayContractTests
         return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_profile), Session = session };
     }
 
-    private static async Task<AppState> BoardAsync()
+    private static async Task<AppState> BoardAsync(bool longSummaries)
     {
         var state = await BoardStateFixtures.CompanyManagedAsync(20);
         var tab = state.Session.Tabs[0];
         var assignee = new IssueAssignee("a", Ada);
-        var rows = tab.Rows.Select((row, index) => index % 2 == 0 ? row with { Assignee = assignee } : row).ToList();
+        var rows = tab.Rows
+            .Select((row, index) => index % 2 == 0 ? row with { Assignee = assignee } : row)
+            .Select(row => longSummaries ? row with { Summary = $"{row.Summary} {LongTail}" } : row)
+            .ToList();
 
-        return state with { Session = state.Session with { Tabs = [tab with { Rows = rows }] } };
+        var changed = tab with { Rows = rows };
+
+        // The recorded board's first card is the one the cursor draws.
+        changed = changed with { SelectedKey = ColumnsNavigation.ColumnsOf(changed)[0].Rows[0].Key };
+
+        return state with { Session = state.Session with { Tabs = [changed] } };
     }
 
     private AppState Detailed()

@@ -8,7 +8,7 @@ namespace Geeratya.Tui.Rendering;
 public static class StyledLines
 {
     /// <summary>The glyph that ends a cut row.</summary>
-    public const string Cut = "…";
+    public const string Cut = DisplayText.Ellipsis;
 
     /// <summary>
     /// Cuts or pads a line to exactly <paramref name="width"/> columns without splitting a wide character; padding is a body-role space run.
@@ -25,7 +25,7 @@ public static class StyledLines
     }
 
     /// <summary>
-    /// As <see cref="Fit(StyledLine, int)"/> for the content of a row (a pick list row, a menu row, a field line): text
+    /// As <see cref="Fit(StyledLine, int)"/> for the content of a box row (a pick list, menu or overlay row): text
     /// that is cut off ends in <see cref="Cut"/>, the one cut glyph (the ASCII tier maps it), so a clipped row never
     /// looks complete. Blank cells that are cut off leave no mark.
     /// </summary>
