@@ -15,10 +15,10 @@
 │ │ │ None                                                                 │ │ │
 │ │ └──────────────────────────────────────────────────────────────────────┘ │ │
 │ │ ──────────────────────────────────────────────────────────────────────── │ │
-│ │ Up/Down move   Enter choose   Esc close                                  │ │
+│ │ Up/Down move   Enter choose   Esc clear filter                           │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- INSERT  Edit A-1                          Up/Down move  Enter choose  Esc close
+ INSERT  Edit A-1                   Up/Down move  Enter choose  Esc clear filter

@@ -95,20 +95,15 @@ public static class FormFooter
         return chips;
     }
 
-    // Esc empties a typed filter of a choice or person field first, closes the popup of a label being typed, and with
+    // Esc empties a typed filter of a choice, person, parent or labels field first and, with
     // nothing typed leaves the field (a form with a navigate state) or the form.
     private static string EscapeLabel(FormState form, SuggestionState popup)
     {
         var kind = form.Fields[form.Focus].Kind;
 
-        if (popup.Query.Length > 0 && (FormFieldKinds.IsChoice(kind) || FormFieldKinds.IsPicked(kind)))
+        if (popup.Query.Length > 0 && (FormFieldKinds.IsChoice(kind) || FormFieldKinds.TakesEntry(kind)))
         {
             return HintLabels.ClearFilter;
-        }
-
-        if (popup.Query.Length > 0)
-        {
-            return HintLabels.Close;
         }
 
         return form.Navigable ? HintLabels.StopEditing : HintLabels.Close;

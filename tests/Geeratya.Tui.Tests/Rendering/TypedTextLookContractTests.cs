@@ -113,6 +113,29 @@ public class TypedTextLookContractTests
         Assert.NotEqual(text, caret);
     }
 
+    [Theory]
+    [InlineData("create")]
+    [InlineData("profile")]
+    public void GivenAnErrorOnTheFocusedField_WhenDrawn_ThenTheRowUnderTheFieldAndTheStatusLineSayItTheSameWay(
+        string form)
+    {
+        const string message = "Not a valid value";
+
+        var state = form == "create" ? CreateWithError(message) : ProfileWithError(message);
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var row = frame.Body.SelectMany(static line => line.Spans)
+            .Single(span => span.Text.Contains(message, StringComparison.Ordinal));
+
+        Assert.Equal(TextRole.Error, row.Role);
+        Assert.Contains($"! {message}", row.Text, StringComparison.Ordinal);
+
+        var status = $"! {(form == "create" ? "Estimate" : "Account email")}: {message}";
+
+        Assert.Contains(
+            FrameBuilder.Build(state, Width, Height, _keymap),
+            line => line.Contains(status, StringComparison.Ordinal));
+    }
+
     private static ResolvedStyle Resolve(Cell cell, ColorSupport tier)
     {
         return Palette.Resolve(BuiltInThemes.Default, tier, PaletteTable.For(cell.Role), cell.Ground, true);
@@ -227,6 +250,23 @@ public class TypedTextLookContractTests
         fields[focus] = fields[focus].WithInitial(FormValue.OfText(Typed)) with { Back = Typed.Length - CaretIndex };
 
         return CreatePaneOverlaySnapshotTests.Open(form with { Fields = fields, Focus = focus });
+    }
+
+    private static AppState CreateWithError(string message)
+    {
+        var form = CreatePaneOverlaySnapshotTests.Form();
+        var fields = form.Fields.ToArray();
+
+        fields[6] = fields[6] with { Label = "Estimate", Error = message };
+
+        return CreatePaneOverlaySnapshotTests.Open(form with { Fields = fields, Focus = 6 });
+    }
+
+    private static AppState ProfileWithError(string message)
+    {
+        var form = ProfileForm.Start with { Field = ProfileFormField.Email, Error = message };
+
+        return AppState.Initial with { Mode = InputMode.Insert, Form = form };
     }
 
     private static FormField TextField()

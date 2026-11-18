@@ -302,18 +302,16 @@ public class FormReducerTests
     [Fact]
     public void GivenAChangedForm_WhenEscIsPressed_ThenItAsksAndOnlyYDiscards()
     {
-        var typed = Type(Loaded([]), "x");
+        var typed = Press(Type(Loaded([]), "x"), "Space").State;
 
-        var dismissed = Press(typed, "Esc").State;
-        var asked = Press(dismissed, "Esc").State;
+        var asked = Press(typed, "Esc").State;
         var kept = Press(asked, "n").State;
         var askedAgain = Press(kept, "Esc").State;
         var discarded = Press(askedAgain, "y");
 
-        Assert.False(DiscardPrompts.Is(dismissed.Confirm));
         Assert.True(DiscardPrompts.Is(asked.Confirm));
         Assert.False(DiscardPrompts.Is(kept.Confirm));
-        Assert.Equal("x", kept.Session.Tabs[0].Form!.Fields[0].Entry);
+        Assert.Equal(["x"], kept.Session.Tabs[0].Form!.Fields[0].Value.Chosen);
         Assert.Null(discarded.State.Session.Tabs[0].Form);
         Assert.Equal(InputMode.Normal, discarded.State.Mode);
     }
