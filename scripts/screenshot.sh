@@ -108,7 +108,7 @@ all_scenarios=(
   "form-create-panes-narrow;100;28;dark;:jql key = GTM-11| ic|;Create"
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
   "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>j iu;Jira cannot undo"
-  "picker;120;36;dark; t;Open a view"
+  "picker;120;36;dark;:tab new|;Open a view"
   "which-key;120;36;dark;:jql project = GCM| ;+issue"
   "which-key-columns;160;24;dark;:jql project = GCM| ;+issue"
   "jump;120;36;dark;:jql project = GEN| ggen-1;Jump to an issue"
