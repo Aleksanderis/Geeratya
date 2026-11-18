@@ -60,7 +60,12 @@ public static class FormFooter
         var escape = EscapeLabel(form, popup);
         var chips = new List<HintChip?>
         {
-            DialogFooter.Pair(keymap, InputMode.Insert, ActionIds.PickerPrevious, ActionIds.PickerNext, HintLabels.Move),
+            DialogFooter.Pair(
+                keymap,
+                InputMode.Insert,
+                ActionIds.PickerPrevious,
+                ActionIds.PickerNext,
+                HintLabels.Move),
             DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose),
         };
 
@@ -72,6 +77,7 @@ public static class FormFooter
                 ActionIds.FormFieldNext,
                 ActionIds.FormFieldPrevious,
                 HintLabels.Field));
+            chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save));
         }
 
         chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, escape));

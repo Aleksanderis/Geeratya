@@ -1,7 +1,9 @@
+using System.Globalization;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
+using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
@@ -25,8 +27,9 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// <see cref="FieldOf"/>; a scenario is one more row of <see cref="Rows"/>.
 /// </summary>
 /// <remarks>
-/// Key script tokens: a key name (<c>Enter</c>, <c>Down</c>, <c>Esc</c>, <c>j</c>), <c>text:xyz</c> types the characters
-/// and <c>reply:id=Label</c> answers the open search with that one row.
+/// Key script tokens: a key name (<c>Enter</c>, <c>Down</c>, <c>Esc</c>, <c>j</c>), <c>text:xyz</c> types the
+/// characters, <c>reply:id=Label</c> answers the open search with that one row and <c>click:n</c> clicks row n of the
+/// open list.
 /// </remarks>
 [Trait("Os", "Independent")]
 public class FieldChoiceContractTests
@@ -41,7 +44,7 @@ public class FieldChoiceContractTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly IssueStatus _status = new("3", "In Progress", "indeterminate");
     private static readonly IssueTypeSummary _type = new("10", "Task", 0, false);
-    private static readonly string[] _navigableFooter = ["move", "choose", "field", "stop editing"];
+    private static readonly string[] _navigableFooter = ["move", "choose", "field", "save", "stop editing"];
     private static readonly string[] _singleFooter = ["move", "choose", "close"];
     private static readonly string[] _none = [];
 
@@ -75,22 +78,216 @@ public class FieldChoiceContractTests
     /// </summary>
     public static IReadOnlyList<ContractRow> Rows { get; } =
     [
-        new("assignee", "open", [], Phase.Editing, Phase.Editing, [Eve], [Me, string.Empty], _navigableFooter, _singleFooter),
-        new("assignee", "quick-me", ["Down", "Enter"], Phase.Navigating, Phase.Saved, [Me], null, null, null),
-        new("assignee", "search-result", ["text:jo", "reply:acc-jo=Jo Smith", "Enter"], Phase.Navigating, Phase.Saved, [Jo], null, null, null),
-        new("assignee", "clear", ["Down", "Down", "Enter"], Phase.Navigating, Phase.Saved, _none, null, null, null),
-        new("assignee", "escape-clears-the-filter", ["text:te", "Esc"], Phase.Editing, Phase.Editing, [Eve], [Me, string.Empty], _navigableFooter, _singleFooter),
-        new("assignee", "escape-twice-leaves", ["text:te", "Esc", "Esc"], Phase.Navigating, Phase.Closed, [Eve], null, null, null),
-        new("assignee", "jk-after-a-choice", ["Down", "Enter", Moving], Phase.Navigating, Phase.Saved, [Me], null, null, null),
-        new("reporter", "open", [], Phase.Editing, Phase.Editing, [Eve], [Me], _navigableFooter, _singleFooter),
-        new("reporter", "quick-me", ["Down", "Enter"], Phase.Navigating, Phase.Saved, [Me], null, null, null),
-        new("reporter", "search-result", ["text:jo", "reply:acc-jo=Jo Smith", "Enter"], Phase.Navigating, Phase.Saved, [Jo], null, null, null),
-        new("reporter", "escape-clears-the-filter", ["text:te", "Esc"], Phase.Editing, Phase.Editing, [Eve], [Me], _navigableFooter, _singleFooter),
-        new("reporter", "jk-after-a-choice", ["Down", "Enter", Moving], Phase.Navigating, Phase.Saved, [Me], null, null, null),
-        new("parent", "search-result", ["text:A", "reply:A-9=A-9 Epic", "Enter"], Phase.Navigating, Phase.Saved, ["A-9"], null, null, null),
-        new("parent", "jk-after-a-choice", ["text:A", "reply:A-9=A-9 Epic", "Enter", Moving], Phase.Navigating, Phase.Saved, ["A-9"], null, null, null),
-        new("priority", "choose", ["Enter"], Phase.Navigating, Phase.Saved, ["1"], null, null, null),
-        new("priority", "jk-after-a-choice", ["Enter", Moving], Phase.Navigating, Phase.Saved, ["1"], null, null, null),
+        new(
+            "assignee",
+            "open",
+            [],
+            Phase.Editing,
+            Phase.Editing,
+            [Eve],
+            [Me, string.Empty],
+            _navigableFooter,
+            _singleFooter),
+        new(
+            "assignee",
+            "quick-me",
+            ["Down", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            [Me],
+            null,
+            null,
+            null),
+        new(
+            "assignee",
+            "click-a-row",
+            ["click:0"],
+            Phase.Navigating,
+            Phase.Saved,
+            [Me],
+            null,
+            null,
+            null),
+        new(
+            "assignee",
+            "search-result",
+            ["text:jo", "reply:acc-jo=Jo Smith", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            [Jo],
+            null,
+            null,
+            null),
+        new(
+            "assignee",
+            "clear",
+            ["Down", "Down", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            _none,
+            null,
+            null,
+            null),
+        new(
+            "assignee",
+            "escape-clears-the-filter",
+            ["text:te", "Esc"],
+            Phase.Editing,
+            Phase.Editing,
+            [Eve],
+            [Me, string.Empty],
+            _navigableFooter,
+            _singleFooter),
+        new(
+            "assignee",
+            "escape-twice-leaves",
+            ["text:te", "Esc", "Esc"],
+            Phase.Navigating,
+            Phase.Closed,
+            [Eve],
+            null,
+            null,
+            null),
+        new(
+            "assignee",
+            "jk-after-a-choice",
+            ["Down", "Enter", Moving],
+            Phase.Navigating,
+            Phase.Saved,
+            [Me],
+            null,
+            null,
+            null),
+        new(
+            "reporter",
+            "open",
+            [],
+            Phase.Editing,
+            Phase.Editing,
+            [Eve],
+            [Me],
+            _navigableFooter,
+            _singleFooter),
+        new(
+            "reporter",
+            "quick-me",
+            ["Down", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            [Me],
+            null,
+            null,
+            null),
+        new(
+            "reporter",
+            "search-result",
+            ["text:jo", "reply:acc-jo=Jo Smith", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            [Jo],
+            null,
+            null,
+            null),
+        new(
+            "reporter",
+            "escape-clears-the-filter",
+            ["text:te", "Esc"],
+            Phase.Editing,
+            Phase.Editing,
+            [Eve],
+            [Me],
+            _navigableFooter,
+            _singleFooter),
+        new(
+            "reporter",
+            "jk-after-a-choice",
+            ["Down", "Enter", Moving],
+            Phase.Navigating,
+            Phase.Saved,
+            [Me],
+            null,
+            null,
+            null),
+        new(
+            "parent",
+            "search-result",
+            ["text:A", "reply:A-9=A-9 Epic", "Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            ["A-9"],
+            null,
+            null,
+            null),
+        new(
+            "parent",
+            "click-a-row",
+            ["text:A", "reply:A-9=A-9 Epic", "click:0"],
+            Phase.Navigating,
+            Phase.Saved,
+            ["A-9"],
+            null,
+            null,
+            null),
+        new(
+            "parent",
+            "jk-after-a-choice",
+            ["text:A", "reply:A-9=A-9 Epic", "Enter", Moving],
+            Phase.Navigating,
+            Phase.Saved,
+            ["A-9"],
+            null,
+            null,
+            null),
+        new(
+            "priority",
+            "choose",
+            ["Enter"],
+            Phase.Navigating,
+            Phase.Saved,
+            ["1"],
+            null,
+            null,
+            null),
+        new(
+            "priority",
+            "click-a-row",
+            ["click:1"],
+            Phase.Navigating,
+            Phase.Saved,
+            ["2"],
+            null,
+            null,
+            null),
+        new(
+            "priority",
+            "jk-after-a-choice",
+            ["Enter", Moving],
+            Phase.Navigating,
+            Phase.Saved,
+            ["1"],
+            null,
+            null,
+            null),
+        new(
+            "labels",
+            "take-a-label-keeps-editing",
+            ["Down", "Enter"],
+            Phase.Editing,
+            Phase.Saved,
+            ["frontend"],
+            null,
+            null,
+            null),
+        new(
+            "components",
+            "take-a-value-keeps-editing",
+            ["Down", "Enter"],
+            Phase.Editing,
+            Phase.Saved,
+            ["a"],
+            null,
+            null,
+            null),
     ];
 
     public static TheoryData<string, string, string> Cases()
@@ -101,21 +298,6 @@ public class FieldChoiceContractTests
     public static TheoryData<string, string, string> JkCases()
     {
         return CasesOf(static row => row.Scenario.StartsWith("jk-", StringComparison.Ordinal));
-    }
-
-    private static TheoryData<string, string, string> CasesOf(Func<ContractRow, bool> selected)
-    {
-        var cases = new TheoryData<string, string, string>();
-
-        foreach (var row in Rows.Where(selected))
-        {
-            foreach (var presentation in Navigable.Concat(OneField))
-            {
-                cases.Add(row.Field, row.Scenario, presentation);
-            }
-        }
-
-        return cases;
     }
 
     [Theory]
@@ -138,14 +320,15 @@ public class FieldChoiceContractTests
             Assert.Equal(row.Chosen, outcome.Chosen);
         }
 
-        if (row.Rows is { } rows)
+        if (row.PopupRowIds is { } popupRowIds)
         {
-            Assert.Equal(rows, outcome.Rows);
+            Assert.Equal(popupRowIds, outcome.PopupRowIds);
         }
 
         if (row.FooterNavigable is not null)
         {
             Assert.Equal(navigable ? row.FooterNavigable : row.FooterSingle, outcome.Footer);
+            Assert.Contains("Enter choose", outcome.DrawnFooter, StringComparison.Ordinal);
         }
     }
 
@@ -165,6 +348,11 @@ public class FieldChoiceContractTests
         if (Navigable.Contains(presentation))
         {
             Assert.NotEqual(outcome.PickerIndex, outcome.FocusAfterKey);
+            Assert.Equal(Phase.Navigating, outcome.Phase);
+        }
+        else
+        {
+            Assert.Equal(Phase.Saved, outcome.Phase);
         }
     }
 
@@ -173,7 +361,7 @@ public class FieldChoiceContractTests
     public void GivenAReporterWithNoRowsToOffer_WhenDrawn_ThenEveryPresentationSaysTypeToSearch(string presentation)
     {
         var field = FieldOf("reporter").WithInitial(FormValue.OfChosen([Me]));
-        var state = Navigable.Contains(presentation) ? OpenNavigable(presentation, field) : OpenSingle(presentation, field);
+        var state = Open(presentation, field);
 
         var lines = FrameBuilder.Build(state, 120, 36, _keymap);
 
@@ -185,6 +373,21 @@ public class FieldChoiceContractTests
         return [.. Navigable.Concat(OneField)];
     }
 
+    private static TheoryData<string, string, string> CasesOf(Func<ContractRow, bool> selected)
+    {
+        var cases = new TheoryData<string, string, string>();
+
+        foreach (var row in Rows.Where(selected))
+        {
+            foreach (var presentation in Navigable.Concat(OneField))
+            {
+                cases.Add(row.Field, row.Scenario, presentation);
+            }
+        }
+
+        return cases;
+    }
+
     private static FormField FieldOf(string name)
     {
         return name switch
@@ -194,6 +397,14 @@ public class FieldChoiceContractTests
             "reporter" => FormField.Create(FormFieldIds.Reporter, "Reporter", FormFieldKind.User, true, [])
                 .WithInitial(FormValue.OfChosen([Eve])),
             "parent" => FormField.Create(FormFieldIds.Parent, "Parent", FormFieldKind.Parent, false, []),
+            "labels" => FormField.Create(FormFieldIds.Labels, "Labels", FormFieldKind.Labels, false, [])
+                .WithInitial(FormValue.OfChosen(["backend", "frontend"])),
+            "components" => FormField.Create(
+                "components",
+                "Components",
+                FormFieldKind.MultiSelect,
+                false,
+                [new FieldOption("a", "Alpha"), new FieldOption("b", "Beta")]),
             _ => FormField.Create(
                 FormFieldIds.Priority,
                 "Priority",
@@ -213,8 +424,8 @@ public class FieldChoiceContractTests
         return presentation switch
         {
             "box" => new AssignFormTarget("GCM-12", null),
-            "create" => new CreateFormTarget("GCM", null, false, new CreateIssueType("10", "Task", string.Empty, 0, false)),
-            "subtask" => new CreateFormTarget("GCM", "GCM-12", true, new CreateIssueType("11", "Sub-task", string.Empty, -1, true)),
+            "create" => new CreateFormTarget("GCM", null, false, new CreateIssueType("10", "Task", "", 0, false)),
+            "subtask" => new CreateFormTarget("GCM", "GCM-12", true, new CreateIssueType("11", "Sub", "", -1, true)),
             _ => new TransitionFormTarget("GCM-12", Choice()),
         };
     }
@@ -233,7 +444,12 @@ public class FieldChoiceContractTests
 
     private static string[] RowsOf(AppState state)
     {
-        return state.Session.Tabs[0].Form?.Suggest is { } popup ? [.. popup.Items.Select(static item => item.Id)] : _none;
+        if (state.Session.Tabs[0].Form?.Suggest is not { } popup)
+        {
+            return _none;
+        }
+
+        return [.. popup.Items.Select(static item => item.Id)];
     }
 
     private static string[] WrittenChoice(WriteRequest request)
@@ -249,7 +465,7 @@ public class FieldChoiceContractTests
     private FieldOutcome Run(string presentation, ContractRow row)
     {
         var field = FieldOf(row.Field);
-        var state = Navigable.Contains(presentation) ? OpenNavigable(presentation, field) : OpenSingle(presentation, field);
+        var state = Open(presentation, field);
         var pickerIndex = state.Session.Tabs[0].Form!.Focus;
         var written = new List<WriteRequest>();
         var focusAfterKey = pickerIndex;
@@ -267,9 +483,19 @@ public class FieldChoiceContractTests
         var form = state.Session.Tabs[0].Form;
         var phase = PhaseOf(form, written);
         var chosen = written.Count > 0 ? WrittenChoice(written[0]) : ChosenOf(form, pickerIndex);
-        var entry = form is { Fields.Count: > 0 } ? form.Fields[Math.Min(pickerIndex, form.Fields.Count - 1)].Entry : string.Empty;
+        var entry = form is { Fields.Count: > 0 } ? FieldAt(form, pickerIndex).Entry : string.Empty;
 
-        return new FieldOutcome(phase, chosen, entry, RowsOf(state), FooterOf(state), pickerIndex, focusAfterKey);
+        var drawn = FrameBuilder.Build(state, 120, 36, _keymap);
+
+        return new FieldOutcome(
+            phase,
+            chosen,
+            entry,
+            RowsOf(state),
+            FooterOf(state),
+            drawn[^1],
+            pickerIndex,
+            focusAfterKey);
     }
 
     private static Phase PhaseOf(FormState? form, List<WriteRequest> written)
@@ -289,14 +515,29 @@ public class FieldChoiceContractTests
 
     private static string[] ChosenOf(FormState? form, int index)
     {
-        return form is { Fields.Count: > 0 } ? [.. form.Fields[Math.Min(index, form.Fields.Count - 1)].Value.Chosen] : _none;
+        if (form is not { Fields.Count: > 0 })
+        {
+            return _none;
+        }
+
+        return [.. FieldAt(form, index).Value.Chosen];
+    }
+
+    private static FormField FieldAt(FormState form, int index)
+    {
+        return form.Fields[Math.Min(index, form.Fields.Count - 1)];
     }
 
     private AppState Apply(AppState state, string token, List<WriteRequest> written)
     {
         if (token.StartsWith("text:", StringComparison.Ordinal))
         {
-            return token["text:".Length..].Aggregate(state, (current, character) => Press(current, $"{character}", written));
+            foreach (var character in token["text:".Length..])
+            {
+                state = Press(state, $"{character}", written);
+            }
+
+            return state;
         }
 
         if (token.StartsWith("reply:", StringComparison.Ordinal))
@@ -307,6 +548,17 @@ public class FieldChoiceContractTests
             var loaded = new SuggestionsLoaded(state.Session.Tabs[0].Id, form.Suggest!.RequestId, [item]);
 
             return _reducer.Reduce(state, loaded).State;
+        }
+
+        if (token.StartsWith("click:", StringComparison.Ordinal))
+        {
+            var index = int.Parse(token["click:".Length..], CultureInfo.InvariantCulture);
+            var clicked = new OverlayRowClicked(MouseTarget.FormChoice, index, string.Empty, _now);
+            var result = _reducer.Reduce(state, clicked);
+
+            written.AddRange(result.Effects.OfType<ExecuteWriteEffect>().Select(static effect => effect.Request));
+
+            return result.State;
         }
 
         return Press(state, token, written);
@@ -322,6 +574,16 @@ public class FieldChoiceContractTests
     }
 
     // The field sits between two text fields, focused and being edited, as after a Tab.
+    private AppState Open(string presentation, FormField field)
+    {
+        if (Navigable.Contains(presentation))
+        {
+            return OpenNavigable(presentation, field);
+        }
+
+        return OpenSingle(presentation, field);
+    }
+
     private AppState OpenNavigable(string presentation, FormField field)
     {
         var state = Loaded();
@@ -416,14 +678,15 @@ public class FieldChoiceContractTests
             []);
     }
 
-    /// <summary>One scenario of the table: a field kind, a key script and what every presentation must end in.</summary>
+    /// <summary>One scenario of the table: a field kind, a key script and what every presentation ends in.</summary>
     /// <param name="Field">The field kind (<c>assignee</c>, <c>reporter</c>, <c>parent</c>, <c>priority</c>).</param>
     /// <param name="Scenario">The name of the scenario.</param>
     /// <param name="Keys">The key script.</param>
     /// <param name="AfterNavigable">The phase in a form with the navigate state.</param>
     /// <param name="AfterSingle">The phase in a form of one field.</param>
     /// <param name="Chosen">The value the field holds or the write carries when the script ends.</param>
-    /// <param name="Rows">The ids of the popup rows when the script ends, or null when the row does not check them.</param>
+    /// <param name="PopupRowIds">The ids of the popup rows when the script ends, or null when the row does not check
+    /// them.</param>
     /// <param name="FooterNavigable">The popup footer labels in a navigable form, or null to skip the check.</param>
     /// <param name="FooterSingle">The popup footer labels in a form of one field.</param>
     public sealed record ContractRow(
@@ -433,7 +696,7 @@ public class FieldChoiceContractTests
         Phase AfterNavigable,
         Phase AfterSingle,
         string[] Chosen,
-        string[]? Rows,
+        string[]? PopupRowIds,
         string[]? FooterNavigable,
         string[]? FooterSingle);
 
@@ -441,8 +704,9 @@ public class FieldChoiceContractTests
         Phase Phase,
         string[] Chosen,
         string Entry,
-        string[] Rows,
+        string[] PopupRowIds,
         string[] Footer,
+        string DrawnFooter,
         int PickerIndex,
         int FocusAfterKey);
 }

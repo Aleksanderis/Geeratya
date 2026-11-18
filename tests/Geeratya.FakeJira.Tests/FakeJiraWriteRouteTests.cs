@@ -92,7 +92,8 @@ public sealed class FakeJiraWriteRouteTests : IDisposable
     {
         Start(0);
 
-        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", """{"fields":{"reporter":{"accountId":"acc-other"}}}""");
+        var body = """{"fields":{"reporter":{"accountId":"acc-other"}}}""";
+        var edit = await Send(HttpMethod.Put, "/rest/api/3/issue/GTM-11", body);
         var issue = Parse(await _client.GetStringAsync($"{_baseUrl}/rest/api/3/issue/GTM-11"));
 
         Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);

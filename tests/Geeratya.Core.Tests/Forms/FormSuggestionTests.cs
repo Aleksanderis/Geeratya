@@ -282,7 +282,7 @@ public class FormSuggestionTests
     }
 
     [Fact]
-    public void GivenOnlyTextTypedInAPersonField_WhenEscIsPressedThreeTimes_ThenTheFilterClearsThenEditingStopsThenTheFormCloses()
+    public void GivenTextTypedInAPersonField_WhenEscIsPressedThreeTimes_ThenFilterClearsEditingStopsAndFormCloses()
     {
         var typed = Press(Focused("assignee"), "a");
         var cleared = Press(typed.State, "Esc").State;
