@@ -11,10 +11,13 @@ public static class FieldLabels
     /// <summary>The mark of a required field, after its label.</summary>
     public const string RequiredMark = " *";
 
-    /// <summary>The label of <paramref name="field"/>, with the required mark when it is required.</summary>
+    /// <summary>
+    /// The name of <paramref name="field"/> without its format (the format is in the title of its edit box and in the
+    /// error, #1050), with the required mark when it is required.
+    /// </summary>
     public static string Of(FormField field)
     {
-        return With(field.Label, field.Required);
+        return With(FormFieldKinds.Named(field), field.Required);
     }
 
     /// <summary><paramref name="label"/> with the required mark when <paramref name="required"/>.</summary>

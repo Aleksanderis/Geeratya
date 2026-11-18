@@ -27,10 +27,13 @@ internal static class CreateFieldBlocks
         return new FieldBlockSpec(FieldLabels.Of(field), items, Dropdown(field), Note(form, field));
     }
 
-    /// <summary>The field opens a popup (its value is chosen, not typed): the block ends in the dropdown.</summary>
+    /// <summary>
+    /// The field opens an edit box (a picker or a typed field, as in the Details pane): the block ends in the
+    /// dropdown mark.
+    /// </summary>
     private static bool Dropdown(FormField field)
     {
-        return FormFieldKinds.HasPopup(field.Kind);
+        return FormFieldKinds.HasEditBox(field);
     }
 
     private static string? Note(FormState form, FormField field)

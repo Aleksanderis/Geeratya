@@ -224,12 +224,58 @@ public class FormPresentationContractTests
             var row = Spans(frame).Single(static span => span.Role == TextRole.Error);
 
             Assert.Equal(TextRole.Error, row.Role);
-            Assert.Contains("Due date (yyyy-MM-dd)", frame.StatusLine, StringComparison.Ordinal);
+            Assert.Contains("! Due date: ", frame.StatusLine, StringComparison.Ordinal);
             errors.Add($"{row.Text.Trim()}|{ErrorOf(frame.StatusLine)}");
         }
 
         Assert.Equal(errors[0], errors[1]);
         Assert.StartsWith("! Use yyyy-MM-dd|", errors[0], StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("2026-1")]
+    [InlineData("2026-12-24")]
+    public void GivenADateBeingEdited_WhenDrawn_ThenTheFieldRowIsTheSameInTheCreateFormAndTheIssueView(string typed)
+    {
+        var due = FormField.Create(FormFieldIds.DueDate, "Due date", FormFieldKind.Date, false, []);
+        var rows = new List<string>();
+
+        foreach (var presentation in new[] { "details-due", "create" })
+        {
+            var state = Keys(Open(presentation, due), [.. typed.Select(static character => character.ToString())]);
+            var lines = Frame(state, 120, 36).Body;
+            var top = lines.ToList()
+                .FindIndex(static line => line.PlainText.Contains("╭─ Due date (", StringComparison.Ordinal));
+
+            Assert.True(top >= 2, $"no edit box in the {presentation}");
+
+            var column = lines[top].PlainText.IndexOf("╭─ Due date (", StringComparison.Ordinal);
+            var width = lines[top].PlainText.IndexOf('╮', column) - column + 1;
+
+            rows.Add(string.Join('|', Enumerable.Range(top - 2, 2).Select(row => Cut(lines[row], column, width))));
+        }
+
+        Assert.Equal(rows[0], rows[1]);
+
+        var glyphs = string.Concat(rows[1].Split(',').Select(static cell => cell[0]));
+
+        Assert.Contains("Due date", glyphs, StringComparison.Ordinal);
+        Assert.DoesNotContain("yyyy", glyphs, StringComparison.Ordinal);
+        Assert.Contains("None ▾", glyphs, StringComparison.Ordinal);
+    }
+
+    // The cells of a row from <column> for <width> columns: glyph and role of each (one cell per character).
+    private static string Cut(StyledLine line, int column, int width)
+    {
+        var cells = new List<string>();
+
+        foreach (var span in line.Spans)
+        {
+            cells.AddRange(span.Text.Select(character => $"{character}:{span.Role}"));
+        }
+
+        return string.Join(',', cells.Skip(column).Take(width));
     }
 
     private static string ErrorOf(string status)
