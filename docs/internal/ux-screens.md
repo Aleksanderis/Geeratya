@@ -521,7 +521,7 @@ My open issues · 10 of about 340
 
 
 
- INSERT  open a view  Up/Down choose  Enter open  Esc close
+ INSERT  Open a view  Up/Down move  Enter open in a new tab  Esc close
 ```
 
 At 40x10:

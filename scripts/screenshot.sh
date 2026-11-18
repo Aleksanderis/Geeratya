@@ -85,8 +85,8 @@ all_scenarios=(
   "detail-edit-summary;120;36;dark;:jql project = GEN|jjjj| ie;editing"
   "detail-edit-description-zoom;120;36;dark;:jql project = GEN|jjjj|> z|;editing"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
-  "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter accept"
-  "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter accept"
+  "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter choose"
+  "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter choose"
   # comment-delete: three pane jumps (Ctrl-j each) put the cursor on a comment
   "comment-delete;120;36;dark;:jql project = GEN|jjjj|>>>>>> md;Jira cannot undo"
   "comment-recorded-saved;120;36;dark;:jql key = GTM-11|| maLooks good to me~;Added a comment to"
