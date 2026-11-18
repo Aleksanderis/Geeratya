@@ -15,8 +15,6 @@ namespace Geeratya.Tui.Rendering;
 public static class DetailDropdown
 {
     private const int SidebarInset = 1;
-    private const int MaxNarrowWidth = 40;
-    private const int Chrome = 4;
     private const string LoadingText = "Loading…";
     private const string SavingText = "Saving…";
     private const string ReadOnlyText = "Not editable here";
@@ -44,10 +42,11 @@ public static class DetailDropdown
 
         var box = DetailOverlayGeometry.Place(width, height);
         var onSide = document.Side is not null && detail.SideCursor is not null;
-        var wide = onSide ? DetailLayout.SidebarWidthFor(document.Width) - (2 * SidebarInset) : Math.Min(MaxNarrowWidth, box.Width - 2);
+        var room = onSide ? DetailLayout.SidebarWidthFor(document.Width) - (2 * SidebarInset) : box.Width - 2;
+        var wide = PickerBox.WidthFor(room);
         var left = box.Left + (onSide ? DetailLayout.MainWidth(document.Width) + DetailLayout.SidebarGap : 0)
             + SidebarInset;
-        var content = ContentLines(form, wide - Chrome);
+        var content = ContentLines(form, wide - PickerBox.Chrome);
         var rows = content.Lines.Count;
         var boxHeight = rows + 2;
         var top = TopOf(document, detail, box, boxHeight, height);
@@ -57,15 +56,12 @@ public static class DetailDropdown
             return body;
         }
 
-        var lines = new List<StyledLine> { OverlayBox.Top(wide, form.Fields.Count == 0 ? string.Empty : Title(form)) };
-
-        lines.AddRange(content.Lines.Select(line => OverlayBox.Wall(line, wide - 2)));
-        lines.Add(OverlayBox.Bottom(wide));
+        var lines = PickerBox.Frame(form.Fields.Count == 0 ? string.Empty : Title(form), content.Lines, wide);
 
         var result = new List<StyledLine>(body);
 
         OverlayBox.Cover(regions, top, left, wide, boxHeight);
-        OverlayBox.Mark(regions, MouseTarget.FormChoice, top, left, wide, 1 + content.Skipped, content.Indexes);
+        OverlayBox.Mark(regions, MouseTarget.FormChoice, top, left, wide, 1, content.Indexes);
 
         for (var index = 0; index < lines.Count && top + index < result.Count; index++)
         {
@@ -120,8 +116,6 @@ public static class DetailDropdown
 
     private static Content ContentLines(FormState form, int inner)
     {
-        var lines = new List<StyledLine>();
-
         if (form.IsLoading || form.Fields.Count == 0)
         {
             if (form.TopError is { } top)
@@ -144,21 +138,23 @@ public static class DetailDropdown
             return Notice(ReadOnlyText, TextRole.Muted);
         }
 
+        if (PickerBox.Applies(form))
+        {
+            var picker = PickerBox.Content(form, field, inner);
+
+            return new Content(picker.Lines, picker.Indexes);
+        }
+
+        var lines = new List<StyledLine>();
+
         if (FormFieldKinds.IsText(field.Kind))
         {
             var look = new FieldLook(inner, TextRole.Body) { Editing = true, Rows = TextRows };
 
             lines.AddRange(FieldRows.Value(field, look));
         }
-        else if (FormFieldKinds.TakesEntry(field.Kind) || field.Entry.Length > 0)
-        {
-            lines.Add(FieldRows.Entry(field, inner, TextRole.Body));
-        }
 
-        var skipped = lines.Count;
-        var indexes = new List<int>();
-
-        AddRows(lines, indexes, form, field, inner);
+        var indexes = lines.Select(static _ => -1).ToList();
 
         if (field.Error is { } error)
         {
@@ -169,27 +165,7 @@ public static class DetailDropdown
             indexes.AddRange(rows.Select(static _ => -1));
         }
 
-        return new Content(lines, skipped, indexes);
-    }
-
-    private static void AddRows(List<StyledLine> lines, List<int> indexes, FormState form, FormField field, int inner)
-    {
-        if (form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
-        {
-            if (FieldRows.ShowsSearchHint(form) || FormFieldKinds.IsChoice(field.Kind))
-            {
-                lines.Add(StyledLine.Of(FieldRows.TypeToSearchText, TextRole.Muted));
-                indexes.Add(-1);
-            }
-
-            return;
-        }
-
-        foreach (var row in PickListRenderer.Popup(popup, Math.Max(1, inner - 2)))
-        {
-            lines.Add(row.Line);
-            indexes.Add(row.Item);
-        }
+        return new Content(lines, indexes);
     }
 
     private static Content Notice(string text, TextRole role)
@@ -199,8 +175,8 @@ public static class DetailDropdown
 
     private static Content Notice(List<StyledLine> lines)
     {
-        return new Content(lines, 0, [.. lines.Select(static _ => -1)]);
+        return new Content(lines, [.. lines.Select(static _ => -1)]);
     }
 
-    private sealed record Content(List<StyledLine> Lines, int Skipped, List<int> Indexes);
+    private sealed record Content(List<StyledLine> Lines, List<int> Indexes);
 }

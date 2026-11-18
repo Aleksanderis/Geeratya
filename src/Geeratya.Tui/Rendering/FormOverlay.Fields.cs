@@ -38,9 +38,11 @@ public static partial class FormOverlay
 
         lines.Add(StyledLine.Of($"{BoxBottomStart}{new string(OverlayBox.Horizontal, width - 2)}{BoxBottomEnd}", frame));
 
-        if (field.IsEditable)
+        if (focused && PickerBox.Draw(form, width) is { } picker)
         {
-            lines.AddRange(PopupLines(focused, form, valueWidth));
+            lines.AddRange(picker.Lines);
+
+            return lines;
         }
 
         if (field.Error is not null)
@@ -84,25 +86,5 @@ public static partial class FormOverlay
         var look = new FieldLook(valueWidth) { Editing = focused && !form.Navigating, Rows = ParagraphRows };
 
         return FieldRows.Value(field, look);
-    }
-
-    /// <summary>The suggestion popup under the focused field: ranked rows, the cursor row marked, a status line.</summary>
-    private static List<StyledLine> PopupLines(bool focused, FormState form, int valueWidth)
-    {
-        var margin = new string(' ', Indent + PopupMargin);
-
-        if (focused && FieldRows.ShowsSearchHint(form))
-        {
-            return [StyledLine.Of($"{margin}  {FieldRows.TypeToSearchText}", TextRole.Muted)];
-        }
-
-        if (!focused || form.Suggest is not { } popup || popup.FieldIndex != form.Focus)
-        {
-            return [];
-        }
-
-        var width = Math.Max(1, valueWidth - 2 - PopupMargin);
-
-        return [.. PickListRenderer.Popup(popup, width, margin).Select(static row => row.Line)];
     }
 }

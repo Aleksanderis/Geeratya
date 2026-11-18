@@ -5,10 +5,11 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// The one field renderer (<c>docs/internal/ui-consistency.md</c>, component 3): the value rows of a form field by
-/// kind (text, paragraph, choice, labels, person, parent, priority), the caret while it is edited, the empty word,
-/// the typed filter and the error. The form box, the create panes, the dropdown under a Details field and the
-/// in-place editors all draw a field through it and decide only the layout (width, role, rows). A popup of
-/// suggestions is drawn by the pick-list renderer. Pure.
+/// kind (text, paragraph, choice, labels, person, parent, priority), the caret while a text field is edited, the empty
+/// word and the error. A picker field never takes the caret here: its open picker box draws the input line. The form
+/// box, the create panes, the dropdown under a Details field and the in-place editors all draw a field through it and
+/// decide only the layout (width, role, rows). The picker box and its rows are drawn by <c>PickerBox</c> and the
+/// pick-list renderer (Tui). Pure.
 /// </summary>
 public static class FieldRows
 {
@@ -47,6 +48,13 @@ public static class FieldRows
     /// <summary>The value rows of <paramref name="field"/> as <paramref name="look"/> says (at least one row).</summary>
     public static List<StyledLine> Value(FormField field, FieldLook look)
     {
+        if (FormFieldKinds.HasPopup(field.Kind))
+        {
+            // A picker field never takes the caret in its own row: the open picker draws the input line in its box
+            // (owner, 2026-11-18, #1027), so the row keeps showing the current value in every presentation.
+            look = look with { Editing = false };
+        }
+
         return field.Kind switch
         {
             FormFieldKind.Paragraph => ParagraphValue(field, look),
@@ -73,7 +81,10 @@ public static class FieldRows
         return lines;
     }
 
-    /// <summary>The typed filter (or search text) of a choice, labels or picked field with its caret.</summary>
+    /// <summary>
+    /// The typed filter (or search text) of a choice, labels or picked field with its caret: the input line of the
+    /// picker box.
+    /// </summary>
     public static StyledLine Entry(FormField field, int width, TextRole role)
     {
         return new StyledLine(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width, role));
@@ -221,15 +232,10 @@ public static class FieldRows
         return Flow(field, items, look);
     }
 
-    // One row per chosen value, and the typed filter as the last row while the field is edited.
+    // One row per chosen value.
     private static List<StyledLine> ItemRows(FormField field, List<IReadOnlyList<StyledSpan>> items, FieldLook look)
     {
         var rows = items.Select(static item => new StyledLine(item)).ToList();
-
-        if (look.Editing && FormFieldKinds.TakesEntry(field.Kind))
-        {
-            rows.Add(Entry(field, Math.Max(1, look.Width), look.Role));
-        }
 
         if (rows.Count > 0)
         {
@@ -244,7 +250,7 @@ public static class FieldRows
         return [Empty(field, look with { Editing = false })];
     }
 
-    // The values joined and wrapped to the width; the typed filter ends the last row, caret in view.
+    // The values joined and wrapped to the width.
     private static List<StyledLine> Flow(FormField field, List<IReadOnlyList<StyledSpan>> items, FieldLook look)
     {
         var width = Math.Max(1, look.Width);
@@ -253,13 +259,6 @@ public static class FieldRows
         var current = new List<StyledSpan>();
         var used = 0;
         var all = items.Select(item => new FlowItem(item, gap)).ToList();
-
-        if (look.Editing && FormFieldKinds.HasPopup(field.Kind))
-        {
-            var entry = TextBuffer.FromBack(field.Entry, field.Back);
-
-            all.Add(new FlowItem(CaretText.Spans(entry, width, look.Role), SpaceGap));
-        }
 
         if (all.Count == 0)
         {

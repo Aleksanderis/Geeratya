@@ -50,8 +50,10 @@ public class FormOverlaySnapshotTests
         var row = frame!.Body.Single(static line => line.Spans.Any(static span => span.Role == TextRole.EditCaret));
         var spans = row.Spans.Where(static span => span.Role == TextRole.EditCaret).ToArray();
 
+        // The caret is the input line of the picker box; the field row keeps showing its chips without one.
         Assert.Equal(" ", Assert.Single(spans).Text);
-        Assert.Contains("[backend] [ui]", string.Concat(row.Spans.Select(static span => span.Text)));
+        Assert.Contains("│", string.Concat(row.Spans.Select(static span => span.Text)));
+        Assert.Contains(frame.Body, static line => line.PlainText.Contains("[backend] [ui]", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -114,6 +116,21 @@ public class FormOverlaySnapshotTests
         var lines = FrameBuilder.Build(WithForm(form), 40, 10, _keymap);
 
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    public void GivenAFocusedFieldNearTheEnd_WhenTheFormScrolls_ThenItIsInViewAndNoBlankRowsFollowTheLastField(int focus)
+    {
+        var form = SampleForm() with { Focus = focus };
+
+        var lines = FrameBuilder.Build(WithForm(form), 60, 18, _keymap).ToList();
+        var last = lines.FindLastIndex(static line => line.Contains('└'));
+        var below = lines[last + 1].Replace("│", string.Empty, StringComparison.Ordinal).Trim();
+
+        Assert.Contains(lines, static line => line.Contains("┌─ > ", StringComparison.Ordinal));
+        Assert.StartsWith("──", below, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -212,7 +229,8 @@ public class FormOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(WithForm(shown), 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("[Backend] oc ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("[Backend]", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("│ oc ", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Docs", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));

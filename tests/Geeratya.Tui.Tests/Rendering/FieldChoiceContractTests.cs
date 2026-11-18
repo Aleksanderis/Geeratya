@@ -613,7 +613,7 @@ public class FieldChoiceContractTests
     }
 
     // The field sits between two text fields, focused and being edited, as after a Tab.
-    private AppState Open(string presentation, FormField field)
+    internal AppState Open(string presentation, FormField field)
     {
         if (Navigable.Contains(presentation))
         {

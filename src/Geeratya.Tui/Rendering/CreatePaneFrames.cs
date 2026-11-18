@@ -35,13 +35,22 @@ internal sealed class CreatePaneFrames
         var cells = ScrollBar.Cells(scroll, room);
         var content = new List<StyledLine>(rows);
         var contentWidth = Panel.InnerWidth(width);
+        var bleeding = new List<int>();
 
         for (var row = 0; row < room; row++)
         {
             var index = first + row;
             var shown = index < spec.Rows.Count ? spec.Rows[index] : null;
 
-            content.Add(StyledLines.Fit(shown?.Line ?? StyledLine.Empty, contentWidth));
+            var bleed = shown is { Bleed: true };
+            var rowWidth = bleed ? width - 2 : contentWidth;
+
+            content.Add(StyledLines.Fit(shown?.Line ?? StyledLine.Empty, rowWidth));
+
+            if (bleed)
+            {
+                bleeding.Add(row);
+            }
 
             if (shown is { Target: { } target })
             {
@@ -66,7 +75,23 @@ internal sealed class CreatePaneFrames
 
         Panel.Add(lines, spec.Title, content, width, right);
 
+        if (width >= Panel.MinFramedWidth)
+        {
+            foreach (var row in bleeding)
+            {
+                lines[row + 1] = Bleeding(content[row]);
+            }
+        }
+
         return [.. lines.Select((line, index) => Styled(line, index, spec.Focused, cells))];
+    }
+
+    // An open picker box runs from edge to edge of the pane, as it does under a Details field of the issue view.
+    private static StyledLine Bleeding(StyledLine box)
+    {
+        var edge = new StyledSpan(Panel.Vertical, TextRole.Border);
+
+        return new StyledLine([edge, .. box.Spans, edge]);
     }
 
     private StyledLine Styled(StyledLine line, int index, bool focused, IReadOnlyList<ScrollCell> cells)
