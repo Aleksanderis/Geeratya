@@ -9,12 +9,14 @@ namespace Geeratya.Core.Text;
 /// field or prompt, the rows of a paragraph and the wrapped rows of the comment editor: the palette, pickers, jump
 /// prompt, form fields, the profile form and the comment editor all draw their caret here, in
 /// <see cref="TextRole.EditCaret"/>, and the typed text itself is always in <see cref="TypedRole"/>: no surface picks
-/// a role of its own, so the same text and caret draw the same cells in every colour tier. <see cref="Marked"/> is the plain-text variant for the two surfaces that are one
-/// string (the status bar and the Help title). Pure.
+/// a role of its own, so the same text and caret draw the same cells in every colour tier. <see cref="Marked"/> is
+/// the plain-text variant for the two surfaces that are one string (the status bar and the Help title). Pure.
 /// </summary>
 public static class CaretText
 {
-    /// <summary>The role of typed text on every surface (the body text; the caret cell is <see cref="TextRole.EditCaret"/>).</summary>
+    /// <summary>
+    /// The role of typed text on every surface (the body text; the caret cell is <see cref="TextRole.EditCaret"/>).
+    /// </summary>
     public const TextRole TypedRole = TextRole.Body;
 
     /// <summary>

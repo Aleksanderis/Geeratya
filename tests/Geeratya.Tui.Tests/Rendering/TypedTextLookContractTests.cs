@@ -12,9 +12,10 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// The rendered-frame contract of typed text and its caret (<c>docs/internal/ui-consistency.md</c>, "Rendered audit
 /// 2026-11-18", T1 and T2; issue #1033). Every text surface is drawn by the real <see cref="FrameBuilder"/> with the
 /// same text typed into it and the caret on its fourth character; the five cells of the typed word are cut out of the
-/// frame (glyph, text role, ground) and resolved by <see cref="Palette"/> in each colour tier (24-bit, 16-colour, no
-/// colour), then compared cell for cell with the first surface: the same glyphs, the same role and the same resolved
-/// look, whatever the position. Earlier contracts compared reducer states and role lists, so the same text drew
+/// frame (glyph, text role) and resolved by <see cref="Palette"/> in each colour tier (24-bit, 16-colour, no colour),
+/// then compared cell for cell with the first surface: the same glyphs, the same role and the same resolved look on
+/// the plain page, whatever the position. The ground of a place (an overlay's surface) is the place's own. The
+/// <see cref="CaretText.Marked"/> surfaces (Help title, status bar) are one plain string and outside the matrix. Earlier contracts compared reducer states and role lists, so the same text drew
 /// on the selection fill in one place and underlined in another. A new text surface is added to
 /// <see cref="Surfaces"/>.
 /// </summary>

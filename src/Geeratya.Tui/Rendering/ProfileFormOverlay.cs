@@ -67,7 +67,6 @@ public static class ProfileFormOverlay
             lines.Add(OverlayBox.Wall(FieldLine(form, field, contentWidth - 2), contentWidth));
         }
 
-
         // The error shows as every form shows it (FormErrors: wrapped, "! " first, error role); the box grows by the
         // rows it needs while the terminal has them.
         var notes = NoteLines(form, contentWidth, height - BoxRows + 1);

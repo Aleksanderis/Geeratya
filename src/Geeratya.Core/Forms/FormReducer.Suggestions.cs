@@ -17,9 +17,9 @@ public static partial class FormReducer
     private const int KnownLabelLimit = 500;
 
     // The keys of an open popup: Esc empties the typed text first, in every kind that has a typed filter or search
-    // (decision 10; the quick rows of an empty field leave Esc to the form), Up and
-    // Down move, Tab and Enter take the highlighted row (Enter on a full issue key typed into any parent field takes
-    // that key, Tab the row). Any other key is not the popup's (null) and goes on to the field.
+    // (decision 10; the quick rows of an empty field leave Esc to the form), Up and Down move, Tab and Enter take the
+    // highlighted row (Enter on a full issue key typed into any parent field takes that key, Tab the row). Any other
+    // key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,

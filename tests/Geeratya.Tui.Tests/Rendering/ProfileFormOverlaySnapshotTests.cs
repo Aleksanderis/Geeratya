@@ -110,6 +110,39 @@ public class ProfileFormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenALongError_WhenBuildingTheFrame_ThenItWrapsAndTheButtonsMoveDownWithIt()
+    {
+        const string error = "Enter an https site address such as https://example.atlassian.net, with the scheme and no path.";
+
+        var plain = Editing() with { Form = ProfileForm.Start with { Name = "work" } };
+        var failing = Editing() with { Form = ProfileForm.Start with { Name = "work", Error = error } };
+
+        var before = FrameBuilder.BuildStyled(plain, 60, 24, _keymap)!;
+        var frame = FrameBuilder.BuildStyled(failing, 60, 24, _keymap)!;
+        var save = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileSaveButton));
+        var saveBefore = Assert.Single(RegionProbe.Rows(before, MouseTarget.ProfileSaveButton));
+
+        Assert.Contains(frame.PlainLines(), static line => line.Contains("! Enter an https", StringComparison.Ordinal));
+        Assert.True(save.Region.Top > saveBefore.Region.Top, "the button row follows the wrapped note");
+        Assert.Contains("Save", save.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheSmallestBoxHeight_WhenAnErrorIsLong_ThenTheBoxKeepsItsRowsAndTheButtonsStayOnScreen()
+    {
+        const string error = "Enter an https site address such as https://example.atlassian.net, with the scheme and no path.";
+
+        var state = Editing() with { Form = ProfileForm.Start with { Name = "work", Error = error } };
+
+        var frame = FrameBuilder.BuildStyled(state, 60, 13, _keymap);
+
+        Assert.NotNull(frame);
+
+        var save = Assert.Single(RegionProbe.Rows(frame, MouseTarget.ProfileSaveButton));
+        Assert.Contains("Save", save.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenTheForm_WhenClickingFieldsAndButtons_ThenTheyFocusTestSaveAndCancelLikeTheKeys()
     {
         var state = Editing();
