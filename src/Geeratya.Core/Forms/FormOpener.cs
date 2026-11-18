@@ -176,9 +176,7 @@ public static class FormOpener
 
         if (subject.DueKnown)
         {
-            known[FormFieldIds.DueDate] = subject.DueDate is { } due
-                ? FormValue.OfText(ValueText.Due(due))
-                : FormValue.Empty;
+            known[FormFieldIds.DueDate] = DueValue(subject.DueDate);
         }
 
         var lossy = new List<string>();
@@ -207,6 +205,11 @@ public static class FormOpener
             People: people);
 
         return FormReducer.Open(state, subject.Tab.Id, target);
+    }
+
+    private static FormValue DueValue(DateOnly? due)
+    {
+        return due is { } date ? FormValue.OfText(ValueText.Due(date)) : FormValue.Empty;
     }
 
     // A description is known only in the opened issue. One that does not survive the Markdown-like text would lose

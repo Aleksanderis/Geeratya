@@ -67,6 +67,8 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
             due);
     }
 
+    // A due-only edit has a plan (the opened issue shows the date) but no row shows it, so no search read-back can
+    // confirm it; the issue reload after the write is the read.
     public override bool IsShownBy(IssueSummary row)
     {
         var summary = TextOf(FormFieldIds.Summary);

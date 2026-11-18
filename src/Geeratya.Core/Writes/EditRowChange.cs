@@ -4,9 +4,9 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>
-/// The summary, labels, priority and estimate of a row changed by an edit, and the due date of an opened issue. A
-/// null "after" leaves that field alone; the undo
-/// restores only the fields that still hold the patched value.
+/// The summary, labels, priority and estimate of a row changed by an edit, and the due date of an opened issue (a
+/// list row shows none, so only an issue reload carries it). A null "after" leaves that field alone; the undo
+/// restores only the fields of a row that still hold the patched value and leaves the due date alone.
 /// </summary>
 public sealed record EditRowChange(
     string Key,

@@ -1,4 +1,5 @@
 using Geeratya.Core.Text;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 
 namespace Geeratya.Core.Detail;
@@ -212,11 +213,17 @@ internal static class DetailsPane
             return;
         }
 
-        var value = issue.DueDate is null
-            ? ValueText.Empty()
-            : new StyledSpan(ValueText.Due(issue.DueDate), TextRole.ValueBlock);
+        fields.Add(new Field(DetailFieldIds.DueDate, FieldBlockSpec.OfValue("Due date", [DueValue(issue)], true)));
+    }
 
-        fields.Add(new Field(DetailFieldIds.DueDate, FieldBlockSpec.OfValue("Due date", [value], true)));
+    private static StyledSpan DueValue(IssueDetail issue)
+    {
+        if (issue.DueDate is null)
+        {
+            return ValueText.Empty();
+        }
+
+        return new StyledSpan(ValueText.Due(issue.DueDate), TextRole.ValueBlock);
     }
 
     private static void AddText(List<Field> fields, DetailState detail, string id, string label, string? value)

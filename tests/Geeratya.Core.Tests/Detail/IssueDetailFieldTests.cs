@@ -1,9 +1,9 @@
-using Geeratya.Core.Text;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
@@ -272,9 +272,11 @@ public class IssueDetailFieldTests
         var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["duedate"])).State;
         var shown = Document(loaded).Side ?? Document(loaded);
         var stop = shown.Targets.ToList().FindIndex(IsField(DetailFieldIds.DueDate));
-        var value = shown.Lines[stop + 1];
 
         Assert.True(stop >= 0);
+
+        var value = shown.Lines[stop + 1];
+
         Assert.Contains(EmptyValues.None, value.PlainText, StringComparison.Ordinal);
         Assert.Contains(value.Spans, span => span.Text == EmptyValues.None && span.Role == TextRole.Muted);
     }
