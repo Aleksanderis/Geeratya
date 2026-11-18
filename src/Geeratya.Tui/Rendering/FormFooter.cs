@@ -42,7 +42,13 @@ public static class FormFooter
             return popup;
         }
 
-        return Editing(form, keymap, fields, close);
+        return Editing(form, keymap, fields);
+    }
+
+    // The words of the status bar: Esc steps out of an edited field of a navigable form, else it cancels the form.
+    private static string EscapeLabel(FormState form)
+    {
+        return form.Navigable && !form.Navigating ? HintLabels.StopEditing : HintLabels.Cancel;
     }
 
     /// <summary>
@@ -104,7 +110,7 @@ public static class FormFooter
         return form.Navigable ? HintLabels.StopEditing : HintLabels.Close;
     }
 
-    private static List<HintChip?> Editing(FormState form, KeymapTable keymap, HintChip? fields, HintChip? close)
+    private static List<HintChip?> Editing(FormState form, KeymapTable keymap, HintChip? fields)
     {
         var chips = new List<HintChip?> { fields };
 
@@ -120,7 +126,7 @@ public static class FormFooter
             chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormOpenBrowser, HintLabels.Browser));
         }
 
-        chips.Add(close);
+        chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, EscapeLabel(form)));
 
         if (form.Target is CreateFormTarget create
             && keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormOpenAfter) is { Length: > 0 } open)

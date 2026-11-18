@@ -19,6 +19,6 @@
 │ │ ┌─ Team  (not editable here) ──────────────────────────────────────────┐ │ │
 │ │ │ https://work.atlassian.net/browse/A-1                                │▼│ │
 │ │ ──────────────────────────────────────────────────────────────────────── │ │
-│ │ Tab/Shift-Tab field   Ctrl-s save   Ctrl-o browser   Esc close           │ │
+│ │ Tab/Shift-Tab field   Ctrl-s save   Ctrl-o browser   Esc cancel          │ │
 ╰─╰──────────────────────────────────────────────────────────────────────────╯─╯
  INSERT  Edit A-1                   Tab/Shift-Tab field  Ctrl-s save  Esc cancel

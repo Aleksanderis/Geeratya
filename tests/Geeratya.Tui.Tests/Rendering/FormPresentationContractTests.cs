@@ -9,6 +9,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -127,6 +128,80 @@ public class FormPresentationContractTests
 
             Assert.True(frame is null || frame.Body.Count <= Math.Max(1, FrameBuilder.BodyHeight(height)));
         }
+    }
+
+    [Theory]
+    [InlineData("box")]
+    [InlineData("create")]
+    public void GivenANavigableForm_WhenItIsEditedAndThenSteppedBack_ThenTheEscWordAndTheEnterEditHintAgree(
+        string presentation)
+    {
+        var editing = Frame(Open(presentation, Field("hello")), 140, 36);
+        var navigating = Frame(Keys(Open(presentation, Field("hello")), "Esc"), 140, 36);
+
+        Assert.Contains("Esc stop editing", editing.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Tab/Shift-Tab field", editing.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc cancel", navigating.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Enter edit", navigating.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Tab/Shift-Tab field", navigating.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheDropdownAndTheInPlaceEdit_WhenDrawn_ThenTheStatusLineNamesTheirKeys()
+    {
+        var dropdown = Frame(Open("dropdown", Field("hello")), 140, 36);
+        var inPlace = Frame(Open("in-place", Field("hello")), 140, 36);
+
+        Assert.Contains("Enter choose", dropdown.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc close", dropdown.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-s save", inPlace.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc cancel", inPlace.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(140)]
+    [InlineData(100)]
+    [InlineData(80)]
+    public void GivenAnOpenPopup_WhenTheStatusLineIsNarrow_ThenEscStaysAndTheOtherKeysDropFromTheEnd(int width)
+    {
+        var choice = FormField.Create(
+            "customfield_pick",
+            "Pick",
+            FormFieldKind.Select,
+            false,
+            [new FieldOption("low", "Low"), new FieldOption("high", "High")]);
+        var state = Keys(Open("create", choice), "L");
+
+        var line = Frame(state, width, 36).StatusLine;
+
+        Assert.NotNull(state.Session.Tabs[0].Form!.Suggest);
+        Assert.Contains("Esc", line, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheBoxForm_WhenItIsEdited_ThenItsFooterUsesTheWordsOfTheStatusLine()
+    {
+        var editing = Frame(Open("box", Field("hello")), 120, 36);
+        var navigating = Frame(Keys(Open("box", Field("hello")), "Esc"), 120, 36);
+
+        Assert.Contains(editing.Body, line => line.PlainText.Contains("Esc stop editing", StringComparison.Ordinal));
+        Assert.Contains(navigating.Body, line => line.PlainText.Contains("Esc cancel", StringComparison.Ordinal));
+        Assert.DoesNotContain(navigating.Body, line => line.PlainText.Contains("Esc close", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAFieldOpenedByCommand_WhenItsDropdownOpens_ThenTheCursorIsOnThatFieldLikeEnterOnIt()
+    {
+        var state = Loaded();
+        var tab = state.Session.Tabs[0];
+
+        state = _reducer.Reduce(state, new IssueEditableLoaded(tab.Id, "GCM-12", [DetailFieldIds.Priority])).State;
+        var opened = Keys(state, ":", "p", "r", "i", "o", "r", "i", "t", "y", "Enter");
+
+        var top = opened.Session.Tabs[0].Detail[^1];
+        Assert.NotNull(top.SideCursor);
+        Assert.Equal(DetailFieldIds.Priority, top.Document!.Side!.Targets[top.SideCursor.Value]!.Value);
+        Assert.Equal(DetailFieldIds.Priority, opened.Session.Tabs[0].Form!.Dropdown);
     }
 
     private static bool IsValueRole(TextRole role)

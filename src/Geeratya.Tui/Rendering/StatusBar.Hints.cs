@@ -149,13 +149,22 @@ public static partial class StatusBar
     [
         new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
         new(InputMode.Insert, ActionIds.FormSubmit, "save"),
-        new(InputMode.Insert, ActionIds.Cancel, "stop editing"),
+        new(InputMode.Insert, ActionIds.Cancel, HintLabels.StopEditing),
     ];
 
-    /// <summary>The hints shown while the create form is open as panes (#708).</summary>
+    /// <summary>The hints of the issue type chooser that opens the create form: the words of its footer.</summary>
+    public static IReadOnlyList<StatusHint> ChooseTypeHints { get; } =
+    [
+        new(InputMode.Insert, ActionIds.PickerPrevious, "move", HintScope.Global, ActionIds.PickerNext),
+        new(InputMode.Insert, ActionIds.FormNext, "choose"),
+        new(InputMode.Insert, ActionIds.Cancel, "close"),
+    ];
+
+    /// <summary>The hints shown while the create form is open as panes in its navigate state (#708).</summary>
     public static IReadOnlyList<StatusHint> CreateHints { get; } =
     [
-        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormNext, "edit"),
         new(InputMode.Insert, ActionIds.FormMoreFields, MoreFieldsLabel),
         new(InputMode.Insert, ActionIds.FormSubmit, "create"),
         new(InputMode.Insert, ActionIds.Cancel, "cancel"),
@@ -164,10 +173,10 @@ public static partial class StatusBar
     /// <summary>As <see cref="CreateHints"/> while a field of the create form is edited (<c>Esc</c> stops).</summary>
     public static IReadOnlyList<StatusHint> CreateEditingHints { get; } =
     [
-        new(InputMode.Insert, ActionIds.FormFieldNext, "next", HintScope.Global, ActionIds.FormFieldPrevious),
+        new(InputMode.Insert, ActionIds.FormFieldNext, "field", HintScope.Global, ActionIds.FormFieldPrevious),
         new(InputMode.Insert, ActionIds.FormMoreFields, MoreFieldsLabel),
         new(InputMode.Insert, ActionIds.FormSubmit, "create"),
-        new(InputMode.Insert, ActionIds.Cancel, "stop editing"),
+        new(InputMode.Insert, ActionIds.Cancel, HintLabels.StopEditing),
     ];
 
     /// <summary>The hints shown while a dropdown hangs under a Details field (#704).</summary>
@@ -190,6 +199,11 @@ public static partial class StatusBar
 
     private static IReadOnlyList<StatusHint> FormHintsOf(FormState form)
     {
+        if (form.IsChoosingType)
+        {
+            return ChooseTypeHints;
+        }
+
         if (form.Dropdown is not null)
         {
             return DropdownHints;
@@ -257,7 +271,10 @@ public static partial class StatusBar
             // An open popup with rows has one footer in every presentation (FormFooter, #1021).
             if (FormFooter.PopupChips(form, keymap) is { } popup)
             {
-                return new HintList([], [.. popup.OfType<HintChip>()]);
+                // Esc stays on a narrow line; the other keys drop from the end (a long state text must not hide them all).
+                var chips = popup.OfType<HintChip>().ToList();
+
+                return new HintList(chips[..^1], chips[^1..]);
             }
 
             var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);
@@ -270,7 +287,7 @@ public static partial class StatusBar
 
             if (CreatePanes.Applies(form) && form.Navigating)
             {
-                texts.Insert(Math.Min(1, texts.Count), new HintChip(PaneKeys(keymap), "pane"));
+                texts.Insert(Math.Min(2, texts.Count), new HintChip(PaneKeys(keymap), "pane"));
             }
 
             if (CreatePanes.Applies(form) && form.Target is CreateFormTarget create)

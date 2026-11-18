@@ -21,4 +21,4 @@
 |                                                                              |
 |                                                                              |
 +------------------------------------------------------------------------------+
-[INSERT] Choose the issue type      Tab/Shift-Tab field  Ctrl-s save  Esc cancel
+[INSERT] Choose the issue type             Up/Down move  Enter choose  Esc close
