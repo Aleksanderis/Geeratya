@@ -145,8 +145,7 @@ public static class CommentEditorOverlay
             CaretText.Over(
                 string.Concat(before.Select(cell => cell.Display)),
                 under < 0 ? " " : cells[under].Display,
-                string.Concat(after.Select(cell => cell.Display)),
-                TextRole.Body));
+                string.Concat(after.Select(cell => cell.Display))));
 
         if (text.Length == 0)
         {

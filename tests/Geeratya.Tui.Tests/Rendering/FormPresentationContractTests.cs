@@ -213,7 +213,7 @@ public class FormPresentationContractTests
 
     private static bool IsValueRole(TextRole role)
     {
-        return role is TextRole.Editable or TextRole.Body or TextRole.ValueBlock or TextRole.EditField or TextRole.Selected;
+        return role is TextRole.Editable or TextRole.Body or TextRole.ValueBlock or TextRole.Selected;
     }
 
     private static bool Edited(FormField field)
@@ -248,7 +248,7 @@ public class FormPresentationContractTests
         return state;
     }
 
-    private AppState Open(string presentation, FormField field)
+    internal AppState Open(string presentation, FormField field)
     {
         return presentation switch
         {

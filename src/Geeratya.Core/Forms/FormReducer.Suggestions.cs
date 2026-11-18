@@ -16,9 +16,10 @@ public static partial class FormReducer
 {
     private const int KnownLabelLimit = 500;
 
-    // The keys of an open popup: Esc closes it alone (the quick rows of an empty field leave Esc to the form), Up and
-    // Down move, Tab and Enter take the highlighted row (Enter on a full issue key typed into any parent field takes
-    // that key, Tab the row). Any other key is not the popup's (null) and goes on to the field.
+    // The keys of an open popup: Esc empties the typed text first, in every kind that has a typed filter or search
+    // (decision 10; the quick rows of an empty field leave Esc to the form), Up and Down move, Tab and Enter take the
+    // highlighted row (Enter on a full issue key typed into any parent field takes that key, Tab the row). Any other
+    // key is not the popup's (null) and goes on to the field.
     private static ReduceResult? Suggesting(
         AppState state,
         TabState tab,
@@ -32,7 +33,7 @@ public static partial class FormReducer
             ActionIds.Cancel when popup.Query.Length == 0 => null,
             ActionIds.Cancel when FormFieldKinds.IsChoice(form.Fields[form.Focus].Kind)
                 => Result(ClearedFilter(state, tab, form)),
-            ActionIds.Cancel when FormFieldKinds.IsPicked(form.Fields[form.Focus].Kind)
+            ActionIds.Cancel when FormFieldKinds.TakesEntry(form.Fields[form.Focus].Kind)
                 => Result(ClearedFilter(state, tab, form), tab.Id),
             ActionIds.Cancel => Result(Replace(state, tab, form with { Suggest = null }), tab.Id),
             ActionIds.PickerNext => Moved(state, tab, form, popup, 1),
@@ -79,7 +80,7 @@ public static partial class FormReducer
         var field = form.Fields[form.Focus] with { Entry = string.Empty, Back = 0 };
         var cleared = form with { Fields = WithField(form.Fields, form.Focus, field) };
 
-        return Replace(state, tab, FormFieldKinds.IsPicked(field.Kind) ? cleared with { Suggest = null } : cleared);
+        return Replace(state, tab, FormFieldKinds.TakesEntry(field.Kind) ? cleared with { Suggest = null } : cleared);
     }
 
     // A choice field always shows its popup while it has the focus; any other field leaves a stale one to Edited.

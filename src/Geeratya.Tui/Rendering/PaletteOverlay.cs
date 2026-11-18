@@ -122,7 +122,7 @@ public static class PaletteOverlay
     private static StyledLine QueryLine(AppState state, int width)
     {
         var buffer = TextBuffer.FromBack(state.PaletteText, state.PaletteBack);
-        var text = CaretText.Spans(buffer, Math.Max(1, width - 2), TextRole.Body);
+        var text = CaretText.Spans(buffer, Math.Max(1, width - 2));
 
         return new StyledLine([new StyledSpan(": ", TextRole.Heading), .. text]);
     }

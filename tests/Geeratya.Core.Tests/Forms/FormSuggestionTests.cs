@@ -76,7 +76,7 @@ public class FormSuggestionTests
     }
 
     [Fact]
-    public void GivenAnOpenPopup_WhenEscIsPressed_ThenOnlyThePopupClosesAndTheLookupIsCancelled()
+    public void GivenAnOpenPopupWithTypedText_WhenEscIsPressed_ThenTheTextIsClearedFirstAndTheLookupIsCancelled()
     {
         var typed = Press(Loaded(), "b");
 
@@ -87,7 +87,7 @@ public class FormSuggestionTests
         Assert.Null(dismissed.State.Confirm);
         Assert.Equal(InputMode.Insert, dismissed.State.Mode);
         Assert.IsType<CancelSuggestionsEffect>(Assert.Single(dismissed.Effects));
-        Assert.Equal("b", form.Fields[0].Entry);
+        Assert.Equal(string.Empty, form.Fields[0].Entry);
     }
 
     [Fact]

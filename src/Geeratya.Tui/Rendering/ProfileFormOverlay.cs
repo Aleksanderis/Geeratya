@@ -1,4 +1,5 @@
 using Geeratya.Core.Editing;
+using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
@@ -66,7 +67,15 @@ public static class ProfileFormOverlay
             lines.Add(OverlayBox.Wall(FieldLine(form, field, contentWidth - 2), contentWidth));
         }
 
-        lines.Add(OverlayBox.Wall(NoteLine(form), contentWidth));
+        // The error shows as every form shows it (FormErrors: wrapped, "! " first, error role); the box grows by the
+        // rows it needs while the terminal has them.
+        var notes = NoteLines(form, contentWidth, height - BoxRows + 1);
+
+        foreach (var note in notes)
+        {
+            lines.Add(OverlayBox.Wall(note, contentWidth));
+        }
+
         lines.Add(OverlayBox.Wall(ChipButtons.Line(_buttons), contentWidth));
         lines.Add(OverlayBox.Wall(Footer(keymap), contentWidth));
         lines.Add(OverlayBox.Bottom(boxWidth));
@@ -82,15 +91,18 @@ public static class ProfileFormOverlay
             result[top + index] = OverlayBox.Over(result[top + index], lines[index], left, width);
         }
 
-        MarkRegions(regions, top, left, boxWidth);
+        MarkRegions(regions, top, left, boxWidth, notes.Count);
 
         return result;
     }
 
-    /// <summary>The short status-line text while the box is drawn: the focused field.</summary>
+    /// <summary>
+    /// The short status-line text while the box is drawn: the focused field, or its error as every form says it
+    /// (<c>! Field: message</c>, as <see cref="FormOverlay.StatusText"/>).
+    /// </summary>
     public static string StatusText(ProfileForm form)
     {
-        return Label(form.Field);
+        return form.Error is { } error ? $"! {Label(form.Field)}: {error}" : Label(form.Field);
     }
 
     /// <summary>The name of a field as the form and the status line show it.</summary>
@@ -161,7 +173,7 @@ public static class ProfileFormOverlay
             return StyledLines.Fit(new StyledLine(spans), width);
         }
 
-        spans.AddRange(CaretText.Spans(prompt, room, TextRole.Body));
+        spans.AddRange(CaretText.Spans(prompt, room));
 
         return StyledLines.Fit(new StyledLine(spans), width);
     }
@@ -181,27 +193,27 @@ public static class ProfileFormOverlay
         return field == form.Field ? TextBuffer.FromBack(text, form.Back) : TextBuffer.Of(text);
     }
 
-    private static StyledLine NoteLine(ProfileForm form)
+    private static List<StyledLine> NoteLines(ProfileForm form, int contentWidth, int room)
     {
         if (form.Error is { } error)
         {
-            return StyledLine.Of($"! {error}", TextRole.Warning);
+            return [.. FormErrors.Lines(error, contentWidth - 1).Take(Math.Max(1, room))];
         }
 
         if (form.Testing)
         {
-            return StyledLine.Of(TestingText, TextRole.Loading);
+            return [StyledLine.Of(TestingText, TextRole.Loading)];
         }
 
         if (form.TestResult is { } result)
         {
-            return StyledLine.Of(result, form.TestFailed ? TextRole.Error : TextRole.StatusDone);
+            return [StyledLine.Of(result, form.TestFailed ? TextRole.Error : TextRole.StatusDone)];
         }
 
-        return StyledLine.Empty;
+        return [StyledLine.Empty];
     }
 
-    private static void MarkRegions(List<OverlayRegion>? regions, int top, int left, int boxWidth)
+    private static void MarkRegions(List<OverlayRegion>? regions, int top, int left, int boxWidth, int noteRows)
     {
         if (regions is null)
         {
@@ -212,7 +224,7 @@ public static class ProfileFormOverlay
 
         OverlayBox.Mark(regions, MouseTarget.FormField, top, left, boxWidth, 1, fields);
 
-        var buttonRow = top + 1 + FieldCount + 1;
+        var buttonRow = top + 1 + FieldCount + noteRows;
         ChipButtons.Mark(regions, buttonRow, left + 2, _buttons);
     }
 

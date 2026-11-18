@@ -113,7 +113,7 @@ public static class JumpOverlay
     private static StyledLine Prompt(JumpState jump, int contentWidth)
     {
         var buffer = TextBuffer.FromBack(jump.Text, jump.Back);
-        var text = CaretText.Spans(buffer, contentWidth - PromptMargin, TextRole.Body);
+        var text = CaretText.Spans(buffer, contentWidth - PromptMargin);
 
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }

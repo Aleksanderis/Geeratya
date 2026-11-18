@@ -209,7 +209,7 @@ public class InPaneEditTests
         var document = Build(state, 100, 30);
         var spans = document.Lines.SelectMany(line => line.Spans).ToList();
 
-        Assert.Contains(spans, span => span.Role == TextRole.EditField && span.Text.StartsWith("abc", StringComparison.Ordinal));
+        Assert.Contains(spans, span => span.Role == TextRole.Body && span.Text.StartsWith("abc", StringComparison.Ordinal));
         Assert.Contains(spans, span => span.Role == TextRole.EditCaret && span.Text == " ");
         Assert.Contains("Ctrl-s save   Esc cancel", Plain(document));
     }
@@ -267,7 +267,7 @@ public class InPaneEditTests
 
         var document = Build(state, 60, 30);
         var row = document.Lines.First(line => line.Spans.Any(span => span.Role == TextRole.EditCaret));
-        var fieldColumns = row.Spans.Where(span => span.Role is TextRole.EditField or TextRole.EditCaret).Sum(span => DisplayWidth.Of(span.Text));
+        var fieldColumns = row.Spans.Where(span => span.Role is TextRole.Body or TextRole.EditCaret).Sum(span => DisplayWidth.Of(span.Text));
 
         Assert.True(fieldColumns >= 50, $"field is {fieldColumns} columns");
     }

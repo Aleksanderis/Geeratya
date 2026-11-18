@@ -160,15 +160,10 @@ public static class PaletteTable
         [PaletteRole.UnassignedChip] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.ValueBlock] = new(ThemeColor.BaseForeground, ThemeColor.Selection, RoleStyle.None),
         [PaletteRole.SelectionBar] = new(ThemeColor.Accent, ThemeColor.BaseBackground, RoleStyle.Bold),
-        [PaletteRole.EditField] = new(
-            ThemeColor.BaseForeground,
-            ThemeColor.Selection,
-            RoleStyle.Reverse | RoleStyle.Underline,
-            RoleGround.OnBlue),
         [PaletteRole.EditCaret] = new(
             ThemeColor.BaseBackground,
             ThemeColor.BaseForeground,
-            RoleStyle.Bold | RoleStyle.NoColorUnderline,
+            RoleStyle.Bold | RoleStyle.Reverse,
             RoleGround.Chip),
         [PaletteRole.Range] = new(
             ThemeColor.BaseForeground,
@@ -257,7 +252,6 @@ public static class PaletteTable
         [TextRole.UnassignedChip] = PaletteRole.UnassignedChip,
         [TextRole.ValueBlock] = PaletteRole.ValueBlock,
         [TextRole.SelectionBar] = PaletteRole.SelectionBar,
-        [TextRole.EditField] = PaletteRole.EditField,
         [TextRole.EditCaret] = PaletteRole.EditCaret,
     };
 
