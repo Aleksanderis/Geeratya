@@ -17,6 +17,16 @@ public class FormFieldKindsTests
         Assert.Equal("Due date", FormFieldKinds.Named(field));
     }
 
+    [Fact]
+    public void GivenALabelThatEndsInItsFormat_WhenNamed_ThenOnlyThatFormatIsDropped()
+    {
+        var field = FormField.Create("customfield_2", "Start", FormFieldKind.DateTime, false, []);
+
+        Assert.EndsWith(")", field.Label, StringComparison.Ordinal);
+        Assert.Equal("Start", FormFieldKinds.Named(field));
+        Assert.Equal("Start (x)", FormFieldKinds.Named(field with { Label = "Start (x)" }));
+    }
+
     [Theory]
     [InlineData(FormFieldIds.Summary, FormFieldKind.Text, false)]
     [InlineData(FormFieldIds.Description, FormFieldKind.Paragraph, false)]

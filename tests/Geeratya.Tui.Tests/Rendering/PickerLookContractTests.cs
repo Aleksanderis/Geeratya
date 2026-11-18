@@ -73,7 +73,11 @@ public class PickerLookContractTests
             {
                 foreach (var scene in TypedScenes)
                 {
-                    cases.Add(kind, presentation, scene);
+                    // A text field has no format, so no wrong text: "error" would repeat "typed".
+                    if (kind != "text" || scene != "error")
+                    {
+                        cases.Add(kind, presentation, scene);
+                    }
                 }
             }
         }
@@ -168,7 +172,7 @@ public class PickerLookContractTests
             Assert.Equal(expected[row][^1].Role, actual[row][^1].Role);
         }
 
-        if (scene == "error" && kind != "text")
+        if (scene == "error")
         {
             Assert.Contains(expected, static row => row.Any(static cell => cell.Glyph == "!"));
         }
