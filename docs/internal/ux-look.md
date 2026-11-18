@@ -245,16 +245,16 @@ Inside the box the page menu and the page text are two panes split by one plain 
 
 ```
           ╭─ Move GCM-8 ─────────────────────────────────────────╮
-          │ Move GCM-8 to Done?                                  │
+          │ Move GCM-8 to Done? The workflow may do more than    │
+          │ change the status.                                   │
           │                                                      │
-          │ Jira cannot undo this; the workflow may do more      │
-          │ than change the status.                              │
+          │ Jira cannot undo this.                               │
           │                                                      │
           │  y  Move issue        n  Cancel                      │
           ╰──────────────────────────────────────────────────────╯
 ```
 
-The frame and chip use the `bad` role for every write to Jira (delete, remove a link, transitions, rank and sprint moves, complete and start a sprint) and a removed profile, and `warn` for the rest (a discard, quit, a profile switch); the chip names the action and its target, the body says exactly what will change, and a red dialog adds the one line `Jira cannot undo this.` (`ConfirmWording`; a question never writes its own claim about undo, `CLAUDE.md`). Answers are two chips on one line (`y`/`n` keys bold, label plain; the default `n` has no tint, `y` never does), both clickable. Wider than 62 columns the text wraps.
+The frame and chip use the `bad` role for every write to Jira (delete, remove a link, transitions, rank and sprint moves, complete and start a sprint) and a removed profile, and `warn` for the rest (a discard, quit, a profile switch); the chip names the action and its target, the body says exactly what will change, and a red dialog adds the one line `Jira cannot undo this.` (`ConfirmWording`; a question never writes its own claim about undo, `CLAUDE.md`). Answers are two chips on one line (`y`/`n` keys bold, label plain; the default `n` has no tint, `y` never does), both clickable. Wider than 64 columns the text wraps.
 
 ### Field form (edit, assign, labels, comment editor, link form) and suggestions
 

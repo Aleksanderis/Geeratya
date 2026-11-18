@@ -24,7 +24,6 @@ public static class FormShell
     /// <summary>The state note of a navigable form while its focused field is edited.</summary>
     public const string EditingNote = "[editing]";
 
-
     /// <summary>
     /// A form with more than one editable field has the navigate state besides editing (decision 11): <c>j</c>,
     /// <c>k</c> and Tab move between fields, Enter or <c>i</c> edits the focused one, <c>Esc</c> and <c>q</c> step back.

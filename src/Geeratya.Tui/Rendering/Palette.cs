@@ -57,7 +57,9 @@ public static class Palette
             case ColorSupport.TrueColor:
                 var foreground = dim ? theme.Dimmed(entry.TrueForeground) : entry.TrueForeground;
                 var background = PageBackground(theme, entry, ground);
-                var keep = KeepsTerminal(theme, entry) && !ground.HasFlag(SpanGround.Surface);
+                // A box under another overlay is part of the dimmed view, so on a transparent theme it keeps the terminal too.
+                var raised = ground.HasFlag(SpanGround.Surface) && !ground.HasFlag(SpanGround.Dim);
+                var keep = KeepsTerminal(theme, entry) && !raised;
 
                 return new ResolvedStyle(foreground, background, null, null, ColourStyle(entry), keep);
             case ColorSupport.Basic16:

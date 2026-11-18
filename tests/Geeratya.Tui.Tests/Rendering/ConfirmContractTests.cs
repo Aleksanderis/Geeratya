@@ -50,11 +50,21 @@ public partial class ConfirmContractTests
         ]);
     }
 
+    public static TheoryData<string, int, int> Questions()
+    {
+        return Matrix(["quit", "switch profile"]);
+    }
+
+    public static TheoryData<string, int, int> RemoveProfile()
+    {
+        return Matrix(["remove profile"]);
+    }
+
     public static TheoryData<string, int, int> Everything()
     {
         var all = new TheoryData<string, int, int>();
 
-        foreach (var set in new[] { Discards(), JiraWrites() })
+        foreach (var set in new[] { Discards(), JiraWrites(), Questions(), RemoveProfile() })
         {
             foreach (var row in set)
             {
@@ -102,6 +112,33 @@ public partial class ConfirmContractTests
     }
 
     [Theory]
+    [MemberData(nameof(Questions))]
+    public void GivenAQuestionThatLosesNothingInJira_WhenDrawn_ThenItIsYellowWithNoWarningAndNoUndoClaim(
+        string place,
+        int width,
+        int height)
+    {
+        var box = BoxOf(Asked(place), width, height);
+
+        Assert.Equal(TextRole.OverlayFrameWarn, box.FrameRole);
+        Assert.Empty(box.WarningRows);
+        Assert.DoesNotContain("undo", box.AllText, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("n|Key Cancel|Strong", box.AnswerRows[^1]);
+    }
+
+    [Theory]
+    [MemberData(nameof(RemoveProfile))]
+    public void GivenARemovedProfile_WhenDrawn_ThenItIsRedWithItsOwnOneLineWarning(string place, int width, int height)
+    {
+        var box = BoxOf(Asked(place), width, height);
+
+        Assert.Equal(TextRole.OverlayFrameBad, box.FrameRole);
+        Assert.Equal(["This cannot be undone.|Error"], box.WarningRows);
+        Assert.Equal(1, Occurrences(box.AllText, "undo"));
+        Assert.Equal("n|Key Cancel|Strong", box.AnswerRows[^1]);
+    }
+
+    [Theory]
     [MemberData(nameof(Everything))]
     public void GivenAnyDialog_WhenDrawn_ThenTheFrameIsDrawnOnTheSurfaceInOneRoleAndTheViewBehindIsScrimmed(
         string place,
@@ -115,7 +152,9 @@ public partial class ConfirmContractTests
         Assert.All(box.Cells, span => Assert.True(span.Ground.HasFlag(SpanGround.Surface), place));
         Assert.Single(box.Cells.Select(static span => span.Role).Where(static role => role is TextRole.OverlayFrameWarn or TextRole.OverlayFrameBad).Distinct());
 
-        // Every text cell of the view behind the dialog (also the raised box of a form under it) is on the scrim.
+        // Every blank body cell of the view behind the dialog (also the padding of a form box under it) is on the scrim.
+        var checkedCells = 0;
+
         foreach (var span in Outside(frame, box.Region))
         {
             if (span.Role != TextRole.Body || span.Text.Trim().Length > 0
@@ -127,7 +166,10 @@ public partial class ConfirmContractTests
             var style = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteTable.For(span.Role), span.Ground, true);
 
             Assert.Equal(theme.ScrimBackground, style.Background);
+            checkedCells++;
         }
+
+        Assert.True(checkedCells > 0, $"{place}: no blank body cell was checked");
     }
 
     [Theory]
@@ -135,12 +177,12 @@ public partial class ConfirmContractTests
     [InlineData(80, 24)]
     public void GivenEveryPlace_WhenDrawn_ThenTheCancelRowIsTheSameCellForCell(int width, int height)
     {
-        var rows = Discards().Concat(JiraWrites())
+        var rows = Discards().Concat(JiraWrites()).Concat(Questions()).Concat(RemoveProfile())
             .Where(row => (int)row[1] == width)
             .Select(row => BoxOf(Asked((string)row[0]), width, height).CancelCells)
             .ToList();
 
-        Assert.Equal(12, rows.Count);
+        Assert.Equal(15, rows.Count);
         Assert.All(rows, row => Assert.Equal(rows[0], row));
     }
 
