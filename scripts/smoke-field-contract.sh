@@ -172,7 +172,7 @@ create_script() {
   wait_status "Priority"
   key Enter
   wait_for "Highest"
-  wait_status "Esc"
+  wait_for "Enter choose"
   click "Medium"
   wait_gone "Highest"
   wait_for "Medium"
@@ -203,7 +203,7 @@ key C-l
 text "j"
 key Enter
 wait_for "Highest"
-wait_status "Enter accept"
+wait_status "Enter choose"
 # The same script as the create form's choice field: a typed filter narrows, Esc clears it first, the next Esc closes.
 text "Hi"
 wait_gone "Low"

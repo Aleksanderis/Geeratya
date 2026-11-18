@@ -76,17 +76,22 @@ public class FieldBehaviourContractTests
     /// </summary>
     public static IReadOnlyList<KindRow> Kinds { get; } =
     [
-        new(FormFieldKind.Text, "hello", null, true),
-        new(FormFieldKind.Paragraph, "hello", null, true),
-        new(FormFieldKind.Number, "3", "1x", true),
-        new(FormFieldKind.Date, "2026-12-01", "2026-1", true),
-        new(FormFieldKind.DateTime, "2026-12-01 10:30", "2026-12-01 1", true),
-        new(FormFieldKind.Select, "Down|Down|Enter", null, true),
-        new(FormFieldKind.MultiSelect, "Down|Enter", null, true),
-        new(FormFieldKind.Labels, "x|Enter", null, true),
-        new(FormFieldKind.Parent, "ab-12|Enter", null, true),
-        new(FormFieldKind.User, string.Empty, null, false),
-        new(FormFieldKind.Unsupported, string.Empty, null, false),
+        new(FormFieldKind.Text, "hello", null, "text=hello;chosen=", true),
+        new(FormFieldKind.Paragraph, "hello", null, "text=hello;chosen=", true),
+        new(FormFieldKind.Number, "3", "1x", "text=3;chosen=", true),
+        new(FormFieldKind.Date, "2026-12-01", "2026-1", "text=2026-12-01;chosen=", true),
+        new(
+            FormFieldKind.DateTime,
+            "2026-12-01|Space|10:30",
+            "2026-12-01|Space|1",
+            "text=2026-12-01 10:30;chosen=",
+            true),
+        new(FormFieldKind.Select, "Down|Down|Enter", null, "text=;chosen=low", true),
+        new(FormFieldKind.MultiSelect, "Down|Enter", null, "text=;chosen=low", true),
+        new(FormFieldKind.Labels, "x|Enter", null, "text=;chosen=x", true),
+        new(FormFieldKind.Parent, "ab-12|Enter", null, "text=;chosen=AB-12", true),
+        new(FormFieldKind.User, string.Empty, null, string.Empty, false),
+        new(FormFieldKind.Unsupported, string.Empty, null, string.Empty, false),
     ];
 
     /// <summary>
@@ -134,6 +139,36 @@ public class FieldBehaviourContractTests
         }
     }
 
+    /// <summary>One row of the table: a field kind, its valid and wrong key scripts and the value it ends in.</summary>
+    /// <param name="Kind">The field kind.</param>
+    /// <param name="Valid">The keys that give the field a valid value, split by <c>|</c>.</param>
+    /// <param name="Wrong">A script that types a text the format refuses, or null for a kind with no format.</param>
+    /// <param name="Expected">The value the field holds after the valid script (text and chosen values).</param>
+    /// <param name="Editable">False for a kind this contract does not drive (a person field, a read-only kind).</param>
+    public sealed record KindRow(FormFieldKind Kind, string Valid, string? Wrong, string Expected, bool Editable)
+    {
+        /// <summary>The presentations that offer the kind: the in-place edit holds only the text of a pane.</summary>
+        public IEnumerable<string> Presentations()
+        {
+            var text = Kind is FormFieldKind.Text or FormFieldKind.Paragraph;
+            var choice = Kind == FormFieldKind.Select;
+
+            return PresentationNames
+                .Where(name => text || name != "in-place")
+                .Where(name => Kind != FormFieldKind.Parent || !NoSearch.Contains(name))
+                .Where(name => choice || !OneChoice.Contains(name));
+        }
+
+        /// <summary>The presentations whose write reads the field of the table, not fields of their own.</summary>
+        public IEnumerable<string> Writing()
+        {
+            return Presentations().Where(name => !OwnFields.Contains(name));
+        }
+    }
+
+    /// <summary>What a script leaves behind: whether a write started, the error of the field and its value.</summary>
+    public sealed record Outcome(bool Sent, string Error, string Value);
+
     [Fact]
     public void GivenTheFieldKinds_WhenTheTableIsChecked_ThenEveryKindIsInIt()
     {
@@ -161,7 +196,9 @@ public class FieldBehaviourContractTests
 
     [Theory]
     [MemberData(nameof(Cells))]
-    public void GivenAFieldKind_WhenItIsEdited_ThenTheCellOpensAndTheFieldHasTheFocus(FormFieldKind kind, string presentation)
+    public void GivenAFieldKind_WhenItIsEdited_ThenTheCellOpensAndTheFieldHasTheFocus(
+        FormFieldKind kind,
+        string presentation)
     {
         var state = Edit(Open(presentation, Field(kind)));
 
@@ -185,18 +222,18 @@ public class FieldBehaviourContractTests
     }
 
     [Fact]
-    public void GivenAFieldKind_WhenTheKeyScriptRuns_ThenEveryPresentationEndsWithTheSameValueErrorAndSend()
+    public void GivenAFieldKind_WhenTheKeyScriptRuns_ThenEveryPresentationEndsWithTheExpectedValueAndAWrite()
     {
         var differences = new List<string>();
 
         foreach (var row in Kinds.Where(static row => row.Editable))
         {
             var seen = row.Writing().ToDictionary(name => name, name => Valid(row, name));
-            var first = seen.First();
+            var expected = new Outcome(true, string.Empty, row.Expected);
 
             differences.AddRange(seen
-                .Where(pair => pair.Value != first.Value)
-                .Select(pair => $"{row.Kind}: {pair.Key} = {pair.Value}, {first.Key} = {first.Value}"));
+                .Where(pair => pair.Value != expected)
+                .Select(pair => $"{row.Kind}: {pair.Key} = {pair.Value}, expected {expected}"));
         }
 
         Assert.True(differences.Count == 0, string.Join('\n', differences));
@@ -259,10 +296,12 @@ public class FieldBehaviourContractTests
         Assert.Equal(byEsc, byQ);
     }
 
-    [Theory]
-    [InlineData(FormFieldKind.Unsupported)]
-    public void GivenAReadOnlyKind_WhenKeysAreTyped_ThenNothingChangesOnAnyPresentation(FormFieldKind kind)
+    // Unsupported is the only read-only kind here; person fields are PersonFieldContractTests.
+    [Fact]
+    public void GivenAReadOnlyKind_WhenKeysAreTyped_ThenNothingChangesOnAnyPresentation()
     {
+        const FormFieldKind kind = FormFieldKind.Unsupported;
+
         foreach (var presentation in PresentationNames.Where(static name => name != "in-place"))
         {
             var opened = Open(presentation, Field(kind));
@@ -333,15 +372,7 @@ public class FieldBehaviourContractTests
         var before = state.Session.Operations.Count;
 
         state = Script(state, row.Valid);
-
-        try
-        {
-            state = Press(state, "Ctrl-s").State;
-        }
-        catch (InvalidOperationException exception)
-        {
-            return new Outcome(false, $"throws {exception.Message}", string.Empty);
-        }
+        state = Press(state, "Ctrl-s").State;
 
         return OutcomeOf(state, before);
     }
@@ -351,7 +382,7 @@ public class FieldBehaviourContractTests
         var state = Edit(Open(presentation, Field(row.Kind)));
         var before = state.Session.Operations.Count;
 
-        state = Type(state, row.Wrong!);
+        state = Script(state, row.Wrong!);
         state = Press(state, "Ctrl-s").State;
 
         return OutcomeOf(state, before);
@@ -513,34 +544,4 @@ public class FieldBehaviourContractTests
             null,
             "A");
     }
-
-    /// <summary>One row of the table: a field kind, its valid key script, a wrong text and the presentations it skips.</summary>
-    /// <param name="Kind">The field kind.</param>
-    /// <param name="Valid">The keys that give the field a valid value, split by <c>|</c>.</param>
-    /// <param name="Wrong">A text typed into the field that its format refuses, or null for a kind with no format.</param>
-    /// <param name="Editable">False for a kind this contract does not drive (a person field, a read-only kind).</param>
-    public sealed record KindRow(FormFieldKind Kind, string Valid, string? Wrong, bool Editable)
-    {
-        /// <summary>The presentations that offer the kind: the in-place edit holds only the text of a pane.</summary>
-        public IEnumerable<string> Presentations()
-        {
-            var text = Kind is FormFieldKind.Text or FormFieldKind.Paragraph;
-
-            var choice = Kind == FormFieldKind.Select;
-
-            return PresentationNames
-                .Where(name => text || name != "in-place")
-                .Where(name => Kind != FormFieldKind.Parent || !NoSearch.Contains(name))
-                .Where(name => choice || !OneChoice.Contains(name));
-        }
-
-        /// <summary>The presentations whose write needs the one id of their own choice list (not run with the others).</summary>
-        public IEnumerable<string> Writing()
-        {
-            return Presentations().Where(name => !OwnFields.Contains(name));
-        }
-    }
-
-    /// <summary>What a script leaves behind: whether a write started, the error of the field and its value.</summary>
-    public sealed record Outcome(bool Sent, string Error, string Value);
 }

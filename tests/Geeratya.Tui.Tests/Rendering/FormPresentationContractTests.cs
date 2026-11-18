@@ -9,6 +9,7 @@ using Geeratya.Core.Views;
 using Geeratya.Jira.Create.Models;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
+using Geeratya.Jira.Transitions.Models;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -143,6 +144,38 @@ public class FormPresentationContractTests
         Assert.Contains("Esc cancel", navigating.StatusLine, StringComparison.Ordinal);
         Assert.Contains("Enter edit", navigating.StatusLine, StringComparison.Ordinal);
         Assert.Contains("Tab/Shift-Tab field", navigating.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTheDropdownAndTheInPlaceEdit_WhenDrawn_ThenTheStatusLineNamesTheirKeys()
+    {
+        var dropdown = Frame(Open("dropdown", Field("hello")), 140, 36);
+        var inPlace = Frame(Open("in-place", Field("hello")), 140, 36);
+
+        Assert.Contains("Enter choose", dropdown.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc close", dropdown.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Ctrl-s save", inPlace.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc cancel", inPlace.StatusLine, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(140)]
+    [InlineData(100)]
+    [InlineData(80)]
+    public void GivenAnOpenPopup_WhenTheStatusLineIsNarrow_ThenEscStaysAndTheOtherKeysDropFromTheEnd(int width)
+    {
+        var choice = FormField.Create(
+            "customfield_pick",
+            "Pick",
+            FormFieldKind.Select,
+            false,
+            [new FieldOption("low", "Low"), new FieldOption("high", "High")]);
+        var state = Keys(Open("create", choice), "L");
+
+        var line = Frame(state, width, 36).StatusLine;
+
+        Assert.NotNull(state.Session.Tabs[0].Form!.Suggest);
+        Assert.Contains("Esc", line, StringComparison.Ordinal);
     }
 
     [Fact]

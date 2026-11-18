@@ -271,7 +271,10 @@ public static partial class StatusBar
             // An open popup with rows has one footer in every presentation (FormFooter, #1021).
             if (FormFooter.PopupChips(form, keymap) is { } popup)
             {
-                return new HintList([], [.. popup.OfType<HintChip>()]);
+                // Esc stays on a narrow line; the other keys drop from the end (a long state text must not hide them all).
+                var chips = popup.OfType<HintChip>().ToList();
+
+                return new HintList(chips[..^1], chips[^1..]);
             }
 
             var texts = TextsOf(FormHintsOf(form), state.Mode, HintScope.Global, keymap, level);

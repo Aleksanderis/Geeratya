@@ -564,9 +564,9 @@ project = GEN · 40 issues
           │ │ [backend] [ui] _                                                                             │ │
           │ └──────────────────────────────────────────────────────────────────────────────────────────────┘ │
           │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-          │ Tab/Shift-Tab field   Ctrl-s save   Esc close                                                   │
+          │ Tab/Shift-Tab field   Ctrl-s save   Esc cancel                                                  │
           └──────────────────────────────────────────────────────────────────────────────────────────────────┘
- INSERT Edit GEN-1 · Labels                              Tab/Shift-Tab field  Ctrl-s save  Esc close
+ INSERT Edit GEN-1 · Labels                              Tab/Shift-Tab field  Ctrl-s save  Esc cancel
 ```
 
 - **Which field an edit form offers.** An edit form shows the one field it was opened for. The editor metadata carries no values and the form writes only changed fields, so the field is offered only when its current value is known: from the row or the opened issue, or (due date, components, versions, a number estimate, custom fields) read from one issue read with only that id when the form loads (#283). A description that does not survive the Markdown-like text (tables, panels, media, colours, ...; `AdfRoundTrip`) is listed read-only with `(edit in browser)`, because saving it here would lose content. A value of an unexpected shape is not offered. The assignee has its own picker, because Jira assigns through its own call.

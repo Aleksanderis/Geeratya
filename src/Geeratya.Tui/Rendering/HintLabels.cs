@@ -83,7 +83,4 @@ public static class HintLabels
 
     /// <summary>Esc drops the half-typed key sequence, or cancels a form (the question about changes comes first).</summary>
     public const string Cancel = "cancel";
-
-    /// <summary>Esc leaves the edited field of a form in its navigate state.</summary>
-    public const string StopEditing = "stop editing";
 }
