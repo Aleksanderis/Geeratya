@@ -37,6 +37,7 @@ done
 work=$(mktemp -d)
 fake_pid=""
 trap 'if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi; rm -rf "$work"' EXIT
+trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
 
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
@@ -46,7 +47,7 @@ mkdir -p "$out_dir" "$work/config/geeratya" "$work/state" "$work/cache" "$work/s
 # configuration or sites is read).
 unset GEERATYA_LIVE_HOSTS
 : > "$work/fake.url"
-dotnet "$work/fakejira/fakejira.dll" --demo > "$work/fake.url" &
+dotnet "$work/fakejira/fakejira.dll" --demo --parent-pid $$ > "$work/fake.url" &
 fake_pid=$!
 for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
 fake_url=$(head -n 1 "$work/fake.url")

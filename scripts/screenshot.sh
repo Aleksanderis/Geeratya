@@ -307,6 +307,7 @@ render() {
   noactive_pid=""
   sockets=()
   trap stop_render EXIT
+  trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
   mkdir -p "$out" "$work/config" "$work/state" "$work/cache"
 
   dotnet build "$root/tools/AnsiToSvg" -c Release -o "$work/ansitosvg" -v q --nologo > "$work/build.log" 2>&1 \
@@ -315,7 +316,7 @@ render() {
     || { tail -20 "$work/build.log" >&2; exit 1; }
 
   # The deterministic dataset is the generated one; only the detail-relations scenarios use the scrubbed recorded fixtures.
-  dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
+  dotnet "$work/fakejira/fakejira.dll" --issues 40 --parent-pid $$ > "$work/fake.url" &
   fake_pid=$!
   for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
   fake_url=$(head -n 1 "$work/fake.url")
@@ -324,7 +325,7 @@ render() {
   # The recorded dataset is scrubbed fixtures; only the relations scenarios use it.
   # Started only when a selected scenario needs it.
   if [ -z "$wanted" ] || [[ $wanted == *detail-relations-* || $wanted == *comment-recorded-* || $wanted == *detail-epic-* ]]; then
-    dotnet "$work/fakejira/fakejira.dll" > "$work/fake-recorded.url" &
+    dotnet "$work/fakejira/fakejira.dll" --parent-pid $$ > "$work/fake-recorded.url" &
     recorded_pid=$!
     for _ in $(seq 1 50); do [ -s "$work/fake-recorded.url" ] && break; sleep 0.1; done
     recorded_url=$(head -n 1 "$work/fake-recorded.url")
@@ -333,7 +334,7 @@ render() {
 
   # The generated Scrum board without an active sprint; started only for the scenario that needs it.
   if [ -z "$wanted" ] || [[ $wanted == *sprint-no-active* ]]; then
-    dotnet "$work/fakejira/fakejira.dll" --issues 40 --no-active-sprint > "$work/fake-noactive.url" &
+    dotnet "$work/fakejira/fakejira.dll" --issues 40 --no-active-sprint --parent-pid $$ > "$work/fake-noactive.url" &
     noactive_pid=$!
     for _ in $(seq 1 50); do [ -s "$work/fake-noactive.url" ] && break; sleep 0.1; done
     noactive_url=$(head -n 1 "$work/fake-noactive.url")

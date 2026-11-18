@@ -28,6 +28,7 @@ cleanup() {
   rm -rf "$work"
 }
 trap cleanup EXIT
+trap 'exit 130' INT TERM HUP # Run the EXIT trap on a signal too; bash skips it otherwise
 
 wait_for() {
   local text=$1 start
@@ -54,7 +55,7 @@ send() {
 
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
-dotnet "$work/fakejira/fakejira.dll" --issues 40 > "$work/fake.url" &
+dotnet "$work/fakejira/fakejira.dll" --issues 40 --parent-pid $$ > "$work/fake.url" &
 fake_pid=$!
 for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
 fake_url=$(head -n 1 "$work/fake.url")
