@@ -231,7 +231,9 @@ public static class FieldRows
 
         if (look.Editing && FormFieldKinds.HasPopup(field.Kind))
         {
-            all.Add(new FlowItem(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width, look.Role), SpaceGap));
+            var entry = TextBuffer.FromBack(field.Entry, field.Back);
+
+            all.Add(new FlowItem(CaretText.Spans(entry, width, look.Role), SpaceGap));
         }
 
         if (all.Count == 0)

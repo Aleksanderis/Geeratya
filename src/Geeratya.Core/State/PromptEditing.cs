@@ -9,8 +9,9 @@ namespace Geeratya.Core.State;
 
 /// <summary>
 /// The editing keys of the single-line prompts that live in <see cref="AppState"/> (the command palette, the source
-/// picker and the jump prompt): <see cref="EditorActions"/> maps the action ids to <see cref="EditorOperation"/> and the one editor,
-/// <see cref="TextBuffer"/>, does the work. Form fields and the help filter call the same editor from their own
+/// picker and the jump prompt): <see cref="EditorActions"/> maps the action ids to <see cref="EditorOperation"/> and
+/// the one editor, <see cref="TextBuffer"/>, does the work. Form fields and the help filter call the same editor
+/// from their own
 /// reducers. Pure.
 /// </summary>
 public static class PromptEditing

@@ -143,7 +143,7 @@ public class EditorLayoutTests
     {
         var link = AdfMarkdownTokens.IssueLink("https://x.atlassian.net", "GCM-12");
         var text = $"{link} x\nabcdefgh";
-        var buffer = new TextBuffer(text, text.IndexOf(" x", StringComparison.Ordinal) + 2);
+        var buffer = new TextBuffer(text, text.IndexOf(" x", StringComparison.Ordinal) + 2, true);
 
         var down = buffer.Vertical(1, 30);
 
@@ -156,7 +156,7 @@ public class EditorLayoutTests
         var token = AdfMarkdownTokens.Mention("acc-1", "Olga");
         var text = $"{token}xyz";
 
-        var end = new TextBuffer(text, 0).RowEnd(5);
+        var end = new TextBuffer(text, 0, true).RowEnd(5);
 
         Assert.Equal(0, end.Cursor);
     }

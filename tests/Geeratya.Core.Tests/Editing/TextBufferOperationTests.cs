@@ -107,7 +107,9 @@ public class TextBufferOperationTests
 
         Assert.Equal("open board ", prompt.Text);
         Assert.Equal(11, prompt.Cursor);
-        Assert.Equal("open  now", TextBuffer.FromBack("open board now", 4).Apply(EditorOperation.DeleteWordBefore).Text);
+        var inner = TextBuffer.FromBack("open board now", 4);
+
+        Assert.Equal("open  now", inner.Apply(EditorOperation.DeleteWordBefore).Text);
     }
 
     [Fact]
@@ -139,7 +141,9 @@ public class TextBufferOperationTests
         Assert.Equal(4, onTwo.Apply(EditorOperation.RowStart).Cursor);
         Assert.Equal(7, onTwo.Apply(EditorOperation.RowEnd).Cursor);
         Assert.Equal("one\nwo\nthree", onTwo.Apply(EditorOperation.RowStart).Apply(EditorOperation.Delete).Text);
-        Assert.Equal("one\nt\nthree", TextBuffer.FromBack("one\ntwo\nthree", 8).Apply(EditorOperation.DeleteToEnd).Text);
+        var afterT = TextBuffer.FromBack("one\ntwo\nthree", 8);
+
+        Assert.Equal("one\nt\nthree", afterT.Apply(EditorOperation.DeleteToEnd).Text);
     }
 
     [Theory]
@@ -150,7 +154,11 @@ public class TextBufferOperationTests
     [InlineData("abc\nde", 5, 1, 6)] // last line: down goes to the end of the text
     [InlineData("abc\nde", 1, -1, 0)] // first line: up goes to the start
     [InlineData("abc\nde\nfghij", 1, 2, 8)] // two lines down
-    public void GivenTextWithLines_WhenMovingLines_ThenTheCaretKeepsItsColumnOrClampsToTheLine(string text, int caret, int lines, int expected)
+    public void GivenTextWithLines_WhenMovingLines_ThenTheCaretKeepsItsColumnOrClampsToTheLine(
+        string text,
+        int caret,
+        int lines,
+        int expected)
     {
         var prompt = TextBuffer.FromBack(text, text.Length - caret).Vertical(lines, TextBuffer.NoWrap);
 

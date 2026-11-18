@@ -8,6 +8,7 @@ using Geeratya.Core.Sources;
 using Geeratya.Core.State;
 using Geeratya.Core.Text;
 using Geeratya.Core.Views;
+using Geeratya.Jira.Adf;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -154,6 +155,33 @@ public class TextEditorContractTests
         Assert.Equal(TextBuffer.MaxLength, Read(surface, state).Text.Length);
     }
 
+    [Theory]
+    [InlineData("palette")]
+    [InlineData("picker")]
+    [InlineData("jump")]
+    [InlineData("form-paragraph")]
+    [InlineData("profile")]
+    public void GivenTextShapedLikeAMention_WhenBackspacing_ThenOnlyTheCommentEditorTreatsItAsOneCharacter(
+        string surface)
+    {
+        var token = AdfMarkdownTokens.Mention("acc-o", "Olga");
+
+        var pasted = _reducer.Reduce(Open(surface), new TextPasted(token)).State;
+        var erased = Keys(pasted, "Backspace");
+
+        Assert.Equal(token.Length - 1, Read(surface, erased).Text.Length);
+    }
+
+    [Fact]
+    public void GivenAMention_WhenBackspacingInTheCommentEditor_ThenTheWholeMentionGoes()
+    {
+        var token = AdfMarkdownTokens.Mention("acc-o", "Olga");
+
+        var pasted = _reducer.Reduce(Open("comment"), new TextPasted(token)).State;
+
+        Assert.Equal(string.Empty, Read("comment", Keys(pasted, "Backspace")).Text);
+    }
+
     private static string[] Type(string text)
     {
         return [.. text.Select(static character => character == ' ' ? "Space" : character.ToString())];
@@ -191,7 +219,7 @@ public class TextEditorContractTests
                 Mode = InputMode.Insert,
                 ViewportColumns = 100,
                 ViewportRows = 30,
-                Editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Empty, string.Empty),
+                Editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.EmptyRich, string.Empty),
             },
         };
     }

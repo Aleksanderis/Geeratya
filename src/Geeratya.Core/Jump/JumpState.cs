@@ -22,6 +22,6 @@ public sealed record JumpState(string Text, PickList Pick, string? Notice)
         init => Pick = Pick with { Selected = value };
     }
 
-    /// <summary>Units between the caret and the end of <see cref="Text"/> (<see cref="TextBuffer"/>); 0 is the end.</summary>
+    /// <summary>Units between the caret and the end of <see cref="Text"/> (see <see cref="TextBuffer"/>).</summary>
     public int Back { get; init; }
 }

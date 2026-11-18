@@ -42,7 +42,7 @@ internal static partial class CommentEditing
             return Say(state, OpenIssueText);
         }
 
-        var editor = new CommentEditor(top.Tab.Id, top.Detail.Key, null, TextBuffer.Empty, string.Empty);
+        var editor = new CommentEditor(top.Tab.Id, top.Detail.Key, null, TextBuffer.EmptyRich, string.Empty);
 
         return Result(WithOpenEditor(state, editor));
     }
@@ -66,7 +66,7 @@ internal static partial class CommentEditing
             top.Tab.Id,
             top.Detail.Key,
             comment.Id,
-            TextBuffer.Of(text),
+            TextBuffer.Rich(text),
             text,
             Warning(state, comment));
         var people = MentionedIn(comment.Body);
@@ -97,7 +97,7 @@ internal static partial class CommentEditing
             top.Tab.Id,
             top.Detail.Key,
             null,
-            TextBuffer.Empty,
+            TextBuffer.EmptyRich,
             string.Empty,
             ParentId: comment.ParentId ?? comment.Id,
             ReplyTo: Clean(comment.Author?.DisplayName ?? "unknown"));

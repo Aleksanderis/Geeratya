@@ -6,8 +6,9 @@ namespace Geeratya.Core.Text;
 /// <summary>
 /// A prompt cut to a width around its caret: the text before the caret, the caret mark (<c>_</c> after the last
 /// character, <c>|</c> between two characters) and the text after it. Wide characters are never split. A cut side
-/// starts (before) or ends (after) with an ellipsis. The mark is for the surfaces that are one plain string (see <see cref="CaretText.Marked"/>); every other surface draws the
-/// caret as a styled cell, see <see cref="CaretText"/>.
+/// starts (before) or ends (after) with an ellipsis. The mark is for the surfaces that are one plain string (see
+/// <see cref="CaretText.Marked"/>); every other surface draws the caret as a styled cell, see
+/// <see cref="CaretText"/>.
 /// </summary>
 /// <param name="Before">The visible text before the caret.</param>
 /// <param name="Caret">The caret mark.</param>

@@ -2,7 +2,7 @@ using Geeratya.Core.Keymap;
 
 namespace Geeratya.Core.Editing;
 
-/// <summary>The one mapping of editor action ids onto <see cref="EditorOperation"/>, for every text surface. Pure.</summary>
+/// <summary>The one mapping of editor action ids onto <see cref="EditorOperation"/>, for every surface. Pure.</summary>
 public static class EditorActions
 {
     /// <summary>

@@ -34,6 +34,6 @@ public sealed record SourcePickerState(string Text, PickList Pick, PickerScope S
     /// <summary>The open tabs, one row each, taken when the list opened; null in every other scope.</summary>
     public IReadOnlyList<SourceChoice>? Tabs { get; init; }
 
-    /// <summary>Units between the caret and the end of <see cref="Text"/> (<see cref="TextBuffer"/>); 0 is the end.</summary>
+    /// <summary>Units between the caret and the end of <see cref="Text"/> (see <see cref="TextBuffer"/>).</summary>
     public int Back { get; init; }
 }

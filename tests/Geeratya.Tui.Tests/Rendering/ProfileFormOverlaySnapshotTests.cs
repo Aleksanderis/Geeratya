@@ -179,7 +179,14 @@ public class ProfileFormOverlaySnapshotTests
         Assert.DoesNotContain("qwert", text, StringComparison.Ordinal);
 
         // A box too small for the form leaves the field to the status bar, which is one plain string: a mark there.
-        Assert.Contains(width == 80 ? "***[*]*" : "|", width == 80 ? CaretRow(state, width, height) : text, StringComparison.Ordinal);
+        if (width == 80)
+        {
+            Assert.Contains("***[*]*", CaretRow(state, width, height), StringComparison.Ordinal);
+
+            return;
+        }
+
+        Assert.Contains("|", text, StringComparison.Ordinal);
     }
 
     [Fact]

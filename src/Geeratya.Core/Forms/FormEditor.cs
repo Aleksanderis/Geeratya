@@ -9,7 +9,8 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// Editing one field: pure functions from a field and an input to the changed field, so the whole editor runs without
-/// a terminal. Text is bounded to <see cref="TextBuffer.MaxLength"/> (Jira's own limit). Read-only kinds ignore every input.
+/// a terminal. Text is bounded to <see cref="TextBuffer.MaxLength"/> (Jira's own limit). Read-only kinds ignore every
+/// input.
 /// </summary>
 public static class FormEditor
 {

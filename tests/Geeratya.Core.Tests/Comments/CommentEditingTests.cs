@@ -42,7 +42,7 @@ public class CommentEditingTests
     }
 
     [Fact]
-    public void GivenTheEditor_WhenPressingWordAndPageKeys_ThenTheCursorMovesByWordAndPageUpGoesToTheStartPageDownToTheEnd()
+    public void GivenTheEditor_WhenPressingWordAndPageKeys_ThenTheCursorMovesByWordAndPagesGoToTheTextEnds()
     {
         var state = Press(OpenIssue(), "Space", "m", "a").State;
         state = Press(state, "o", "n", "e", "Space", "t", "w", "o", "Enter", "x").State;
@@ -802,7 +802,7 @@ public class CommentEditingTests
         var done = _reducer.Reduce(state, new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, huge, null));
 
         Assert.Equal("keep", done.State.Editor!.Buffer.Text);
-        Assert.NotNull(done.State.Editor.Error);
+        Assert.Contains($"longer than {TextBuffer.MaxLength} characters", done.State.Editor.Error);
     }
 
     [Fact]

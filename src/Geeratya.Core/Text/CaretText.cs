@@ -30,7 +30,7 @@ public static class CaretText
     {
         if (index != prompt.Line)
         {
-            return FieldOf(new PromptWindow(PromptWindow.Of(TextBuffer.FromBack(row, 0), width).Before, string.Empty, string.Empty), width);
+            return FieldOf(new PromptWindow(CutText(row, width), string.Empty, string.Empty), width);
         }
 
         return Field(TextBuffer.FromBack(row, row.Length - prompt.Column), width);
@@ -48,7 +48,7 @@ public static class CaretText
     /// <summary>A row without the caret, cut to the width (the end of a long row stays, behind an ellipsis).</summary>
     public static IReadOnlyList<StyledSpan> Cut(string row, int width, TextRole role)
     {
-        return [new StyledSpan(PromptWindow.Of(TextBuffer.FromBack(row, 0), width).Before, role)];
+        return [new StyledSpan(CutText(row, width), role)];
     }
 
     /// <summary>
@@ -88,6 +88,12 @@ public static class CaretText
         var window = PromptWindow.Of(prompt, width);
 
         return $"{window.Before}{window.Caret}{window.After}";
+    }
+
+    // A row without the caret cut to the width: its end stays, behind an ellipsis.
+    private static string CutText(string row, int width)
+    {
+        return PromptWindow.Of(TextBuffer.FromBack(row, 0), width).Before;
     }
 
     private static StyledLine FieldOf(PromptWindow window, int width)

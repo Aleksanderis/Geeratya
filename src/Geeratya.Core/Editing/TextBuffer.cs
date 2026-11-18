@@ -13,7 +13,11 @@ namespace Geeratya.Core.Editing;
 /// </summary>
 /// <param name="Text">The text; lines are separated by <c>\n</c>.</param>
 /// <param name="Cursor">The index of the character the cursor is before; the text length at the end.</param>
-public sealed record TextBuffer(string Text, int Cursor)
+/// <param name="Tokens">
+/// Whether a mention or issue reference (<see cref="AdfMarkdownTokens"/>) is one character: only the comment editor,
+/// which shows them as short labels, sets it. Every other surface shows its text as it is and edits it that way.
+/// </param>
+public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false)
 {
     /// <summary>The most characters a buffer takes (Jira refuses a text above 32 767).</summary>
     public const int MaxLength = 32767;
@@ -23,10 +27,19 @@ public sealed record TextBuffer(string Text, int Cursor)
 
     public static TextBuffer Empty { get; } = new(string.Empty, 0);
 
+    /// <summary>An empty buffer for the comment editor (<see cref="Tokens"/>).</summary>
+    public static TextBuffer EmptyRich { get; } = new(string.Empty, 0, true);
+
     /// <summary>A buffer with <paramref name="text"/> and the cursor at its end.</summary>
     public static TextBuffer Of(string text)
     {
         return new TextBuffer(text, text.Length);
+    }
+
+    /// <summary>The comment editor's buffer: the text, the cursor at its end, mentions as one character.</summary>
+    public static TextBuffer Rich(string text)
+    {
+        return new TextBuffer(text, text.Length, true);
     }
 
     /// <summary>
@@ -70,7 +83,8 @@ public sealed record TextBuffer(string Text, int Cursor)
             EditorOperation.DeleteWordBefore => DeleteBetween(WordLeft().Cursor, Cursor),
             EditorOperation.DeleteWordAfter => DeleteBetween(Cursor, WordRight().Cursor),
             EditorOperation.DeleteToStart => DeleteBetween(LineStart(), Cursor),
-            _ => DeleteBetween(Cursor, LineEnd()),
+            EditorOperation.DeleteToEnd => DeleteBetween(Cursor, LineEnd()),
+            _ => this,
         };
     }
 
@@ -92,7 +106,7 @@ public sealed record TextBuffer(string Text, int Cursor)
 
         var accepted = typed.Length > room ? Truncated(typed, room) : typed;
 
-        return new TextBuffer(Text.Insert(Cursor, accepted), Cursor + accepted.Length);
+        return this with { Text = Text.Insert(Cursor, accepted), Cursor = Cursor + accepted.Length };
     }
 
     /// <summary>Removes the character before the cursor.</summary>
@@ -105,12 +119,12 @@ public sealed record TextBuffer(string Text, int Cursor)
 
         if (TokenEndingAt(Cursor) is { } token)
         {
-            return new TextBuffer(Text.Remove(token.Start, token.End - token.Start), token.Start);
+            return this with { Text = Text.Remove(token.Start, token.End - token.Start), Cursor = token.Start };
         }
 
         var start = EditorLayout.PreviousStart(Text, Cursor);
 
-        return new TextBuffer(Text.Remove(start, Cursor - start), start);
+        return this with { Text = Text.Remove(start, Cursor - start), Cursor = start };
     }
 
     /// <summary>The text with <c>[start, end)</c> replaced by <paramref name="replacement"/>, the cursor after it.</summary>
@@ -118,7 +132,7 @@ public sealed record TextBuffer(string Text, int Cursor)
     {
         var text = $"{Text[..start]}{replacement}{Text[end..]}";
 
-        return text.Length > MaxLength ? this : new TextBuffer(text, start + replacement.Length);
+        return text.Length > MaxLength ? this : this with { Text = text, Cursor = start + replacement.Length };
     }
 
     /// <summary>Removes the character under the cursor.</summary>
@@ -131,7 +145,7 @@ public sealed record TextBuffer(string Text, int Cursor)
 
         if (TokenStartingAt(Cursor) is { } token)
         {
-            return new TextBuffer(Text.Remove(token.Start, token.End - token.Start), token.Start);
+            return this with { Text = Text.Remove(token.Start, token.End - token.Start), Cursor = token.Start };
         }
 
         return this with { Text = Text.Remove(Cursor, EditorLayout.NextStart(Text, Cursor) - Cursor) };
@@ -148,7 +162,7 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
-        foreach (var span in AdfMarkdownTokens.Find(Text))
+        foreach (var span in TokensOf())
         {
             if (span.Start < end && span.End > start)
             {
@@ -157,7 +171,7 @@ public sealed record TextBuffer(string Text, int Cursor)
             }
         }
 
-        return new TextBuffer(Text.Remove(start, end - start), start);
+        return this with { Text = Text.Remove(start, end - start), Cursor = start };
     }
 
     /// <summary>The index of the start of the line (up to the previous line break) the cursor is on.</summary>
@@ -196,8 +210,8 @@ public sealed record TextBuffer(string Text, int Cursor)
     /// </summary>
     public TextBuffer Vertical(int direction, int capacity)
     {
-        var rows = EditorLayout.Rows(Text, capacity);
-        var position = EditorLayout.Locate(Text, rows, Cursor);
+        var rows = EditorLayout.Rows(Text, capacity, Tokens);
+        var position = EditorLayout.Locate(Text, rows, Cursor, Tokens);
         var target = position.Row + direction;
 
         // Past the first row the cursor goes to the start of the text, past the last row to its end, as an editor does.
@@ -216,7 +230,7 @@ public sealed record TextBuffer(string Text, int Cursor)
             return this;
         }
 
-        return this with { Cursor = EditorLayout.IndexAt(Text, rows, target, position.Column) };
+        return this with { Cursor = EditorLayout.IndexAt(Text, rows, target, position.Column, Tokens) };
     }
 
     /// <summary>The start of the word before the cursor (spaces and punctuation skipped first), or the text start.</summary>
@@ -258,30 +272,35 @@ public sealed record TextBuffer(string Text, int Cursor)
     /// <summary>The start of the visual row the cursor is on.</summary>
     public TextBuffer RowStart(int capacity)
     {
-        var rows = EditorLayout.Rows(Text, capacity);
+        var rows = EditorLayout.Rows(Text, capacity, Tokens);
 
-        return this with { Cursor = rows[EditorLayout.Locate(Text, rows, Cursor).Row].Start };
+        return this with { Cursor = rows[EditorLayout.Locate(Text, rows, Cursor, Tokens).Row].Start };
     }
 
     /// <summary>The end of the visual row the cursor is on.</summary>
     public TextBuffer RowEnd(int capacity)
     {
-        var rows = EditorLayout.Rows(Text, capacity);
-        var row = EditorLayout.Locate(Text, rows, Cursor).Row;
+        var rows = EditorLayout.Rows(Text, capacity, Tokens);
+        var row = EditorLayout.Locate(Text, rows, Cursor, Tokens).Row;
 
-        return this with { Cursor = EditorLayout.IndexAt(Text, rows, row, int.MaxValue) };
+        return this with { Cursor = EditorLayout.IndexAt(Text, rows, row, int.MaxValue, Tokens) };
+    }
+
+    private IReadOnlyList<AdfTokenSpan> TokensOf()
+    {
+        return Tokens ? AdfMarkdownTokens.Find(Text) : [];
     }
 
     // A token the cursor is at the end of or inside (a cursor moved by rows can land inside one): the key before it
     // acts on the whole token.
     private AdfTokenSpan? TokenEndingAt(int index)
     {
-        return AdfMarkdownTokens.Find(Text).FirstOrDefault(span => span.Start < index && index <= span.End);
+        return TokensOf().FirstOrDefault(span => span.Start < index && index <= span.End);
     }
 
     private AdfTokenSpan? TokenStartingAt(int index)
     {
-        return AdfMarkdownTokens.Find(Text).FirstOrDefault(span => span.Start <= index && index < span.End);
+        return TokensOf().FirstOrDefault(span => span.Start <= index && index < span.End);
     }
 
     private static string Truncated(string typed, int room)

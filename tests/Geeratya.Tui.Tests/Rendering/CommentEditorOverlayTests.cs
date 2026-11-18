@@ -126,7 +126,8 @@ public class CommentEditorOverlayTests
     {
         var editor = Editor("hello") with { Buffer = new TextBuffer("hello", 2) };
 
-        var line = Assert.Single(Frame(editor, 80, 24).Body, row => row.Spans.Any(span => span.Role == TextRole.EditCaret));
+        var body = Frame(editor, 80, 24).Body;
+        var line = Assert.Single(body, row => row.Spans.Any(span => span.Role == TextRole.EditCaret));
 
         var selected = Assert.Single(line.Spans, span => span.Role == TextRole.EditCaret);
         Assert.Equal("l", selected.Text);
@@ -351,7 +352,7 @@ public class CommentEditorOverlayTests
 
     internal static CommentEditor Editor(string text)
     {
-        return new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of(text), string.Empty);
+        return new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Rich(text), string.Empty);
     }
 
     private static int WidthOfBox(string frame)
