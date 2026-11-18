@@ -64,7 +64,9 @@ public static partial class FormReducer
     /// <summary>
     /// Opens a form whose fields the caller already knows (the sprint forms): nothing is fetched and the first
     /// editable field has the focus. It ends as a loaded form does (<c>Loaded</c>): the quick rows are listed and a
-    /// choice field shows its popup at once, so a one-choice form opens the same from either route.
+    /// choice field shows its popup at once, so a one-choice form opens the same from either route. Public because
+    /// the contract tests of the form presentations open the sprint forms through it (Core has no
+    /// <c>InternalsVisibleTo</c>).
     /// </summary>
     public static ReduceResult OpenReady(
         AppState state,

@@ -449,7 +449,7 @@ public class FieldBehaviourContractTests
             {
                 var trace = Trace(row, presentation, row.Click!);
 
-                if (!trace.Value.EndsWith(row.Expected, StringComparison.Ordinal))
+                if (!trace.Value.EndsWith($"|{row.Kind}|{row.Expected}", StringComparison.Ordinal))
                 {
                     differences.Add($"{row.Kind}: {presentation} clicked to {trace.Value}, expected {row.Expected}");
                 }
@@ -521,6 +521,20 @@ public class FieldBehaviourContractTests
         }
 
         Assert.True(differences.Count == 0, string.Join('\n', differences));
+    }
+
+    [Fact]
+    public void GivenTheCompletedSprintForm_WhenEscIsPressedUntouched_ThenItAsksWhatWouldBeLost()
+    {
+        var state = Edit(Open("sprint-complete", OwnChoice("sprint-complete")));
+
+        for (var step = 0; step < 3 && state.Confirm is null; step++)
+        {
+            state = Press(state, "Esc").State;
+        }
+
+        // The destination is a value the form proposes, so it counts as typed (docs: intended differences).
+        Assert.Equal("Discard the changes to Sprint 5? Nothing has been saved", state.Confirm?.Message);
     }
 
     [Fact]

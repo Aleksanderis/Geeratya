@@ -216,7 +216,7 @@ public static partial class StatusBar
 
         if (form.Dropdown is not null)
         {
-            var typed = form.Focus < form.Fields.Count && !FormFieldKinds.HasPopup(form.Fields[form.Focus].Kind);
+            var typed = form.Focus >= 0 && form.Focus < form.Fields.Count &&!FormFieldKinds.HasPopup(form.Fields[form.Focus].Kind);
 
             return typed ? DropdownTextHints : DropdownHints;
         }

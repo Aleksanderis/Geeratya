@@ -473,12 +473,13 @@ public sealed partial class FakeJiraRouter
     {
         var teamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal)
             || key.StartsWith(TeamScrumPrefix, StringComparison.Ordinal);
-        var meta = JsonNode.Parse(ReadFixture(teamManaged ? EditMetaGtmFixture : EditMetaGcmFixture));
+        var baseFixture = teamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
         var scrumFixture = ScrumEditMetaFixture(key);
 
-        if (scrumFixture is null || meta?["fields"] is not JsonObject fields)
+        if (scrumFixture is null || JsonNode.Parse(ReadFixture(baseFixture)) is not { } meta
+            || meta["fields"] is not JsonObject fields)
         {
-            return ReadFixture(teamManaged ? EditMetaGtmFixture : EditMetaGcmFixture);
+            return ReadFixture(baseFixture);
         }
 
         var estimate = JsonNode.Parse(ReadFixture(scrumFixture))?["fields"] as JsonObject ?? [];
