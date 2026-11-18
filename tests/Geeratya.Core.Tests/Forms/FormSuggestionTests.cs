@@ -236,8 +236,9 @@ public class FormSuggestionTests
         var id = Assert.IsType<SearchSuggestionsEffect>(typed.Effects[0]).RequestId;
         var replied = Reply(typed.State, id, new Suggestion("acc-1", "Jo Smith", null, false));
         var accepted = Press(replied.State, "Enter").State;
+        var editing = Press(accepted, "Enter").State;
 
-        var cleared = Press(accepted, "Backspace").State;
+        var cleared = Press(editing, "Backspace").State;
 
         Assert.True(cleared.Session.Tabs[0].Form!.Fields[1].Value.IsEmpty);
     }
@@ -281,15 +282,34 @@ public class FormSuggestionTests
     }
 
     [Fact]
-    public void GivenOnlyTextTypedInAPersonField_WhenEscIsPressedThreeTimes_ThenTheFormAsksBeforeDiscarding()
+    public void GivenTextTypedInAPersonField_WhenEscIsPressedThreeTimes_ThenFilterClearsEditingStopsAndFormCloses()
     {
         var typed = Press(Focused("assignee"), "a");
-        var dismissed = Press(typed.State, "Esc").State;
+        var cleared = Press(typed.State, "Esc").State;
 
-        var navigating = Press(dismissed, "Esc").State;
-        var asked = Press(navigating, "Esc").State;
+        Assert.Equal(string.Empty, cleared.Session.Tabs[0].Form!.Fields[1].Entry);
+        Assert.False(cleared.Session.Tabs[0].Form!.Navigating);
 
-        Assert.True(DiscardPrompts.Is(asked.Confirm));
+        var navigating = Press(cleared, "Esc").State;
+
+        Assert.True(navigating.Session.Tabs[0].Form!.Navigating);
+
+        var closed = Press(navigating, "Esc").State;
+
+        Assert.Null(closed.Confirm);
+        Assert.Null(closed.Session.Tabs[0].Form);
+    }
+
+    [Fact]
+    public void GivenATypedFilterInAPersonField_WhenEscIsPressed_ThenTheLookupStopsAndTheQuickRowsComeBack()
+    {
+        var typed = Press(Focused("assignee"), "a");
+
+        var cleared = Press(typed.State, "Esc");
+
+        Assert.Contains(cleared.Effects, effect => effect is CancelSuggestionsEffect);
+        Assert.Equal(AssigneeQuickRows.MeDetail, Popup(cleared.State).Items[0].Detail);
+        Assert.Equal(string.Empty, Popup(cleared.State).Query);
     }
 
     [Fact]
@@ -335,7 +355,7 @@ public class FormSuggestionTests
 
         Assert.Equal(["A-9"], Parent(chosen).Value.Chosen);
 
-        var cleared = Press(chosen, "Backspace").State;
+        var cleared = Press(Press(chosen, "Enter").State, "Backspace").State;
 
         Assert.Empty(Parent(cleared).Value.Chosen);
         Assert.Equal(["A-5"], Parent(cleared).Initial.Chosen);

@@ -12,6 +12,9 @@ public static class HintLabels
     /// <summary>Esc leaves the dialog.</summary>
     public const string Close = "close";
 
+    /// <summary>Esc leaves the editing of a form field for the navigate state.</summary>
+    public const string StopEditing = "stop editing";
+
     /// <summary>Esc empties the typed filter first.</summary>
     public const string ClearFilter = "clear filter";
 

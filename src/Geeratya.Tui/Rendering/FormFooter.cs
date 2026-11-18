@@ -37,35 +37,71 @@ public static class FormFooter
             return [move, DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose), close];
         }
 
-        if (form.Suggest is { Source.Kind: SuggestionKind.Options, Items.Count: > 0 } choice)
+        if (PopupChips(form, keymap) is { } popup)
         {
-            var escape = choice.Query.Length == 0 ? HintLabels.Close : HintLabels.ClearFilter;
-
-            return
-            [
-                move,
-                DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose),
-                fields,
-                DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, escape),
-            ];
-        }
-
-        if (form.Suggest is { Items.Count: > 0 })
-        {
-            return [move, ChoosingKeys(keymap), close];
+            return popup;
         }
 
         return Editing(form, keymap, fields, close);
     }
 
-    // Tab and Enter both take the highlighted row of a popup of suggestions.
-    private static HintChip? ChoosingKeys(KeymapTable keymap)
+    /// <summary>
+    /// The footer of a form while a popup with rows is open on its focused field (a choice, a person, a label, a
+    /// parent): one set for every presentation and every kind, so the box, the create panes and the Details dropdown
+    /// say the same (#1021). Null when no popup with rows is open.
+    /// </summary>
+    public static List<HintChip?>? PopupChips(FormState form, KeymapTable keymap)
     {
-        var next = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormFieldNext);
-        var accept = keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormNext);
-        var keys = string.Join('/', new[] { next, accept }.Where(static key => key is { Length: > 0 }));
+        if (form.IsChoosingType || form.Navigating || form.Suggest is not { Items.Count: > 0 } popup)
+        {
+            return null;
+        }
 
-        return keys.Length == 0 ? null : new HintChip(keys, HintLabels.Choose);
+        var escape = EscapeLabel(form, popup);
+        var chips = new List<HintChip?>
+        {
+            DialogFooter.Pair(
+                keymap,
+                InputMode.Insert,
+                ActionIds.PickerPrevious,
+                ActionIds.PickerNext,
+                HintLabels.Move),
+            DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Choose),
+        };
+
+        if (form.Navigable)
+        {
+            chips.Add(DialogFooter.Pair(
+                keymap,
+                InputMode.Insert,
+                ActionIds.FormFieldNext,
+                ActionIds.FormFieldPrevious,
+                HintLabels.Field));
+            chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, HintLabels.Save));
+        }
+
+        chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, escape));
+
+        return chips;
+    }
+
+    // Esc empties a typed filter of a choice or person field first, closes the popup of a label being typed, and with
+    // nothing typed leaves the field (a form with a navigate state) or the form.
+    private static string EscapeLabel(FormState form, SuggestionState popup)
+    {
+        var kind = form.Fields[form.Focus].Kind;
+
+        if (popup.Query.Length > 0 && (FormFieldKinds.IsChoice(kind) || FormFieldKinds.IsPicked(kind)))
+        {
+            return HintLabels.ClearFilter;
+        }
+
+        if (popup.Query.Length > 0)
+        {
+            return HintLabels.Close;
+        }
+
+        return form.Navigable ? HintLabels.StopEditing : HintLabels.Close;
     }
 
     private static List<HintChip?> Editing(FormState form, KeymapTable keymap, HintChip? fields, HintChip? close)

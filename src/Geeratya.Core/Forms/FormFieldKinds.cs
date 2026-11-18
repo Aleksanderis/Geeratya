@@ -15,6 +15,17 @@ public static class FormFieldKinds
         return kind is FormFieldKind.User or FormFieldKind.Parent;
     }
 
+    /// <summary>
+    /// True for the kinds whose value is one chosen row: a single choice, a person, a parent. Taking the row finishes
+    /// the field (Enter or a click leaves editing for the navigate state, or saves a form of one field), the same on
+    /// every presentation (#1021). The kinds that collect several values (labels, a multiple choice) stay in editing
+    /// so more can be taken.
+    /// </summary>
+    public static bool TakesOneValue(FormFieldKind kind)
+    {
+        return kind == FormFieldKind.Select || IsPicked(kind);
+    }
+
     /// <summary>True for the kinds that keep a typing buffer next to their value (labels, picked kinds).</summary>
     public static bool TakesEntry(FormFieldKind kind)
     {

@@ -68,9 +68,10 @@ public sealed partial class FakeJiraWriteStore
     private const string GcmPrefix = "GCM-";
 
     private const string PriorityName = "priority";
+    private const string ReporterName = "reporter";
 
     private static readonly string[] _editableFields =
-        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName, ParentName];
+        [SummaryName, LabelsName, DescriptionName, DueDateName, PriorityName, ParentName, ReporterName];
 
     // The priorities of both recorded edit metadata, by id.
     private static readonly Dictionary<string, string> _priorityNames = new()
@@ -240,7 +241,12 @@ public sealed partial class FakeJiraWriteStore
 
             foreach (var field in fields)
             {
-                var value = field.Key == PriorityName ? PriorityNode(field.Value) : field.Value?.DeepClone();
+                var value = field.Key switch
+                {
+                    PriorityName => PriorityNode(field.Value),
+                    ReporterName => AssigneeNode(StringOf((field.Value as JsonObject)?[AccountIdName])),
+                    _ => field.Value?.DeepClone(),
+                };
 
                 stored.Fields[field.Key] = value;
 

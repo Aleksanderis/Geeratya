@@ -266,7 +266,7 @@ The frame and chip use the `bad` role for destructive actions (delete, bulk edit
       │   > urgent (new)                                            │
       │     geeratya-seed                                           │
       ├─────────────────────────────────────────────────────────────┤
-      │ Up/Down move  Tab/Enter choose  Ctrl-s save  Esc close   │
+      │ Up/Down move  Enter choose  Esc close                    │
       ╰─────────────────────────────────────────────────────────────╯
 ```
 

@@ -89,6 +89,15 @@ internal sealed class CreateDetailsRows
     // The suggestion popup of the focused field: ranked rows, the cursor row marked, a status row.
     private void AddPopup(List<CreatePaneRow> rows, int index, int inner)
     {
+        if (FieldRows.ShowsSearchHint(_form))
+        {
+            var hint = StyledLine.Of($"{new string(' ', PopupMargin)}  {FieldRows.TypeToSearchText}", TextRole.Muted);
+
+            rows.Add(new CreatePaneRow(hint));
+
+            return;
+        }
+
         if (_form.Suggest is not { } popup || popup.FieldIndex != index)
         {
             return;
