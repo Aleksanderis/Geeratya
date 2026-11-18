@@ -163,12 +163,14 @@ public static class FormFooter
             chips.Add(new HintChip(open, $"open after: {state}"));
         }
 
-        chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, SubmitLabel(form)));
-
+        // The browser key comes before the write: the last two chips (write and way out) are the ones a narrow
+        // create pane keeps (Kept), so nothing may sit between them.
         if (form.BrowserUrl is not null && form.Fields.Any(field => !field.IsEditable))
         {
             chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormOpenBrowser, HintLabels.Browser));
         }
+
+        chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormSubmit, SubmitLabel(form)));
 
         chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.Cancel, EscapeLabel(form)));
 
