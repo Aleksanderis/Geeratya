@@ -358,3 +358,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **UI:** #996 (UI consistency phase 1): typed text is the body colour everywhere and the caret is the one `EditCaret` role (a block in the text colour, underlined without colour); one `Key` role for every key label, issue keys have their own `IssueKey` role (same look for now); the `OverlayKey` warn role is removed (supersedes the 2026-11-05 which-key choice); empty values read `Unassigned` (people) and `None`, muted; a focus mark `> ` on the focused boxed-form label and the current Settings category keeps focus visible without colour (refines the 2026-11-05 "no `>` mark", which stays true for cursor rows).
 
 **Code structure:** The "close one level" handler (#998) is `NavigationLevels`, not `NavigationStack` as `ui-consistency.md` first named it: analyzer CA1711 rejects the `Stack` suffix on a type that is not a collection. The status-bar hint for `q` reads `q back` (it closes one level; `Ctrl-c` and `:q` quit).
+
+## 2026-11-18
+
+**UI:** `j`/`k` stay text in the picker, Jump and the palette, also when nothing is typed; they move only in lists without a prompt (Settings, Help, context menu, profile manager, form navigation). Why: project keys such as `JRA` or `KAN` start with `j` or `k`, so the first letter could not be typed. Supersedes the `j`/`k` row of `PickList` in `ui-consistency.md` (owner, #1011).
