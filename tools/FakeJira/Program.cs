@@ -1,7 +1,7 @@
 using Geeratya.FakeJira;
 
 const string usageText =
-    "usage: fakejira [--fixtures <dir>] [--port <n>] [--issues <n>] [--latency-ms <n>] [--rate-limit-every <n>] [--drop-write-every <n>] [--demo]";
+    "usage: fakejira [--fixtures <dir>] [--port <n>] [--issues <n>] [--latency-ms <n>] [--rate-limit-every <n>] [--drop-write-every <n>] [--parent-pid <pid>] [--demo]";
 
 var options = FakeJiraOptionsParser.TryParse(args, out var error);
 
@@ -25,6 +25,6 @@ AppDomain.CurrentDomain.ProcessExit += (_, _) => stop.Set();
 
 Console.Out.WriteLine(server.Start());
 Console.Out.Flush();
-stop.Wait();
+ParentProcessWatcher.WaitForStopOrParentGone(options.ParentProcessId, stop, TimeSpan.FromSeconds(1));
 
 return 0;

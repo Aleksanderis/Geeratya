@@ -30,7 +30,7 @@ Name tests `Given<Context>_When<Action>_Then<Outcome>` (PascalCase parts). Tests
 
 - No sleeps or polling loops to wait for background work. Wait on a signal: a UI pump that runs posted callbacks on the test thread until a condition holds, a `TaskCompletionSource` completed from a store's `Changed` event, or an injected delay or clock. A guard timeout only bounds a hang.
 - `FakeJiraHandler` (`tests/Geeratya.Jira.Tests/Fakes`): an in-process `HttpMessageHandler` that serves fixture files by method and path, records every request, and can script per-request status, `Retry-After`, latency and a hang until cancelled. Unit and store tests use it; they never open a socket.
-- `tools/FakeJira` (`dotnet run --project tools/FakeJira`; options and routes in `docs/internal/testing.md`): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Point the app at it with a profile whose site URL is that address and any token.
+- `tools/FakeJira` (`dotnet run --project tools/FakeJira`; options and routes in `docs/internal/testing.md`): a small local HTTP server over the same fixture set, for running the real binary (tmux, screenshots, measurements). Starts on a free port on `127.0.0.1`, prints its URL, can generate large datasets (`--issues 10000`) and inject latency and 429s. Started by hand, pass `--parent-pid <shell pid>` so it exits with its shell instead of leaking (#1043). Point the app at it with a profile whose site URL is that address and any token.
 
 ## Fixtures
 

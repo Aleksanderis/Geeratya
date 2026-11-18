@@ -4,6 +4,8 @@
 # CPU ticks (1/100 s) and voluntary context switches summed over all threads in a window (WINDOW seconds, default 20).
 bin=$1; url=$2; mode=${3:-start}; window=${WINDOW:-20}
 w=$(mktemp -d); export XDG_CONFIG_HOME=$w/c XDG_STATE_HOME=$w/s XDG_CACHE_HOME=$w/k GEERATYA_TOKEN=fake
+trap 'tmux -L idle$$ kill-server 2> /dev/null; rm -rf "$w"' EXIT
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap runs on exit; bash skips it on a bare signal
 mkdir -p $w/c/geeratya $w/s $w/k
 printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"f@example.com"}]}\n' "$url" > $w/c/geeratya/profiles.json
 tm="tmux -L idle$$"

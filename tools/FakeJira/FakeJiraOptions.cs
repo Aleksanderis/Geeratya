@@ -12,6 +12,10 @@ namespace Geeratya.FakeJira;
 /// Every Nth write (POST, PUT, DELETE) is applied, then the connection is closed without a reply, so the client
 /// cannot tell whether it worked; 0 turns it off.
 /// </param>
+/// <param name="ParentProcessId">
+/// When above zero, the server stops by itself once this process is gone (<see cref="ParentProcessWatcher"/>), so a
+/// killed script cannot leave it running; 0 turns it off.
+/// </param>
 public sealed record FakeJiraOptions(
     string FixturesDirectory,
     int Port,
@@ -20,4 +24,5 @@ public sealed record FakeJiraOptions(
     int RateLimitEvery,
     int DropWriteEvery = 0,
     bool NoActiveSprint = false,
-    bool Demo = false);
+    bool Demo = false,
+    int ParentProcessId = 0);
