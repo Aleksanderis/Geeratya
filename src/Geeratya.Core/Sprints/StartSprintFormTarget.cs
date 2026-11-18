@@ -14,6 +14,8 @@ public sealed record StartSprintFormTarget(long BoardId, Sprint Sprint, SprintTa
 
     public override string? IssueKey => null;
 
+    public override string DiscardSubject => $"the changes to {Sprint.Name}";
+
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
         var start = DateOf(changes, SprintFormFields.StartId);

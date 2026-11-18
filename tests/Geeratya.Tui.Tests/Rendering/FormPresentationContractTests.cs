@@ -149,11 +149,18 @@ public class FormPresentationContractTests
     [Fact]
     public void GivenTheDropdownAndTheInPlaceEdit_WhenDrawn_ThenTheStatusLineNamesTheirKeys()
     {
-        var dropdown = Frame(Open("dropdown", Field("hello")), 140, 36);
+        var choice = FormField.Create("priority", "Priority", FormFieldKind.Select, true, [new("1", "High")]);
+        var dropdown = Frame(Open("dropdown", choice), 140, 36);
+        var typed = Frame(Open("dropdown", Field("hello")), 140, 36);
         var inPlace = Frame(Open("in-place", Field("hello")), 140, 36);
 
         Assert.Contains("Enter choose", dropdown.StatusLine, StringComparison.Ordinal);
         Assert.Contains("Esc close", dropdown.StatusLine, StringComparison.Ordinal);
+
+        // A typed field in the dropdown (the Estimate) has no row to choose: Enter saves it.
+        Assert.Contains("Enter save", typed.StatusLine, StringComparison.Ordinal);
+        Assert.DoesNotContain("choose", typed.StatusLine, StringComparison.Ordinal);
+        Assert.Contains("Esc close", typed.StatusLine, StringComparison.Ordinal);
         Assert.Contains("Ctrl-s save", inPlace.StatusLine, StringComparison.Ordinal);
         Assert.Contains("Esc cancel", inPlace.StatusLine, StringComparison.Ordinal);
     }

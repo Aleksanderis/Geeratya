@@ -14,6 +14,8 @@ public sealed record SprintFormTarget(long BoardId, Sprint? Existing) : FormTarg
 
     public override string? IssueKey => null;
 
+    public override string DiscardSubject => Existing is null ? "the new sprint" : $"the changes to {Existing.Name}";
+
     public override WriteRequest Request(IReadOnlyList<FieldChange> changes)
     {
         var name = TextOf(changes, SprintFormFields.NameId);

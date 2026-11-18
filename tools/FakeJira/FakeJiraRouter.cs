@@ -52,6 +52,10 @@ public sealed partial class FakeJiraRouter
     private const string TeamManagedPrefix = "GTM-";
     private const string EditMetaGcmFixture = "metadata/editmeta-gcm-26.json";
     private const string EditMetaGtmFixture = "metadata/editmeta-gtm-11.json";
+    private const string EditMetaGcsFixture = "metadata/synthetic-editmeta-gcs-story.json";
+    private const string EditMetaGtsFixture = "metadata/synthetic-editmeta-gts-task.json";
+    private const string CompanyScrumPrefix = "GCS-";
+    private const string TeamScrumPrefix = "GTS-";
     private const int DefaultPageSize = 50;
     private const int MaxPageSize = 5000;
 
@@ -420,10 +424,7 @@ public sealed partial class FakeJiraRouter
 
         if (parts[1] == EditMetaPart)
         {
-            var isTeamManaged = key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal);
-            var fixtureName = isTeamManaged ? EditMetaGtmFixture : EditMetaGcmFixture;
-
-            return new FakeReply(200, ReadFixture(fixtureName));
+            return new FakeReply(200, ReadFixture(EditMetaFixtureOf(key)));
         }
 
         if (parts[1] == TransitionsPart && (IsRecordedIssue(key) || IsListedIssue(key) || _writes.Knows(key)))
@@ -460,6 +461,25 @@ public sealed partial class FakeJiraRouter
         }
 
         return new FakeReply(200, Encoding.UTF8.GetBytes(matches.ToJsonString()));
+    }
+
+    /// <summary>
+    /// The edit metadata of a key's project kind: the Scrum projects (<c>GCS</c>, <c>GTS</c>) carry the Story Points
+    /// field that the Estimate form edits (synthetic fixtures); the others have none.
+    /// </summary>
+    private static string EditMetaFixtureOf(string key)
+    {
+        if (key.StartsWith(CompanyScrumPrefix, StringComparison.Ordinal))
+        {
+            return EditMetaGcsFixture;
+        }
+
+        if (key.StartsWith(TeamScrumPrefix, StringComparison.Ordinal))
+        {
+            return EditMetaGtsFixture;
+        }
+
+        return key.StartsWith(TeamManagedPrefix, StringComparison.Ordinal) ? EditMetaGtmFixture : EditMetaGcmFixture;
     }
 
     /// <summary>True for an issue that a board or backlog list serves, so it can be ranked.</summary>

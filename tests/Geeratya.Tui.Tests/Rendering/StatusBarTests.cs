@@ -63,7 +63,8 @@ public class StatusBarTests
             .Concat(StatusBar.FormHints)
             .Concat(StatusBar.CreateHints)
             .Concat(StatusBar.CreateEditingHints)
-            .Concat(StatusBar.DropdownHints);
+            .Concat(StatusBar.DropdownHints)
+            .Concat(StatusBar.DropdownTextHints);
 
         Assert.All(all, hint => Assert.True(StatusBar.IsShownAt(hint, CommandLevel.Everyday), hint.ActionId));
     }
