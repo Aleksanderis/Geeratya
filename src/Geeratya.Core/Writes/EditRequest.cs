@@ -46,15 +46,25 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
         var labels = LabelsOf();
         var priority = PriorityOf();
         var estimate = EstimateOf();
+        var due = DueOf();
 
-        if (summary is null && labels is null && priority is null && estimate is null)
+        if (summary is null && labels is null && priority is null && estimate is null && due is null)
         {
             return null;
         }
 
         var estimateEdit = estimate is { } after ? new EstimateEdit(row.Estimate, after.Number) : null;
 
-        return new EditRowChange(Key, row.Summary, summary, row.Labels, labels, row.Priority, priority, estimateEdit);
+        return new EditRowChange(
+            Key,
+            row.Summary,
+            summary,
+            row.Labels,
+            labels,
+            row.Priority,
+            priority,
+            estimateEdit,
+            due);
     }
 
     public override bool IsShownBy(IssueSummary row)
@@ -124,6 +134,27 @@ public sealed record EditRequest(string Key, IReadOnlyList<FieldChange> Changes,
         }
 
         return FormValueParser.TryNumber(text, out var number) ? new EstimateValue(number) : null;
+    }
+
+    // The due date of the issue view's Date field: an empty text clears it. Null when this edit has none or the text
+    // does not read (the form checks that before it saves).
+    private DueEdit? DueOf()
+    {
+        var change = Changes.FirstOrDefault(candidate => candidate.FieldId == FormFieldIds.DueDate);
+
+        if (change is not { Kind: FormFieldKind.Date })
+        {
+            return null;
+        }
+
+        var text = change.Value.Text.Trim();
+
+        if (text.Length == 0)
+        {
+            return new DueEdit(null);
+        }
+
+        return FormValueParser.TryDate(text, out var date) ? new DueEdit(date) : null;
     }
 
     private IReadOnlyList<string>? LabelsOf()

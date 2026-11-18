@@ -4,7 +4,8 @@ using Geeratya.Jira.Search.Models;
 namespace Geeratya.Core.Writes;
 
 /// <summary>
-/// The summary, labels, priority and estimate of a row changed by an edit. A null "after" leaves that field alone; the undo
+/// The summary, labels, priority and estimate of a row changed by an edit, and the due date of an opened issue. A
+/// null "after" leaves that field alone; the undo
 /// restores only the fields that still hold the patched value.
 /// </summary>
 public sealed record EditRowChange(
@@ -15,7 +16,8 @@ public sealed record EditRowChange(
     IReadOnlyList<string>? LabelsAfter,
     string? PriorityBefore = null,
     string? PriorityAfter = null,
-    EstimateEdit? Estimate = null) : RowChange(Key)
+    EstimateEdit? Estimate = null,
+    DueEdit? Due = null) : RowChange(Key)
 {
     public override IssueSummary Patch(IssueSummary row)
     {
@@ -36,6 +38,7 @@ public sealed record EditRowChange(
             Labels = LabelsAfter ?? detail.Labels,
             Priority = PriorityAfter ?? detail.Priority,
             Estimate = Estimate is { } edit ? edit.After : detail.Estimate,
+            DueDate = Due is { } due ? due.After : detail.DueDate,
         };
     }
 

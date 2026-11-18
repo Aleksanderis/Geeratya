@@ -21,6 +21,8 @@
 #   picker look (#1027): the open Assignee and Reporter picker of the create sub-task form and of the Details of the issue
 #       view are the same box (title, input line, quick rows), compared as text cell for cell, whatever the position;
 #       CAPTURE_DIR=<dir> keeps the two frames of each field there.
+#   due date (#1036): the Due date block of the issue view (company-managed and team-managed): the date dropdown with the
+#       create form's label, the format error as typed, a valid date saved.
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
 set -euo pipefail
@@ -30,7 +32,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,29p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-field-contract.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-field-contract.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -252,6 +254,40 @@ wait_for "Highest"
 click "High"
 wait_gone "Highest"
 wait_for "High ▾"
+
+# ---- Due date of the issue view (#1036): the date field of the create form, reached from the Details block --------
+# due_date <key> <name>: the Due date block of an issue (company-managed GCM-6, team-managed GTM-11): Enter on it opens
+# the date dropdown with the create form's label, the format error shows under the field and in the status line as
+# typed, and a valid date is saved. CAPTURE_DIR keeps the frame of the dropdown.
+due_date() {
+  local step
+  open_issue "$1"
+  key C-l
+  for step in $(seq 1 14); do
+    key Enter
+    status | grep -qF -- "Due date (yyyy-MM-dd)" && break
+    key Escape
+    key j
+  done
+  wait_status "Due date (yyyy-MM-dd)"
+  wait_status "Enter save"
+  wait_status "Esc close"
+  text "2026-1"
+  wait_for "! Use yyyy-MM-dd"
+  frame > "$work/due-$2.txt"
+  [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR"; cp "$work/due-$2.txt" "$CAPTURE_DIR/details-due-$2-typed-bad.txt"; }
+  key C-u
+  wait_gone "Use yyyy-MM-dd"
+  text "2026-12-24"
+  key Enter
+  wait_for "Saved $1"
+  wait_for "2026-12-24"
+}
+
+echo "== due date (Details, company-managed GCM-6)"
+due_date GCM-6 company
+echo "== due date (Details, team-managed GTM-11)"
+due_date GTM-11 team
 
 # ---- Picker look: the same box in the create sub-task form and in the issue view ---------------------------------
 # focus_field <label>: Tab through the navigate state of the create form until the status line names the field.
@@ -497,7 +533,7 @@ wait_status "Esc clear filter"
 key Escape
 wait_for "Next sprint"
 click "Next sprint"
-wait_for 'will be moved to sprint "GCS Sprint 1"'
+wait_for 'be moved to sprint "GCS Sprint 1"'
 key n
 wait_gone "Complete sprint"
 
@@ -506,7 +542,7 @@ start_scrum
 key Enter
 wait_for "Details"
 key C-l
-text "jjjjjj"
+text "jjjjjjj"
 key Enter
 wait_status "Sprint of GCS-8"
 wait_status "Enter choose"

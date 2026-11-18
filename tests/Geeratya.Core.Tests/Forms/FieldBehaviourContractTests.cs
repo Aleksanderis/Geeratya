@@ -10,6 +10,7 @@ using Geeratya.Core.State;
 using Geeratya.Core.Suggestions;
 using Geeratya.Core.Views;
 using Geeratya.Jira.Create.Models;
+using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Sprints.Models;
 using Geeratya.Jira.Suggestions.Models;
@@ -40,6 +41,13 @@ public class FieldBehaviourContractTests
     /// <summary>What the quick rows read when a field opens with no popup.</summary>
     public const string NoPopup = "no popup";
 
+    /// <summary>
+    /// The Due date block of the issue view, opened by Enter through the real route (the cursor stop of the
+    /// Details pane, <c>DetailFieldActions</c>, <c>FormOpener</c>): a date field in a dropdown, which must behave as
+    /// the same kind does on the create form and in the edit box (#1036).
+    /// </summary>
+    public const string DetailsDue = "details-due";
+
     /// <summary>The ways a form is shown. Each opens the given fields; the first is the field under test.</summary>
     public static IReadOnlyList<string> PresentationNames { get; } =
     [
@@ -47,6 +55,7 @@ public class FieldBehaviourContractTests
         "create-subtask",
         "edit",
         "dropdown",
+        "details-due",
         "in-place",
         "transition",
         "transition-pick",
@@ -64,7 +73,7 @@ public class FieldBehaviourContractTests
     public static IReadOnlyDictionary<Type, string[]> TargetPresentations { get; } = new Dictionary<Type, string[]>
     {
         [typeof(CreateFormTarget)] = ["create", "create-subtask"],
-        [typeof(EditFormTarget)] = ["edit", "dropdown", "in-place"],
+        [typeof(EditFormTarget)] = ["edit", "dropdown", "details-due", "in-place"],
         [typeof(TransitionFormTarget)] = ["transition"],
         [typeof(TransitionPickTarget)] = ["transition-pick"],
         [typeof(LinkFormTarget)] = ["link"],
@@ -169,6 +178,7 @@ public class FieldBehaviourContractTests
         "create-subtask",
         "edit",
         "dropdown",
+        "details-due",
         "in-place",
         "transition",
     };
@@ -194,6 +204,7 @@ public class FieldBehaviourContractTests
         ["create-subtask"] = "the new issue",
         ["edit"] = "the changes to A-1",
         ["dropdown"] = "the changes to A-1",
+        ["details-due"] = "the changes to A-1",
         ["in-place"] = "the changes to A-1",
         ["transition"] = "the changes to A-1",
         ["link"] = "the changes to A-1",
@@ -245,9 +256,11 @@ public class FieldBehaviourContractTests
         {
             var text = Kind is FormFieldKind.Text or FormFieldKind.Paragraph;
             var choice = Kind == FormFieldKind.Select;
+            var date = Kind == FormFieldKind.Date;
 
             return PresentationNames
                 .Where(name => text || name != "in-place")
+                .Where(name => date || name != DetailsDue)
                 .Where(name => Kind != FormFieldKind.Parent || !NoSearch.Contains(name))
                 .Where(name => choice || !OneChoice.Contains(name));
         }
@@ -855,6 +868,11 @@ public class FieldBehaviourContractTests
             return FormReducer.OpenReady(tabbed, tabbed.Session.Tabs[0].Id, TargetOf(presentation), fields).State;
         }
 
+        if (presentation == DetailsDue)
+        {
+            return OpenDetailsDue(field);
+        }
+
         var form = FormState.Opened(TargetOf(presentation), 7, null);
 
         if (presentation == "dropdown")
@@ -876,6 +894,58 @@ public class FieldBehaviourContractTests
         };
 
         return _reducer.Reduce(withForm, new FormMetadataLoaded(tab.Id, 7, fields)).State;
+    }
+
+    private AppState OpenDetailsDue(FormField field)
+    {
+        var listed = Tabbed();
+        var tab = listed.Session.Tabs[0];
+        var shown = Press(listed, "Enter").State;
+        var request = shown.Session.Tabs[0].Detail[0].IssueRequest;
+        var issue = new IssueDetail(
+            "1",
+            "A-1",
+            "Issue 1",
+            new IssueStatus("1", "To Do", "new"),
+            new IssueTypeSummary("10", "Task", 0, false),
+            null,
+            null,
+            null,
+            [],
+            null,
+            null,
+            "A",
+            null,
+            null,
+            [],
+            [],
+            []);
+        var loaded = _reducer.Reduce(shown, new IssueDetailLoaded(tab.Id, request, issue, _start)).State;
+        var editable = _reducer.Reduce(loaded, new IssueEditableLoaded(tab.Id, "A-1", [FormFieldIds.DueDate])).State;
+        var onField = MoveTo(editable, DetailFieldIds.DueDate);
+        var opened = Press(onField, "Enter").State;
+        var form = opened.Session.Tabs[0].Form!;
+
+        Assert.Equal(DetailFieldIds.DueDate, form.Dropdown);
+
+        return _reducer.Reduce(opened, new FormMetadataLoaded(tab.Id, form.RequestId, [field])).State;
+    }
+
+    private AppState MoveTo(AppState state, string fieldId)
+    {
+        for (var step = 0; step < 40; step++)
+        {
+            var top = state.Session.Tabs[0].Detail[^1];
+
+            if (top.Document!.Targets[top.Cursor] is { Kind: DetailTargetKind.Field } target && target.Value == fieldId)
+            {
+                return state;
+            }
+
+            state = Press(state, "j").State;
+        }
+
+        throw new InvalidOperationException($"No field {fieldId} in the issue view");
     }
 
     private static FormTarget TargetOf(string presentation)

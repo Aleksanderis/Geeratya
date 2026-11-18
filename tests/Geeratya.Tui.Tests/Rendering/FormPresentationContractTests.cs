@@ -37,7 +37,7 @@ public class FormPresentationContractTests
 
     public static TheoryData<string> Presentations()
     {
-        return ["box", "create", "dropdown", "in-place"];
+        return ["box", "create", "dropdown", "details-due", "in-place"];
     }
 
     [Theory]
@@ -211,6 +211,34 @@ public class FormPresentationContractTests
         Assert.Equal(DetailFieldIds.Priority, opened.Session.Tabs[0].Form!.Dropdown);
     }
 
+    [Fact]
+    public void GivenABadDate_WhenSaved_ThenTheIssueViewAndTheCreateFormSayItTheSameWayUnderTheFieldAndInTheStatusLine()
+    {
+        var due = FormField.Create(FormFieldIds.DueDate, "Due date", FormFieldKind.Date, false, []);
+        var errors = new List<string>();
+
+        foreach (var presentation in new[] { "create", "details-due" })
+        {
+            var state = Keys(Open(presentation, due), "2", "0", "2", "6", "-", "1", "Ctrl-s");
+            var frame = Frame(state, 120, 36);
+            var row = Spans(frame).Single(static span => span.Role == TextRole.Error);
+
+            Assert.Equal(TextRole.Error, row.Role);
+            Assert.Contains("Due date (yyyy-MM-dd)", frame.StatusLine, StringComparison.Ordinal);
+            errors.Add($"{row.Text.Trim()}|{ErrorOf(frame.StatusLine)}");
+        }
+
+        Assert.Equal(errors[0], errors[1]);
+        Assert.StartsWith("! Use yyyy-MM-dd|", errors[0], StringComparison.Ordinal);
+    }
+
+    private static string ErrorOf(string status)
+    {
+        var start = status.IndexOf("! ", StringComparison.Ordinal);
+
+        return start < 0 ? string.Empty : status[start..].Split("  ")[0].Trim();
+    }
+
     private static bool IsValueRole(TextRole role)
     {
         return role is TextRole.Editable or TextRole.Body or TextRole.ValueBlock or TextRole.Selected;
@@ -255,6 +283,7 @@ public class FormPresentationContractTests
             "box" => OpenBox(field),
             "create" => OpenCreate(field),
             "dropdown" => OpenDropdown(field),
+            "details-due" => OpenDetailsDue(field),
             _ => OpenInPlace(field with { Id = FormFieldIds.Summary, Label = "Summary" }),
         };
     }
@@ -298,6 +327,37 @@ public class FormPresentationContractTests
         var form = state.Session.Tabs[0].Form!;
 
         return _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, form.RequestId, [field])).State;
+    }
+
+    // The Due date block of the issue view, reached by the keys and opened by Enter through the real route.
+    private AppState OpenDetailsDue(FormField field)
+    {
+        var state = Loaded();
+        var tab = state.Session.Tabs[0];
+
+        state = _reducer.Reduce(state, new IssueEditableLoaded(tab.Id, "GCM-12", [FormFieldIds.DueDate])).State;
+        state = Keys(state, "Ctrl-l");
+
+        for (var step = 0; step < 20 && !OnDueDate(state); step++)
+        {
+            state = Keys(state, "j");
+        }
+
+        Assert.True(OnDueDate(state), "the cursor never reached the Due date block");
+
+        state = Keys(state, "Enter");
+
+        var form = state.Session.Tabs[0].Form!;
+
+        return _reducer.Reduce(state, new FormMetadataLoaded(tab.Id, form.RequestId, [field])).State;
+    }
+
+    private static bool OnDueDate(AppState state)
+    {
+        var top = state.Session.Tabs[0].Detail[^1];
+
+        return top.SideCursor is { } cursor
+            && top.Document!.Side!.Targets[cursor] is { Kind: DetailTargetKind.Field, Value: DetailFieldIds.DueDate };
     }
 
     private AppState OpenInPlace(FormField field)

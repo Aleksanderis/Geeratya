@@ -25,6 +25,7 @@ public class FooterContractTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
     private static readonly FieldChoiceContractTests _fields = new();
     private static readonly TextEditorContractTests _editor = new();
+    private static readonly FormPresentationContractTests _forms = new();
 
     // The surfaces and, at 120x36, the chips both places show (key|label, left to right), the badge and the prompt.
     private static readonly Surface[] _surfaces =
@@ -71,6 +72,9 @@ public class FooterContractTests
         new("sprint form", "INSERT", "Create sprint · First", ["Tab/Shift-Tab|field", "Ctrl-s|save", "Esc|cancel"]),
         new("create navigating", "NORMAL", "Create GCM · Task · Summary",
             ["Tab/Shift-Tab|field", "Enter|edit", "Ctrl-h/j/k/l|pane", "Ctrl-s|create", "Esc|cancel"], false, false, 2),
+        new("create due date", "INSERT", "Create GCM · Task · Due date (yyyy-MM-dd)",
+            ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, false, 2),
+        new("dropdown due date", "INSERT", "Edit GCM-12 · Due date (yyyy-MM-dd)", ["Enter|save", "Esc|close"], false),
         new("create editing", "INSERT", "Create GCM · Task · Summary",
             ["Tab/Shift-Tab|field", "Ctrl-g|open after: off", "Ctrl-s|create", "Esc|stop editing"], false, true, 2),
     ];
@@ -82,7 +86,12 @@ public class FooterContractTests
         foreach (var surface in _surfaces)
         {
             data.Add(surface.Name, 120, 36);
-            data.Add(surface.Name, 80, 24);
+
+            // At 80 columns the long prompt of a create Date field leaves no room for any hint (#1046).
+            if (surface.Name != "create due date")
+            {
+                data.Add(surface.Name, 80, 24);
+            }
         }
 
         return data;
@@ -329,6 +338,8 @@ public class FooterContractTests
             "status picker" => StatusPicker(),
             "create navigating" => _editor.Keys(CreatePanes(), "Esc"),
             "create editing" => CreatePanes(),
+            "create due date" => CreatePanes(DueDate(), 1),
+            "dropdown due date" => _forms.Open("details-due", DueDate()),
             _ => FormPopup(name),
         };
     }
@@ -344,6 +355,11 @@ public class FooterContractTests
 
         // The popup is open as the "open" scenario of FieldChoiceContractTests leaves it.
         return _fields.Open(parts[0], field);
+    }
+
+    private static FormField DueDate()
+    {
+        return FormField.Create(FormFieldIds.DueDate, "Due date", FormFieldKind.Date, false, []);
     }
 
     private static AppState SprintMove()
@@ -383,10 +399,10 @@ public class FooterContractTests
         return FormOverlaySnapshotTests.WithForm(shown);
     }
 
-    private static AppState CreatePanes()
+    private static AppState CreatePanes(FormField? second = null, int focus = 0)
     {
         var summary = FormField.Create("summary", "Summary", FormFieldKind.Text, false, []);
-        var estimate = FormField.Create("estimate", "Estimate", FormFieldKind.Text, false, []);
+        var estimate = second ?? FormField.Create("estimate", "Estimate", FormFieldKind.Text, false, []);
         var type = new CreateIssueType("10", "Task", string.Empty, 0, false);
         var target = new CreateFormTarget("GCM", null, false, type);
         var form = FormState.Opened(target, 3, null) with
@@ -394,7 +410,7 @@ public class FooterContractTests
             Fields = [summary, estimate],
             IsLoading = false,
             Navigable = true,
-            Focus = 0,
+            Focus = focus,
         };
 
         return CreatePaneOverlaySnapshotTests.Open(form);

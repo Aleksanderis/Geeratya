@@ -51,7 +51,7 @@ internal static class DetailsPane
         {
             DetailFieldIds.Status or DetailFieldIds.Sprint or DetailFieldIds.Estimate => true,
             DetailFieldIds.Priority or DetailFieldIds.Assignee or DetailFieldIds.Reporter or DetailFieldIds.Labels
-                or DetailFieldIds.Parent or DetailFieldIds.Epic
+                or DetailFieldIds.Parent or DetailFieldIds.Epic or DetailFieldIds.DueDate
                 => detail.EditableFields?.Contains(EditId(fieldId)) == true,
             _ => false,
         };
@@ -84,7 +84,7 @@ internal static class DetailsPane
 
         var parts = new List<string>();
 
-        if (detail.Issue is { } issue)
+        if (detail.Issue is { } issue && !IsEditable(detail, DetailFieldIds.DueDate))
         {
             parts.Add($"Due {DueText(issue.DueDate)}");
         }
@@ -162,6 +162,7 @@ internal static class DetailsPane
             fields.Add(Of(detail, DetailFieldIds.Labels, "Labels", LabelItems(header.Labels)));
         }
 
+        AddDueDate(fields, detail);
         AddText(fields, detail, DetailFieldIds.Parent, "Parent", header.Parent);
         AddText(fields, detail, DetailFieldIds.Epic, "Epic", header.Epic);
         AddEmptyParent(fields, detail, header);
@@ -200,6 +201,22 @@ internal static class DetailsPane
         var none = ValueText.Empty();
 
         fields.Add(new Field(id, FieldBlockSpec.OfValue(plain ? "Epic" : "Parent", [none], true)));
+    }
+
+    // The due date is a field block only when the edit metadata lists it (then Enter edits it); otherwise it stays in
+    // the muted row of the dates.
+    private static void AddDueDate(List<Field> fields, DetailState detail)
+    {
+        if (detail.Issue is not { } issue || !IsEditable(detail, DetailFieldIds.DueDate))
+        {
+            return;
+        }
+
+        var value = issue.DueDate is null
+            ? ValueText.Empty()
+            : new StyledSpan(ValueText.Due(issue.DueDate), TextRole.ValueBlock);
+
+        fields.Add(new Field(DetailFieldIds.DueDate, FieldBlockSpec.OfValue("Due date", [value], true)));
     }
 
     private static void AddText(List<Field> fields, DetailState detail, string id, string label, string? value)

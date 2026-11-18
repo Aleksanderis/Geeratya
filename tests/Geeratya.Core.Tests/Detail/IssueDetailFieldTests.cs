@@ -1,3 +1,4 @@
+using Geeratya.Core.Text;
 using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -249,6 +250,74 @@ public class IssueDetailFieldTests
     }
 
     [Fact]
+    public void GivenEditMetadataWithTheDueDate_WhenBuilding_ThenTheDueDateIsAFieldBlockAndLeavesTheDatesRow()
+    {
+        var due = new DateOnly(2026, 12, 31);
+        var opened = Opened(Issue() with { DueDate = due });
+        var plain = Lines(opened);
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["duedate"])).State;
+
+        Assert.DoesNotContain(Targets(opened), IsField(DetailFieldIds.DueDate));
+        Assert.Contains(plain, line => line.Contains("Due 2026-12-31", StringComparison.Ordinal));
+        Assert.Contains(Targets(loaded), IsField(DetailFieldIds.DueDate));
+        Assert.DoesNotContain(Lines(loaded), line => line.Contains("Due 2026", StringComparison.Ordinal));
+        Assert.Contains(Lines(loaded), line => line.Contains("Due date", StringComparison.Ordinal));
+        Assert.Contains(Lines(loaded), line => line.Contains("2026-12-31", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenAnEmptyDueDateAndMetadataListingIt_WhenBuilding_ThenTheBlockReadsNoneInTheMutedRole()
+    {
+        var opened = Opened(Issue());
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["duedate"])).State;
+        var shown = Document(loaded).Side ?? Document(loaded);
+        var stop = shown.Targets.ToList().FindIndex(IsField(DetailFieldIds.DueDate));
+        var value = shown.Lines[stop + 1];
+
+        Assert.True(stop >= 0);
+        Assert.Contains(EmptyValues.None, value.PlainText, StringComparison.Ordinal);
+        Assert.Contains(value.Spans, span => span.Text == EmptyValues.None && span.Role == TextRole.Muted);
+    }
+
+    [Fact]
+    public void GivenEditMetadataWithoutTheDueDate_WhenBuilding_ThenThereIsNoDueDateStopAndTheDatesRowKeepsIt()
+    {
+        var opened = Opened(Issue());
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["summary"])).State;
+
+        Assert.DoesNotContain(Targets(loaded), IsField(DetailFieldIds.DueDate));
+        Assert.Contains(Lines(loaded), line => line.Contains("Due None", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenFocusOnTheDueDate_WhenPressingEnter_ThenADateDropdownOpensWithTheCurrentDate()
+    {
+        var opened = Opened(Issue() with { DueDate = new DateOnly(2026, 12, 31) });
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["duedate"])).State;
+
+        var result = Press(OnTarget(loaded, DetailFieldIds.DueDate), "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Equal(FormFieldIds.DueDate, target.OnlyId);
+        Assert.Equal("2026-12-31", target.Known[FormFieldIds.DueDate].Text);
+        Assert.Equal(DetailFieldIds.DueDate, Active(result.State).Form?.Dropdown);
+    }
+
+    [Fact]
+    public void GivenFocusOnAnEmptyDueDate_WhenPressingEnter_ThenTheDateIsKnownEmptySoTheFieldIsListed()
+    {
+        var opened = Opened(Issue());
+        var loaded = _reducer.Reduce(opened, new IssueEditableLoaded(Active(opened).Id, "A-1", ["duedate"])).State;
+
+        var result = Press(OnTarget(loaded, DetailFieldIds.DueDate), "Enter");
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        var target = Assert.IsType<EditFormTarget>(effect.Target);
+        Assert.Equal(string.Empty, target.Known[FormFieldIds.DueDate].Text);
+    }
+
+    [Fact]
     public void GivenAnIssueWithoutAssigneeOrLabels_WhenBuilding_ThenTheEditableFieldsStillHaveAStop()
     {
         var state = Opened(Issue() with { Assignee = null, Labels = [], Priority = null });
@@ -264,6 +333,20 @@ public class IssueDetailFieldTests
         var result = Press(OnTarget(Opened(Issue()), DetailFieldIds.Priority), "Space", "o");
 
         Assert.Contains(result.Effects, effect => effect is OpenUrlEffect);
+    }
+
+    private static IEnumerable<DetailTarget?> Targets(AppState state)
+    {
+        return Document(state).Side?.Targets ?? Document(state).Targets;
+    }
+
+    private static List<string> Lines(AppState state)
+    {
+        var document = Document(state);
+
+        var side = document.Side?.Lines ?? [];
+
+        return [.. document.Lines.Select(line => line.PlainText), .. side.Select(line => line.PlainText)];
     }
 
     private static Predicate<DetailTarget?> IsField(string id)
