@@ -119,7 +119,7 @@ public static partial class FormOverlay
 
         if (form.Pane is not null && focused is not null)
         {
-            return $"{form.Target.Title} · {focused.Label}";
+            return $"{form.Target.Title} · {FormFieldKinds.Named(focused)}";
         }
 
         if (CreatePanes.Applies(form) && focused is not null)
@@ -130,7 +130,7 @@ public static partial class FormOverlay
         // Every form names the focused field after its title, whether it edits one field or several (#1030).
         if (focused is not null)
         {
-            var text = $"{form.Target.Title} · {focused.Label}";
+            var text = $"{form.Target.Title} · {FormFieldKinds.Named(focused)}";
 
             return form.Navigating ? $"{text}  {FormShell.NavigateNote}" : text;
         }
@@ -142,7 +142,7 @@ public static partial class FormOverlay
     private static string CreateStatusText(FormState form, FormField focused)
     {
         var create = (CreateFormTarget)form.Target;
-        var text = $"Create {create.ProjectKey} · {create.IssueType?.Name} · {focused.Label}";
+        var text = $"Create {create.ProjectKey} · {create.IssueType?.Name} · {FormFieldKinds.Named(focused)}";
 
         return form.Navigating ? $"{text}  {FormShell.NavigateNote}" : text;
     }

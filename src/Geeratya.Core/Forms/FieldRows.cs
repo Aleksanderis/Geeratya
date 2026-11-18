@@ -48,10 +48,10 @@ public static class FieldRows
     /// <summary>The value rows of <paramref name="field"/> as <paramref name="look"/> says (at least one row).</summary>
     public static List<StyledLine> Value(FormField field, FieldLook look)
     {
-        if (FormFieldKinds.HasPopup(field.Kind))
+        if (FormFieldKinds.HasEditBox(field))
         {
-            // A picker field never takes the caret in its own row: the open picker draws the input line in its box
-            // (owner, 2026-11-18, #1027), so the row keeps showing the current value in every presentation.
+            // A picker or typed field never takes the caret in its own row: its edit box draws the input line
+            // (owner, 2026-11-18, #1027, #1048), so the row keeps showing the current value in every presentation.
             look = look with { Editing = false };
         }
 
@@ -82,11 +82,16 @@ public static class FieldRows
     }
 
     /// <summary>
-    /// The typed filter (or search text) of a choice, labels or picked field with its caret: the input line of the
-    /// picker box.
+    /// The typed filter (or search text) of a choice, labels or picked field, or the typed value of a text, number or
+    /// date field, with its caret: the input line of the edit box.
     /// </summary>
     public static StyledLine Entry(FormField field, int width)
     {
+        if (FormFieldKinds.IsTyped(field.Kind))
+        {
+            return TextRow(field, new FieldLook(width, TextRole.Body) { Editing = true });
+        }
+
         return new StyledLine(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width));
     }
 

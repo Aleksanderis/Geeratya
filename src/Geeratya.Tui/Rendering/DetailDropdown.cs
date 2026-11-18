@@ -148,7 +148,7 @@ public static class DetailDropdown
 
         var lines = new List<StyledLine>();
 
-        if (FormFieldKinds.IsText(field.Kind))
+        if (field.Kind == FormFieldKind.Paragraph)
         {
             var look = new FieldLook(inner, TextRole.Body) { Editing = true, Rows = TextRows };
 

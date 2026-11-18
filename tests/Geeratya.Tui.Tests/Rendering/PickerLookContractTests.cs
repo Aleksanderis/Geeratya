@@ -12,7 +12,9 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// <summary>
 /// The rendered-frame contract of an open picker (<c>docs/internal/ui-consistency.md</c>, component 3; owner decision
 /// 2026-11-18, #1027): the box that opens under a field (title, input line, quick rows, search results, highlight) is
-/// the one of the issue view's Details dropdown in every presentation, for every picker field kind. The frame is
+/// the one of the issue view's Details dropdown in every presentation, for every picker field kind and (#1048) for
+/// every typed kind (text, number, date, date-time: the box holds the typed value and its error, the row keeps the
+/// value and has no caret). The frame is
 /// drawn by the real <see cref="FrameBuilder"/>; the picker region is cut out of it, cell by cell (glyph and text
 /// role), and compared with the same field's region in the Details dropdown, whatever the position. The width is a
 /// function of the room (at most 40 columns), so the cells are compared up to the narrower box and the
@@ -52,8 +54,36 @@ public class PickerLookContractTests
         "custom-user",
     ];
 
+    /// <summary>The typed field kinds (#1048): text, number, date and date-time.</summary>
+    public static string[] TypedKinds { get; } = ["text", "number", "date", "datetime"];
+
     /// <summary>The states of the picker the look is compared in.</summary>
     public static string[] Scenes { get; } = ["open", "highlighted", "results"];
+
+    /// <summary>The states of a typed field the look is compared in: empty, a valid value, a wrong one.</summary>
+    public static string[] TypedScenes { get; } = ["empty", "typed", "error"];
+
+    public static TheoryData<string, string, string> TypedCases()
+    {
+        var cases = new TheoryData<string, string, string>();
+
+        foreach (var kind in TypedKinds)
+        {
+            foreach (var presentation in Presentations)
+            {
+                foreach (var scene in TypedScenes)
+                {
+                    // A text field has no format, so no wrong text: "error" would repeat "typed".
+                    if (kind != "text" || scene != "error")
+                    {
+                        cases.Add(kind, presentation, scene);
+                    }
+                }
+            }
+        }
+
+        return cases;
+    }
 
     public static TheoryData<string, string, string> Cases()
     {
@@ -117,6 +147,69 @@ public class PickerLookContractTests
         Assert.Contains(box[1], cell => cell.Role == TextRole.EditCaret);
     }
 
+    [Theory]
+    [MemberData(nameof(TypedCases))]
+    public void GivenATypedField_WhenEdited_ThenItsBoxIsTheOneOfTheIssueViewDropdown(
+        string kind,
+        string presentation,
+        string scene)
+    {
+        var field = TypedFieldOf(kind);
+        var expected = RegionOf(TypedScene(Reference, field, kind, scene), field.Label);
+        var actual = RegionOf(TypedScene(presentation, field, kind, scene), field.Label);
+
+        Assert.True(expected.Count > 2, $"no edit box in the {Reference} for {kind}");
+        Assert.True(actual.Count > 2, $"no edit box in the {presentation} for {kind}");
+        Assert.Equal(expected.Count, actual.Count);
+
+        var narrower = Math.Min(expected[0].Count, actual[0].Count);
+
+        for (var row = 0; row < expected.Count; row++)
+        {
+            Assert.Equal(Text(expected[row], narrower - 1), Text(actual[row], narrower - 1));
+            Assert.Equal(Roles(expected[row], narrower - 1), Roles(actual[row], narrower - 1));
+            Assert.Equal(expected[row][^1].Glyph, actual[row][^1].Glyph);
+            Assert.Equal(expected[row][^1].Role, actual[row][^1].Role);
+        }
+
+        if (scene == "error")
+        {
+            Assert.Contains(expected, static row => row.Any(static cell => cell.Glyph == "!"));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(TypedCases))]
+    public void GivenATypedField_WhenEdited_ThenTheCaretIsOnlyInTheBoxInputLine(
+        string kind,
+        string presentation,
+        string scene)
+    {
+        var field = TypedFieldOf(kind);
+        var frame = Frame(TypedScene(presentation, field, kind, scene));
+        var box = RegionOf(frame, field.Label);
+        var carets = frame.Body
+            .Select(static line => line.Spans.Count(static span => span.Role == TextRole.EditCaret))
+            .ToList();
+
+        Assert.Equal(1, carets.Sum());
+        Assert.Contains(box[1], cell => cell.Role == TextRole.EditCaret);
+    }
+
+    [Fact]
+    public void GivenTheCreateForm_WhenADateIsEdited_ThenTheFieldRowKeepsItsValueAndABoxOpensUnderIt()
+    {
+        var field = TypedFieldOf("date").WithInitial(FormValue.OfText("2030-01-02"));
+        var frame = Frame(_opener.Open("create", field));
+        var lines = frame.Body.Select(static line => line.PlainText).ToList();
+        var fieldRow = lines.FindIndex(static line => line.Contains("Due date (yyyy-MM-dd) ", StringComparison.Ordinal));
+        var boxTop = lines.FindIndex(line => line.Contains($"{Corner}─ Due date", StringComparison.Ordinal));
+
+        Assert.True(fieldRow >= 0 && boxTop > fieldRow, string.Join("\n", lines));
+        Assert.Contains("2030-01-02", lines[fieldRow + 1], StringComparison.Ordinal);
+        Assert.Contains("2030-01-02", lines[boxTop + 1], StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GivenTheCreateSubTaskForm_WhenAnAssigneePickerOpens_ThenTheFieldRowKeepsItsValueAndABoxOpensUnderIt()
     {
@@ -151,6 +244,42 @@ public class PickerLookContractTests
                 .WithInitial(FormValue.OfChosen(["acc-eve"])),
             _ => FormField.Create(FormFieldIds.Priority, "Priority", FormFieldKind.Select, true, options),
         };
+    }
+
+    private static FormField TypedFieldOf(string kind)
+    {
+        return kind switch
+        {
+            "number" => FormField.Create("customfield_10301", "Points", FormFieldKind.Number, false, []),
+            "date" => FormField.Create("customfield_10302", "Due date", FormFieldKind.Date, false, []),
+            "datetime" => FormField.Create("customfield_10303", "Starts", FormFieldKind.DateTime, false, []),
+            _ => FormField.Create("customfield_10300", "Note", FormFieldKind.Text, false, []),
+        };
+    }
+
+    // The typed field in the presentation: empty, with a valid value typed, or with a wrong one (as far as the kind
+    // has a format).
+    private AppState TypedScene(string presentation, FormField field, string kind, string scene)
+    {
+        var state = _opener.Open(presentation, field);
+
+        if (scene == "empty")
+        {
+            return state;
+        }
+
+        var text = (kind, scene) switch
+        {
+            ("number", "typed") => "12",
+            ("number", _) => "1x",
+            ("date", "typed") => "2026-12-24",
+            ("date", _) => "2026-1",
+            ("datetime", "typed") => "2026-12-24T10:00",
+            ("datetime", _) => "2026-1",
+            _ => "hello",
+        };
+
+        return Keys(state, [.. text.Select(static character => character.ToString())]);
     }
 
     // The picker open in the presentation: just opened, with a row highlighted, or with search results listed.

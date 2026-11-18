@@ -137,7 +137,7 @@ public class FormOverlaySnapshotTests
 
         var frame = FrameBuilder.BuildStyled(WithForm(form), 60, 18, _keymap)!;
         var lines = frame.PlainLines().ToList();
-        var last = lines.FindLastIndex(static line => Regex.IsMatch(line, "│ ╰─+╯[ ▲▼]│"));
+        var last = lines.FindLastIndex(static line => Regex.IsMatch(line, "│ ╰─+╯ *[ ▲▼]│"));
         var below = lines[last + 1].Replace("│", string.Empty, StringComparison.Ordinal).Trim();
 
         Assert.Contains(frame.Body, static line => line.Spans.Any(static span => span.Role == TextRole.FrameFocus));
