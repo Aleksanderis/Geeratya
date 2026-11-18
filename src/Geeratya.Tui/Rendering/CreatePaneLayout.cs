@@ -261,7 +261,7 @@ internal sealed class CreatePaneLayout
         {
             new(StyledLine.Of(DisplayText.Cut(NotEditableText, inner), TextRole.Muted)),
         };
-        var names = _form.Fields.Where(static field => !field.IsEditable).Select(static field => field.Label).ToList();
+        var names = _form.Fields.Where(static field => !field.IsEditable).Select(FormFieldKinds.Named).ToList();
 
         if (names.Count > 0)
         {

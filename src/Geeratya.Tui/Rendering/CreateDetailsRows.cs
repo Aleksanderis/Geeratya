@@ -109,6 +109,11 @@ internal sealed class CreateDetailsRows
         }
     }
 
+    private string NameOf(int index)
+    {
+        return FormFieldKinds.Named(_form.Fields[index]);
+    }
+
     private StyledLine? FoldHint(int inner)
     {
         if (!CreatePanes.CanFold(_form))
@@ -120,7 +125,7 @@ internal sealed class CreateDetailsRows
         var action = $"{key} {(_form.ShowAllFields ? FewerText : MoreText)}";
         var names = _form.ShowAllFields
             ? string.Empty
-            : string.Join(Separator, CreatePanes.Folded(_form).Select(index => _form.Fields[index].Label));
+            : string.Join(Separator, CreatePanes.Folded(_form).Select(NameOf));
         var room = inner - DisplayWidth.Of(action) - 3;
         var spans = new List<StyledSpan>();
 

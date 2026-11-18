@@ -200,14 +200,15 @@ public class PickerLookContractTests
     public void GivenTheCreateForm_WhenADateIsEdited_ThenTheFieldRowKeepsItsValueAndABoxOpensUnderIt()
     {
         var field = TypedFieldOf("date").WithInitial(FormValue.OfText("2030-01-02"));
-        var frame = Frame(_opener.Open("create", field));
+        var frame = Frame(Keys(_opener.Open("create", field), "9"));
         var lines = frame.Body.Select(static line => line.PlainText).ToList();
-        var fieldRow = lines.FindIndex(static line => line.Contains("Due date (yyyy-MM-dd) ", StringComparison.Ordinal));
+        var fieldRow = lines.FindIndex(static line => line.Contains("Due date ", StringComparison.Ordinal));
         var boxTop = lines.FindIndex(line => line.Contains($"{Corner}─ Due date", StringComparison.Ordinal));
 
         Assert.True(fieldRow >= 0 && boxTop > fieldRow, string.Join("\n", lines));
         Assert.Contains("2030-01-02", lines[fieldRow + 1], StringComparison.Ordinal);
-        Assert.Contains("2030-01-02", lines[boxTop + 1], StringComparison.Ordinal);
+        Assert.DoesNotContain("2030-01-029", lines[fieldRow + 1], StringComparison.Ordinal);
+        Assert.Contains("2030-01-029", lines[boxTop + 1], StringComparison.Ordinal);
     }
 
     [Fact]

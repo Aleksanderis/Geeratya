@@ -114,7 +114,7 @@ public static partial class FormOverlay
 
         if (focused?.Error is { } error)
         {
-            return $"! {focused.Label}: {error}";
+            return $"! {FormFieldKinds.Named(focused)}: {error}";
         }
 
         if (form.Pane is not null && focused is not null)

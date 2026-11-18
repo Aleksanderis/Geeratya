@@ -51,7 +51,15 @@ public static class FieldRows
         if (FormFieldKinds.HasEditBox(field))
         {
             // A picker or typed field never takes the caret in its own row: its edit box draws the input line
-            // (owner, 2026-11-18, #1027, #1048), so the row keeps showing the current value in every presentation.
+            // (owner, 2026-11-18, #1027, #1048), so the row keeps showing the current value in every presentation:
+            // while the box of a typed field is open, the value the field had when the form opened (as the issue
+            // view shows the saved one until the write), not the text being typed (#1050). A picker's chosen values
+            // stay: the issue view's row shows them as soon as the write lands, a form writes nothing until saved.
+            if (look.Editing && FormFieldKinds.IsTyped(field.Kind))
+            {
+                field = field with { Value = field.Initial };
+            }
+
             look = look with { Editing = false };
         }
 

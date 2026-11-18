@@ -23,6 +23,7 @@
 #       CAPTURE_DIR=<dir> keeps the two frames of each field there.
 #   typed field look (#1048): the Due date of the create form (issue and sub-task) opens the same box as the issue view
 #       (title with the format, the typed text, the format error inside the box, the key hints kept in the status line).
+#   field row (#1050): the label and value rows above that box are identical in the create forms and the issue view.
 #   due date (#1036): the Due date block of the issue view (company-managed and team-managed): the date dropdown with the
 #       create form's label, the format error as typed, a valid date saved.
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
@@ -34,7 +35,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 timeout_ms=${TIMEOUT_MS:-8000}
 binary=""
 [ "${1:-}" = "--binary" ] && binary=${2:-}
-if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,31p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
+if [ -z "$binary" ] || [ ! -x "$binary" ]; then sed -n '2,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; fi
 if [ "$(uname -s)" != Linux ]; then echo "smoke-field-contract.sh: only Linux is supported" >&2; exit 3; fi
 for tool in tmux dotnet; do command -v "$tool" > /dev/null || { echo "smoke-field-contract.sh: missing tool: $tool" >&2; exit 3; }; done
 
@@ -196,6 +197,28 @@ box_rows() {
   done
 }
 
+# field_row <frame file> <title>: the two rows above the box titled <title> (the field's label and value rows), cut to the
+# box's own columns; fails when there is no such box.
+field_row() {
+  local title="╭─ $2 ─" line prefix rest head start width
+  local -a before=("" "")
+  while IFS= read -r line; do
+    case $line in
+      *"$title"*)
+        prefix=${line%%"$title"*}
+        start=${#prefix}
+        rest=${line:start}
+        head=${rest%%╮*}
+        width=$((${#head} + 1))
+        printf '%s\n%s\n' "${before[0]:start:width}" "${before[1]:start:width}"
+        return 0
+        ;;
+    esac
+    before=("${before[1]}" "$line")
+  done < "$1"
+  return 1
+}
+
 # box_has_error <frame file> <title>: the box titled <title> holds the "! Use yyyy-MM-dd" error inside its walls.
 box_has_error() {
   local rows
@@ -240,6 +263,7 @@ create_script() {
   # error is inside the box and the status line keeps its key hints. CAPTURE_DIR keeps the frame.
   frame > "$work/create-due.txt"
   keep "create-due-typed-bad-$1" "$work/create-due.txt"
+  field_row "$work/create-due.txt" "Due date (yyyy-MM-dd)" > "$work/row-create-$1.txt" || fail "no Due date box in the $1 form"
   wait_for "╭─ Due date (yyyy-MM-dd) ─"
   wait_status "Esc stop editing"
   box_has_error "$work/create-due.txt" "Due date (yyyy-MM-dd)"
@@ -319,6 +343,7 @@ due_date() {
   text "2026-1"
   wait_for "! Use yyyy-MM-dd"
   frame > "$work/due-$2.txt"
+  field_row "$work/due-$2.txt" "Due date (yyyy-MM-dd)" > "$work/row-details-$2.txt" || fail "no Due date box in the $2 issue"
   [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR"; cp "$work/due-$2.txt" "$CAPTURE_DIR/details-due-$2-typed-bad.txt"; }
   key C-u
   wait_gone "Use yyyy-MM-dd"
@@ -587,5 +612,16 @@ wait_status "Sprint of GCS-8"
 wait_status "Enter choose"
 click "Seed Sprint 3"
 wait_status 'Moved GCS-8 to sprint "Seed Sprint 3"'
+
+# The field row above the box (#1050): the same label (the name, no format) and the same value row (the current value
+# with the dropdown mark) in the create forms and the issue view, whatever the typed text.
+for row in "$work"/row-create-*.txt "$work"/row-details-*.txt; do
+  [ -s "$row" ] || fail "no field row captured in $row"
+  grep -qF -- "Due date" "$row" || fail "the field row of $row lacks the name"
+  if grep -qF -- "yyyy" "$row"; then fail "the field row of $row carries the format"; fi
+  grep -qF -- "None ▾" "$row" || fail "the field row of $row does not keep the value with the dropdown mark"
+  cmp -s "$row" "$work"/row-details-company.txt || fail "the field row of $row differs from the issue view's"
+done
+echo "ok: the field row is the same in the create forms and the issue view"
 
 echo "PASS: every scenario ran"
