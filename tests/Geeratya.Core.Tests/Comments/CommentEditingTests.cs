@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
@@ -41,7 +42,7 @@ public class CommentEditingTests
     }
 
     [Fact]
-    public void GivenTheEditor_WhenPressingWordAndPageKeys_ThenTheCursorMovesByWordAndByRows()
+    public void GivenTheEditor_WhenPressingWordAndPageKeys_ThenTheCursorMovesByWordAndPagesGoToTheTextEnds()
     {
         var state = Press(OpenIssue(), "Space", "m", "a").State;
         state = Press(state, "o", "n", "e", "Space", "t", "w", "o", "Enter", "x").State;
@@ -53,7 +54,7 @@ public class CommentEditingTests
 
         Assert.Equal(4, Assert.IsType<CommentEditor>(wordLeft.Editor).Buffer.Cursor);
         Assert.Equal(7, Assert.IsType<CommentEditor>(wordRight.Editor).Buffer.Cursor);
-        Assert.Equal(1, Assert.IsType<CommentEditor>(pageUp.Editor).Buffer.Cursor);
+        Assert.Equal(0, Assert.IsType<CommentEditor>(pageUp.Editor).Buffer.Cursor);
         Assert.Equal(9, Assert.IsType<CommentEditor>(pageDown.Editor).Buffer.Cursor);
     }
 
@@ -796,12 +797,12 @@ public class CommentEditingTests
     {
         var state = Typed("keep");
         var asked = Assert.IsType<EditExternallyEffect>(Assert.Single(Press(state, "Alt-e").Effects));
-        var huge = new string('x', 30001);
+        var huge = new string('x', TextBuffer.MaxLength + 1);
 
         var done = _reducer.Reduce(state, new ExternalEditFinished(asked.Tab, asked.Key, asked.CommentId, huge, null));
 
         Assert.Equal("keep", done.State.Editor!.Buffer.Text);
-        Assert.NotNull(done.State.Editor.Error);
+        Assert.Contains($"longer than {TextBuffer.MaxLength} characters", done.State.Editor.Error);
     }
 
     [Fact]

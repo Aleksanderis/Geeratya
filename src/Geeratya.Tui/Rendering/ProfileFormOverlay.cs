@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
@@ -141,7 +142,12 @@ public static class ProfileFormOverlay
 
         if (field == ProfileFormField.Token && form.Token.IsEmpty && form.IsEdit)
         {
-            spans.Add(new StyledSpan(focused ? $"{KeptText}{PromptWindow.EndMark}" : KeptText, TextRole.Muted));
+            spans.Add(new StyledSpan(KeptText, TextRole.Muted));
+
+            if (focused)
+            {
+                spans.Add(new StyledSpan(" ", TextRole.EditCaret));
+            }
 
             return StyledLines.Fit(new StyledLine(spans), width);
         }
@@ -155,28 +161,24 @@ public static class ProfileFormOverlay
             return StyledLines.Fit(new StyledLine(spans), width);
         }
 
-        var window = PromptWindow.Of(prompt, room);
-
-        spans.Add(new StyledSpan(window.Before, TextRole.Body));
-        spans.Add(new StyledSpan(window.Caret, TextRole.EditCaret));
-        spans.Add(new StyledSpan(window.After, TextRole.Body));
+        spans.AddRange(CaretText.Spans(prompt, room, TextRole.Body));
 
         return StyledLines.Fit(new StyledLine(spans), width);
     }
 
     // The text of a field with its caret; the token is one mask character per letter with the caret in the same place.
-    internal static PromptText PromptOf(ProfileForm form, ProfileFormField field)
+    internal static TextBuffer PromptOf(ProfileForm form, ProfileFormField field)
     {
         if (field == ProfileFormField.Token)
         {
             var masked = new string(MaskChar, form.Token.Length);
 
-            return new PromptText(masked, form.Token.ElementsAfter(form.Back));
+            return TextBuffer.FromBack(masked, form.Token.ElementsAfter(form.Back));
         }
 
         var text = ShownOf(form, field);
 
-        return field == form.Field ? new PromptText(text, form.Back) : PromptText.Of(text);
+        return field == form.Field ? TextBuffer.FromBack(text, form.Back) : TextBuffer.Of(text);
     }
 
     private static StyledLine NoteLine(ProfileForm form)

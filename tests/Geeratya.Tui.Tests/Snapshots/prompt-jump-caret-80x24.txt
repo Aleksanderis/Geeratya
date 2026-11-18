@@ -3,7 +3,7 @@
 ╭─ project = GCM ─────────────────────────────────────────────────── 4 issues ─╮
 │  Key T Summary                                                 Status        │
 │ ╭─ Jump to an issue ───────────────────────────────────────────────────────╮ │
-│ │ > g|cm                                                                   │ │
+│ │ > gcm                                                                    │ │
 │ │   GCM-12      Fix the login redirect                                     │ │
 │ │   GCM-120     日本語の見出しを含む課題                                   │ │
 │ │   GCM-7       A rather long summary that cannot possibly fit into the na │ │

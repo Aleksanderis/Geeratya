@@ -1,4 +1,4 @@
-using Geeratya.Core.Text;
+using Geeratya.Core.Editing;
 
 namespace Geeratya.Core.Flash;
 
@@ -6,6 +6,6 @@ namespace Geeratya.Core.Flash;
 /// <param name="Text">The text to look for in the visible rows.</param>
 public sealed record FlashJumpState(string Text)
 {
-    /// <summary>Units between the caret and the end of <see cref="Text"/> (<see cref="PromptText"/>); 0 is the end.</summary>
+    /// <summary>Units between the caret and the end of <see cref="Text"/> (see <see cref="TextBuffer"/>).</summary>
     public int Back { get; init; }
 }

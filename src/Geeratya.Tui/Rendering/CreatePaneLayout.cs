@@ -1,4 +1,5 @@
 using Geeratya.Core.Detail;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
@@ -242,7 +243,7 @@ internal sealed class CreatePaneLayout
                 Placeholder = DescriptionPlaceholder,
             };
 
-            caretRow = editing ? FieldRows.CaretRowOf(new PromptText(field.Value.Text, field.Back)) : -1;
+            caretRow = editing ? TextBuffer.FromBack(field.Value.Text, field.Back).Line : -1;
             rows.AddRange(FieldRows.Value(field, look).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
 
             if (field.Error is { } error)

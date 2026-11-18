@@ -6,8 +6,8 @@ namespace Geeratya.Core.Comments;
 internal static partial class CommentEditing
 {
     private const string SavingText = "Wait for the save to finish before opening the outside editor.";
-    private const string TooLongText =
-        "The outside editor's text is longer than 30000 characters; the text is unchanged.";
+    private static readonly string _tooLongText =
+        $"The outside editor's text is longer than {TextBuffer.MaxLength} characters; the text is unchanged.";
 
     /// <summary><c>editor.external</c>: asks the host to edit the text in the user's editor.</summary>
     public static ReduceResult External(AppState state)
@@ -52,7 +52,7 @@ internal static partial class CommentEditing
 
         if (text.Length > TextBuffer.MaxLength)
         {
-            return WithEditor(state, editor with { Error = TooLongText });
+            return WithEditor(state, editor with { Error = _tooLongText });
         }
 
         if (string.Equals(text, editor.Buffer.Text, StringComparison.Ordinal))
@@ -60,7 +60,7 @@ internal static partial class CommentEditing
             return state;
         }
 
-        return WithEditor(state, editor with { Buffer = TextBuffer.Of(text), Error = null, Dismissed = -1 });
+        return WithEditor(state, editor with { Buffer = TextBuffer.Rich(text), Error = null, Dismissed = -1 });
     }
 
     private static bool IsEditorOf(CommentEditor editor, ExternalEditFinished finished)

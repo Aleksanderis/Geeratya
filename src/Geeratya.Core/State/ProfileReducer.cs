@@ -1,6 +1,6 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Profiles;
-using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
@@ -270,17 +270,17 @@ public static partial class ProfileReducer
 
     public static AppState Backspace(AppState state)
     {
-        return Apply(state, PromptOperation.Backspace);
+        return Apply(state, EditorOperation.Backspace);
     }
 
     /// <summary>An editing key (caret moves, deletes) in the focused field.</summary>
-    public static AppState Apply(AppState state, PromptOperation operation)
+    public static AppState Apply(AppState state, EditorOperation operation)
     {
         return Edit(state, prompt => prompt.Apply(operation));
     }
 
     /// <summary>Runs one edit on the focused field; a changed text re-validates, a caret move keeps the notes.</summary>
-    public static AppState Edit(AppState state, Func<PromptText, PromptText> change)
+    public static AppState Edit(AppState state, Func<TextBuffer, TextBuffer> change)
     {
         if (state.Form is not { } form)
         {

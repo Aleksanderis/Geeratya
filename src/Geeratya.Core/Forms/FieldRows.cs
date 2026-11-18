@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Forms;
@@ -35,29 +36,22 @@ public static class FieldRows
     /// </summary>
     public static List<StyledLine> Paragraph(FormField field, FieldLook look, int first, int count)
     {
-        var prompt = new PromptText(field.Value.Text, field.Back);
+        var prompt = TextBuffer.FromBack(field.Value.Text, field.Back);
         var rows = field.Value.Text.Split('\n');
-        var caretRow = look.Editing ? CaretRowOf(prompt) : -1;
         var lines = new List<StyledLine>();
 
         for (var index = first; index < Math.Min(rows.Length, first + count); index++)
         {
-            lines.Add(ParagraphRow(prompt, rows[index], index, caretRow, look));
+            lines.Add(ParagraphRow(prompt, rows[index], index, look));
         }
 
         return lines;
     }
 
-    /// <summary>The row of the caret in a paragraph (0 for a single line).</summary>
-    public static int CaretRowOf(PromptText prompt)
-    {
-        return prompt.Text[..prompt.Caret].Count(static character => character == '\n');
-    }
-
     /// <summary>The typed filter (or search text) of a choice, labels or picked field with its caret.</summary>
     public static StyledLine Entry(FormField field, int width, TextRole role)
     {
-        return new StyledLine(CaretRows.Spans(new PromptText(field.Entry, field.Back), width, role));
+        return new StyledLine(CaretText.Spans(TextBuffer.FromBack(field.Entry, field.Back), width, role));
     }
 
     /// <summary>
@@ -91,14 +85,14 @@ public static class FieldRows
 
         if (look.Editing && text.Length > 0)
         {
-            var prompt = new PromptText(text, field.Back);
+            var prompt = TextBuffer.FromBack(text, field.Back);
 
             if (look.Boxed)
             {
-                return CaretRows.Field(prompt, width);
+                return CaretText.Field(prompt, width);
             }
 
-            return new StyledLine(CaretRows.Spans(prompt, width, look.Role));
+            return new StyledLine(CaretText.Spans(prompt, width, look.Role));
         }
 
         if (text.Length == 0)
@@ -116,7 +110,7 @@ public static class FieldRows
 
         if (look.Editing && look.Boxed)
         {
-            return CaretRows.Field(new PromptText(string.Empty, 0), width);
+            return CaretText.Field(TextBuffer.Empty, width);
         }
 
         if (look.Placeholder is { } placeholder)
@@ -136,7 +130,7 @@ public static class FieldRows
 
         if (look.Editing)
         {
-            return new StyledLine(CaretRows.Spans(new PromptText(string.Empty, 0), width, look.Role));
+            return new StyledLine(CaretText.Spans(TextBuffer.Empty, width, look.Role));
         }
 
         var empty = ValueText.Empty(field.Kind == FormFieldKind.User);
@@ -166,23 +160,28 @@ public static class FieldRows
             return Paragraph(field, look, 0, rows.Length);
         }
 
-        var caretRow = CaretRowOf(new PromptText(text, field.Back));
+        var caretRow = TextBuffer.FromBack(text, field.Back).Line;
         var shown = Math.Max(1, look.Rows);
         var first = Math.Clamp(caretRow - shown + 1, 0, Math.Max(0, rows.Length - shown));
 
         return Paragraph(field, look, first, shown);
     }
 
-    private static StyledLine ParagraphRow(PromptText prompt, string row, int index, int caretRow, FieldLook look)
+    private static StyledLine ParagraphRow(TextBuffer prompt, string row, int index, FieldLook look)
     {
         var width = Math.Max(1, look.Width);
 
         if (look.Boxed && look.Editing)
         {
-            return CaretRows.FieldRow(prompt, row, index, caretRow, width);
+            return CaretText.FieldRow(prompt, row, index, width);
         }
 
-        return new StyledLine(CaretRows.ParagraphSpans(prompt, row, index, caretRow, width, look.Role));
+        if (!look.Editing)
+        {
+            return new StyledLine(CaretText.Cut(row, width, look.Role));
+        }
+
+        return new StyledLine(CaretText.ParagraphSpans(prompt, row, index, width, look.Role));
     }
 
     private static List<StyledLine> ChosenValue(FormField field, FieldLook look)
@@ -232,7 +231,9 @@ public static class FieldRows
 
         if (look.Editing && FormFieldKinds.HasPopup(field.Kind))
         {
-            all.Add(new FlowItem(CaretRows.Spans(new PromptText(field.Entry, field.Back), width, look.Role), SpaceGap));
+            var entry = TextBuffer.FromBack(field.Entry, field.Back);
+
+            all.Add(new FlowItem(CaretText.Spans(entry, width, look.Role), SpaceGap));
         }
 
         if (all.Count == 0)

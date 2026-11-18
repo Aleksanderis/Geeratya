@@ -1,5 +1,5 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Profiles;
-using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
@@ -116,7 +116,7 @@ public static partial class ProfileReducer
         };
     }
 
-    private static (ProfileForm Form, bool Changed) EditField(ProfileForm form, Func<PromptText, PromptText> change)
+    private static (ProfileForm Form, bool Changed) EditField(ProfileForm form, Func<TextBuffer, TextBuffer> change)
     {
         if (form.Field == ProfileFormField.Token)
         {
@@ -132,7 +132,7 @@ public static partial class ProfileReducer
             ProfileFormField.SiteUrl => form.SiteUrl,
             _ => form.Email,
         };
-        var prompt = change(new PromptText(current, form.Back));
+        var prompt = change(TextBuffer.FromBack(current, form.Back));
         var textChanged = prompt.Text != current;
         var moved = form with { Back = prompt.Back, Error = textChanged ? null : form.Error };
 

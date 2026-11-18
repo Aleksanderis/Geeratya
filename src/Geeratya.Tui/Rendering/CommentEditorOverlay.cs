@@ -133,7 +133,7 @@ public static class CommentEditorOverlay
         return StyledLine.Of(string.Concat(EditorLayout.RowCells(text, row).Select(cell => cell.Display)));
     }
 
-    // The cell under the cursor is drawn selected; a cursor inside a token (moved by rows) selects the whole token.
+    // The cell under the cursor is drawn as the caret; a cursor inside a token (moved by rows) selects the whole token.
     private static StyledLine CursorRow(CommentEditor editor, string text, EditorRow row)
     {
         var cursor = editor.Buffer.Cursor;
@@ -141,12 +141,12 @@ public static class CommentEditorOverlay
         var under = cells.FindIndex(cell => cursor >= cell.Start && cursor < cell.End);
         var before = under < 0 ? cells : [.. cells.Take(under)];
         List<EditorCell> after = under < 0 ? [] : [.. cells.Skip(under + 1)];
-        var spans = new List<StyledSpan>
-        {
-            new(string.Concat(before.Select(cell => cell.Display)), TextRole.Body),
-            new(under < 0 ? " " : cells[under].Display, TextRole.Selected),
-            new(string.Concat(after.Select(cell => cell.Display)), TextRole.Body),
-        };
+        var spans = new List<StyledSpan>(
+            CaretText.Over(
+                string.Concat(before.Select(cell => cell.Display)),
+                under < 0 ? " " : cells[under].Display,
+                string.Concat(after.Select(cell => cell.Display)),
+                TextRole.Body));
 
         if (text.Length == 0)
         {

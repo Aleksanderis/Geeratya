@@ -167,10 +167,10 @@ public class PaletteOverlayTests
     {
         var lines = FrameBuilder.Build(Sample("rank"), 80, 24, _keymap);
         var top = lines.First(line => line.Contains("╭─ Commands", StringComparison.Ordinal));
-        var query = lines.First(line => line.Contains(": rank_", StringComparison.Ordinal));
+        var query = lines.First(line => line.Contains("│ : rank ", StringComparison.Ordinal));
 
         Assert.Matches(@"Commands ─+ 6/\d+ ─╮", top);
-        Assert.Contains("│ : rank_", query, StringComparison.Ordinal);
+        Assert.Contains("│ : rank ", query, StringComparison.Ordinal);
     }
 
     [Fact]

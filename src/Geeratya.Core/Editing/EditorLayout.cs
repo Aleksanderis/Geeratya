@@ -21,7 +21,7 @@ public static class EditorLayout
     }
 
     /// <summary>The rows of <paramref name="text"/>; always at least one (an empty text has one empty row).</summary>
-    public static IReadOnlyList<EditorRow> Rows(string text, int capacity)
+    public static IReadOnlyList<EditorRow> Rows(string text, int capacity, bool tokens = true)
     {
         var rows = new List<EditorRow>();
         var limit = Math.Max(1, capacity);
@@ -29,7 +29,7 @@ public static class EditorLayout
         var used = 0;
         var breakAt = -1;
         var usedAtBreak = 0;
-        var cells = Cells(text);
+        var cells = Cells(text, tokens);
 
         foreach (var cell in cells)
         {
@@ -103,7 +103,11 @@ public static class EditorLayout
     /// The row and column of <paramref name="index"/>. An index at the end of a wrapped row belongs to the start of the
     /// next row; one before a newline, or at the end of the text, stays on its row.
     /// </summary>
-    public static EditorPosition Locate(string text, IReadOnlyList<EditorRow> rows, int index)
+    public static EditorPosition Locate(
+        string text,
+        IReadOnlyList<EditorRow> rows,
+        int index,
+        bool tokens = true)
     {
         var clamped = Math.Clamp(index, 0, text.Length);
 
@@ -116,7 +120,7 @@ public static class EditorLayout
             {
                 var start = Math.Min(current.Start, clamped);
 
-                return new EditorPosition(row, ColumnOf(text, start, clamped));
+                return new EditorPosition(row, ColumnOf(text, start, clamped, tokens));
             }
         }
 
@@ -127,14 +131,19 @@ public static class EditorLayout
     /// The index in <paramref name="row"/> at the given display column, or the nearest character start before it; never
     /// the end of a wrapped row (that index belongs to the next row).
     /// </summary>
-    public static int IndexAt(string text, IReadOnlyList<EditorRow> rows, int row, int column)
+    public static int IndexAt(
+        string text,
+        IReadOnlyList<EditorRow> rows,
+        int row,
+        int column,
+        bool tokens = true)
     {
         var current = rows[row];
         var used = 0;
         var index = current.Start;
         var lastStart = current.Start;
 
-        foreach (var cell in RowCells(text, current))
+        foreach (var cell in RowCells(text, current, tokens))
         {
             var width = DisplayWidth.Of(cell.Display);
 
@@ -160,12 +169,13 @@ public static class EditorLayout
 
     /// <summary>
     /// The cells of <paramref name="text"/>: one per character (grapheme), but a mention or issue link is one cell that
-    /// shows its short form. The row layout, the cursor column and the renderer all measure these cells.
+    /// shows its short form (only when <paramref name="withTokens"/>: a plain text has none). The row layout, the
+    /// cursor column and the renderer all measure these cells.
     /// </summary>
-    public static IReadOnlyList<EditorCell> Cells(string text)
+    public static IReadOnlyList<EditorCell> Cells(string text, bool withTokens = true)
     {
         var cells = new List<EditorCell>(text.Length);
-        var tokens = AdfMarkdownTokens.Find(text);
+        var tokens = withTokens ? AdfMarkdownTokens.Find(text) : [];
         var nextToken = 0;
         var skipUntil = 0;
         var elements = StringInfo.GetTextElementEnumerator(text);
@@ -206,15 +216,15 @@ public static class EditorLayout
     }
 
     /// <summary>The cells of <paramref name="row"/>.</summary>
-    public static IEnumerable<EditorCell> RowCells(string text, EditorRow row)
+    public static IEnumerable<EditorCell> RowCells(string text, EditorRow row, bool tokens = true)
     {
-        return Cells(text).Where(cell => cell.Start >= row.Start && cell.End <= row.End);
+        return Cells(text, tokens).Where(cell => cell.Start >= row.Start && cell.End <= row.End);
     }
 
     // The display width of the cells from start up to the cursor; a cursor inside a token stays at its start.
-    private static int ColumnOf(string text, int start, int cursor)
+    private static int ColumnOf(string text, int start, int cursor, bool tokens)
     {
-        return RowCells(text, new EditorRow(start, cursor)).Sum(cell => DisplayWidth.Of(cell.Display));
+        return RowCells(text, new EditorRow(start, cursor), tokens).Sum(cell => DisplayWidth.Of(cell.Display));
     }
 
     /// <summary>The start of the character before <paramref name="index"/>, or 0.</summary>
@@ -233,6 +243,24 @@ public static class EditorLayout
         }
 
         return previous;
+    }
+
+    /// <summary>The start of the character containing <paramref name="index"/> (the index itself at a start).</summary>
+    public static int StartAtOrBefore(string text, int index)
+    {
+        var found = 0;
+
+        foreach (var start in StringInfo.ParseCombiningCharacters(text))
+        {
+            if (start > index)
+            {
+                break;
+            }
+
+            found = start;
+        }
+
+        return found;
     }
 
     /// <summary>The start of the character after <paramref name="index"/>, or the end of the text.</summary>

@@ -2,6 +2,7 @@ using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
+using Geeratya.Core.Text;
 using Geeratya.Tui.Rendering;
 
 namespace Geeratya.Tui.Tests.Rendering;
@@ -153,7 +154,7 @@ public class ProfileFormOverlaySnapshotTests
 
         Assert.DoesNotContain("s3cr3t", text, StringComparison.Ordinal);
         Assert.DoesNotContain("-token-", text, StringComparison.Ordinal);
-        Assert.Contains("*************|*****", text, StringComparison.Ordinal);
+        Assert.Contains("*************[*]****", CaretRow(state, width, height), StringComparison.Ordinal);
     }
 
     [Theory]
@@ -176,18 +177,36 @@ public class ProfileFormOverlaySnapshotTests
         var text = string.Join('\n', FrameBuilder.Build(state, width, height, _keymap));
 
         Assert.DoesNotContain("qwert", text, StringComparison.Ordinal);
-        Assert.Contains(width == 80 ? "***|**" : "|", text, StringComparison.Ordinal);
+
+        // A box too small for the form leaves the field to the status bar, which is one plain string: a mark there.
+        if (width == 80)
+        {
+            Assert.Contains("***[*]*", CaretRow(state, width, height), StringComparison.Ordinal);
+
+            return;
+        }
+
+        Assert.Contains("|", text, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void GivenTheCaretInsideAName_WhenBuildingTheFrame_ThenTheBarMarksItInTheText()
+    public void GivenTheCaretInsideAName_WhenBuildingTheFrame_ThenTheCaretCellCoversTheCharacterUnderIt()
     {
         var form = ProfileForm.Start with { Name = "workdev", Back = 3 };
         var state = AppState.Initial with { Mode = InputMode.Insert, Form = form };
 
-        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
+        Assert.Contains("work[d]ev", CaretRow(state, 80, 24), StringComparison.Ordinal);
+    }
 
-        Assert.Contains(lines, line => line.Contains("work|dev", StringComparison.Ordinal));
+    // The row that holds the caret cell, as before[cell]after, so a test sees what the caret covers.
+    private static string CaretRow(AppState state, int width, int height)
+    {
+        var frame = FrameBuilder.BuildStyled(state, width, height, _keymap)!;
+        var line = frame.Body.First(row => row.Spans.Any(span => span.Role == TextRole.EditCaret));
+        var text = string.Concat(line.Spans.Select(
+            span => span.Role == TextRole.EditCaret ? $"[{span.Text}]" : span.Text));
+
+        return text;
     }
 
     [Fact]

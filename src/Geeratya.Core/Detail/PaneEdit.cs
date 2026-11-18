@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Panes;
 using Geeratya.Core.Text;
@@ -73,9 +74,9 @@ public sealed record PaneEdit(string Pane, FormState Form)
     public List<StyledLine> DescriptionRows(int inner, int maxRows, out PaneScroll? scroll)
     {
         var field = Field;
-        var prompt = new PromptText(field.Value.Text, field.Back);
+        var prompt = TextBuffer.FromBack(field.Value.Text, field.Back);
         var lines = field.Value.Text.Split('\n');
-        var caretRow = FieldRows.CaretRowOf(prompt);
+        var caretRow = prompt.Line;
         var notices = Footer(inner);
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);

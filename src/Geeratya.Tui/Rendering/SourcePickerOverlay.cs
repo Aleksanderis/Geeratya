@@ -1,4 +1,5 @@
 using System.Globalization;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
@@ -138,7 +139,8 @@ public static class SourcePickerOverlay
 
     private static StyledLine Prompt(SourcePickerState picker, int contentWidth)
     {
-        var text = PromptSpans.Of(new PromptText(picker.Text, picker.Back), contentWidth - PromptMargin);
+        var buffer = TextBuffer.FromBack(picker.Text, picker.Back);
+        var text = CaretText.Spans(buffer, contentWidth - PromptMargin, TextRole.Body);
 
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }

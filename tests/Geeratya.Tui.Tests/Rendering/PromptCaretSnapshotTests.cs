@@ -71,7 +71,7 @@ public class PromptCaretSnapshotTests
 
         var lines = FrameBuilder.Build(state, 40, 10, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("abc|defghij", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.Contains("abcdefghij", StringComparison.Ordinal));
         Assert.All(lines, line => Assert.Equal(40, DisplayWidth.Of(line)));
     }
 

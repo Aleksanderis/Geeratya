@@ -1,4 +1,5 @@
 using Geeratya.Core.Detail;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Panes;
 using Geeratya.Core.State;
@@ -120,7 +121,7 @@ public static partial class FormReducer
                 when InParagraph(form)
                 => Result(Edit(state, tab, form, field => FormEditor.MoveLines(field, LinesOf(action, state)))),
             null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
-            _ when PromptEditing.OperationOf(action) is { } operation
+            _ when EditorActions.OperationOf(action) is { } operation
                 => Edited(Edit(state, tab, form, field => FormEditor.Apply(field, operation)), tab.Id),
             _ => Result(state),
         };

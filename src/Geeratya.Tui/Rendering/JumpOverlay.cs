@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
@@ -111,7 +112,8 @@ public static class JumpOverlay
 
     private static StyledLine Prompt(JumpState jump, int contentWidth)
     {
-        var text = PromptSpans.Of(new PromptText(jump.Text, jump.Back), contentWidth - PromptMargin);
+        var buffer = TextBuffer.FromBack(jump.Text, jump.Back);
+        var text = CaretText.Spans(buffer, contentWidth - PromptMargin, TextRole.Body);
 
         return new StyledLine([new StyledSpan("> ", TextRole.Heading), .. text]);
     }

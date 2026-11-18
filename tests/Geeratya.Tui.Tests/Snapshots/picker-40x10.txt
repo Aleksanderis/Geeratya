@@ -1,7 +1,7 @@
                                         
                                         
 ╭─╭─ Open a view ────────────────────╮─╮
-│ │ > g_                             │ │
+│ │ > g                              │ │
 │w│ Boards                           │l│
 │ │   Board   GCM board (scrum, GCM) │ │
 │ │   Backlog GCM board (scrum, GCM) │ │

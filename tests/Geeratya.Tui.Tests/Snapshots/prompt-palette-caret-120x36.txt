@@ -3,7 +3,7 @@
 ╭─ View ──────────────────────────────────────────────────────────────────────────────────────────────────── 0 issues ─╮
 │  Key T Summary                                                                        Status         Assignee        │
 │ No issues match.  ╭─ Commands ───────────────────────────────────────────────────────────────────╮                   │
-│ project = A       │ : jql proj|ect                                                               │                   │
+│ project = A       │ : jql project                                                                │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ jql [query]                                                                  │                   │
 │                   │ Open a JQL query in a new tab (no query: pick from recent ones)              │                   │

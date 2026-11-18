@@ -1,7 +1,7 @@
                                         
                                         
 ╭─╭─ Switch sprint ──────────────────╮─╮
-│ │ > _                              │ │
+│ │ >                                │ │
 │w│ Active                           │l│
 │ │           Sprint 12 日本語 (19 O │ │
 │ │ Future                           │ │

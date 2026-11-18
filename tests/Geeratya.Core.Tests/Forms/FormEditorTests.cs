@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Forms;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -35,9 +36,9 @@ public class FormEditorTests
     [Fact]
     public void GivenALongText_WhenTyping_ThenItStopsAtJirasLimit()
     {
-        var field = FormEditor.Type(Field(FormFieldKind.Text), new string('x', FormEditor.MaxTextLength + 50));
+        var field = FormEditor.Type(Field(FormFieldKind.Text), new string('x', TextBuffer.MaxLength + 50));
 
-        Assert.Equal(FormEditor.MaxTextLength, field.Value.Text.Length);
+        Assert.Equal(TextBuffer.MaxLength, field.Value.Text.Length);
     }
 
     [Fact]

@@ -1,7 +1,7 @@
                                         
                                         
 ╭─╭─ Open a view ────────────────────╮─╮
-│ │ > spr|int                        │ │
+│ │ > sprint                         │ │
 │w│ Query                            │l│
 │ │   JQL     text ~ "sprint"        │ │
 │ │                                  │ │

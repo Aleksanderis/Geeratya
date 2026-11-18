@@ -198,7 +198,7 @@ public class EditorSuggestionsTests
     public void GivenAMentionToken_WhenUsingBackspaceDeleteAndArrows_ThenItActsAsOneCharacter()
     {
         var token = AdfMarkdownTokens.Mention("acc-olga", "Olga Other");
-        var buffer = new TextBuffer($"a{token}b", 1 + token.Length);
+        var buffer = new TextBuffer($"a{token}b", 1 + token.Length, true);
 
         Assert.Equal("ab", buffer.Backspace().Text);
         Assert.Equal(1, buffer.Left().Cursor);
@@ -212,7 +212,7 @@ public class EditorSuggestionsTests
     public void GivenAnIssueLinkToken_WhenBackspacing_ThenTheWholeReferenceGoes()
     {
         var token = AdfMarkdownTokens.IssueLink("https://work.atlassian.net/", "GCM-12");
-        var buffer = TextBuffer.Of($"see {token}");
+        var buffer = TextBuffer.Rich($"see {token}");
 
         Assert.Equal("see ", buffer.Backspace().Text);
     }
@@ -241,7 +241,7 @@ public class EditorSuggestionsTests
     private static AppState Editing()
     {
         var profiles = ProfileCatalog.Empty.With(_work);
-        var editor = new CommentEditor(_tab, "A-1", null, TextBuffer.Empty, string.Empty);
+        var editor = new CommentEditor(_tab, "A-1", null, TextBuffer.EmptyRich, string.Empty);
 
         return AppState.Initial with
         {

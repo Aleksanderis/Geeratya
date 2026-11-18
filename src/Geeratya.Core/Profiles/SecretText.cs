@@ -1,5 +1,5 @@
 using System.Globalization;
-using Geeratya.Core.Text;
+using Geeratya.Core.Editing;
 
 namespace Geeratya.Core.Profiles;
 
@@ -46,9 +46,9 @@ public sealed class SecretText
     /// The secret after an edit with the caret <paramref name="back"/> units from the end, and the caret after it. The
     /// editor sees the text inside this method only; nothing leaves it but the new secret and a number.
     /// </summary>
-    public (SecretText Secret, int Back) Edit(int back, Func<PromptText, PromptText> change)
+    public (SecretText Secret, int Back) Edit(int back, Func<TextBuffer, TextBuffer> change)
     {
-        var edited = change(new PromptText(_value, back));
+        var edited = change(TextBuffer.FromBack(_value, back));
 
         return (edited.Text == _value ? this : new SecretText(edited.Text), edited.Back);
     }
