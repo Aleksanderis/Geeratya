@@ -4,6 +4,7 @@ using Geeratya.Core.Boards;
 using Geeratya.Core.Clipboard;
 using Geeratya.Core.Comments;
 using Geeratya.Core.Detail;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Help;
@@ -45,9 +46,14 @@ public sealed partial class AppReducer
             return Result(state with { Message = EmptySprintFocus.Refusal });
         }
 
-        if (state.Editor is null && PromptEditing.OperationOf(action) is { } operation)
+        if (state.Editor is null && EditorActions.OperationOf(action) is { } operation)
         {
             return Result(PromptEditing.Apply(state, operation));
+        }
+
+        if (state.Editor is not null && EditorActions.OperationOf(action, true) is { } editing)
+        {
+            return Result(CommentEditing.Apply(state, editing));
         }
 
         return action switch
@@ -122,18 +128,6 @@ public sealed partial class AppReducer
             ActionIds.RowJump => InNormal(state, () => FlashJumpReducer.Open(state)),
             ActionIds.FormSubmit when state.Form is not null => ProfileReducer.Save(state),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
-            ActionIds.EditorLeft => Result(CommentEditing.Move(state, EditorMove.Left)),
-            ActionIds.EditorRight => Result(CommentEditing.Move(state, EditorMove.Right)),
-            ActionIds.EditorRowStart => Result(CommentEditing.Move(state, EditorMove.RowStart)),
-            ActionIds.EditorRowEnd => Result(CommentEditing.Move(state, EditorMove.RowEnd)),
-            ActionIds.EditorPageUp => Result(CommentEditing.Move(state, EditorMove.PageUp)),
-            ActionIds.EditorPageDown => Result(CommentEditing.Move(state, EditorMove.PageDown)),
-            ActionIds.EditorWordLeft => Result(CommentEditing.Move(state, EditorMove.WordLeft)),
-            ActionIds.EditorWordRight => Result(CommentEditing.Move(state, EditorMove.WordRight)),
-            ActionIds.EditorDeleteWordBefore => Result(CommentEditing.DeleteWordBefore(state)),
-            ActionIds.EditorDeleteWordAfter => Result(CommentEditing.DeleteWordAfter(state)),
-            ActionIds.EditorDeleteToStart => Result(CommentEditing.DeleteToStart(state)),
-            ActionIds.EditorDelete => Result(CommentEditing.DeleteForward(state)),
             ActionIds.EditorExternal when state.Form is null => CommentEditing.External(state),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
@@ -279,7 +273,7 @@ public sealed partial class AppReducer
             return SourceReducer.Move(state, direction);
         }
 
-        return CommentEditing.Move(state, direction > 0 ? EditorMove.Down : EditorMove.Up);
+        return CommentEditing.Apply(state, direction > 0 ? EditorOperation.Down : EditorOperation.Up);
     }
 
     /// <summary>n, q or Esc in Confirm mode; a discard question goes back to the editor with its text.</summary>
@@ -302,7 +296,7 @@ public sealed partial class AppReducer
     {
         if (state.Editor is not null)
         {
-            return CommentEditing.Backspace(state);
+            return CommentEditing.Apply(state, EditorOperation.Backspace);
         }
 
         if (state.Jump is not null)

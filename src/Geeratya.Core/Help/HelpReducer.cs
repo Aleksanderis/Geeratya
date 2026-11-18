@@ -1,6 +1,6 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.State;
-using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Help;
 
@@ -76,7 +76,7 @@ public static class HelpReducer
                 return Step(state, keymap, -1);
         }
 
-        if (PromptEditing.OperationOf(keymap.Resolve(InputMode.Insert, string.Empty, key).Action) is { } operation)
+        if (EditorActions.OperationOf(keymap.Resolve(InputMode.Insert, string.Empty, key).Action) is { } operation)
         {
             return Edited(state, Prompt(state).Apply(operation));
         }
@@ -101,16 +101,16 @@ public static class HelpReducer
             return state with { HelpFiltering = false };
         }
 
-        return Edited(state, Prompt(state).Apply(PromptOperation.Backspace));
+        return Edited(state, Prompt(state).Apply(EditorOperation.Backspace));
     }
 
-    private static PromptText Prompt(AppState state)
+    private static TextBuffer Prompt(AppState state)
     {
-        return new PromptText(state.HelpFilter, state.HelpFilterBack);
+        return TextBuffer.FromBack(state.HelpFilter, state.HelpFilterBack);
     }
 
     // A changed filter starts the page at its first line again; a caret move leaves the scroll.
-    private static AppState Edited(AppState state, PromptText filter)
+    private static AppState Edited(AppState state, TextBuffer filter)
     {
         var scroll = filter.Text == state.HelpFilter ? state.HelpScroll : 0;
 

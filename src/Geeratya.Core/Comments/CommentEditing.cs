@@ -140,41 +140,13 @@ internal static partial class CommentEditing
         return Change(state, buffer => buffer.Insert(text));
     }
 
-    public static AppState Backspace(AppState state)
-    {
-        return Change(state, static buffer => buffer.Backspace());
-    }
-
-    public static AppState DeleteForward(AppState state)
-    {
-        return Change(state, static buffer => buffer.Delete());
-    }
-
-    /// <summary>Ctrl-w: deletes the word before the cursor.</summary>
-    public static AppState DeleteWordBefore(AppState state)
-    {
-        return Change(state, static buffer => buffer.DeleteBetween(buffer.WordLeft().Cursor, buffer.Cursor));
-    }
-
-    /// <summary>Alt-d: deletes the word after the cursor.</summary>
-    public static AppState DeleteWordAfter(AppState state)
-    {
-        return Change(state, static buffer => buffer.DeleteBetween(buffer.Cursor, buffer.WordRight().Cursor));
-    }
-
-    /// <summary>Ctrl-u: deletes from the cursor back to the start of its line.</summary>
-    public static AppState DeleteToStart(AppState state)
-    {
-        return Change(state, static buffer => buffer.DeleteBetween(buffer.LineStart(), buffer.Cursor));
-    }
-
-    public static AppState Move(AppState state, EditorMove move)
+    /// <summary>An editing key in the comment text: the same operations as every other text surface.</summary>
+    public static AppState Apply(AppState state, EditorOperation operation)
     {
         var capacity = EditorLayout.Capacity(CommentEditor.InnerWidth(state.ViewportColumns));
-
         var page = Math.Max(1, state.ViewportRows / 2);
 
-        return Change(state, buffer => Moved(buffer, move, capacity, page));
+        return Change(state, buffer => buffer.Apply(operation, capacity, page));
     }
 
     /// <summary>
@@ -241,23 +213,6 @@ internal static partial class CommentEditing
         var saving = WithEditor(started.State, editor with { Error = null, OperationId = started.State.Sequence });
 
         return new ReduceResult(saving, started.Effects);
-    }
-
-    private static TextBuffer Moved(TextBuffer buffer, EditorMove move, int capacity, int page)
-    {
-        return move switch
-        {
-            EditorMove.Left => buffer.Left(),
-            EditorMove.Right => buffer.Right(),
-            EditorMove.Up => buffer.Vertical(-1, capacity),
-            EditorMove.Down => buffer.Vertical(1, capacity),
-            EditorMove.RowStart => buffer.RowStart(capacity),
-            EditorMove.PageUp => buffer.Vertical(-page, capacity),
-            EditorMove.PageDown => buffer.Vertical(page, capacity),
-            EditorMove.WordLeft => buffer.WordLeft(),
-            EditorMove.WordRight => buffer.WordRight(),
-            _ => buffer.RowEnd(capacity),
-        };
     }
 
     private static AppState Change(AppState state, Func<TextBuffer, TextBuffer> change)

@@ -1,12 +1,13 @@
 using System.Globalization;
+using Geeratya.Core.Editing;
 
 namespace Geeratya.Core.Text;
 
 /// <summary>
 /// A prompt cut to a width around its caret: the text before the caret, the caret mark (<c>_</c> after the last
 /// character, <c>|</c> between two characters) and the text after it. Wide characters are never split. A cut side
-/// starts (before) or ends (after) with an ellipsis. The mark is for single-line surfaces that draw it as text (status
-/// bar, filters); the form box and the editors draw the caret as a styled cell instead, see <see cref="CaretRows"/>.
+/// starts (before) or ends (after) with an ellipsis. The mark is for the surfaces that are one plain string (see <see cref="CaretText.Marked"/>); every other surface draws the
+/// caret as a styled cell, see <see cref="CaretText"/>.
 /// </summary>
 /// <param name="Before">The visible text before the caret.</param>
 /// <param name="Caret">The caret mark.</param>
@@ -25,9 +26,9 @@ public sealed record PromptWindow(string Before, string Caret, string After, boo
     private const int MinimumRoomForEllipsis = 4;
 
     /// <summary>The prompt cut so that text and caret mark fit in <paramref name="width"/> columns (at least the mark).</summary>
-    public static PromptWindow Of(PromptText prompt, int width)
+    public static PromptWindow Of(TextBuffer prompt, int width)
     {
-        var caret = prompt.Caret;
+        var caret = prompt.Cursor;
         var before = Clusters(prompt.Text[..caret]);
         var after = Clusters(prompt.Text[caret..]);
         var mark = caret == prompt.Text.Length ? EndMark : InsideMark;

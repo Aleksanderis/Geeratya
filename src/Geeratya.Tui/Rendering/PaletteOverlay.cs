@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.CommandPalette;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Mouse;
@@ -120,7 +121,8 @@ public static class PaletteOverlay
     // The query line: the prompt in the accent colour, the typed text (its tail when too long) and a cursor cell.
     private static StyledLine QueryLine(AppState state, int width)
     {
-        var text = PromptSpans.Of(new PromptText(state.PaletteText, state.PaletteBack), Math.Max(1, width - 2));
+        var buffer = TextBuffer.FromBack(state.PaletteText, state.PaletteBack);
+        var text = CaretText.Spans(buffer, Math.Max(1, width - 2), TextRole.Body);
 
         return new StyledLine([new StyledSpan(": ", TextRole.Heading), .. text]);
     }

@@ -1,6 +1,6 @@
 using System.Globalization;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Suggestions;
-using Geeratya.Core.Text;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -9,13 +9,10 @@ namespace Geeratya.Core.Forms;
 
 /// <summary>
 /// Editing one field: pure functions from a field and an input to the changed field, so the whole editor runs without
-/// a terminal. Text is bounded to <see cref="MaxTextLength"/> (Jira's own limit). Read-only kinds ignore every input.
+/// a terminal. Text is bounded to <see cref="TextBuffer.MaxLength"/> (Jira's own limit). Read-only kinds ignore every input.
 /// </summary>
 public static class FormEditor
 {
-    /// <summary>The longest text of a field.</summary>
-    public const int MaxTextLength = 32767;
-
     private static readonly char[] _lineBreaks = ['\r', '\n'];
 
     /// <summary>Typed or pasted text goes to the value, the filter or the label buffer, as the kind says.</summary>
@@ -43,7 +40,7 @@ public static class FormEditor
     /// An editing key of the text being typed (caret moves, deletes): a no-op on a read-only field. The caret and
     /// the text belong to the filter or label buffer of a choice, picked or label field, else to the value.
     /// </summary>
-    public static FormField Apply(FormField field, PromptOperation operation)
+    public static FormField Apply(FormField field, EditorOperation operation)
     {
         if (!field.IsEditable)
         {
@@ -64,7 +61,7 @@ public static class FormEditor
             return field;
         }
 
-        return WithPrompt(field, Prompt(field).MoveLines(lines));
+        return WithPrompt(field, Prompt(field).Vertical(lines, TextBuffer.NoWrap));
     }
 
     /// <summary>Deletes the last character; in an empty label buffer it removes the last label.</summary>
@@ -90,7 +87,7 @@ public static class FormEditor
             return BackspacePicked(field);
         }
 
-        return Apply(field, PromptOperation.Backspace);
+        return Apply(field, EditorOperation.Backspace);
     }
 
     /// <summary>Enter: adds the typed label, or moves on (a choice is taken from the suggestion popup).</summary>
@@ -224,7 +221,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return Apply(field, PromptOperation.Backspace);
+            return Apply(field, EditorOperation.Backspace);
         }
 
         var keep = field.Kind == FormFieldKind.Select ? 0 : Math.Max(0, field.Value.Chosen.Count - 1);
@@ -236,7 +233,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return Apply(field, PromptOperation.Backspace);
+            return Apply(field, EditorOperation.Backspace);
         }
 
         return field with { Value = FormValue.Empty, Error = null };
@@ -277,7 +274,7 @@ public static class FormEditor
     {
         if (field.Entry.Length > 0)
         {
-            return Apply(field, PromptOperation.Backspace);
+            return Apply(field, EditorOperation.Backspace);
         }
 
         var remaining = field.Value.Chosen.Take(Math.Max(0, field.Value.Chosen.Count - 1));
@@ -318,12 +315,12 @@ public static class FormEditor
         return field.Kind == FormFieldKind.Labels || FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind);
     }
 
-    private static PromptText Prompt(FormField field)
+    private static TextBuffer Prompt(FormField field)
     {
-        return new PromptText(TypesInEntry(field) ? field.Entry : field.Value.Text, field.Back);
+        return TextBuffer.FromBack(TypesInEntry(field) ? field.Entry : field.Value.Text, field.Back);
     }
 
-    private static FormField WithPrompt(FormField field, PromptText prompt)
+    private static FormField WithPrompt(FormField field, TextBuffer prompt)
     {
         if (TypesInEntry(field))
         {
@@ -337,26 +334,8 @@ public static class FormEditor
     private static FormField Inserted(FormField field, string typed)
     {
         var prompt = Prompt(field);
-        var room = MaxTextLength - prompt.Text.Length;
+        var inserted = prompt.Insert(typed);
 
-        if (typed.Length == 0 || room <= 0)
-        {
-            return field with { Error = null };
-        }
-
-        return WithPrompt(field, prompt.Insert(Bounded(typed, room)));
-    }
-
-    private static string Bounded(string text, int room)
-    {
-        if (text.Length <= room)
-        {
-            return text;
-        }
-
-        // Never end on half of a surrogate pair.
-        var length = char.IsHighSurrogate(text[room - 1]) ? room - 1 : room;
-
-        return text[..length];
+        return inserted == prompt ? field with { Error = null } : WithPrompt(field, inserted);
     }
 }

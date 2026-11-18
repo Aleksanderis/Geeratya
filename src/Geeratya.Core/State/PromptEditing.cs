@@ -1,41 +1,22 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
 using Geeratya.Core.Sources;
-using Geeratya.Core.Text;
 
 namespace Geeratya.Core.State;
 
 /// <summary>
 /// The editing keys of the single-line prompts that live in <see cref="AppState"/> (the command palette, the source
-/// picker and the jump prompt): the action ids map to <see cref="PromptOperation"/> and the one editor,
-/// <see cref="PromptText"/>, does the work. Form fields and the help filter call the same editor from their own
+/// picker and the jump prompt): <see cref="EditorActions"/> maps the action ids to <see cref="EditorOperation"/> and the one editor,
+/// <see cref="TextBuffer"/>, does the work. Form fields and the help filter call the same editor from their own
 /// reducers. Pure.
 /// </summary>
 public static class PromptEditing
 {
-    /// <summary>The prompt operation an action stands for, or null when the action is not a prompt editing key.</summary>
-    public static PromptOperation? OperationOf(string? action)
-    {
-        return action switch
-        {
-            ActionIds.EditorLeft => PromptOperation.Left,
-            ActionIds.EditorRight => PromptOperation.Right,
-            ActionIds.EditorRowStart => PromptOperation.LineStart,
-            ActionIds.EditorRowEnd => PromptOperation.LineEnd,
-            ActionIds.EditorWordLeft => PromptOperation.WordLeft,
-            ActionIds.EditorWordRight => PromptOperation.WordRight,
-            ActionIds.EditorDelete => PromptOperation.Delete,
-            ActionIds.EditorDeleteWordBefore => PromptOperation.DeleteWordBefore,
-            ActionIds.EditorDeleteWordAfter => PromptOperation.DeleteWordAfter,
-            ActionIds.EditorDeleteToStart => PromptOperation.DeleteToStart,
-            _ => null,
-        };
-    }
-
     /// <summary>Applies an editing key to the open palette, picker or jump prompt; other states stay as they are.</summary>
-    public static AppState Apply(AppState state, PromptOperation operation)
+    public static AppState Apply(AppState state, EditorOperation operation)
     {
         return Edit(state, prompt => prompt.Apply(operation));
     }
@@ -49,15 +30,15 @@ public static class PromptEditing
     /// <summary>Backspace in the open palette, picker or jump prompt.</summary>
     public static AppState Backspace(AppState state)
     {
-        return Apply(state, PromptOperation.Backspace);
+        return Apply(state, EditorOperation.Backspace);
     }
 
     // A changed text sends the highlight back to the first row (the filter changed); a caret move leaves it.
-    private static AppState Edit(AppState state, Func<PromptText, PromptText> change)
+    private static AppState Edit(AppState state, Func<TextBuffer, TextBuffer> change)
     {
         if (state.Mode == InputMode.Command)
         {
-            var edited = change(new PromptText(state.PaletteText, state.PaletteBack));
+            var edited = change(TextBuffer.FromBack(state.PaletteText, state.PaletteBack));
             var pick = edited.Text == state.PaletteText ? state.PalettePick : PickList.First;
 
             return state with { PaletteText = edited.Text, PaletteBack = edited.Back, PalettePick = pick };
@@ -65,7 +46,7 @@ public static class PromptEditing
 
         if (state.Jump is { } jump)
         {
-            var edited = change(new PromptText(jump.Text, jump.Back));
+            var edited = change(TextBuffer.FromBack(jump.Text, jump.Back));
 
             if (edited.Text == jump.Text)
             {
@@ -77,14 +58,14 @@ public static class PromptEditing
 
         if (state.FlashJump is { } flash)
         {
-            var edited = change(new PromptText(flash.Text, flash.Back));
+            var edited = change(TextBuffer.FromBack(flash.Text, flash.Back));
 
             return state with { FlashJump = new FlashJumpState(edited.Text) { Back = edited.Back } };
         }
 
         if (state.Picker is { } picker)
         {
-            var edited = change(new PromptText(picker.Text, picker.Back));
+            var edited = change(TextBuffer.FromBack(picker.Text, picker.Back));
 
             if (edited.Text == picker.Text)
             {
@@ -97,7 +78,7 @@ public static class PromptEditing
         return state.Form is not null ? ProfileReducer.Edit(state, change) : state;
     }
 
-    private static SourcePickerState Changed(SourcePickerState picker, PromptText edited)
+    private static SourcePickerState Changed(SourcePickerState picker, TextBuffer edited)
     {
         return picker with { Text = edited.Text, Back = edited.Back, Pick = PickList.First, AutoOpen = false, Notice = null };
     }

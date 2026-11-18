@@ -1,5 +1,5 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Suggestions;
-using Geeratya.Core.Text;
 using Geeratya.Jira.Transitions.Models;
 
 namespace Geeratya.Core.Forms;
@@ -32,7 +32,7 @@ public sealed record FormField(
 {
     /// <summary>
     /// Units between the caret and the end of the text being typed (<see cref="Entry"/> for a choice, picked or label
-    /// field, else the value text); 0 is the end. See <see cref="PromptText"/>.
+    /// field, else the value text); 0 is the end. See <see cref="TextBuffer"/>.
     /// </summary>
     public int Back { get; init; }
 

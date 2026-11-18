@@ -4,16 +4,22 @@ using Geeratya.Jira.Adf;
 namespace Geeratya.Core.Editing;
 
 /// <summary>
-/// A text with a cursor (a UTF-16 index at the start of a character) and the edits an editor needs. Immutable: every
+/// A text with a cursor (a UTF-16 index at the start of a character) and the edits every text surface shares: the
+/// palette, pickers, jump prompt, filters, form fields, the profile form and the comment editor. Immutable: every
 /// edit returns a new buffer. The cursor moves by character (grapheme), never inside a surrogate pair or a combining
-/// sequence. Up, Down, Home and End move by visual row, so they need the row capacity the text is laid out with.
+/// sequence, and a mention or issue reference counts as one character. Up, Down, Home and End move by visual row, so
+/// they need the row capacity the text is laid out with (<see cref="NoWrap"/> for a surface that does not wrap: its
+/// rows are its lines). <see cref="Apply"/> maps every <see cref="EditorOperation"/> onto the edits below.
 /// </summary>
 /// <param name="Text">The text; lines are separated by <c>\n</c>.</param>
 /// <param name="Cursor">The index of the character the cursor is before; the text length at the end.</param>
 public sealed record TextBuffer(string Text, int Cursor)
 {
-    /// <summary>The most characters a buffer takes (Jira refuses a comment above 32 767).</summary>
-    public const int MaxLength = 30000;
+    /// <summary>The most characters a buffer takes (Jira refuses a text above 32 767).</summary>
+    public const int MaxLength = 32767;
+
+    /// <summary>The row capacity of a surface that does not wrap: a row is a line.</summary>
+    public const int NoWrap = int.MaxValue / 2;
 
     public static TextBuffer Empty { get; } = new(string.Empty, 0);
 
@@ -21,6 +27,51 @@ public sealed record TextBuffer(string Text, int Cursor)
     public static TextBuffer Of(string text)
     {
         return new TextBuffer(text, text.Length);
+    }
+
+    /// <summary>
+    /// A buffer whose cursor is <paramref name="back"/> UTF-16 units before the end of <paramref name="text"/> (clamped
+    /// to the text): the form states keep the caret this way, so a text that is set or appended to elsewhere keeps
+    /// its caret at the end (0). A caret inside a character moves to its start.
+    /// </summary>
+    public static TextBuffer FromBack(string text, int back)
+    {
+        var cursor = text.Length - Math.Clamp(back, 0, text.Length);
+
+        return new TextBuffer(text, cursor == text.Length ? cursor : EditorLayout.StartAtOrBefore(text, cursor));
+    }
+
+    /// <summary>The units between the cursor and the end of the text; see <see cref="FromBack"/>.</summary>
+    public int Back => Text.Length - Math.Clamp(Cursor, 0, Text.Length);
+
+    /// <summary>The number of line breaks before the cursor: its line (0 for a single line).</summary>
+    public int Line => Text[..Math.Clamp(Cursor, 0, Text.Length)].Count(static character => character == '\n');
+
+    /// <summary>The cursor's column in its line, in UTF-16 units.</summary>
+    public int Column => Math.Clamp(Cursor, 0, Text.Length) - LineStart();
+
+    /// <summary>Applies an editing key; the same buffer when it changes nothing.</summary>
+    public TextBuffer Apply(EditorOperation operation, int capacity = NoWrap, int page = 1)
+    {
+        return operation switch
+        {
+            EditorOperation.Left => Left(),
+            EditorOperation.Right => Right(),
+            EditorOperation.Up => Vertical(-1, capacity),
+            EditorOperation.Down => Vertical(1, capacity),
+            EditorOperation.PageUp => Vertical(-page, capacity),
+            EditorOperation.PageDown => Vertical(page, capacity),
+            EditorOperation.RowStart => RowStart(capacity),
+            EditorOperation.RowEnd => RowEnd(capacity),
+            EditorOperation.WordLeft => WordLeft(),
+            EditorOperation.WordRight => WordRight(),
+            EditorOperation.Backspace => Backspace(),
+            EditorOperation.Delete => Delete(),
+            EditorOperation.DeleteWordBefore => DeleteBetween(WordLeft().Cursor, Cursor),
+            EditorOperation.DeleteWordAfter => DeleteBetween(Cursor, WordRight().Cursor),
+            EditorOperation.DeleteToStart => DeleteBetween(LineStart(), Cursor),
+            _ => DeleteBetween(Cursor, LineEnd()),
+        };
     }
 
     /// <summary>Inserts at the cursor; text beyond <see cref="MaxLength"/> is dropped.</summary>
@@ -115,6 +166,14 @@ public sealed record TextBuffer(string Text, int Cursor)
         return Cursor == 0 ? 0 : Text.LastIndexOf('\n', Cursor - 1) + 1;
     }
 
+    /// <summary>The index of the end of the line (up to the next line break) the cursor is on.</summary>
+    public int LineEnd()
+    {
+        var end = Text.IndexOf('\n', Math.Min(Cursor, Text.Length));
+
+        return end < 0 ? Text.Length : end;
+    }
+
     /// <summary>One character left; a mention or issue reference counts as one character.</summary>
     public TextBuffer Left()
     {
@@ -132,14 +191,25 @@ public sealed record TextBuffer(string Text, int Cursor)
     }
 
     /// <summary>
-    /// <paramref name="direction"/> visual rows up (negative) or down, stopping at the first or last row, keeping
-    /// the display column where the row is long enough.
+    /// <paramref name="direction"/> visual rows up (negative) or down, keeping the display column where the row is
+    /// long enough; past the first or last row it goes to the start or end of the text.
     /// </summary>
     public TextBuffer Vertical(int direction, int capacity)
     {
         var rows = EditorLayout.Rows(Text, capacity);
         var position = EditorLayout.Locate(Text, rows, Cursor);
-        var target = Math.Clamp(position.Row + direction, 0, rows.Count - 1);
+        var target = position.Row + direction;
+
+        // Past the first row the cursor goes to the start of the text, past the last row to its end, as an editor does.
+        if (target < 0)
+        {
+            return this with { Cursor = 0 };
+        }
+
+        if (target >= rows.Count)
+        {
+            return this with { Cursor = Text.Length };
+        }
 
         if (target == position.Row)
         {

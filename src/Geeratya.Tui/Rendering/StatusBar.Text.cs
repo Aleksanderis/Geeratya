@@ -1,5 +1,6 @@
 using System.Globalization;
 using Geeratya.Core.Comments;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
@@ -301,17 +302,16 @@ public static partial class StatusBar
 
         var prefix = $"{step} {ProfileFormOverlay.Label(form.Field)}: ";
         var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {prefix}");
-        var window = PromptWindow.Of(ProfileFormOverlay.PromptOf(form, form.Field), Math.Max(0, width - used));
 
-        return $"{prefix}{window.Before}{window.Caret}{window.After}";
+        return $"{prefix}{CaretText.Marked(ProfileFormOverlay.PromptOf(form, form.Field), Math.Max(0, width - used))}";
     }
 
     private static string FlashText(FlashJumpState flash, int width)
     {
         var used = TextWidth.Of($" {Badge(InputMode.Insert)}  {FlashPrompt}");
-        var window = PromptWindow.Of(new PromptText(flash.Text, flash.Back), Math.Max(0, width - used));
+        var marked = CaretText.Marked(TextBuffer.FromBack(flash.Text, flash.Back), Math.Max(0, width - used));
 
-        return $"{FlashPrompt}{window.Before}{window.Caret}{window.After}";
+        return $"{FlashPrompt}{marked}";
     }
 
     /// <summary>The end of <paramref name="text"/> that fits in <paramref name="width"/> columns, never splitting a character.</summary>

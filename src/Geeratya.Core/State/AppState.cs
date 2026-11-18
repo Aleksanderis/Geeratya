@@ -1,4 +1,5 @@
 using Geeratya.Core.Comments;
+using Geeratya.Core.Editing;
 using Geeratya.Core.Flash;
 using Geeratya.Core.Jump;
 using Geeratya.Core.Keymap;
@@ -8,7 +9,6 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.Settings;
 using Geeratya.Core.Sources;
 using Geeratya.Core.Startup;
-using Geeratya.Core.Text;
 using Geeratya.Core.Updates;
 using Geeratya.Core.Views;
 
@@ -136,7 +136,7 @@ public sealed record AppState(
     /// <summary>The text of the help filter (<c>/</c>); empty when none.</summary>
     public string HelpFilter { get; init; } = string.Empty;
 
-    /// <summary>Units between the caret and the end of <see cref="PaletteText"/> (<see cref="PromptText"/>).</summary>
+    /// <summary>Units between the caret and the end of <see cref="PaletteText"/> (<see cref="TextBuffer"/>).</summary>
     public int PaletteBack { get; init; }
 
     /// <summary>Units between the caret and the end of <see cref="HelpFilter"/>.</summary>

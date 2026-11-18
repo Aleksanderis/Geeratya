@@ -69,7 +69,7 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
-    public void GivenTheCursorOnAMention_WhenRendering_ThenTheWholeShortTokenIsSelected()
+    public void GivenTheCursorOnAMention_WhenRendering_ThenTheWholeShortTokenIsTheCaretCell()
     {
         var text = $"hi {AdfMarkdownTokens.Mention("acc-o", "Olga")}!";
         var editor = Editor(text) with { Buffer = new TextBuffer(text, 3) };
@@ -77,14 +77,14 @@ public class CommentEditorOverlayTests
         var body = Frame(editor, 80, 24).Body;
         var line = Assert.Single(body, row => row.PlainText.Contains("hi @Olga", StringComparison.Ordinal));
 
-        Assert.Contains(line.Spans, span => span.Role == TextRole.Selected && span.Text == "@Olga");
+        Assert.Contains(line.Spans, span => span.Role == TextRole.EditCaret && span.Text == "@Olga");
     }
 
     [Theory]
     [InlineData(3, "@日本語", "hi ", "!")]
     [InlineData(0, "h", "", "i @日本語!")]
     [InlineData(4, "!", "hi @日本語", "")]
-    public void GivenAWideNamedMention_WhenRenderingWithTheCursorAround_ThenTheSelectedCellIsRight(
+    public void GivenAWideNamedMention_WhenRenderingWithTheCursorAround_ThenTheCaretCellIsRight(
         int cursorOffset,
         string selected,
         string before,
@@ -99,7 +99,7 @@ public class CommentEditorOverlayTests
         var line = Assert.Single(body, row => row.PlainText.Contains("@日本語", StringComparison.Ordinal));
         var spans = line.Spans.Where(span => span.Text.Length > 0).ToList();
 
-        Assert.Contains(spans, span => span.Role == TextRole.Selected && span.Text == selected);
+        Assert.Contains(spans, span => span.Role == TextRole.EditCaret && span.Text == selected);
         Assert.Contains(spans, span => span.Role == TextRole.Body && span.Text == before || before.Length == 0);
         Assert.Contains(spans, span => span.Role == TextRole.Body && span.Text == after || after.Length == 0);
     }
@@ -122,25 +122,25 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
-    public void GivenText_WhenRendering_ThenTheCursorIsASelectedCellAtItsPosition()
+    public void GivenText_WhenRendering_ThenTheCursorIsTheCaretCellAtItsPosition()
     {
         var editor = Editor("hello") with { Buffer = new TextBuffer("hello", 2) };
 
-        var line = Assert.Single(Frame(editor, 80, 24).Body, row => row.Spans.Any(span => span.Role == TextRole.Selected));
+        var line = Assert.Single(Frame(editor, 80, 24).Body, row => row.Spans.Any(span => span.Role == TextRole.EditCaret));
 
-        var selected = Assert.Single(line.Spans, span => span.Role == TextRole.Selected);
+        var selected = Assert.Single(line.Spans, span => span.Role == TextRole.EditCaret);
         Assert.Equal("l", selected.Text);
         Assert.Contains("he", line.PlainText);
     }
 
     [Fact]
-    public void GivenTheCursorAtTheEnd_WhenRendering_ThenTheCursorIsASelectedSpace()
+    public void GivenTheCursorAtTheEnd_WhenRendering_ThenTheCursorIsACaretSpace()
     {
         var line = Assert.Single(
             Frame(Editor("hello"), 80, 24).Body,
-            row => row.Spans.Any(span => span.Role == TextRole.Selected));
+            row => row.Spans.Any(span => span.Role == TextRole.EditCaret));
 
-        Assert.Equal(" ", Assert.Single(line.Spans, span => span.Role == TextRole.Selected).Text);
+        Assert.Equal(" ", Assert.Single(line.Spans, span => span.Role == TextRole.EditCaret).Text);
     }
 
     [Theory]

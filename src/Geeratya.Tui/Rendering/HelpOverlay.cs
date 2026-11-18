@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Help;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Lists;
@@ -162,14 +163,16 @@ public static class HelpOverlay
         }
 
         var room = Math.Max(1, boxWidth - 8 - Title.Length - FilterPrefix.Length);
-        var window = PromptWindow.Of(new PromptText(state.HelpFilter, state.HelpFilterBack), room);
+        var filter = TextBuffer.FromBack(state.HelpFilter, state.HelpFilterBack);
 
         if (!state.HelpFiltering)
         {
+            var window = PromptWindow.Of(filter, room);
+
             return $"{Title}  {FilterPrefix}{window.Before}{window.After}";
         }
 
-        return $"{Title}  {FilterPrefix}{window.Before}{window.Caret}{window.After}";
+        return $"{Title}  {FilterPrefix}{CaretText.Marked(filter, room)}";
     }
 
     private static StyledLine MenuRow(IReadOnlyList<string> names, int index, int current, int cells)

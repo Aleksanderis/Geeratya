@@ -88,8 +88,8 @@ public class TextBufferTests
         Assert.Equal(9, down.Cursor);
         Assert.Equal(12, downAgain.Cursor);
         Assert.Equal(9, up.Cursor);
-        Assert.Equal(buffer, buffer.Vertical(-1, Wide));
-        Assert.Equal(downAgain, downAgain.Vertical(1, Wide));
+        Assert.Equal(0, buffer.Vertical(-1, Wide).Cursor);
+        Assert.Equal(16, downAgain.Vertical(1, Wide).Cursor);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class TextBufferTests
     }
 
     [Fact]
-    public void GivenManyRows_WhenPaging_ThenTheCursorMovesThatManyRowsAndStopsAtTheEnds()
+    public void GivenManyRows_WhenPaging_ThenTheCursorMovesThatManyRowsAndPastTheEndsGoesToTheTextEnds()
     {
         var buffer = new TextBuffer("a\nb\nc\nd\ne", 0);
 
@@ -178,7 +178,7 @@ public class TextBufferTests
         var up = past.Vertical(-50, Wide);
 
         Assert.Equal(6, down.Cursor);
-        Assert.Equal(8, past.Cursor);
+        Assert.Equal(9, past.Cursor);
         Assert.Equal(0, up.Cursor);
     }
 }

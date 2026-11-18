@@ -235,6 +235,24 @@ public static class EditorLayout
         return previous;
     }
 
+    /// <summary>The start of the character containing <paramref name="index"/> (the index itself at a start).</summary>
+    public static int StartAtOrBefore(string text, int index)
+    {
+        var found = 0;
+
+        foreach (var start in StringInfo.ParseCombiningCharacters(text))
+        {
+            if (start > index)
+            {
+                break;
+            }
+
+            found = start;
+        }
+
+        return found;
+    }
+
     /// <summary>The start of the character after <paramref name="index"/>, or the end of the text.</summary>
     public static int NextStart(string text, int index)
     {

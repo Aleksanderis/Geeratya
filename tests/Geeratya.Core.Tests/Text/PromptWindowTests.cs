@@ -1,3 +1,4 @@
+using Geeratya.Core.Editing;
 using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Tests.Text;
@@ -8,7 +9,7 @@ public class PromptWindowTests
     [Fact]
     public void GivenTheCaretAtTheEnd_WhenTheTextFits_ThenTheMarkIsAnUnderscoreAfterIt()
     {
-        var window = PromptWindow.Of(PromptText.Of("abc"), 20);
+        var window = PromptWindow.Of(TextBuffer.Of("abc"), 20);
 
         Assert.Equal(new PromptWindow("abc", "_", string.Empty), window);
     }
@@ -16,7 +17,7 @@ public class PromptWindowTests
     [Fact]
     public void GivenTheCaretInsideTheText_WhenTheTextFits_ThenTheMarkIsABarBetweenTwoCharacters()
     {
-        var window = PromptWindow.Of(new PromptText("abc", 1), 20);
+        var window = PromptWindow.Of(TextBuffer.FromBack("abc", 1), 20);
 
         Assert.Equal(new PromptWindow("ab", "|", "c"), window);
     }
@@ -28,19 +29,19 @@ public class PromptWindowTests
     [InlineData(39)]
     public void GivenALongText_WhenCut_ThenTheCaretStaysInViewAndTheWidthIsKept(int back)
     {
-        var prompt = new PromptText(new string('a', 20) + new string('b', 20), back);
+        var prompt = TextBuffer.FromBack(new string('a', 20) + new string('b', 20), back);
 
         var window = PromptWindow.Of(prompt, 12);
 
         var shown = $"{window.Before}{window.Caret}{window.After}";
         Assert.True(DisplayWidth.Of(shown) <= 12, shown);
-        Assert.Equal(prompt.Caret == 40 ? "_" : "|", window.Caret);
+        Assert.Equal(prompt.Cursor == 40 ? "_" : "|", window.Caret);
     }
 
     [Fact]
     public void GivenACaretNearTheStartOfALongText_WhenCut_ThenTheTailIsCutWithAnEllipsis()
     {
-        var window = PromptWindow.Of(new PromptText("abcdefghijklmnopqrstuvwxyz", 24), 10);
+        var window = PromptWindow.Of(TextBuffer.FromBack("abcdefghijklmnopqrstuvwxyz", 24), 10);
 
         Assert.StartsWith("ab", window.Before, StringComparison.Ordinal);
         Assert.EndsWith("…", window.After, StringComparison.Ordinal);
@@ -50,7 +51,7 @@ public class PromptWindowTests
     [Fact]
     public void GivenTheCaretAtTheEndOfALongText_WhenCut_ThenTheTailShowsAfterALeadingEllipsis()
     {
-        var window = PromptWindow.Of(PromptText.Of("abcdefghijklmnopqrstuvwxyz"), 10);
+        var window = PromptWindow.Of(TextBuffer.Of("abcdefghijklmnopqrstuvwxyz"), 10);
 
         Assert.Equal("…stuvwxyz", window.Before);
         Assert.Equal(string.Empty, window.After);
@@ -59,7 +60,7 @@ public class PromptWindowTests
     [Fact]
     public void GivenWideCharacters_WhenCut_ThenNoCharacterIsSplitAndTheWidthFits()
     {
-        var prompt = new PromptText("日本語日本語日本語", 4);
+        var prompt = TextBuffer.FromBack("日本語日本語日本語", 4);
 
         var window = PromptWindow.Of(prompt, 9);
 
@@ -71,7 +72,7 @@ public class PromptWindowTests
     [Fact]
     public void GivenATinyWidth_WhenCut_ThenAtLeastTheMarkShows()
     {
-        var window = PromptWindow.Of(PromptText.Of("abcdef"), 1);
+        var window = PromptWindow.Of(TextBuffer.Of("abcdef"), 1);
 
         Assert.Equal("_", window.Caret);
         Assert.Equal(string.Empty, window.After);
