@@ -20,7 +20,7 @@ public static class NavigationLevels
     /// <summary>The key that closes a level in every state where it is not text.</summary>
     public const string CloseKey = "q";
 
-    private const string DiscardQuestion = "Discard the changes to the profile?";
+    private const string DiscardSubject = "the changes to the profile";
 
     /// <summary>True when there is nothing left to close: <c>q</c> then quits.</summary>
     public static bool AtRoot(AppState state)
@@ -98,7 +98,7 @@ public static class NavigationLevels
             return null;
         }
 
-        var request = new ConfirmRequest(DiscardQuestion, ProfileReducer.DiscardAction, Label: "Discard");
+        var request = DiscardPrompts.Request(DiscardSubject, ProfileReducer.DiscardAction);
 
         return DiscardPrompts.Ask(state, request);
     }

@@ -181,7 +181,7 @@ public class OverlayLookTests
     public void GivenAConfirmThatDeletes_WhenBuildingTheFrame_ThenTheFrameIsTheBadColourAndAnyOtherQuestionIsWarn()
     {
         var destructive = new ConfirmRequest(
-            "Delete PROJ-1? Jira cannot undo this.",
+            "Delete PROJ-1?",
             "issue.delete",
             Label: "Delete issue",
             Destructive: true);
@@ -229,12 +229,12 @@ public class OverlayLookTests
 
     private static TextRole FrameOf(string name)
     {
-        return name == "confirm" ? TextRole.OverlayFrameWarn : TextRole.OverlayFrame;
+        return name == "confirm" ? TextRole.OverlayFrameBad : TextRole.OverlayFrame;
     }
 
     private static TextRole ChipOf(string name)
     {
-        return name == "confirm" ? TextRole.OverlayChipWarn : TextRole.OverlayChip;
+        return name == "confirm" ? TextRole.OverlayChipBad : TextRole.OverlayChip;
     }
 
     private static TextRole FrameRoleOf(AppState state)

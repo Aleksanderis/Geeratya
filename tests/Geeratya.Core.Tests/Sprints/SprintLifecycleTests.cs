@@ -50,7 +50,8 @@ public class SprintLifecycleTests
         Assert.Contains("\"Sprint 1\" (0 done, 2 open)", text);
         Assert.Contains("2 issues will be moved to the backlog", text);
         Assert.Contains("second step", text);
-        Assert.Contains("Jira cannot undo this", text);
+        Assert.True(asked.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", text, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -195,7 +196,8 @@ public class SprintLifecycleTests
         Assert.Equal(InputMode.Confirm, asked.State.Mode);
         var text = asked.State.Confirm!.Message;
         Assert.StartsWith("Start \"Sprint 2\": 2 issues, 3 pts, ", text);
-        Assert.EndsWith("Jira cannot undo this.", text);
+        Assert.True(asked.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", text, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Start sprint", asked.State.Confirm.Label);
 
         var sent = Press(asked.State, "y");

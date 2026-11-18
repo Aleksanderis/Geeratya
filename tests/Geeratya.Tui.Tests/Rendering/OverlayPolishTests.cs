@@ -94,13 +94,12 @@ public class OverlayPolishTests
     }
 
     [Fact]
-    public void GivenATransition_WhenAskingBeforeItRuns_ThenTheConfirmIsSevereAndNamesTheIssue()
+    public void GivenATransition_WhenAskingBeforeItRuns_ThenTheConfirmNamesTheIssue()
     {
         var target = new IssueStatus("10005", "Done", "done");
         var choice = new TransitionChoice("41", "Done", target, false, false, []);
         var request = new TransitionRequest("GCM-8", choice, [], true);
 
-        Assert.True(request.AskSevere);
         Assert.Equal("Move GCM-8", request.AskHeading);
     }
 

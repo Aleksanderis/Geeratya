@@ -47,8 +47,6 @@ public sealed record CompleteSprintRequest(
 
     public override string AskHeading => $"Complete \"{Sprint.Name}\"";
 
-    public override bool AskSevere => true;
-
     /// <summary>The place the open issues go, as the question and the status line name it.</summary>
     public string Destination => MoveTo is { } next ? $"sprint \"{next.Name}\"" : "the backlog";
 
@@ -60,7 +58,7 @@ public sealed record CompleteSprintRequest(
             var open = OpenKeys.Count;
             var counts = $"{DoneCount} done, {open} open";
 
-            return $"Complete \"{Sprint.Name}\" ({counts})? {MoveText} Jira cannot undo this.";
+            return $"Complete \"{Sprint.Name}\" ({counts})? {MoveText}";
         }
     }
 

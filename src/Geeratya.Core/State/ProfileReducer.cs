@@ -16,6 +16,7 @@ public static partial class ProfileReducer
     public const string SwitchAction = "profile.switch";
     public const string DiscardAction = "profile.discard";
 
+    private const string RemoveWarning = "This cannot be undone.";
     private const string AddVerb = "add";
     private const string ListVerb = "list";
     private const string SwitchVerb = "switch";

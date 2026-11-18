@@ -29,8 +29,8 @@ public sealed record UnlinkIssuesRequest(
 
     public override string ActionText => $"remove the link {Sentence}";
 
-    /// <summary>The question of the confirm: both issues, the wording, and that Jira cannot undo it.</summary>
-    public string ConfirmText => $"Remove the link {Sentence}? Jira cannot undo this.";
+    /// <summary>The question of the confirm: both issues and the wording (the dialog adds that Jira cannot undo it).</summary>
+    public string ConfirmText => $"Remove the link {Sentence}?";
 
     public override bool IsShownBy(IssueDetail detail)
     {

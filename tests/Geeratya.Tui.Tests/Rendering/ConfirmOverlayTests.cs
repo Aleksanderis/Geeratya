@@ -12,7 +12,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 [Trait("Os", "Independent")]
 public class ConfirmOverlayTests
 {
-    private const string Question = "Delete the GCM-3 comment? Jira cannot undo this. By Eve: \"first words\"";
+    private const string Question = "Delete the GCM-3 comment? By Eve: \"first words\"";
 
     private static readonly DateTimeOffset _at = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
@@ -36,7 +36,7 @@ public class ConfirmOverlayTests
     }
 
     [Fact]
-    public void GivenAWarningLine_WhenBuildingTheFrame_ThenItUsesTheWarningRole()
+    public void GivenADestructiveDialog_WhenBuildingTheFrame_ThenTheWarningLineUsesTheErrorRole()
     {
         var frame = FrameBuilder.BuildStyled(Open(), 120, 36, _keymap)!;
 
@@ -44,14 +44,14 @@ public class ConfirmOverlayTests
 
         Assert.Contains(
             spans,
-            span => span.Role == TextRole.Warning && span.Text.Contains("Jira cannot undo", StringComparison.Ordinal));
+            span => span.Role == TextRole.Error && span.Text.Contains("Jira cannot undo", StringComparison.Ordinal));
     }
 
     [Fact]
     public void GivenAnActionJiraCannotUndo_WhenBuildingTheFrame_ThenTheWarningLineIsRedLikeTheFrame()
     {
         var request = new ConfirmRequest(
-            "Delete GCM-3? Jira cannot undo this.",
+            "Delete GCM-3?",
             "x",
             Label: "Delete issue",
             Destructive: true);
@@ -68,8 +68,13 @@ public class ConfirmOverlayTests
     public void GivenALongQuestionAtEightyColumns_WhenBuildingTheFrame_ThenNothingIsCutOff()
     {
         var message = "Remove profile work (me@work.test on https://work.atlassian.net) and delete its stored token? "
-            + "Two writes are running. This cannot be undone";
-        var state = Open(new ConfirmRequest(message, "x", Label: "Remove profile"));
+            + "Two writes are running.";
+        var state = Open(new ConfirmRequest(
+            message,
+            "x",
+            Label: "Remove profile",
+            Destructive: true,
+            Warning: "This cannot be undone."));
 
         var lines = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!.PlainLines();
         var text = string.Join(' ', lines.Select(line => line.Replace('│', ' ')));
@@ -218,7 +223,7 @@ public class ConfirmOverlayTests
             var viewport = new ViewportChanged(Math.Max(0, height - 5), 80, FrameBuilder.BodyHeight(height));
             var state = _reducer.Reduce(AppState.Initial, viewport).State;
 
-            var opened = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x"))).State;
+            var opened = _reducer.Reduce(state, new ConfirmRequested(DeleteRequest())).State;
             var shown = FrameBuilder.BuildStyled(Open(), 80, height, _keymap)!.Regions.Count > 0;
 
             Assert.Equal(shown, opened.Mode == InputMode.Confirm);
@@ -231,7 +236,7 @@ public class ConfirmOverlayTests
         var viewport = new ViewportChanged(0, 80, FrameBuilder.BodyHeight(5));
         var state = _reducer.Reduce(AppState.Initial, viewport).State;
 
-        var result = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x")));
+        var result = _reducer.Reduce(state, new ConfirmRequested(DeleteRequest()));
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
         Assert.Contains("too small to confirm", result.State.Message, StringComparison.Ordinal);
@@ -242,7 +247,7 @@ public class ConfirmOverlayTests
     {
         var state = AppState.Initial with { ViewportColumns = 40, ViewportBodyHeight = 7 };
 
-        var result = _reducer.Reduce(state, new ConfirmRequested(new ConfirmRequest(Question, "x")));
+        var result = _reducer.Reduce(state, new ConfirmRequested(DeleteRequest()));
 
         Assert.Equal(InputMode.Normal, result.State.Mode);
         Assert.Null(result.State.Confirm);
@@ -254,7 +259,7 @@ public class ConfirmOverlayTests
     public void GivenADiscardQuestionOverTheEditor_WhenShrinkingOrClickingOutside_ThenTheEditorGetsItsTextBack()
     {
         var editor = new CommentEditor(new TabId(1), "A-1", null, TextBuffer.Of("draft"), string.Empty);
-        var request = new ConfirmRequest("Discard the unsent comment text? It is not saved anywhere", DiscardPrompts.CommentAction);
+        var request = DiscardPrompts.Request("the new comment", DiscardPrompts.CommentAction);
         var state = Open(request) with { ViewportColumns = 80, ViewportBodyHeight = 21, Editor = editor };
         var frame = FrameBuilder.BuildStyled(state, 80, 24, _keymap)!;
         var context = MouseContext.From(state, 80, 24, frame.Header.Count, _at, frame.Regions);
@@ -275,7 +280,17 @@ public class ConfirmOverlayTests
         return AppState.Initial with
         {
             Mode = InputMode.Confirm,
-            Confirm = request ?? new ConfirmRequest(Question, ActionIds.CommentDelete, "1", Label: "Delete comment"),
+            Confirm = request ?? DeleteRequest(),
         };
+    }
+
+    internal static ConfirmRequest DeleteRequest()
+    {
+        return new ConfirmRequest(
+            Question,
+            ActionIds.CommentDelete,
+            "1",
+            Label: "Delete comment",
+            Destructive: true);
     }
 }

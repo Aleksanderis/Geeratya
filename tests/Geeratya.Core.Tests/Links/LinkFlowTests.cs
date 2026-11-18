@@ -218,7 +218,8 @@ public class LinkFlowTests
 
         Assert.Empty(result.Effects);
         Assert.Equal(InputMode.Confirm, result.State.Mode);
-        Assert.Equal("Remove the link A-1 is blocked by A-9? Jira cannot undo this.", result.State.Confirm!.Message);
+        Assert.Equal("Remove the link A-1 is blocked by A-9?", result.State.Confirm!.Message);
+        Assert.True(result.State.Confirm.Destructive);
     }
 
     [Fact]

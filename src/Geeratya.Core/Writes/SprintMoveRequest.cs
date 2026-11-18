@@ -51,16 +51,14 @@ public sealed record SprintMoveRequest(
 
     public override string? AskText => (Keys.Count, Dropped) switch
     {
-        ( > 1, _) => $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText}? Jira has no undo.",
-        (_, true) => $"Move {Keys[0]} from {SourceText} to {TargetText}? Jira has no undo.",
+        ( > 1, _) => $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText}?",
+        (_, true) => $"Move {Keys[0]} from {SourceText} to {TargetText}?",
         _ => null,
     };
 
     public override string AskLabel => $"Move {Noun}";
 
     public override string AskHeading => $"Move {What}";
-
-    public override bool AskSevere => Keys.Count > 1;
 
     // ReSharper disable once ReturnTypeCanBeNotNullable (the base says null for writes that are not optimistic)
     public override RowChange? Plan(IssueSummary row)

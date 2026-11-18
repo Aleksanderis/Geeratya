@@ -70,7 +70,7 @@ public class OverlayColourTests
 
     [Theory]
     [MemberData(nameof(Themes))]
-    public void GivenABoxUnderAnotherOverlay_WhenResolving_ThenItKeepsTheSurfaceFillAndDimsOnlyTheText(string name)
+    public void GivenABoxUnderAnotherOverlay_WhenResolving_ThenItIsScrimmedLikeTheViewAndItsTextIsDimmed(string name)
     {
         var theme = BuiltInThemes.Find(name)!.Theme!;
         var lower = Palette.Resolve(
@@ -81,7 +81,8 @@ public class OverlayColourTests
             true);
         var upper = Palette.Resolve(theme, ColorSupport.TrueColor, PaletteRole.Body, SpanGround.Surface, true);
 
-        Assert.Equal(theme.Surface, lower.Background);
+        Assert.Equal(theme.ScrimBackground, lower.Background);
+        Assert.NotEqual(theme.Surface, lower.Background);
         Assert.NotEqual(upper.Foreground, lower.Foreground);
     }
 

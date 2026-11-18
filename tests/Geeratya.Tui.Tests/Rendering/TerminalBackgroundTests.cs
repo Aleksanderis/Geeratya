@@ -102,6 +102,21 @@ public class TerminalBackgroundTests
         Assert.NotEqual(box.Foreground, behind.Foreground);
     }
 
+    [Theory]
+    [MemberData(nameof(Themes))]
+    public void GivenTheOptionOn_WhenABoxIsUnderAnotherOverlay_ThenItKeepsTheTerminalLikeTheViewBehind(string name)
+    {
+        var theme = BuiltInThemes.Find(name)!.Theme!.WithTerminalBackground(true);
+        var under = Palette.Resolve(
+            theme,
+            ColorSupport.TrueColor,
+            PaletteRole.Body,
+            SpanGround.Surface | SpanGround.Dim,
+            true);
+
+        Assert.True(under.DefaultBackground);
+    }
+
     [Fact]
     public void GivenTheSameChoice_WhenAskingForTheTerminalBackgroundAgain_ThenTheThemeIsReusedAndTheChoiceIsKept()
     {

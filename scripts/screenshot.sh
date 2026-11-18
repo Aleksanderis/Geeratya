@@ -16,7 +16,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 default_out=${TMPDIR:-/tmp}/geeratya-screenshots
 timeout_ms=${TIMEOUT_MS:-5000}
 
-# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s);
+# Scenario table: name;columns;rows;theme;keys;wait-for. Keys are sent to tmux one by one (`|` sends Enter, `~` Ctrl-s, `!` Esc);
 # wait-for is text that must be on screen after the keys before the frame is captured (before them the "Connected" banner or the board picker is awaited, because the profile line is cut off at 100 columns or fewer),
 # because data loads asynchronously and the settle check alone only compares two captures 0.15 s apart.
 # Scenarios named detail-relations-*, comment-recorded-* and detail-epic-* run against a second fake on the recorded fixtures (no --issues), because only
@@ -145,7 +145,7 @@ all_scenarios=(
   "sprint-view-complete-form;120;36;dark;:board GEN| sv| sc;Open issues go to"
   "sprint-complete-confirm;120;36;dark;:backlog GCS board| sc~;Jira cannot undo"
   "rank-backlog;120;36;dark;:backlog GCM|};Ranked GCM-1"
-  "rank-across-sections;120;36;dark;:backlog GEN board|]]^j^{;Jira has no undo"
+  "rank-across-sections;120;36;dark;:backlog GEN board|]]^j^{;Jira cannot undo"
   "rank-board;120;36;dark;:board GCM|};Ranked"
   "rank-board-team;120;36;dark;:board GTM|};Ranked"
   "theme-latte;120;36;light;:board GCM|:theme catppuccin-latte|;Theme catppuccin-latte."
@@ -159,6 +159,11 @@ all_scenarios=(
   "theme-list;120;36;dark;:theme|;Themes:"
   "tabs;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key|;2 JQL assignee"
   "tab-list;120;36;dark;:jql project = GCM|:jql assignee = currentUser() order by key| T;Open tabs"
+  # The discard questions of every editor (#1031); `!` sends Esc: the first leaves field editing, the next asks.
+  "detail-relations-create-discard;120;36;dark;:jql key = GTM-11| ic|Hello!!;Nothing has been saved"
+  "detail-edit-discard;120;36;dark;:jql project = GEN|jjjj| iex!;Nothing has been saved"
+  "comment-discard;120;36;dark;:jql project = GEN|jjjj| maHello!;Nothing has been saved"
+  "profile-discard;120;36;dark;:profile add|work!;Discard the changes"
 )
 
 usage() {
@@ -251,6 +256,8 @@ capture_scenario() {
     key=${keys:index:1}
     if [ "$key" = "|" ]; then
       tmux -L "$socket" send-keys -t s Enter
+    elif [ "$key" = "!" ]; then
+      tmux -L "$socket" send-keys -t s Escape
     elif [ "$key" = "~" ]; then
       tmux -L "$socket" send-keys -t s C-s
     elif [ "$key" = "}" ]; then

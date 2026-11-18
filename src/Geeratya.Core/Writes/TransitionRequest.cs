@@ -16,7 +16,7 @@ public sealed record TransitionRequest(
     bool AskFirst,
     string? Summary = null) : WriteRequest
 {
-    private const string SideEffectWarning = "Jira cannot undo this; the workflow may do more than change the status";
+    private const string SideEffectWarning = "The workflow may do more than change the status.";
 
     // The sub-task actions (#994) name the issue by key and summary.
     private string Label => Summary is null ? Key : $"{Key} ({Summary})";
@@ -43,8 +43,6 @@ public sealed record TransitionRequest(
     public override string AskLabel => "Move issue";
 
     public override string AskHeading => $"Move {Key}";
-
-    public override bool AskSevere => true;
 
     public override RowChange? Plan(IssueSummary row)
     {

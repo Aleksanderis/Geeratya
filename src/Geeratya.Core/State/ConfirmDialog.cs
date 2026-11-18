@@ -14,7 +14,7 @@ public static class ConfirmDialog
     public const string StatusText = "Confirm";
 
     /// <summary>The widest box; wider terminals get more margin, not longer lines.</summary>
-    public const int MaxBoxWidth = 62;
+    public const int MaxBoxWidth = 64;
 
     /// <summary>The narrowest box that is still readable.</summary>
     public const int MinBoxWidth = 24;
@@ -49,10 +49,10 @@ public static class ConfirmDialog
             return notice.Height <= bodyRows ? Shrunk(notice) : null;
         }
 
-        var split = Split(request.Message);
-        var question = Wrap(split.Question, text);
+        var question = Wrap(request.Message, text);
         var heading = string.IsNullOrWhiteSpace(request.Heading) ? Title : request.Heading;
-        var layout = new ConfirmDialogLayout(boxWidth, question, Wrap(split.Warning, text), LabelOf(request), heading);
+        var warning = Wrap(ConfirmWording.WarningOf(request), text);
+        var layout = new ConfirmDialogLayout(boxWidth, question, warning, LabelOf(request), heading);
 
         return layout.Height <= bodyRows ? Shrunk(layout) : null;
     }
@@ -116,21 +116,21 @@ public static class ConfirmDialog
     }
 
     /// <summary>
-    /// Splits a question into what happens and the warning: the sentences that say nothing can be undone go to the
-    /// warning, in their order; the rest stays the question. Quoted text (a comment's words) is never judged, and
-    /// the wording is not changed.
+    /// The question as one line of words (the status line when the dialog does not fit): the warning of a destructive
+    /// request follows the first sentence, so a narrow terminal that cuts the end still shows it before the quoted
+    /// text.
     /// </summary>
-    public static ConfirmSplit Split(string message)
+    public static string Spoken(ConfirmRequest request)
     {
-        var question = new List<string>();
-        var warning = new List<string>();
+        var sentences = Sentences(request.Message).ToList();
+        var warning = ConfirmWording.WarningOf(request);
 
-        foreach (var sentence in Sentences(message))
+        if (warning.Length > 0)
         {
-            (IsWarning(sentence) ? warning : question).Add(sentence);
+            sentences.Insert(Math.Min(1, sentences.Count), warning);
         }
 
-        return new ConfirmSplit(string.Join(' ', question), string.Join(' ', warning));
+        return string.Join(' ', sentences);
     }
 
     /// <summary>
@@ -192,28 +192,6 @@ public static class ConfirmDialog
         }
 
         return lines;
-    }
-
-    private static bool IsWarning(string sentence)
-    {
-        var outside = new StringBuilder();
-        var quoted = false;
-
-        foreach (var character in sentence)
-        {
-            if (character == '"')
-            {
-                quoted = !quoted;
-            }
-            else if (!quoted)
-            {
-                outside.Append(character);
-            }
-        }
-
-        var text = outside.ToString();
-
-        return text.Contains("undo", StringComparison.OrdinalIgnoreCase);
     }
 
     // A sentence ends at ".", "?" or "!" followed by a space or the end, outside double quotes; the mark stays with it.

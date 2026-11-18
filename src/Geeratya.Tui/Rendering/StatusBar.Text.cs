@@ -359,7 +359,8 @@ public static partial class StatusBar
 
         var suffix = $" ({yes}/{no})";
         var used = TextWidth.Of($" {Badge(InputMode.Confirm)}  {suffix}");
-        var question = TextWidth.Fit(state.Confirm?.Message ?? string.Empty, Math.Max(0, width - used));
+        var spoken = state.Confirm is { } request ? ConfirmDialog.Spoken(request) : string.Empty;
+        var question = TextWidth.Fit(spoken, Math.Max(0, width - used));
 
         return $"{question}{suffix}";
     }
