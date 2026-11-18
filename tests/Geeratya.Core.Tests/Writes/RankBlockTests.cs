@@ -37,7 +37,8 @@ public class RankBlockTests
 
         Assert.Equal(InputMode.Confirm, asked.State.Mode);
         Assert.Contains("A-1, A-2", asked.State.Confirm!.Message);
-        Assert.Contains("Jira has no undo", asked.State.Confirm.Message);
+        Assert.True(asked.State.Confirm.Destructive);
+        Assert.DoesNotContain("undo", asked.State.Confirm.Message, StringComparison.OrdinalIgnoreCase);
         var request = RequestOf(confirmed);
         Assert.Equal(["A-1", "A-2"], request.Keys);
         Assert.Equal("A-3", request.ReferenceKey);

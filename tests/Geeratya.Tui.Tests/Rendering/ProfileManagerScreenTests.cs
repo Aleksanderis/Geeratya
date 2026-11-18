@@ -130,7 +130,7 @@ public class ProfileManagerScreenTests
         Assert.Empty(result.Effects);
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.Equal("dev", result.State.Confirm!.Target);
-        Assert.Contains("cannot be undone", result.State.Confirm.Message, StringComparison.Ordinal);
+        Assert.Equal("This cannot be undone.", ConfirmWording.WarningOf(result.State.Confirm));
     }
 
     [Fact]

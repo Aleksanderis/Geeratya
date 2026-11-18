@@ -181,7 +181,7 @@ public class ProfileReducerTests
         Assert.Contains("dev", result.State.Confirm!.Message);
         Assert.Contains("https://dev.atlassian.net", result.State.Confirm.Message);
         Assert.Contains("token", result.State.Confirm.Message);
-        Assert.Contains("cannot be undone", result.State.Confirm.Message);
+        Assert.Equal("This cannot be undone.", ConfirmWording.WarningOf(result.State.Confirm));
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public class ProfileReducerTests
         Assert.Empty(result.Effects);
         Assert.Equal(InputMode.Confirm, result.State.Mode);
         Assert.Equal("dev", result.State.Confirm!.Target);
-        Assert.Contains("cannot be undone", result.State.Confirm.Message, StringComparison.Ordinal);
+        Assert.Equal("This cannot be undone.", ConfirmWording.WarningOf(result.State.Confirm));
     }
 
     [Fact]

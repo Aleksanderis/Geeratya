@@ -56,7 +56,7 @@ public sealed record StartSprintRequest(
             var points = Points > 0 ? $", {SprintTally.Number(Points)} pts" : string.Empty;
             var dates = $"{SprintFormFields.Local(Start)} to {SprintFormFields.Local(End)}";
 
-            return $"Start \"{Sprint.Name}\": {counted}{points}, {dates}. Jira cannot undo this.";
+            return $"Start \"{Sprint.Name}\": {counted}{points}, {dates}.";
         }
     }
 

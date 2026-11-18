@@ -51,8 +51,8 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
     public override string ActionText => $"delete {Key}";
 
     /// <summary>
-    /// The question of the confirm. What matters comes first (the key, the sub-tasks, that Jira cannot undo it) and
-    /// the title last, because a narrow terminal cuts the end of the line.
+    /// The question of the confirm. What matters comes first (the key, the sub-tasks) and the title last, because a
+    /// narrow terminal cuts the end of the line (the dialog adds that Jira cannot undo it).
     /// </summary>
     public string ConfirmText
     {
@@ -61,7 +61,7 @@ public sealed record DeleteIssueRequest(string Key, string Summary, int SubtaskC
             var title = Shorten(Summary);
             var suffix = title.Length == 0 ? string.Empty : $" \"{title}\"";
 
-            return $"Delete {Key}{WithSubtasksText}{HiddenText}? Jira cannot undo this.{suffix}";
+            return $"Delete {Key}{WithSubtasksText}{HiddenText}?{suffix}";
         }
     }
 

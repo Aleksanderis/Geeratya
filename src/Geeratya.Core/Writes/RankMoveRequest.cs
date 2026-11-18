@@ -60,7 +60,7 @@ public sealed record RankMoveRequest(
 
     public override string? AskText => Keys.Count > 1
         ? $"Move {Count} issues ({KeysText()}) from {SourceText} to {TargetText} and rank them {Place}? " +
-          "Two calls, Jira has no undo."
+          "It takes two calls."
         : null;
 
     public override string AskLabel => "Move and rank issues";

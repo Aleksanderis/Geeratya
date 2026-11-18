@@ -134,7 +134,7 @@ public static partial class WriteReducer
             null,
             again,
             label,
-            Destructive: requested.Request.AskSevere,
+            Destructive: true,
             Heading: requested.Request.AskHeading);
         var asking = state with
         {

@@ -16,6 +16,19 @@ public static class DiscardPrompts
     /// <summary>The action of the discard question of the comment editor.</summary>
     public const string CommentAction = "comment.discard";
 
+    /// <summary>
+    /// The discard question of any editor: the one wording (<see cref="ConfirmWording.Discard"/>) and the one answer
+    /// label, with <paramref name="subject"/> naming what would be lost. The only place that builds one.
+    /// </summary>
+    public static ConfirmRequest Request(string subject, string action, Command? onConfirm = null)
+    {
+        return new ConfirmRequest(
+            ConfirmWording.Discard(subject),
+            action,
+            OnConfirm: onConfirm,
+            Label: ConfirmWording.DiscardLabel);
+    }
+
     /// <summary>True when <paramref name="request"/> is a discard question of an editor.</summary>
     public static bool Is(ConfirmRequest? request)
     {

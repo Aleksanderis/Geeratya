@@ -24,7 +24,6 @@ public static class FormShell
     /// <summary>The state note of a navigable form while its focused field is edited.</summary>
     public const string EditingNote = "[editing]";
 
-    private const string DiscardLabel = "Discard";
 
     /// <summary>
     /// A form with more than one editable field has the navigate state besides editing (decision 11): <c>j</c>,
@@ -62,10 +61,9 @@ public static class FormShell
     /// <summary>The discard question of a form with changes, naming what would be lost.</summary>
     public static ConfirmRequest DiscardRequest(FormState form, TabId tab)
     {
-        return new ConfirmRequest(
-            $"Discard {form.Target.DiscardSubject}? Nothing has been saved",
+        return DiscardPrompts.Request(
+            form.Target.DiscardSubject,
             DiscardPrompts.FormAction,
-            OnConfirm: new DiscardFormRequested(tab),
-            Label: DiscardLabel);
+            new DiscardFormRequested(tab));
     }
 }
