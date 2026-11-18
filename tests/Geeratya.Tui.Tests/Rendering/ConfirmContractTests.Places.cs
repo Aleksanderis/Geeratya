@@ -32,6 +32,9 @@ public partial class ConfirmContractTests
                 Mode = InputMode.Insert,
                 Form = ProfileForm.Start with { Name = "work" },
             }),
+            "remove profile" => Press(PaletteWith("profile remove dev"), "Enter"),
+            "switch profile" => Press(PaletteWith("profile switch dev"), "Enter"),
+            "quit" => Press(PaletteWith("quit"), "Enter"),
             "delete issue" => DeleteIssue(),
             "delete comment" => Press(OnComment(Detail()), "Space", "m", "d"),
             "unlink" => Press(OnLink(Detail(), "2"), "Space", "i", "u"),
@@ -59,6 +62,19 @@ public partial class ConfirmContractTests
                 false)),
             _ => throw new ArgumentOutOfRangeException(nameof(place), place, "Unknown place"),
         };
+    }
+
+    // The command palette with a command typed, one write running (so quit and a profile switch ask first).
+    private static AppState PaletteWith(string command)
+    {
+        var state = Detail();
+        var tab = Active(state);
+        var running = new RankBlockRequest(["A-1"], "A-2", true, null, ["A-1", "A-2"]);
+        var started = _reducer.Reduce(state, new WriteRequested(tab.Id, running, _now)).State;
+        var profiles = ProfileCatalog.Empty.With(_work).With(new Profile("dev", "https://dev.atlassian.net", "me@dev.test"))
+            .Activate("work");
+
+        return started with { Profiles = profiles, Mode = InputMode.Command, PaletteText = command };
     }
 
     // Esc until the question is asked (a navigable form steps to its navigate state first).
