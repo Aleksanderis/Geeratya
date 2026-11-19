@@ -34,6 +34,8 @@ for tool in vhs ttyd ffmpeg dotnet; do
   command -v "$tool" > /dev/null 2>&1 || { echo "missing tool '$tool' (vhs needs ttyd and ffmpeg)" >&2; exit 3; }
 done
 
+STILLS_WIDTH=1650 STILLS_HEIGHT=960 STILLS_FONT=14 # same aspect as the demo (1100x640), about 190 columns
+
 work=$(mktemp -d)
 fake_pid=""
 trap 'if [ -n "$fake_pid" ]; then kill "$fake_pid" 2> /dev/null || true; fi; rm -rf "$work"' EXIT
@@ -41,29 +43,43 @@ trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP # The EXIT trap r
 
 dotnet build "$root/tools/FakeJira" -c Release -o "$work/fakejira" -v q --nologo > "$work/build.log" 2>&1 \
   || { tail -20 "$work/build.log" >&2; exit 1; }
-mkdir -p "$out_dir" "$work/config/geeratya" "$work/state" "$work/cache" "$work/shots"
+mkdir -p "$out_dir" "$work/shots"
 
-# Start the demo fake and seed one active fake profile in private XDG directories (nothing of the owner's
-# configuration or sites is read).
+# One run of a tape: a fresh demo fake (the tape changes its in-memory data, so every run starts from the same
+# state), one active fake profile and empty state and cache in private XDG directories (nothing of the owner's
+# configuration or sites is read). The tape runs in $work, so its Output and shots/*.png land there.
 unset GEERATYA_LIVE_HOSTS
-: > "$work/fake.url"
-dotnet "$work/fakejira/fakejira.dll" --demo --parent-pid $$ > "$work/fake.url" &
-fake_pid=$!
-for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
-fake_url=$(head -n 1 "$work/fake.url")
-case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
-printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"fake@example.com"}]}\n' "$fake_url" \
-  > "$work/config/geeratya/profiles.json"
+record() {
+  rm -rf "$work/config" "$work/state" "$work/cache"
+  mkdir -p "$work/config/geeratya" "$work/state" "$work/cache"
+  : > "$work/fake.url"
+  dotnet "$work/fakejira/fakejira.dll" --demo --parent-pid $$ > "$work/fake.url" &
+  fake_pid=$!
+  for _ in $(seq 1 50); do [ -s "$work/fake.url" ] && break; sleep 0.1; done
+  fake_url=$(head -n 1 "$work/fake.url")
+  case $fake_url in http://127.0.0.1:* | http://localhost:*) ;; *) echo "unexpected fake Jira address" >&2; exit 1 ;; esac
+  printf '{"activeName":"fake","profiles":[{"name":"fake","siteUrl":"%s","email":"fake@example.com"}]}\n' "$fake_url" \
+    > "$work/config/geeratya/profiles.json"
+  (
+    cd "$work"
+    DEMO_BIN="$binary" XDG_CONFIG_HOME="$work/config" XDG_STATE_HOME="$work/state" XDG_CACHE_HOME="$work/cache" \
+      GEERATYA_TOKEN=fake vhs "$1" >&2
+  )
+  kill "$fake_pid" 2> /dev/null || true
+  wait "$fake_pid" 2> /dev/null || true
+  fake_pid=""
+}
 
-# Record the tape in $work (demo.webm and shots/*.png land there), then stop the fake.
-(
-  cd "$work"
-  DEMO_BIN="$binary" XDG_CONFIG_HOME="$work/config" XDG_STATE_HOME="$work/state" XDG_CACHE_HOME="$work/cache" \
-    GEERATYA_TOKEN=fake vhs "$script_dir/demo.tape" >&2
-)
-kill "$fake_pid" 2> /dev/null || true
-wait "$fake_pid" 2> /dev/null || true
-fake_pid=""
+record "$script_dir/demo.tape"
+# The stills for the landing page come from a second run of the same tape in a bigger terminal (more columns and
+# rows at a smaller font, so a still shows the whole screen instead of a zoomed-in part of it; the page opens them
+# full size on click). The GIF keeps the small terminal so it stays legible at 960 px and under 4 MB. This run
+# overwrites shots/ and its video is not used. The issue is not zoomed there (the space z lines are dropped): the
+# bigger terminal shows the whole issue view, which zoomed would be mostly empty.
+sed -e "s/^Set FontSize .*/Set FontSize $STILLS_FONT/" -e "s/^Set Width .*/Set Width $STILLS_WIDTH/" \
+  -e "s/^Set Height .*/Set Height $STILLS_HEIGHT/" -e 's/^Output .*/Output stills.webm/' -e '/^Type " z"$/d' \
+  "$script_dir/demo.tape" > "$work/stills.tape"
+record "$work/stills.tape"
 
 # A caption bar under the terminal names the pressed keys (VHS has no key overlay): "start end text" in seconds of
 # the recording, matched to the tape's pacing (a changed tape needs new times; the bar is skipped without a font).
