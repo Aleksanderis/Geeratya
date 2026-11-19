@@ -4,7 +4,8 @@
 # short pauses). Linux only. No media is committed to this repository.
 # Usage: scripts/demo.sh --binary <geeratya> --out <dir>
 #   --binary  the AOT binary (dotnet publish src/Geeratya.Tui -c Release -o <outdir>)
-#   --out     output directory (outside the repository): demo.gif, demo.webm and screenshots/*.png (stills of the
+#   --out     output directory (outside the repository): demo.gif (README), demo.webm (landing page, bigger
+#             terminal) and screenshots/*.png (stills of the
 #             board, an issue, the backlog, a JQL search and a status change, taken by the tape from the same data)
 # The files are hosted on the project's GitHub Pages site: copy them to the media/
 # folder of the geeratya.github.io repository (docs/internal/testing.md, "README demo").
@@ -26,7 +27,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 if [ -z "$binary" ] || [ -z "$out_dir" ]; then
-  sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 fi
 [ -x "$binary" ] || { echo "binary '$binary' not found or not executable" >&2; exit 2; }
@@ -70,15 +71,20 @@ record() {
   fake_pid=""
 }
 
+# Three runs of the same tape. 1: the demo terminal (1100x640, font 15) for the README GIF, which must stay legible
+# at 960 px and under 4 MB. 2: the landing page video (demo.webm) in a bigger terminal (more columns and rows at a
+# smaller font, so it shows the whole screen instead of a zoomed-in part; the page shows it about 1150 px wide).
+# 3: the landing page stills in the same bigger terminal without the zoom key (the space z lines are dropped): there
+# the whole issue view fits, which zoomed would be mostly empty. Each run overwrites shots/, so the stills are run 3's.
+big_tape() { # $1 output name, $2 extra sed expression
+  sed -e "s/^Set FontSize .*/Set FontSize $STILLS_FONT/" -e "s/^Set Width .*/Set Width $STILLS_WIDTH/" \
+    -e "s/^Set Height .*/Set Height $STILLS_HEIGHT/" -e "s/^Output .*/Output $1.webm/" -e "$2" \
+    "$script_dir/demo.tape" > "$work/$1.tape"
+}
 record "$script_dir/demo.tape"
-# The stills for the landing page come from a second run of the same tape in a bigger terminal (more columns and
-# rows at a smaller font, so a still shows the whole screen instead of a zoomed-in part of it; the page opens them
-# full size on click). The GIF keeps the small terminal so it stays legible at 960 px and under 4 MB. This run
-# overwrites shots/ and its video is not used. The issue is not zoomed there (the space z lines are dropped): the
-# bigger terminal shows the whole issue view, which zoomed would be mostly empty.
-sed -e "s/^Set FontSize .*/Set FontSize $STILLS_FONT/" -e "s/^Set Width .*/Set Width $STILLS_WIDTH/" \
-  -e "s/^Set Height .*/Set Height $STILLS_HEIGHT/" -e 's/^Output .*/Output stills.webm/' -e '/^Type " z"$/d' \
-  "$script_dir/demo.tape" > "$work/stills.tape"
+big_tape page ''
+record "$work/page.tape"
+big_tape stills '/^Type " z"$/d'
 record "$work/stills.tape"
 
 # A caption bar under the terminal names the pressed keys (VHS has no key overlay): "start end text" in seconds of
@@ -90,21 +96,32 @@ CAPTIONS=(
   "17.0 21.2 :jql  search in a new tab" "21.2 22.7 space i s  change status" "22.7 24.0 Enter  apply" "24.0 25.0 space r  refresh"
 )
 font=$(fc-match -f '%{file}' monospace 2> /dev/null || true)
-filter="pad=iw:ih+44:0:0:color=0x11111b"
-if [ -n "$font" ] && [ -f "$font" ] && ffmpeg -filters 2> /dev/null | grep -q drawtext; then
-  n=0
-  for c in "${CAPTIONS[@]}"; do
-    read -r t0 t1 text <<< "$c"
-    n=$((n + 1))
-    printf '%s' "$text" > "$work/cap$n.txt"
-    filter+=",drawtext=fontfile=$font:textfile=$work/cap$n.txt:fontcolor=0xcdd6f4:fontsize=26:x=16:y=h-38:enable='between(t,$t0,$t1)'"
-  done
-fi
-duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$work/demo.webm")
-awk -v d="$duration" 'BEGIN { if (d < 23 || d > 27) print "warning: recording is " d " s, the CAPTIONS times were tuned for about 25 s" > "/dev/stderr" }'
-# The video is re-encoded for the web; the GIF (for the README) is small on purpose (960 px, 48 colours, under 4 MB: GitHub's image proxy refuses big images).
-ffmpeg -v error -y -i "$work/demo.webm" -vf "$filter" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
-ffmpeg -v error -y -i "$out_dir/demo.webm" \
+# grep without -q reads all of ffmpeg's output: with -q it can exit first, ffmpeg dies of SIGPIPE and pipefail fails
+# the check at random (which silently dropped the captions).
+has_drawtext=0
+if [ -n "$font" ] && [ -f "$font" ] && ffmpeg -filters 2> /dev/null | grep drawtext > /dev/null; then has_drawtext=1; fi
+[ "$has_drawtext" = 1 ] || echo "warning: no monospace font or no ffmpeg drawtext, the videos have no captions" >&2
+captions() { # $1 bar height, $2 font size: prints the ffmpeg filter for the caption bar
+  local filter="pad=iw:ih+$1:0:0:color=0x11111b" n=0 c t0 t1 text
+  if [ "$has_drawtext" = 1 ]; then
+    for c in "${CAPTIONS[@]}"; do
+      read -r t0 t1 text <<< "$c"
+      n=$((n + 1))
+      printf '%s' "$text" > "$work/cap$n.txt"
+      filter+=",drawtext=fontfile=$font:textfile=$work/cap$n.txt:fontcolor=0xcdd6f4:fontsize=$2:x=16:y=h-$(($1 - 6)):enable='between(t,$t0,$t1)'"
+    done
+  fi
+  printf '%s' "$filter"
+}
+for v in demo page; do
+  duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$work/$v.webm")
+  awk -v d="$duration" -v v="$v" 'BEGIN { if (d < 23 || d > 27) print "warning: " v " recording is " d " s, the CAPTIONS times were tuned for about 25 s" > "/dev/stderr" }'
+done
+# The page video is re-encoded for the web with the caption bar; the GIF (for the README) comes from the small run
+# and is small on purpose (960 px, 48 colours, under 4 MB: GitHub's image proxy refuses big images).
+ffmpeg -v error -y -i "$work/page.webm" -vf "$(captions 56 32)" -c:v libvpx-vp9 -crf 32 -b:v 0 "$out_dir/demo.webm"
+ffmpeg -v error -y -i "$work/demo.webm" -vf "$(captions 44 26)" -c:v libvpx-vp9 -crf 32 -b:v 0 "$work/small.webm"
+ffmpeg -v error -y -i "$work/small.webm" \
   -vf "fps=10,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=48:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" \
   "$out_dir/demo.gif"
 rm -rf "$out_dir/screenshots"
