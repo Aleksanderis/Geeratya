@@ -1,4 +1,4 @@
-# Updates Formula/geeratya.rb in the tap Aleksanderis/homebrew-tap when the owner publishes a release (#821, #917).
+# Updates Formula/geeratya.rb in the tap Aleksanderis/homebrew-tap when a release is published (#821, #917).
 # The draft made by release.yml does not trigger it, so the archive URLs in the formula are public by then.
 # Needs the repository secret HOMEBREW_TAP_TOKEN (fine-grained PAT, contents:write on the tap repo only; owner creates
 # it, docs/internal/architecture.md, Releases). Without the secret the job ends green with a notice, so releases are not
