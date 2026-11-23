@@ -154,6 +154,12 @@ public static class SourceChoices
 
     private static void AddRecent(List<SourceChoice> choices, PickerScope scope, string text, SiteHistory? history)
     {
+        if (scope == PickerScope.Jql && JqlText.LooksLikeJql(text))
+        {
+            // Typed JQL (an edited query) is what Enter runs, so a recent that merely contains it never wins.
+            return;
+        }
+
         var typed = text.Length == 0 ? string.Empty : JqlText.FromTyped(text);
         var limit = scope == PickerScope.All ? MaxRecentInAll : SiteHistory.MaxQueries;
         var recent = (history?.Queries ?? [])

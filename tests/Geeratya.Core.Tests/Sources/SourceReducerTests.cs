@@ -515,6 +515,22 @@ public class SourceReducerTests
     }
 
     [Fact]
+    public void GivenAJqlTab_WhenEditingItsQueryShorter_ThenEnterOpensTheEditedQuery()
+    {
+        var opened = Run(Start(), "jql project = GCM ORDER BY created");
+        var state = Run(opened.State, "jql").State;
+
+        for (var step = 0; step < " ORDER BY created".Length; step++)
+        {
+            state = Press(state, "Backspace").State;
+        }
+
+        var result = Press(state, "Enter");
+
+        Assert.Equal("project = GCM", result.State.Session.Tabs[^1].Definition.SourceValue);
+    }
+
+    [Fact]
     public void GivenABoardTab_WhenRunningJqlWithoutQuery_ThenThePromptStartsEmpty()
     {
         var opened = _reducer.Reduce(

@@ -4,7 +4,7 @@ using Geeratya.Core.Views;
 namespace Geeratya.Core.Keymap;
 
 /// <summary>
-/// What the active tab is, for the lists that show keys (help layout page, Global page, which-key popup): the layout
+/// What the active tab is, for the lists that show keys (help layout page, which-key popup): the layout
 /// the keys are for and whether the tab has sprints. A key that cannot act here is left out, so a Kanban board never
 /// lists the sprint keys. <see cref="Everything"/> is the context of a list that shows every key (<c>All actions</c>,
 /// the generated reference). Pure.
