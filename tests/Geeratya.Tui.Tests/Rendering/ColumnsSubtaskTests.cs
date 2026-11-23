@@ -437,6 +437,23 @@ public class ColumnsSubtaskTests
     }
 
     [Fact]
+    public async Task GivenTheCursorOnAListedSubtask_WhenPressingTheAssignToMeKey_ThenItAssignsTheSubtask()
+    {
+        var opened = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a", "j");
+        var state = opened with
+        {
+            Session = opened.Session with { Connection = new Connected("Me Myself", "acc-me") },
+        };
+        var listed = ColumnsNavigation.SelectedIssue(Active(state))!;
+
+        var result = _reducer.Reduce(Press(state, "Space", "t"), new KeyPressed("m"));
+
+        var write = Assert.IsType<ExecuteWriteEffect>(
+            Assert.Single(result.Effects, effect => effect is ExecuteWriteEffect));
+        Assert.Equal(listed.Key, Assert.IsType<AssignRequest>(write.Request).Key);
+    }
+
+    [Fact]
     public async Task GivenTheCursorOnTheExpandedParent_WhenPressingASubtaskKey_ThenTheStatusLineSaysThereIsNoSubtask()
     {
         var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a");
