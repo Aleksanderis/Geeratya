@@ -345,7 +345,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-17 (sub-task keys, #994)
 
-**UI:** The status and assignee of a sub-task from its parent's detail have their own `<space>t` group (`ts`, `ta`, `tm`; actions `issue.subtask-transition`, `issue.subtask-assign`, `issue.subtask-assign-me`); `<space>is`, `<space>ia`, `<space>im` always act on the shown issue (supersedes the retargeting of #990, owner feedback 2026-11-17). `<space>t` no longer opens the new-tab picker; `Ctrl-t` (and `:tab new`) stays. Why: one key, one target; the same key meaning something else under the cursor was confusing. A user row binding exactly `Space t` is skipped by the existing prefix check, see `customising-keys.md`.
+**UI:** The status and assignee of a sub-task from its parent's detail (and, #1054, of a sub-task listed under an expanded card of the columns layout) have their own `<space>t` group (`ts`, `ta`, `tm`; actions `issue.subtask-transition`, `issue.subtask-assign`, `issue.subtask-assign-me`); `<space>is`, `<space>ia`, `<space>im` always act on the shown issue (supersedes the retargeting of #990, owner feedback 2026-11-17). `<space>t` no longer opens the new-tab picker; `Ctrl-t` (and `:tab new`) stays. Why: one key, one target; the same key meaning something else under the cursor was confusing. A user row binding exactly `Space t` is skipped by the existing prefix check, see `customising-keys.md`.
 
 ## 2026-11-17 (UI consistency and shared components)
 
