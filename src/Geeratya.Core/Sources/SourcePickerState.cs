@@ -34,6 +34,12 @@ public sealed record SourcePickerState(string Text, PickList Pick, PickerScope S
     /// <summary>The open tabs, one row each, taken when the list opened; null in every other scope.</summary>
     public IReadOnlyList<SourceChoice>? Tabs { get; init; }
 
+    /// <summary>
+    /// The JQL tab the prompt edits: Enter runs the query in that tab instead of opening another; null opens a new
+    /// tab.
+    /// </summary>
+    public Views.TabId? EditTab { get; init; }
+
     /// <summary>Units between the caret and the end of <see cref="Text"/> (see <see cref="TextBuffer"/>).</summary>
     public int Back { get; init; }
 }

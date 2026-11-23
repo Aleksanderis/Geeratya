@@ -30,7 +30,8 @@ public static partial class StatusBar
         new(InputMode.Normal, ActionIds.IssueCreate, "create", HintScope.List),
         new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Backlog),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
-        new(InputMode.Normal, ActionIds.ViewSearch, "search", HintScope.List),
+        new(InputMode.Normal, ActionIds.ViewSearch, "search", HintScope.ListNewSearch),
+        new(InputMode.Normal, ActionIds.ViewSearch, "edit search", HintScope.ListOnSearch),
         new(InputMode.Normal, ActionIds.SectionToggle, "sub-tasks", HintScope.ColumnsSubtasks),
         new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
         new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
@@ -100,7 +101,12 @@ public static partial class StatusBar
             return HintScope.Backlog;
         }
 
-        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Sprint ? HintScope.ListOnBoard : HintScope.List;
+        return tab.Definition.Source switch
+        {
+            ViewSourceKind.Board or ViewSourceKind.Sprint => HintScope.ListOnBoard,
+            ViewSourceKind.Jql => HintScope.ListOnSearch,
+            _ => HintScope.List,
+        };
     }
 
     /// <summary>
@@ -157,7 +163,8 @@ public static partial class StatusBar
     private static bool Applies(HintScope hint, HintScope current)
     {
         return hint == current
-            || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog)
+            || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog or HintScope.ListOnSearch)
+            || (hint == HintScope.ListNewSearch && current is HintScope.List or HintScope.ListOnBoard or HintScope.Backlog)
             || (hint == HintScope.Columns && current == HintScope.ColumnsSubtasks);
     }
 

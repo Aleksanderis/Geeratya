@@ -9,6 +9,12 @@ public enum HintScope
     List,
     ListOnBoard,
 
+    /// <summary>A list of a JQL tab (a search result): <c>/</c> edits its query, so the hint says so.</summary>
+    ListOnSearch,
+
+    /// <summary>Hint-only: a list that is not a search result, where <c>/</c> starts a new search.</summary>
+    ListNewSearch,
+
     /// <summary>The Scrum backlog: a list whose sections are panes (<c>] ]</c> jumps between them).</summary>
     Backlog,
     Columns,

@@ -21,6 +21,7 @@ public static class SourcePickerOverlay
     private const int PromptMargin = 4;
     private const string Title = "Open a view";
     private const string SearchTitle = "Search issues";
+    private const string EditTitle = "Edit search (Enter runs it in this tab)";
     private const string SearchHintText = "Type words, or a JQL query. Enter opens a new tab.";
     private const string SprintTitle = "Switch sprint";
     private const string TabsTitle = "Open tabs";
@@ -145,7 +146,7 @@ public static class SourcePickerOverlay
 
         if (picker.Scope == PickerScope.Jql)
         {
-            return SearchTitle;
+            return picker.EditTab is null ? SearchTitle : EditTitle;
         }
 
         if (picker.Scope != PickerScope.Sprints)

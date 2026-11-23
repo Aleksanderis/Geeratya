@@ -75,7 +75,7 @@ public static partial class SourceReducer
         if (verb == PaletteCommands.Jql && argument.Trim().Length == 0)
         {
             // On a JQL tab the query is typed into the prompt, so the current search can be edited.
-            return Open(state, PickerScope.Jql, CurrentJql(state), autoOpen: false);
+            return OpenSearch(state);
         }
 
         if (verb == PaletteCommands.Search)
@@ -95,8 +95,9 @@ public static partial class SourceReducer
     }
 
     /// <summary>
-    /// <c>view.search</c> (<c>/</c>): the search prompt, empty. Words typed there become a text search and a JQL
-    /// query is sent as typed; <c>Enter</c> opens the result in a new tab.
+    /// <c>view.search</c> (<c>/</c>): the search prompt. Words typed there become a text search and a JQL query is
+    /// sent as typed. It starts empty and <c>Enter</c> opens the result in a new tab; on a JQL tab (a search result)
+    /// it starts with that tab's query and <c>Enter</c> runs the edited query in the same tab.
     /// </summary>
     public static ReduceResult OpenSearch(AppState state)
     {
@@ -105,15 +106,16 @@ public static partial class SourceReducer
             return Plain(state with { Message = NoProfileMessage });
         }
 
-        return Open(state, PickerScope.Jql, string.Empty, autoOpen: false);
-    }
-
-    // The JQL of the active tab when it is a JQL view, else empty.
-    private static string CurrentJql(AppState state)
-    {
         var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
 
-        return tab is { Definition.Source: ViewSourceKind.Jql } ? tab.Definition.SourceValue : string.Empty;
+        if (tab is not { Definition.Source: ViewSourceKind.Jql })
+        {
+            return Open(state, PickerScope.Jql, string.Empty, autoOpen: false);
+        }
+
+        var opened = Open(state, PickerScope.Jql, tab.Definition.SourceValue, autoOpen: false);
+
+        return opened with { State = opened.State with { Picker = opened.State.Picker! with { EditTab = tab.Id } } };
     }
 
     /// <summary><c>:history clear</c>: forgets the active profile's recent queries and issues (local data only).</summary>
@@ -275,6 +277,14 @@ public static partial class SourceReducer
         }
 
         var choice = choices[Math.Clamp(picker.Selected, 0, choices.Count - 1)];
+
+        if (picker.EditTab is { } edited && choice.Definition.Source == ViewSourceKind.Jql
+            && ViewReducer.Find(state.Session.Tabs, edited) is not null)
+        {
+            var rerun = ViewReducer.Reduce(Close(state), new QueryEdited(edited, choice.Definition));
+
+            return Recorded(rerun, HistoryKind.Query, choice.Definition.SourceValue);
+        }
 
         return OpenView(state, choice.Definition);
     }

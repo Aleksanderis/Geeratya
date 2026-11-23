@@ -5,6 +5,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
 using Geeratya.Platform.Terminal;
@@ -119,6 +120,16 @@ public class SourcePickerSnapshotTests
         Assert.Contains(lines, line => line.Contains('+', StringComparison.Ordinal));
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
+    }
+
+    [Fact]
+    public void GivenTheJqlPromptEditingATab_WhenReadingItsTitle_ThenItSaysEnterRunsItInThatTab()
+    {
+        var search = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null);
+        var editing = search with { EditTab = new TabId(1) };
+
+        Assert.Equal("Search issues", SourcePickerOverlay.TitleOf(search));
+        Assert.Contains("this tab", SourcePickerOverlay.TitleOf(editing), StringComparison.Ordinal);
     }
 
     [Fact]

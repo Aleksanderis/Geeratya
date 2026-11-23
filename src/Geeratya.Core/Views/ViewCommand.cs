@@ -7,6 +7,9 @@ using Geeratya.Jira.Transport;
 
 namespace Geeratya.Core.Views;
 
+/// <summary>The query of a JQL tab was edited: the tab runs <paramref name="Definition"/> again, in place.</summary>
+public sealed record QueryEdited(TabId Tab, ViewDefinition Definition) : ViewCommand;
+
 /// <summary>A command handled by <see cref="ViewReducer"/>.</summary>
 public abstract record ViewCommand : Command;
 

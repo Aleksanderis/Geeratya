@@ -531,6 +531,56 @@ public class SourceReducerTests
     }
 
     [Fact]
+    public void GivenASearchTab_WhenPressingSlash_ThenThePromptHoldsItsQuery()
+    {
+        var opened = Run(Start(), "search login bug");
+
+        var result = Press(opened.State, "/");
+
+        Assert.Equal("text ~ \"login bug\"", result.State.Picker!.Text);
+        Assert.Equal(opened.State.Session.Active, result.State.Picker.EditTab);
+    }
+
+    [Fact]
+    public void GivenASearchTab_WhenEnterRunsTheEditedQuery_ThenTheSameTabReloadsAndNoTabOpens()
+    {
+        var opened = Run(Start(), "jql project = GCM");
+        var tab = Assert.Single(opened.State.Session.Tabs);
+        var state = Press(opened.State, "/").State;
+
+        state = Press(state, "Backspace").State;
+        state = Press(state, "x").State;
+
+        var result = Press(state, "Enter");
+
+        var edited = Assert.Single(result.State.Session.Tabs);
+        Assert.Equal(tab.Id, edited.Id);
+        Assert.Equal("project = GC", edited.Definition.SourceValue.Replace("x", string.Empty, StringComparison.Ordinal));
+        Assert.Contains("x", edited.Definition.SourceValue);
+        Assert.Null(result.State.Picker);
+        var load = Assert.Single(result.Effects.OfType<LoadViewPageEffect>());
+        Assert.Equal(tab.Id, load.Tab);
+        Assert.Equal(edited.Definition.SourceValue, load.Definition.SourceValue);
+        Assert.Empty(edited.Rows);
+    }
+
+    [Fact]
+    public void GivenAListTab_WhenPressingSlash_ThenThePromptIsEmptyAndOpensANewTab()
+    {
+        var opened = Run(Start(), "jql project = GCM");
+        var other = Run(opened.State, "jql");
+        var withoutSearchTab = _reducer.Reduce(
+            Start(),
+            new ViewOpenRequested(new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.List, "GCM")));
+
+        var result = Press(withoutSearchTab.State, "/");
+
+        Assert.Equal(string.Empty, result.State.Picker!.Text);
+        Assert.Null(result.State.Picker.EditTab);
+        Assert.NotNull(other.State.Picker!.EditTab);
+    }
+
+    [Fact]
     public void GivenABoardTab_WhenRunningJqlWithoutQuery_ThenThePromptStartsEmpty()
     {
         var opened = _reducer.Reduce(

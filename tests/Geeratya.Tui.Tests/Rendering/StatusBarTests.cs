@@ -393,6 +393,17 @@ public class StatusBarTests
     }
 
     [Fact]
+    public void GivenASearchResultList_WhenListingItsHints_ThenSlashIsNamedEditSearch()
+    {
+        var hints = StatusBar.ScreenHintsFor(HintScope.ListOnSearch, _keymap);
+
+        Assert.Contains("/ edit search", hints);
+        Assert.DoesNotContain("/ search", hints);
+        Assert.Contains("/ search", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
+        Assert.DoesNotContain("/ edit search", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
+    }
+
+    [Fact]
     public void GivenTheBacklog_WhenListingItsHints_ThenTheNextPaneChordIsNamed()
     {
         Assert.Contains("]] pane", StatusBar.ScreenHintsFor(HintScope.Backlog, _keymap));
