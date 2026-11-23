@@ -85,7 +85,7 @@ The `<space>v` rows (M6) are provisional; nothing else depends on them. Level: E
 | `i` | `detail.edit` | In the issue detail, edit the title or Description pane under the cursor in place (like `Enter` on it); elsewhere it does nothing | E | double click on the pane (`item.open`) | M7 #709 |
 | `<space>ia` | `issue.assign` | Assign: people picker (`Me` and `Unassigned` rows, type to search) | E | click the assignee | M2 #164 (bound) |
 | `<space>im` | `issue.assign-me` | Assign to me | E | context menu | M2 #164 (bound) |
-| `<space>ts` | `issue.subtask-transition` | In an issue detail, change the status of the sub-task under the cursor (the picker names its key and summary); elsewhere the status line says `No sub-task under the cursor` | E | none; a double click opens the sub-task (#994) |
+| `<space>ts` | `issue.subtask-transition` | In an issue detail, or on a sub-task listed under an expanded card of the columns layout (#1054), change the status of the sub-task under the cursor (the picker names its key and summary); elsewhere the status line says `No sub-task under the cursor` | E | none; a double click opens the sub-task (#994) |
 | `<space>ta` | `issue.subtask-assign` | Assign the sub-task under the cursor (people picker) | E | none; a double click opens the sub-task (#994) |
 | `<space>tm` | `issue.subtask-assign-me` | Assign the sub-task under the cursor to me | E | none; a double click opens the sub-task (#994) |
 | `<space>g` | `issue.jump` | Jump to an issue by key (prompt with completion from the tab and recent keys; read-only) | E | none yet | M4 #194 (bound), #300 |

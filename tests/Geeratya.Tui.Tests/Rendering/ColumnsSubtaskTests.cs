@@ -408,6 +408,45 @@ public class ColumnsSubtaskTests
             StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("gcm", "GCM-10")]
+    [InlineData("gtm", "GTM-11")]
+    public async Task GivenTheCursorOnAListedSubtask_WhenPressingTheSubtaskStatusKey_ThenThePickerOpensForIt(
+        string kind,
+        string parent)
+    {
+        var state = Press(await OpenAsync(kind, true, parent), "z", "a", "j");
+        var listed = ColumnsNavigation.SelectedIssue(Active(state))!;
+
+        var result = _reducer.Reduce(Press(state, "Space", "t"), new KeyPressed("s"));
+
+        var effect = Assert.IsType<LoadFormMetadataEffect>(Assert.Single(result.Effects));
+        Assert.Equal(listed.Key, effect.Target.IssueKey);
+        Assert.Contains(listed.Summary, effect.Target.Title, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivenTheCursorOnAListedSubtask_WhenPressingTheSubtaskAssignKey_ThenThePeoplePickerOpensForIt()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a", "j");
+        var listed = ColumnsNavigation.SelectedIssue(Active(state))!;
+
+        var result = Press(state, "Space", "t", "a");
+
+        Assert.Equal(listed.Key, Active(result).Form!.Target.IssueKey);
+    }
+
+    [Fact]
+    public async Task GivenTheCursorOnTheExpandedParent_WhenPressingASubtaskKey_ThenTheStatusLineSaysThereIsNoSubtask()
+    {
+        var state = Press(await OpenAsync("gcm", true, "GCM-10"), "z", "a");
+
+        var result = _reducer.Reduce(Press(state, "Space", "t"), new KeyPressed("s"));
+
+        Assert.Equal(SubtaskWrites.NoSubtaskText, result.State.Message);
+        Assert.Empty(result.Effects);
+    }
+
     private readonly record struct Cell(int Column, int Row);
 
     // The cell is read from the drawn frame (the line with the fold mark), not from the geometry under test.
