@@ -2,9 +2,9 @@
                                         
 ╭─ A-1 · Task ─────────────────────────╮
 │ ╭─ Help ───────────────────────────╮ │
-╰─│   Issue detail │   j             │─╯
-╭─│   Global       │        Move     │─╮
-│ │   All actions  │        down    ▼│ │
+╰─│   Issue detail │ Issue           │─╯
+╭─│   Global       │   <space>o      │─╮
+│ │   All actions  │        Open    ▼│ │
 ╰─╰──────────────────────────────────╯─╯
 ╭─ Remote links ───────────────────────╮
  HELP      j/k move  Tab page  Esc close

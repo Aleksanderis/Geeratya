@@ -2,9 +2,9 @@
                                         
 ╭─ Issues 1 ───────────────────────────╮
 │ ╭─ Help ───────────────────────────╮ │
-│ │   Columns     │   j              │ │
-│ │   Global      │         Move     │ │
-│ │   All actions │         down    ▼│ │
+│ │   Columns     │ Issue            │ │
+│ │   Global      │   <space>o       │ │
+│ │   All actions │         Open    ▼│ │
 │ ╰──────────────────────────────────╯ │
 ╰──────────────────────────────────────╯
  HELP      j/k move  Tab page  Esc close

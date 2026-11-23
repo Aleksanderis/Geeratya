@@ -182,6 +182,7 @@ public static class ContextMenus
             ActionIds.ViewSavedOpen,
             ActionIds.ViewSavedSave,
             ActionIds.IssueJump,
+            ActionIds.ViewSearch,
             ActionIds.StatusHistory,
             ActionIds.SettingsOpen,
             ActionIds.StatusDismiss,

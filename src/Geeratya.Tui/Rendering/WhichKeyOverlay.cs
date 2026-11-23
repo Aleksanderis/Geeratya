@@ -37,9 +37,10 @@ public static class WhichKeyOverlay
         string pending,
         KeymapTable keymap,
         int room = int.MaxValue,
-        CommandLevel level = CommandLevel.Everyday)
+        CommandLevel level = CommandLevel.Everyday,
+        ActionContext? context = null)
     {
-        return Lines(pending, keymap, room, level).Select(line => line.PlainText).ToList();
+        return Lines(pending, keymap, room, level, context).Select(line => line.PlainText).ToList();
     }
 
     /// <summary>
@@ -50,9 +51,10 @@ public static class WhichKeyOverlay
         string pending,
         KeymapTable keymap,
         int room = int.MaxValue,
-        CommandLevel level = CommandLevel.Everyday)
+        CommandLevel level = CommandLevel.Everyday,
+        ActionContext? context = null)
     {
-        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, pending, level);
+        var rows = WhichKeyBuilder.Build(keymap, InputMode.Normal, pending, level, context);
 
         if (rows.Count > room)
         {
@@ -83,9 +85,10 @@ public static class WhichKeyOverlay
         int height)
     {
         var room = height - 2;
-        var everyRow = Lines(state.PendingKeys, keymap, int.MaxValue, state.Settings.CommandLevel);
+        var context = ActionContext.Of(state);
+        var everyRow = Lines(state.PendingKeys, keymap, int.MaxValue, state.Settings.CommandLevel, context);
         var columns = everyRow.Count > room ? Columns(everyRow, room, width - ChromeColumns) : null;
-        var rows = columns ?? Lines(state.PendingKeys, keymap, room, state.Settings.CommandLevel);
+        var rows = columns ?? Lines(state.PendingKeys, keymap, room, state.Settings.CommandLevel, context);
         var wanted = rows.Count == 0 ? 0 : rows.Max(row => TextWidth.Of(row.PlainText)) + ChromeColumns;
         var cap = columns is null ? MaxBoxWidth : width;
         var boxWidth = Math.Min(width, Math.Min(cap, wanted));

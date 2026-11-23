@@ -2,18 +2,22 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │ Comment                                                                     ▲│           │
-│           │   All actions │   <space>ma  Add a comment to the issue                                      │           │
-│           │   Commands    │   <space>me  Edit the comment under the cursor                               │           │
+│           │   Global      │                                                                             ▲│           │
+│           │   All actions │ Comment                                                                      │           │
+│           │   Commands    │   <space>ma  Add a comment to the issue                                      │           │
+│           │               │   <space>me  Edit the comment under the cursor                               │           │
 │           │               │   <space>mr  Reply to the comment under the cursor                           │           │
 │           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
+│           │               │                                                                              │           │
 │           │               │ Rank                                                                         │           │
 │           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
+│           │               │                                                                              │           │
 │           │               │ Selection                                                                    │           │
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
 │           │               │              issue)                                                          │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
+│           │               │                                                                              │           │
 │           │               │ View                                                                         │           │
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
 │           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
@@ -24,11 +28,7 @@
 │           │               │              labels)                                                         │           │
 │           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
 │           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
-│           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
-│           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
-│           │               │              weeks, all, or follow Jira)                                     │           │
-│           │               │   <space>vv  Open a saved view in a new tab                                  │           │
-│           │               │   <space>vw  Save this view under a name (opens :view save)                 ▼│           │
+│           │               │   zo         Open the next folded lane (stacked lanes)                      ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
 │           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │

@@ -69,6 +69,7 @@ public static class ActionIds
     public const string LaneFold = "lane.fold";
     public const string LaneUnfold = "lane.unfold";
     public const string ViewDoneCutoff = "view.done-cutoff";
+    public const string ViewSearch = "view.search";
     public const string ViewSavedOpen = "view.saved-open";
     public const string ViewSavedSave = "view.saved-save";
     public const string IssueOpenInBrowser = "issue.open-in-browser";

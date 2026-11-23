@@ -542,6 +542,10 @@ At 40x10:
 
 The overlay takes every key (`ux.md` "Focus model and key style"); its mode text in the status bar names the keys.
 
+## Search (#1055)
+
+`/` (`view.search`, also `:search`, the view menu and the palette) opens the source picker on its query scope, titled `Search issues`, with the muted line `Type words, or a JQL query. Enter opens a new tab.` above the recent queries. Words typed become a text search (`text ~ "words"`), anything with a JQL operator is sent as typed (`JqlText.FromTyped`); the `Query` row shows the JQL that will run, and `Enter` opens it in a new tab (a JQL tab: the old one stays). `:search words` does the same without the prompt. `:jql` with no query opens the same prompt; on a JQL tab the tab's query is typed into it for editing. The status bar offers `/ search` on lists and boards (after the main hints, so a narrow line drops it first).
+
 ## Jump to an issue
 
 `<space>g` (`issue.jump`, #194) opens a one-line prompt in Insert mode, drawn as a centred box like the source picker (`Core/Jump`, `JumpOverlay`). It is read-only: it never writes to Jira.

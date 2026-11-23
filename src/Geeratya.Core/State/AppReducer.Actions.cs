@@ -124,6 +124,7 @@ public sealed partial class AppReducer
             ActionIds.SprintEdit => InNormal(state, () => SprintForms.Edit(state)),
             ActionIds.SprintStart => InNormal(state, () => SprintLifecycle.Start(state, at)),
             ActionIds.SprintComplete => InNormal(state, () => SprintLifecycle.Complete(state, at)),
+            ActionIds.ViewSearch => InNormal(state, () => SourceReducer.OpenSearch(state)),
             ActionIds.IssueJump => InNormal(state, () => JumpReducer.Open(state)),
             ActionIds.RowJump => InNormal(state, () => FlashJumpReducer.Open(state)),
             ActionIds.FormSubmit when state.Form is not null => ProfileReducer.Save(state),

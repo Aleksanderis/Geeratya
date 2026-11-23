@@ -106,7 +106,7 @@ Movement is vim-style: `h j k l`, `gg`, `G`, `Ctrl-d`, `Ctrl-u`. Full table: [ke
 - **Move a card:** `Alt-l` / `Alt-h` to the next or previous column, or `<space>is` to pick a status. A transition that asks for fields shows a form.
 - **Sub-tasks:** with the cursor on a sub-task row of an issue, `<space>ts` changes its status, `<space>ta` assigns it, `<space>tm` assigns it to you; `<space>is`, `<space>ia` and `<space>im` always act on the open issue.
 - **Open an issue:** `Enter`; `<space>g` jumps to a key; `<space>o` opens it in the browser; `<space>p` opens its parent.
-- **Search:** `:jql <query>`, `:filter <name>`; saved views: `<space>vw` saves the tab, `<space>vv` opens one.
+- **Search:** `/` (or `:search words`) searches issues by words or JQL and opens the result in a new tab; `:jql <query>`, `:filter <name>`; on a JQL tab `:jql` alone types its query for editing; saved views: `<space>vw` saves the tab, `<space>vv` opens one.
 - **Tabs:** `Ctrl-t` opens a new one, `gt` / `gT` or `Alt-1`..`Alt-9` switch, `<space>c` closes. The tabs are restored on the next start.
 - **Create:** `<space>ic` an issue (type, then the form with the project's required fields), `<space>iC` a sub-task.
 - **Edit:** `i` edits the title or description in place, `<space>ie` the title, `:edit` the fields, `:assign-me`, `:labels`, `:priority`.

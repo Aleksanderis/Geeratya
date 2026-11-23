@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  GCS-3 To Do       j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  ? help  : commands  q back
+ NORMAL          j/k move  Enter open  <space>o browser  <space>ic create  ]] pane  / search  ? help  : commands  q back

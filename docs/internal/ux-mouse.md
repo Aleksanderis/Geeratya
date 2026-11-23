@@ -131,6 +131,7 @@ A test parses this table and checks it against `DefaultMouseMap`; two more check
 | ContextMenu | Click | `issue.link` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.unlink` | M | Item of the right-click menu on a list row, card or line of an opened issue: same as its key |
 | ContextMenu | Click | `issue.jump` | V | Item of the menu of the tab and the view (right-click on a tab or the status line, `<space>A`): same as its key |
+| ContextMenu | Click | `view.search` | V | Item of the menu of the tab and the view: same as `/` (the search prompt) |
 | ContextMenu | Click | `sprint.switch` | V | Item of the menu of the tab and the view, shown on a board, backlog or sprint view: opens the sprint switcher, same as `<space>sv` |
 | ContextMenu | Click | `view.saved-open` | V | Item of the menu of the tab and the view: opens the saved-view picker, same as `<space>vv` |
 | ContextMenu | Click | `view.saved-save` | V | Item of the menu of the tab and the view: opens the command line with `view save ` typed, same as `<space>vw` |

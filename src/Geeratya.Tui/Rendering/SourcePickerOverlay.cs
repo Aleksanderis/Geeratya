@@ -20,6 +20,8 @@ public static class SourcePickerOverlay
 {
     private const int PromptMargin = 4;
     private const string Title = "Open a view";
+    private const string SearchTitle = "Search issues";
+    private const string SearchHintText = "Type words, or a JQL query. Enter opens a new tab.";
     private const string SprintTitle = "Switch sprint";
     private const string TabsTitle = "Open tabs";
     private const string MoveTitle = "Move to sprint";
@@ -141,6 +143,11 @@ public static class SourcePickerOverlay
             return TabsTitle;
         }
 
+        if (picker.Scope == PickerScope.Jql)
+        {
+            return SearchTitle;
+        }
+
         if (picker.Scope != PickerScope.Sprints)
         {
             return Title;
@@ -250,8 +257,14 @@ public static class SourcePickerOverlay
 
         if (lines.Count == 0)
         {
-            lines.Add(StyledLine.Of(NothingText, TextRole.Muted));
+            lines.Add(StyledLine.Of(picker.Scope == PickerScope.Jql ? SearchHintText : NothingText, TextRole.Muted));
             choiceOfLine.Add(-1);
+        }
+        else if (picker.Scope == PickerScope.Jql && picker.Text.Length == 0)
+        {
+            lines.Insert(0, StyledLine.Of(SearchHintText, TextRole.Muted));
+            choiceOfLine.Insert(0, -1);
+            selectedLine++;
         }
 
         return new PickerRows(lines, selectedLine, choiceOfLine);

@@ -2,33 +2,33 @@
                                                                                                                         
 ╭─ Issues 1 ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ┏━━━━━━━━━╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮━━━━━━━━━┓ │
-│ ┃ Summary │   Columns     │   j          Move down  (Down)                                               │         ┃ │
-│ ┃         │   Global      │   k          Move up  (Up)                                                   │         ┃ │
-│ ┃ A-1  Tas│   All actions │   h          Move left  (Left)                                               │    [--] ┃ │
-│ ┗━━━━━━━━━│   Commands    │   l          Move right  (Right)                                             │━━━━━━━━━┛ │
-│           │               │   gg         Go to the top  (Home)                                           │           │
-│           │               │   G          Go to the bottom  (End)                                         │           │
-│           │               │   Ctrl-d     Page down  (PageDown)                                           │           │
-│           │               │   Ctrl-u     Page up  (PageUp)                                               │           │
-│           │               │   <space>a   Open the actions menu of the selected issue                     │           │
-│           │               │   Enter      Open the selected item                                          │           │
-│           │               │   0          Go to the first column                                          │           │
-│           │               │   $          Go to the last column                                           │           │
-│           │               │   ]]         Next section of the Scrum backlog, or next swimlane             │           │
-│           │               │   [[         Previous section of the Scrum backlog, or previous swimlane     │           │
-│           │               │   za         Expand or collapse sub-tasks of a card, a cut text or a         │           │
-│           │               │              backlog section                                                 │           │
-│           │               │   <space>l   Switch between list and columns                                 │           │
-│           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
-│           │               │              turn)                                                           │           │
-│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic,       │           │
-│           │               │              labels)                                                         │           │
-│           │               │   <space>vl  Show lanes together under their own headers, or one lane        │           │
-│           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
-│           │               │   zo         Open the next folded lane (stacked lanes)                       │           │
-│           │               │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4       │           │
-│           │               │              weeks, all, or follow Jira)                                     │           │
-│           │               │   <space>o   Open the issue in the browser                                  ▼│           │
+│ ┃ Summary │   Columns     │ Issue                                                                        │         ┃ │
+│ ┃         │   Global      │   <space>o   Open the issue in the browser                                   │         ┃ │
+│ ┃ A-1  Tas│   All actions │   <space>yy  Copy the key of the issue under the cursor                      │    [--] ┃ │
+│ ┗━━━━━━━━━│   Commands    │   <space>yu  Copy the issue link                                             │━━━━━━━━━┛ │
+│           │               │   <space>ys  Copy the issue key and summary                                  │           │
+│           │               │   <space>ie  Edit the issue title in place (opens the detail from a list or  │           │
+│           │               │              board)                                                          │           │
+│           │               │   <space>ia  Assign the issue: search people, or unassign                    │           │
+│           │               │   <space>im  Assign the issue to me                                          │           │
+│           │               │   <space>ts  Change the status of the sub-task under the cursor              │           │
+│           │               │   <space>ta  Assign the sub-task under the cursor: search people, or         │           │
+│           │               │              unassign                                                        │           │
+│           │               │   <space>tm  Assign the sub-task under the cursor to me                      │           │
+│           │               │   <space>is  Change the status of the issue                                  │           │
+│           │               │   Alt-l      Move the card to the next column                                │           │
+│           │               │   Alt-h      Move the card to the previous column                            │           │
+│           │               │   <space>iC  Create a sub-task of the selected issue                         │           │
+│           │               │   <space>sm  Move the selected issues to a sprint                            │           │
+│           │               │   <space>sb  Move the selected issues to the backlog                         │           │
+│           │               │                                                                              │           │
+│           │               │ Rank                                                                         │           │
+│           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
+│           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
+│           │               │                                                                              │           │
+│           │               │ Selection                                                                    │           │
+│           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
+│           │               │                                                                             ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
 │           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │

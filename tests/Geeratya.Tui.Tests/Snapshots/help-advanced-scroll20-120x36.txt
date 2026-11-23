@@ -5,30 +5,30 @@
 │           │   Global      │   <space>g   Jump to an issue by key                                        ▲│           │
 │           │   All actions │   <space>sm  Move the selected issues to a sprint                            │           │
 │           │   Commands    │   <space>sb  Move the selected issues to the backlog                         │           │
+│           │               │                                                                              │           │
 │           │               │ Comment                                                                      │           │
 │           │               │   <space>ma  Add a comment to the issue                                      │           │
 │           │               │   <space>me  Edit the comment under the cursor                               │           │
 │           │               │   <space>mr  Reply to the comment under the cursor                           │           │
 │           │               │   <space>md  Delete the comment under the cursor                             │           │
 │           │               │   <space>mo  Reverse the order of the comments: oldest first or newest first │           │
+│           │               │                                                                              │           │
 │           │               │ Rank                                                                         │           │
 │           │               │   Alt-k      Rank the issue up (a count moves it that many places)           │           │
 │           │               │   Alt-j      Rank the issue down (a count moves it that many places)         │           │
 │           │               │   <space>kt  Rank the issue to the top of the list or column                 │           │
 │           │               │   <space>kb  Rank the issue to the bottom of the list or column              │           │
 │           │               │   <space>kk  Pick up the issue, then drop it at the issue under the cursor   │           │
+│           │               │                                                                              │           │
 │           │               │ Selection                                                                    │           │
 │           │               │   v          Start or end Visual mode (a range of rows, or of lines in an    │           │
 │           │               │              issue)                                                          │           │
 │           │               │   Alt-m      Mark or unmark the selected row and move down                   │           │
+│           │               │                                                                              │           │
 │           │               │ View                                                                         │           │
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
 │           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
-│           │               │   <space>l   Switch between list and columns                                 │           │
-│           │               │   <space>vf  Cycle the quick filter of the board (off, then each filter in   │           │
-│           │               │              turn)                                                           │           │
-│           │               │   <space>vs  Group the board columns into lanes (none, assignee, epic,       │           │
-│           │               │              labels)                                                        ▼│           │
+│           │               │   <space>l   Switch between list and columns                                ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
 │           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │

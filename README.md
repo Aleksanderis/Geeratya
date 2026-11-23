@@ -20,7 +20,7 @@ The Jira web UI is slow and mouse-heavy for what you do many times a day: check 
 - Done cutoff of a Kanban board: follows Jira's own "Hide done work items after" (read, never written), with a quick picker per tab (1 to 4 weeks, all)
 - Backlog, with ranking
 - Scrum: sprint board, backlog as sprints, move issues between sprints, create, start and complete sprints
-- JQL search and saved filters as issue lists
+- JQL search and saved filters as issue lists; `/` searches issues by words or JQL
 - Issue view: description and comments as formatted text, sub-tasks, an epic's children, linked issues and remote links (Confluence and others)
 - Change status, also by moving a card to another column
 - Create, edit and delete epics, stories, tasks, bugs and sub-tasks, with each project's required fields
