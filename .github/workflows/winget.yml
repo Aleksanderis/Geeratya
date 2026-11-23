@@ -1,5 +1,5 @@
 # Opens the winget-pkgs PR for a release (#843). OFF by default: the jobs run only when the repository variable
-# WINGET_SUBMIT is "true" (Settings > Variables). They run when the owner publishes a release (the draft made by
+# WINGET_SUBMIT is "true" (Settings > Variables). They run when a release is published (the draft made by
 # release.yml does not trigger it), so the zip URL in the manifest is public by then. Pre-releases never submit.
 # The first submission of Geeratya.Geeratya is a manual PR by the owner; this job needs the package to exist
 # already. Needs the repository secret WINGET_TOKEN: a classic PAT with public_repo scope (wingetcreate pushes a branch

@@ -1,6 +1,6 @@
 # Release checklist
 
-Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. With `release: after-run` in `.claude/workflow.md` (owner, 2026-11-23) the orchestrator runs steps 1-5 itself at the end of a run that merged user-visible changes; it still does not dispatch `homebrew.yml` / `winget.yml` by hand (they run on publish); if they did not, it registers a `needs-owner` issue.
+Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. With `release: after-run` in `.claude/workflow.md` (owner, 2026-11-23) the orchestrator runs steps 1-6 itself at the end of a run that merged user-visible changes: it publishes with the owner's `gh` login (a publish made with the workflow `GITHUB_TOKEN` does not trigger `homebrew.yml` / `winget.yml`) and then checks that both ran. It does not run the catch-up dispatches below: when a publish trigger did not run or failed, it registers a `needs-owner` issue. Step 7 (install routes) stays with the owner.
 
 ## Steps
 
