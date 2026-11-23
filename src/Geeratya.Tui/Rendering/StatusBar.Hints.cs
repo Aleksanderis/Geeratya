@@ -7,6 +7,9 @@ namespace Geeratya.Tui.Rendering;
 
 public static partial class StatusBar
 {
+    private const string SearchLabel = "search";
+    private const string EditSearchLabel = "edit search";
+
     public static IReadOnlyList<StatusHint> Hints { get; } =
     [
         new(InputMode.Normal, ActionIds.HelpToggle, "help"),
@@ -30,8 +33,7 @@ public static partial class StatusBar
         new(InputMode.Normal, ActionIds.IssueCreate, "create", HintScope.List),
         new(InputMode.Normal, ActionIds.SectionNext, "pane", HintScope.Backlog),
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "columns", HintScope.ListOnBoard),
-        new(InputMode.Normal, ActionIds.ViewSearch, "search", HintScope.ListNewSearch),
-        new(InputMode.Normal, ActionIds.ViewSearch, "edit search", HintScope.ListOnSearch),
+        new(InputMode.Normal, ActionIds.ViewSearch, SearchLabel, HintScope.List),
         new(InputMode.Normal, ActionIds.SectionToggle, "sub-tasks", HintScope.ColumnsSubtasks),
         new(InputMode.Normal, ActionIds.NavigateLeft, "column", HintScope.Columns, ActionIds.NavigateRight),
         new(InputMode.Normal, ActionIds.NavigateDown, "card", HintScope.Columns, ActionIds.NavigateUp),
@@ -39,7 +41,7 @@ public static partial class StatusBar
         new(InputMode.Normal, ActionIds.ViewLayoutToggle, "list", HintScope.Columns),
         new(InputMode.Normal, ActionIds.IssueOpenInBrowser, "browser", HintScope.Columns),
         new(InputMode.Normal, ActionIds.IssueCreate, "create", HintScope.Columns),
-        new(InputMode.Normal, ActionIds.ViewSearch, "search", HintScope.Columns),
+        new(InputMode.Normal, ActionIds.ViewSearch, SearchLabel, HintScope.Columns),
         new(InputMode.Normal, ActionIds.NavigateDown, "field", HintScope.Detail, ActionIds.NavigateUp),
         new(InputMode.Normal, ActionIds.ItemOpen, "edit/open", HintScope.Detail),
         new(InputMode.Normal, ActionIds.Cancel, "back", HintScope.Detail),
@@ -69,9 +71,25 @@ public static partial class StatusBar
         var level = state.Settings.CommandLevel;
         var global = TextsOf(Hints, state.Mode, HintScope.Global, keymap, level);
 
-        return state.Mode == InputMode.Normal
-            ? new HintList(TextsOf(ScreenHints, InputMode.Normal, ScopeOf(state), keymap, level), global)
-            : new HintList([], global);
+        if (state.Mode != InputMode.Normal)
+        {
+            return new HintList([], global);
+        }
+
+        var screen = TextsOf(ScreenHints, InputMode.Normal, ScopeOf(state), keymap, level);
+
+        return new HintList(IsSearchTab(state) ? EditSearch(screen) : screen, global);
+    }
+
+    // A JQL tab (a search result): `/` edits its query in place (#1060), so the hint says so.
+    private static bool IsSearchTab(AppState state)
+    {
+        return ListBodyRenderer.ActiveTab(state) is { Definition.Source: ViewSourceKind.Jql };
+    }
+
+    private static List<HintChip> EditSearch(List<HintChip> chips)
+    {
+        return [.. chips.Select(chip => chip.Label == SearchLabel ? chip with { Label = EditSearchLabel } : chip)];
     }
 
     /// <summary>The screen of the active tab; <see cref="HintScope.Global"/> without a tab (start screen).</summary>
@@ -101,12 +119,7 @@ public static partial class StatusBar
             return HintScope.Backlog;
         }
 
-        return tab.Definition.Source switch
-        {
-            ViewSourceKind.Board or ViewSourceKind.Sprint => HintScope.ListOnBoard,
-            ViewSourceKind.Jql => HintScope.ListOnSearch,
-            _ => HintScope.List,
-        };
+        return tab.Definition.Source is ViewSourceKind.Board or ViewSourceKind.Sprint ? HintScope.ListOnBoard : HintScope.List;
     }
 
     /// <summary>
@@ -163,8 +176,7 @@ public static partial class StatusBar
     private static bool Applies(HintScope hint, HintScope current)
     {
         return hint == current
-            || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog or HintScope.ListOnSearch)
-            || (hint == HintScope.ListNewSearch && current is HintScope.List or HintScope.ListOnBoard or HintScope.Backlog)
+            || (hint == HintScope.List && current is HintScope.ListOnBoard or HintScope.Backlog)
             || (hint == HintScope.Columns && current == HintScope.ColumnsSubtasks);
     }
 

@@ -255,6 +255,11 @@ public static class SurfaceHints
             return HintLabels.Switch;
         }
 
+        if (picker is { Scope: PickerScope.Jql, EditTab: not null })
+        {
+            return HintLabels.RunInThisTab;
+        }
+
         if (picker.Scope != PickerScope.Sprints)
         {
             return HintLabels.OpenInNewTab;

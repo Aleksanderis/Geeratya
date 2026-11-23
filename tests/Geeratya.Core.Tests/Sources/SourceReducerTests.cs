@@ -555,8 +555,7 @@ public class SourceReducerTests
 
         var edited = Assert.Single(result.State.Session.Tabs);
         Assert.Equal(tab.Id, edited.Id);
-        Assert.Equal("project = GC", edited.Definition.SourceValue.Replace("x", string.Empty, StringComparison.Ordinal));
-        Assert.Contains("x", edited.Definition.SourceValue);
+        Assert.Equal("project = GCx", edited.Definition.SourceValue);
         Assert.Null(result.State.Picker);
         var load = Assert.Single(result.Effects.OfType<LoadViewPageEffect>());
         Assert.Equal(tab.Id, load.Tab);
@@ -565,19 +564,31 @@ public class SourceReducerTests
     }
 
     [Fact]
-    public void GivenAListTab_WhenPressingSlash_ThenThePromptIsEmptyAndOpensANewTab()
+    public void GivenABoardTab_WhenPressingSlash_ThenThePromptIsEmptyAndEditsNoTab()
     {
-        var opened = Run(Start(), "jql project = GCM");
-        var other = Run(opened.State, "jql");
-        var withoutSearchTab = _reducer.Reduce(
+        var opened = _reducer.Reduce(
             Start(),
             new ViewOpenRequested(new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.List, "GCM")));
 
-        var result = Press(withoutSearchTab.State, "/");
+        var result = Press(opened.State, "/");
 
         Assert.Equal(string.Empty, result.State.Picker!.Text);
         Assert.Null(result.State.Picker.EditTab);
-        Assert.NotNull(other.State.Picker!.EditTab);
+    }
+
+    [Fact]
+    public void GivenTheEditedTabWasClosed_WhenPressingEnter_ThenTheQueryOpensInANewTab()
+    {
+        var opened = Run(Start(), "jql project = GCM");
+        var tab = Assert.Single(opened.State.Session.Tabs);
+        var prompt = Press(opened.State, "/").State;
+        var closed = ViewReducer.Reduce(prompt, new TabClosed(tab.Id)).State with { Picker = prompt.Picker };
+
+        var result = Press(closed, "Enter");
+
+        var reopened = Assert.Single(result.State.Session.Tabs);
+        Assert.NotEqual(tab.Id, reopened.Id);
+        Assert.Equal("project = GCM", reopened.Definition.SourceValue);
     }
 
     [Fact]

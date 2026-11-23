@@ -123,13 +123,29 @@ public class SourcePickerSnapshotTests
     }
 
     [Fact]
-    public void GivenTheJqlPromptEditingATab_WhenReadingItsTitle_ThenItSaysEnterRunsItInThatTab()
+    public void GivenTheJqlPromptEditingATab_WhenReadingTitleAndFooter_ThenEnterRunsItInThatTab()
     {
         var search = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null);
         var editing = search with { EditTab = new TabId(1) };
 
         Assert.Equal("Search issues", SourcePickerOverlay.TitleOf(search));
-        Assert.Contains("this tab", SourcePickerOverlay.TitleOf(editing), StringComparison.Ordinal);
+        Assert.Equal("Edit search", SourcePickerOverlay.TitleOf(editing));
+        Assert.Contains(new HintChip("Enter", "open in a new tab"), SurfaceHints.Picker(_keymap, search));
+        Assert.Contains(new HintChip("Enter", "run in this tab"), SurfaceHints.Picker(_keymap, editing));
+    }
+
+    [Fact]
+    public void GivenTheEmptyJqlPromptEditingATab_WhenBuildingTheFrame_ThenTheMutedLineSaysEnterRunsItHere()
+    {
+        var state = Sample("") with
+        {
+            Picker = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null) { EditTab = new TabId(1) },
+        };
+
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Enter runs it in this tab.", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Enter opens a new tab.", StringComparison.Ordinal));
     }
 
     [Fact]

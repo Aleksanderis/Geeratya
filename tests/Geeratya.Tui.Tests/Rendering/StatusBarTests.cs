@@ -355,6 +355,27 @@ public class StatusBarTests
         Assert.DoesNotContain("columns", line);
     }
 
+    [Theory]
+    [InlineData(ViewLayout.List)]
+    [InlineData(ViewLayout.Columns)]
+    public void GivenAJqlTab_WhenRendering_ThenSlashIsNamedEditSearch(ViewLayout layout)
+    {
+        var line = StatusBar.Render(With(layout, source: ViewSourceKind.Jql), 200, _keymap);
+
+        Assert.Contains("/ edit search", line);
+    }
+
+    [Theory]
+    [InlineData(ViewLayout.List)]
+    [InlineData(ViewLayout.Columns)]
+    public void GivenABoardTab_WhenRendering_ThenSlashIsNamedSearch(ViewLayout layout)
+    {
+        var line = StatusBar.Render(With(layout, source: ViewSourceKind.Board), 200, _keymap);
+
+        Assert.Contains("/ search", line);
+        Assert.DoesNotContain("edit search", line);
+    }
+
     [Fact]
     public void GivenListLayoutOnABoard_WhenRendering_ThenTheColumnsSwitchIsOffered()
     {
@@ -390,17 +411,6 @@ public class StatusBarTests
 
         Assert.Contains("j/k field  Enter edit/open  Esc back  <space>o browser  <space>p parent", line);
         Assert.DoesNotContain("card", line);
-    }
-
-    [Fact]
-    public void GivenASearchResultList_WhenListingItsHints_ThenSlashIsNamedEditSearch()
-    {
-        var hints = StatusBar.ScreenHintsFor(HintScope.ListOnSearch, _keymap);
-
-        Assert.Contains("/ edit search", hints);
-        Assert.DoesNotContain("/ search", hints);
-        Assert.Contains("/ search", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
-        Assert.DoesNotContain("/ edit search", StatusBar.ScreenHintsFor(HintScope.List, _keymap));
     }
 
     [Fact]
