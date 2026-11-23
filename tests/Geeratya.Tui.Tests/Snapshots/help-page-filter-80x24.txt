@@ -5,8 +5,8 @@
 │ │   List        │ View                                                     │ │
 │ │   Global      │   <space>A   Open the actions menu of the tab and the    │ │
 │ │   All actions │              view                                        │ │
-│ │   Commands    │   /          Search issues by words or JQL (opens in a   │ │
-│ │               │              new tab)                                    │ │
+│ │   Commands    │   /          Search issues by words or JQL (new tab; on  │ │
+│ │               │              a search tab, edit its query)               │ │
 │ │               │   <space>vv  Open a saved view in a new tab              │ │
 │ │               │                                                          │ │
 │ │               │ Tabs                                                     │ │

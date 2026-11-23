@@ -148,7 +148,7 @@ public static class ActionCatalog
         new(
             ActionIds.ViewDoneCutoff,
             "Pick how long this Kanban board keeps Done issues (1 to 4 weeks, all, or follow Jira)"),
-        new(ActionIds.ViewSearch, "Search issues by words or JQL (opens in a new tab)"),
+        new(ActionIds.ViewSearch, "Search issues by words or JQL (new tab; on a search tab, edit its query)"),
         new(ActionIds.ViewSavedOpen, "Open a saved view in a new tab"),
         new(ActionIds.ViewSavedSave, "Save this view under a name (opens :view save)"),
         new(ActionIds.ViewCycleCommandLevel, "Switch the command level for the session"),

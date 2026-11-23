@@ -93,7 +93,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `v` | Start or end Visual mode (a range of rows, or of lines in an issue) | `selection.visual` | everyday |
 | `Alt-m` | Mark or unmark the selected row and move down | `selection.mark` | everyday |
 | `<space>sv` | Switch the sprint shown (active, future, closed) | `sprint.switch` | everyday |
-| `/` | Search issues by words or JQL (opens in a new tab) | `view.search` | everyday |
+| `/` | Search issues by words or JQL (new tab; on a search tab, edit its query) | `view.search` | everyday |
 | `<space>vv` | Open a saved view in a new tab | `view.saved-open` | everyday |
 | `<space>vw` | Save this view under a name (opens :view save) | `view.saved-save` | everyday |
 | `<space>sm` | Move the selected issues to a sprint | `sprint.move-issues` | everyday |

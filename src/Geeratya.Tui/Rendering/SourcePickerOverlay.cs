@@ -21,6 +21,8 @@ public static class SourcePickerOverlay
     private const int PromptMargin = 4;
     private const string Title = "Open a view";
     private const string SearchTitle = "Search issues";
+    private const string EditTitle = "Edit search";
+    private const string EditHintText = "Type words, or a JQL query. Enter runs it in this tab.";
     private const string SearchHintText = "Type words, or a JQL query. Enter opens a new tab.";
     private const string SprintTitle = "Switch sprint";
     private const string TabsTitle = "Open tabs";
@@ -145,7 +147,7 @@ public static class SourcePickerOverlay
 
         if (picker.Scope == PickerScope.Jql)
         {
-            return SearchTitle;
+            return picker.EditTab is null ? SearchTitle : EditTitle;
         }
 
         if (picker.Scope != PickerScope.Sprints)
@@ -257,17 +259,22 @@ public static class SourcePickerOverlay
 
         if (lines.Count == 0)
         {
-            lines.Add(StyledLine.Of(picker.Scope == PickerScope.Jql ? SearchHintText : NothingText, TextRole.Muted));
+            lines.Add(StyledLine.Of(picker.Scope == PickerScope.Jql ? SearchHintOf(picker) : NothingText, TextRole.Muted));
             choiceOfLine.Add(-1);
         }
         else if (picker.Scope == PickerScope.Jql && picker.Text.Length == 0)
         {
-            lines.Insert(0, StyledLine.Of(SearchHintText, TextRole.Muted));
+            lines.Insert(0, StyledLine.Of(SearchHintOf(picker), TextRole.Muted));
             choiceOfLine.Insert(0, -1);
             selectedLine++;
         }
 
         return new PickerRows(lines, selectedLine, choiceOfLine);
+    }
+
+    private static string SearchHintOf(SourcePickerState picker)
+    {
+        return picker.EditTab is null ? SearchHintText : EditHintText;
     }
 
     private static PickerRows TabRows(IReadOnlyList<SourceChoice> choices, int selected, int width)

@@ -5,6 +5,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.SavedViews;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Jira.Boards.Models;
 using Geeratya.Jira.Filters.Models;
 using Geeratya.Platform.Terminal;
@@ -119,6 +120,32 @@ public class SourcePickerSnapshotTests
         Assert.Contains(lines, line => line.Contains('+', StringComparison.Ordinal));
         Assert.All(lines, line => Assert.DoesNotContain(line, character => Glyphs.AsciiSwapped.Contains(character)));
         Assert.All(lines, line => Assert.Equal(width, TextWidth.Of(line)));
+    }
+
+    [Fact]
+    public void GivenTheJqlPromptEditingATab_WhenReadingTitleAndFooter_ThenEnterRunsItInThatTab()
+    {
+        var search = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null);
+        var editing = search with { EditTab = new TabId(1) };
+
+        Assert.Equal("Search issues", SourcePickerOverlay.TitleOf(search));
+        Assert.Equal("Edit search", SourcePickerOverlay.TitleOf(editing));
+        Assert.Contains(new HintChip("Enter", "open in a new tab"), SurfaceHints.Picker(_keymap, search));
+        Assert.Contains(new HintChip("Enter", "run in this tab"), SurfaceHints.Picker(_keymap, editing));
+    }
+
+    [Fact]
+    public void GivenTheEmptyJqlPromptEditingATab_WhenBuildingTheFrame_ThenTheMutedLineSaysEnterRunsItHere()
+    {
+        var state = Sample("") with
+        {
+            Picker = new SourcePickerState(string.Empty, 0, PickerScope.Jql, false, null) { EditTab = new TabId(1) },
+        };
+
+        var lines = FrameBuilder.Build(state, 80, 24, _keymap);
+
+        Assert.Contains(lines, line => line.Contains("Enter runs it in this tab.", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines, line => line.Contains("Enter opens a new tab.", StringComparison.Ordinal));
     }
 
     [Fact]

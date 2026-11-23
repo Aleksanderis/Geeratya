@@ -9,7 +9,8 @@
 │           │               │ View                                                                         │           │
 │           │               │   <space>A   Open the actions menu of the tab and the view                   │           │
 │           │               │   <space>r   Refresh the view (also retries after an error)                  │           │
-│           │               │   /          Search issues by words or JQL (opens in a new tab)              │           │
+│           │               │   /          Search issues by words or JQL (new tab; on a search tab, edit   │           │
+│           │               │              its query)                                                      │           │
 │           │               │   <space>vv  Open a saved view in a new tab                                  │           │
 │           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
 │           │               │   <space>*   Switch the command level for the session                        │           │
@@ -27,8 +28,7 @@
 │           │               │   Alt-7      Go to tab 7                                                     │           │
 │           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
-│           │               │   Ctrl-t     Open the source picker for a new tab                            │           │
-│           │               │   <space>c   Close the tab                                                  ▼│           │
+│           │               │   Ctrl-t     Open the source picker for a new tab                           ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
 │           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │

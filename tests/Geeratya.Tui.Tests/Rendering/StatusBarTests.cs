@@ -355,6 +355,27 @@ public class StatusBarTests
         Assert.DoesNotContain("columns", line);
     }
 
+    [Theory]
+    [InlineData(ViewLayout.List)]
+    [InlineData(ViewLayout.Columns)]
+    public void GivenAJqlTab_WhenRendering_ThenSlashIsNamedEditSearch(ViewLayout layout)
+    {
+        var line = StatusBar.Render(With(layout, source: ViewSourceKind.Jql), 200, _keymap);
+
+        Assert.Contains("/ edit search", line);
+    }
+
+    [Theory]
+    [InlineData(ViewLayout.List)]
+    [InlineData(ViewLayout.Columns)]
+    public void GivenABoardTab_WhenRendering_ThenSlashIsNamedSearch(ViewLayout layout)
+    {
+        var line = StatusBar.Render(With(layout, source: ViewSourceKind.Board), 200, _keymap);
+
+        Assert.Contains("/ search", line);
+        Assert.DoesNotContain("edit search", line);
+    }
+
     [Fact]
     public void GivenListLayoutOnABoard_WhenRendering_ThenTheColumnsSwitchIsOffered()
     {

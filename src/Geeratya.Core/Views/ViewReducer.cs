@@ -36,6 +36,7 @@ public static partial class ViewReducer
             TabClosed closed => Close(state, closed.Tab, effects),
             ViewLayoutChanged changed => ChangeLayout(state, changed),
             SprintSwitched switched => SwitchSprint(state, switched, effects),
+            QueryEdited edited => EditQuery(state, edited, effects),
             ViewportChanged viewport => ChangeViewport(state, viewport, effects),
             NextPageRequested requested => NextPage(state, requested.Tab, effects),
             SelectionMoved moved => MoveSelection(state, moved, effects),
@@ -150,6 +151,35 @@ public static partial class ViewReducer
             Sprint = null,
             SprintResolved = false,
         };
+
+        effects.Add(new CancelTabEffect(tab.Id));
+        effects.Add(
+            new LoadViewPageEffect(
+                tab.Id,
+                definition,
+                null,
+                requestId,
+                LoadReason.Open,
+                false,
+                QuickFilterJql.For(tab)));
+
+        return Replace(state, reopened) with { Sequence = requestId };
+    }
+
+    private static AppState EditQuery(AppState state, QueryEdited edited, List<Effect> effects)
+    {
+        var tab = Find(state.Session.Tabs, edited.Tab);
+
+        if (tab is null || tab.Definition.Source != ViewSourceKind.Jql)
+        {
+            return state;
+        }
+
+        var definition = edited.Definition with { Layout = tab.Definition.Layout };
+        var requestId = state.Sequence + 1;
+
+        // The new query replaces everything of the old one; an issue opened from the old results is closed with them.
+        var reopened = Emptied(tab with { Definition = definition, Detail = [] }, requestId);
 
         effects.Add(new CancelTabEffect(tab.Id));
         effects.Add(

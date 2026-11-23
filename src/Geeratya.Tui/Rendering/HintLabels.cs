@@ -84,6 +84,9 @@ public static class HintLabels
     /// <summary>Enter opens the highlighted board, filter or query in a new tab.</summary>
     public const string OpenInNewTab = "open in a new tab";
 
+    /// <summary>Enter runs the edited query of a search tab in that same tab.</summary>
+    public const string RunInThisTab = "run in this tab";
+
     /// <summary>Tests the connection of a profile.</summary>
     public const string Test = "test";
 

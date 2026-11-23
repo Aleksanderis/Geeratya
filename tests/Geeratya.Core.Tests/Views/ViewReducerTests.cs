@@ -482,6 +482,53 @@ public class ViewReducerTests
         Assert.False(string.IsNullOrWhiteSpace(text));
     }
 
+    [Fact]
+    public void GivenALoadedJqlTabWithAnIssueOpen_WhenItsQueryIsEdited_ThenTheSameTabReloadsAndTheIssueCloses()
+    {
+        var state = FillTab(Start(), "project = A", 5);
+        var tab = state.Session.Tabs[0] with { Definition = Definition("project = A") with { Layout = ViewLayout.Columns } };
+        var withDetail = tab with { Detail = [DetailState.Opened("A-1", null, 1, 2, 3)] };
+        state = state with { Session = state.Session with { Tabs = [withDetail] } };
+
+        var result = _reducer.Reduce(state, new QueryEdited(tab.Id, Definition("project = B")));
+
+        var edited = Assert.Single(result.State.Session.Tabs);
+        Assert.Equal(tab.Id, edited.Id);
+        Assert.Equal("project = B", edited.Definition.SourceValue);
+        Assert.Equal(ViewLayout.Columns, edited.Definition.Layout);
+        Assert.Empty(edited.Rows);
+        Assert.Empty(edited.Detail);
+        Assert.Equal(new CancelTabEffect(tab.Id), result.Effects[0]);
+        var load = Assert.IsType<LoadViewPageEffect>(result.Effects[1]);
+        Assert.Equal(edited.RequestId, load.RequestId);
+        Assert.Equal("project = B", load.Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenAnEditedQuery_WhenTheOldQueryReplyArrives_ThenItIsIgnored()
+    {
+        var opened = Open(Start(), "project = A");
+        var tab = opened.State.Session.Tabs[0];
+        var edited = _reducer.Reduce(opened.State, new QueryEdited(tab.Id, Definition("project = B")));
+
+        var late = _reducer.Reduce(edited.State, new ViewPageLoaded(tab.Id, tab.RequestId, Page(5, null), _now));
+
+        Assert.Empty(late.State.Session.Tabs[0].Rows);
+    }
+
+    [Fact]
+    public void GivenABoardTab_WhenAQueryEditNamesIt_ThenNothingChanges()
+    {
+        var board = new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.List, "GCM");
+        var opened = _reducer.Reduce(Start(), new ViewOpenRequested(board));
+        var tab = opened.State.Session.Tabs[0];
+
+        var result = _reducer.Reduce(opened.State, new QueryEdited(tab.Id, Definition("project = B")));
+
+        Assert.Same(opened.State, result.State);
+        Assert.Empty(result.Effects);
+    }
+
     private static AppState Start(ProfileCatalog? catalog = null)
     {
         var profiles = catalog ?? ProfileCatalog.Empty.With(_work);

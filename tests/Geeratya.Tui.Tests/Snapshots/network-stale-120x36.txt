@@ -33,4 +33,4 @@
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  stale            j/k move  Enter open  <space>o browser  <space>ic create  / search  ? help  : commands  q back
+ NORMAL  stale       j/k move  Enter open  <space>o browser  <space>ic create  / edit search  ? help  : commands  q back
