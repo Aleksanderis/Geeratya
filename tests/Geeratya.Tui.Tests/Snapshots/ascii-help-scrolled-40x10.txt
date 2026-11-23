@@ -2,9 +2,9 @@
                                         
 +- Geeratya ---------------------------+
 | +- Help ---------------------------+ |
-| |   Global      |   q             ^| |
-| |   All actions |         Quit at  | |
-| |   Commands    |         the     v| |
+| |   Global      |                 ^| |
+| |   All actions | View             | |
+| |   Commands    |   <space>A      v| |
 | +----------------------------------+ |
 +--------------------------------------+
 [HELP]     j/k move  Tab page  Esc close

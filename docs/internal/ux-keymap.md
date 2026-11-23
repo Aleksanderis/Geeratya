@@ -35,7 +35,8 @@ Keys with a vim meaning that Geeratya keeps or deliberately does not reuse for i
 | `Ctrl-d`, `Ctrl-u` | half page down, up | page down, up (in an opened issue inside the current pane only, #870) |
 | `:` | command line | command palette |
 | `q` | record a macro | close one level, quit at the view root (Normal mode only; there are no macros) |
-| `?` | search backwards | help (search arrives with `/` and `n`/`N` in a later issue) |
+| `?` | search backwards | help |
+| `/` | search forward | the search prompt (`view.search`): words or JQL, opens the result in a new tab; `n`/`N` are not bound |
 | `s u c a x r D M E` and other bare letters | edit commands | not bound by Geeratya actions |
 | `0` `$` | line start, line end | first and last column of the board |
 | `] ]` `[ [` | next and previous section | next and previous section of the issue, or of the Scrum backlog |

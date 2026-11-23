@@ -1,7 +1,6 @@
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Sources;
 using Geeratya.Core.State;
-using Geeratya.Core.Views;
 
 namespace Geeratya.Core.Help;
 
@@ -72,13 +71,14 @@ public static class HelpPages
         var name = Names(state, keymap)[Current(state, keymap)];
         var filter = state.HelpFilter.Trim();
         var level = state.Settings.CommandLevel;
+        var context = ActionContext.Of(state);
         var lines = name switch
         {
             GlobalName => ActionLines(keymap, level, filter, row => row.Scope == ActionScope.Global && !row.ModalOnly),
             AllName => AllLines(keymap, level, filter),
             CommandsName => CommandLines(filter),
             CustomName => CustomLines(keymap, filter),
-            _ => ActionLines(keymap, level, filter, row => row.Applies(LayoutScope(state))),
+            _ => ActionLines(keymap, level, filter, row => row.Applies(context)),
         };
 
         if (lines.Count == 0)
@@ -115,26 +115,7 @@ public static class HelpPages
 
     private static ActionScope? LayoutScope(AppState state)
     {
-        var tab = state.Session.Tabs.FirstOrDefault(candidate => candidate.Id == state.Session.Active);
-
-        if (tab is null)
-        {
-            return null;
-        }
-
-        if (tab.Detail.Count > 0)
-        {
-            return ActionScope.Detail;
-        }
-
-        if (tab.Definition.Layout == ViewLayout.Columns)
-        {
-            return ActionScope.Columns;
-        }
-
-        var isBacklog = tab.Definition.Source is ViewSourceKind.Backlog or ViewSourceKind.ScrumBacklog;
-
-        return isBacklog ? ActionScope.Backlog : ActionScope.List;
+        return ActionContext.Of(state).Layout;
     }
 
     private static string NameOf(ActionScope layout)
@@ -154,22 +135,17 @@ public static class HelpPages
         string filter,
         Func<HelpRow, bool> belongs)
     {
-        var lines = new List<string>();
+        var rows = Rows(keymap, level).Where(row => belongs(row) && row.Matches(filter)).ToList();
 
-        foreach (var row in Rows(keymap, level).Where(row => belongs(row) && row.Matches(filter)))
-        {
-            lines.Add(row.Line);
-        }
-
-        return lines;
+        return Grouped(rows, ActionCatalog.Groups.Append(DialogsGroup));
     }
 
-    private static List<string> AllLines(KeymapTable keymap, CommandLevel level, string filter)
+    // The rows under one header per group, a blank line between the groups.
+    private static List<string> Grouped(List<HelpRow> rows, IEnumerable<string> groups)
     {
         var lines = new List<string>();
-        var rows = Rows(keymap, level).Where(row => row.Matches(filter)).ToList();
 
-        foreach (var group in ActionCatalog.Groups.Append(DialogsGroup))
+        foreach (var group in groups)
         {
             var inGroup = rows.Where(row => row.Group == group).ToList();
 
@@ -178,9 +154,22 @@ public static class HelpPages
                 continue;
             }
 
+            if (lines.Count > 0)
+            {
+                lines.Add(string.Empty);
+            }
+
             lines.Add(group);
             lines.AddRange(inGroup.Select(row => row.Line));
         }
+
+        return lines;
+    }
+
+    private static List<string> AllLines(KeymapTable keymap, CommandLevel level, string filter)
+    {
+        var rows = Rows(keymap, level).Where(row => row.Matches(filter)).ToList();
+        var lines = Grouped(rows, ActionCatalog.Groups.Append(DialogsGroup));
 
         if (filter.Length == 0 && HiddenNote(keymap, level) is { } note)
         {
@@ -302,9 +291,11 @@ public static class HelpPages
             }
         }
 
-        public bool Applies(ActionScope? layout)
+        public bool Applies(ActionContext context)
         {
-            return !ModalOnly && layout is { } flag && (Scope & flag) != 0;
+            var onLayout = context.Layout is { } flag && (Scope & flag) != 0;
+
+            return !ModalOnly && onLayout && context.Applies(Definition.Id);
         }
 
         public bool Matches(string filter)

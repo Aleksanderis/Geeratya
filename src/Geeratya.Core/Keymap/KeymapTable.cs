@@ -61,7 +61,8 @@ public sealed class KeymapTable
     public IReadOnlyList<NextKey> NextKeys(
         InputMode mode,
         string pending,
-        CommandLevel level = CommandLevel.Advanced)
+        CommandLevel level = CommandLevel.Advanced,
+        ActionContext? context = null)
     {
         var prefix = $"{pending}{SequenceSeparator}";
         var order = new List<string>();
@@ -72,7 +73,8 @@ public sealed class KeymapTable
         {
             if (binding.Mode != mode
                 || !binding.Keys.StartsWith(prefix, StringComparison.Ordinal)
-                || !ActionCatalog.IsShownAt(binding.Action, level))
+                || !ActionCatalog.IsShownAt(binding.Action, level)
+                || context?.Applies(binding.Action) == false)
             {
                 continue;
             }

@@ -455,6 +455,93 @@ public class SourceReducerTests
         Assert.Equal("No profile yet: add one with :profile add.", result.State.Message);
     }
 
+    [Fact]
+    public void GivenNormalMode_WhenPressingSlash_ThenTheSearchPromptOpensEmptyOnTheQueryScope()
+    {
+        var result = Press(Start(), "/");
+
+        Assert.Equal(InputMode.Insert, result.State.Mode);
+        Assert.Equal(PickerScope.Jql, result.State.Picker!.Scope);
+        Assert.Equal(string.Empty, result.State.Picker.Text);
+    }
+
+    [Fact]
+    public void GivenNoProfile_WhenPressingSlash_ThenTheMessageSaysToAddOne()
+    {
+        var result = Press(AppState.Initial, "/");
+
+        Assert.Null(result.State.Picker);
+        Assert.Equal("No profile yet: add one with :profile add.", result.State.Message);
+    }
+
+    [Fact]
+    public void GivenSearchWithWords_WhenRun_ThenATextSearchOpensInANewTab()
+    {
+        var result = Run(Start(), "search login bug");
+
+        var tab = Assert.Single(result.State.Session.Tabs);
+
+        Assert.Equal(ViewSourceKind.Jql, tab.Definition.Source);
+        Assert.Equal("text ~ \"login bug\"", tab.Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenSearchWithJql_WhenRun_ThenItIsSentAsTyped()
+    {
+        var result = Run(Start(), "search project = GCM");
+
+        var tab = Assert.Single(result.State.Session.Tabs);
+
+        Assert.Equal("project = GCM", tab.Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenSearchWithoutWords_WhenRun_ThenThePromptOpens()
+    {
+        var result = Run(Start(), "search");
+
+        Assert.Equal(PickerScope.Jql, result.State.Picker!.Scope);
+        Assert.Empty(result.State.Session.Tabs);
+    }
+
+    [Fact]
+    public void GivenAJqlTab_WhenRunningJqlWithoutQuery_ThenItsQueryIsTypedForEditing()
+    {
+        var opened = Run(Start(), "jql project = GCM ORDER BY created");
+
+        var result = Run(opened.State, "jql");
+
+        Assert.Equal("project = GCM ORDER BY created", result.State.Picker!.Text);
+    }
+
+    [Fact]
+    public void GivenAJqlTab_WhenEditingItsQueryShorter_ThenEnterOpensTheEditedQuery()
+    {
+        var opened = Run(Start(), "jql project = GCM ORDER BY created");
+        var state = Run(opened.State, "jql").State;
+
+        for (var step = 0; step < " ORDER BY created".Length; step++)
+        {
+            state = Press(state, "Backspace").State;
+        }
+
+        var result = Press(state, "Enter");
+
+        Assert.Equal("project = GCM", result.State.Session.Tabs[^1].Definition.SourceValue);
+    }
+
+    [Fact]
+    public void GivenABoardTab_WhenRunningJqlWithoutQuery_ThenThePromptStartsEmpty()
+    {
+        var opened = _reducer.Reduce(
+            Start(),
+            new ViewOpenRequested(new ViewDefinition(ViewSourceKind.Board, "4", ViewLayout.Columns, "GCM")));
+
+        var result = Run(opened.State, "jql");
+
+        Assert.Equal(string.Empty, result.State.Picker!.Text);
+    }
+
     private static AppState Start()
     {
         return AppState.Initial with { Profiles = ProfileCatalog.Empty.With(_work), Session = SiteSession.Empty(_work) };

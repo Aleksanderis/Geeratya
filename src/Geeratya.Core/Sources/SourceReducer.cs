@@ -74,7 +74,13 @@ public static partial class SourceReducer
 
         if (verb == PaletteCommands.Jql && argument.Trim().Length == 0)
         {
-            return Open(state, PickerScope.Jql, string.Empty, autoOpen: false);
+            // On a JQL tab the query is typed into the prompt, so the current search can be edited.
+            return Open(state, PickerScope.Jql, CurrentJql(state), autoOpen: false);
+        }
+
+        if (verb == PaletteCommands.Search)
+        {
+            return argument.Trim().Length == 0 ? OpenSearch(state) : OpenJql(state, JqlText.FromTyped(argument));
         }
 
         if (verb == PaletteCommands.Jql)
@@ -86,6 +92,28 @@ public static partial class SourceReducer
         var scope = ScopeOf(verb);
 
         return Open(state, scope, name, autoOpen: scope != PickerScope.Filters || name.Length > 0);
+    }
+
+    /// <summary>
+    /// <c>view.search</c> (<c>/</c>): the search prompt, empty. Words typed there become a text search and a JQL
+    /// query is sent as typed; <c>Enter</c> opens the result in a new tab.
+    /// </summary>
+    public static ReduceResult OpenSearch(AppState state)
+    {
+        if (state.Profiles.Active is null)
+        {
+            return Plain(state with { Message = NoProfileMessage });
+        }
+
+        return Open(state, PickerScope.Jql, string.Empty, autoOpen: false);
+    }
+
+    // The JQL of the active tab when it is a JQL view, else empty.
+    private static string CurrentJql(AppState state)
+    {
+        var tab = state.Session.Active is { } id ? ViewReducer.Find(state.Session.Tabs, id) : null;
+
+        return tab is { Definition.Source: ViewSourceKind.Jql } ? tab.Definition.SourceValue : string.Empty;
     }
 
     /// <summary><c>:history clear</c>: forgets the active profile's recent queries and issues (local data only).</summary>

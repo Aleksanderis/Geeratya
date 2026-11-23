@@ -2,11 +2,18 @@
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │           ╭─ Help ───────────────────────────────────────────────────────────────────────────────────────╮           │
-│           │   Global      │   <space>sv  Switch the sprint shown (active, future, closed)               ▲│           │
-│           │   All actions │   <space>sn  Create a sprint (name, goal, dates)                             │           │
-│           │   Commands    │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
+│           │   Global      │   <space>vd  Pick how long this Kanban board keeps Done issues (1 to 4      ▲│           │
+│           │   All actions │              weeks, all, or follow Jira)                                     │           │
+│           │   Commands    │   /          Search issues by words or JQL (opens in a new tab)              │           │
+│           │               │   <space>vv  Open a saved view in a new tab                                  │           │
+│           │               │   <space>vw  Save this view under a name (opens :view save)                  │           │
+│           │               │   <space>*   Switch the command level for the session                        │           │
+│           │               │   <space>sv  Switch the sprint shown (active, future, closed)                │           │
+│           │               │   <space>sn  Create a sprint (name, goal, dates)                             │           │
+│           │               │   <space>ss  Start the sprint (confirms dates and issue count)               │           │
 │           │               │   <space>sc  Complete the sprint (confirms where the open issues go)         │           │
 │           │               │   <space>sg  Show the full goal of the sprint                                │           │
+│           │               │                                                                              │           │
 │           │               │ Tabs                                                                         │           │
 │           │               │   Tab        Next tab  (gt)                                                  │           │
 │           │               │   Shift-Tab  Previous tab  (gT)                                              │           │
@@ -21,14 +28,7 @@
 │           │               │   Alt-8      Go to tab 8                                                     │           │
 │           │               │   Alt-9      Go to tab 9                                                     │           │
 │           │               │   Ctrl-t     Open the source picker for a new tab                            │           │
-│           │               │   <space>c   Close the tab                                                   │           │
-│           │               │   <space>T   Show a list of open tabs                                        │           │
-│           │               │   Ctrl-w r   Rename this tab (an empty name restores the source label)       │           │
-│           │               │ Navigate                                                                     │           │
-│           │               │   j          Move down  (Down)                                               │           │
-│           │               │   k          Move up  (Up)                                                   │           │
-│           │               │   h          Move left  (Left)                                               │           │
-│           │               │   l          Move right  (Right)                                            ▼│           │
+│           │               │   <space>c   Close the tab                                                  ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
 │           │ j/k move   Tab page   / filter   Esc close                                                   │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │

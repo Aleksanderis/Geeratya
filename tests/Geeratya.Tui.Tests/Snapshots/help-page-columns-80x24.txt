@@ -2,21 +2,21 @@
                                                                                 
 ╭─ Issues 1 ───────────────────────────────────────────────────────────────────╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│ │   Columns     │   j          Move down  (Down)                           │ │
-│ │   Global      │   k          Move up  (Up)                               │ │
-│ │   All actions │   h          Move left  (Left)                           │ │
-│ │   Commands    │   l          Move right  (Right)                         │ │
-│ │               │   gg         Go to the top  (Home)                       │ │
-│ │               │   G          Go to the bottom  (End)                     │ │
-│ │               │   Ctrl-d     Page down  (PageDown)                       │ │
-│ │               │   Ctrl-u     Page up  (PageUp)                           │ │
-│ │               │   <space>a   Open the actions menu of the selected issue │ │
-│ │               │   Enter      Open the selected item                      │ │
-│ │               │   0          Go to the first column                      │ │
-│ │               │   $          Go to the last column                       │ │
-│ │               │   ]]         Next section of the Scrum backlog, or next  │ │
-│ │               │              swimlane                                    │ │
-│ │               │   [[         Previous section of the Scrum backlog, or  ▼│ │
+│ │   Columns     │ Issue                                                    │ │
+│ │   Global      │   <space>o   Open the issue in the browser               │ │
+│ │   All actions │   <space>yy  Copy the key of the issue under the cursor  │ │
+│ │   Commands    │   <space>yu  Copy the issue link                         │ │
+│ │               │   <space>ys  Copy the issue key and summary              │ │
+│ │               │   <space>ie  Edit the issue title in place (opens the    │ │
+│ │               │              detail from a list or board)                │ │
+│ │               │   <space>ia  Assign the issue: search people, or         │ │
+│ │               │              unassign                                    │ │
+│ │               │   <space>im  Assign the issue to me                      │ │
+│ │               │   <space>ts  Change the status of the sub-task under     │ │
+│ │               │              the cursor                                  │ │
+│ │               │   <space>ta  Assign the sub-task under the cursor:       │ │
+│ │               │              search people, or unassign                  │ │
+│ │               │   <space>tm  Assign the sub-task under the cursor to me ▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │

@@ -31,6 +31,7 @@ public sealed partial class AppReducer
     private static readonly string[] _sourceVerbs =
     [
         PaletteCommands.Jql,
+        PaletteCommands.Search,
         PaletteCommands.Filter,
         PaletteCommands.Board,
         PaletteCommands.Backlog,

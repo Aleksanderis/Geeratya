@@ -2,9 +2,9 @@
                                         
 ╭─ Geeratya ───────────────────────────╮
 │ ╭─ Help ───────────────────────────╮ │
-│ │   Global      │   ?              │ │
-│ │   All actions │         Show or  │ │
-│ │   Commands    │         hide    ▼│ │
+│ │   Global      │ Issue            │ │
+│ │   All actions │   <space>ic      │ │
+│ │   Commands    │         Create  ▼│ │
 │ ╰──────────────────────────────────╯ │
 ╰──────────────────────────────────────╯
  HELP      j/k move  Tab page  Esc close

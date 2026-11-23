@@ -204,14 +204,14 @@ public class HelpReducerTests
     {
         var typed = Press(Press(Press(Press(Press(Opened(), "/"), "c"), "t"), "r"), "l");
         typed = Press(Press(Press(typed, "-"), "c"), "Enter");
-        var lines = HelpPages.Lines(typed, _keymap).Count;
-
         var state = typed;
 
-        for (var step = 0; step < lines + 5; step++)
+        for (var step = 0; step < 40; step++)
         {
             state = Press(state, "j");
         }
+
+        var lines = HelpPages.Lines(state, _keymap).Count;
 
         Assert.Equal(lines - 1, state.HelpScroll);
     }

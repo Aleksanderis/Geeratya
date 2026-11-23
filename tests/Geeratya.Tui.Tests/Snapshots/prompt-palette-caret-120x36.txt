@@ -6,7 +6,7 @@
 │ project = A       │ : jql project                                                                │                   │
 │                   ├──────────────────────────────────────────────────────────────────────────────┤                   │
 │                   │ jql [query]                                                                  │                   │
-│                   │ Open a JQL query in a new tab (no query: pick from recent ones)              │                   │
+│                   │ Open a JQL query in a new tab (no query: pick from recent ones, or edit thi… │                   │
 │                   │                                                                              │                   │
 │                   │                                                                              │                   │
 │                   │                                                                              │                   │

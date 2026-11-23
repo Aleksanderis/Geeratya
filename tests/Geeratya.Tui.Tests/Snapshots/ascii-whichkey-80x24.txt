@@ -19,6 +19,6 @@
 |   | z         Zoom the focused pane, or leave the zoom                       |
 |   | m         +comment (4)                                                   |
 |   | i         +issue (6)                                                     |
-|   | . 4 more                                                                 |
+|   | . 3 more                                                                 |
 +---+--------------------------------------------------------------------------+
 [NORMAL] <space>                                                      Esc cancel

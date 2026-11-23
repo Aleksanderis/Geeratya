@@ -2,21 +2,21 @@
                                                                                 
 ╭─ Sample ─────────────────────────────────────────────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────────────────────────────────────────────╮ │
-│ │   Backlog     │   j          Move down  (Down)                           │ │
-│ │   Global      │   k          Move up  (Up)                               │ │
-│ │   All actions │   gg         Go to the top  (Home)                       │ │
-│ │   Commands    │   G          Go to the bottom  (End)                     │ │
-│ │               │   Ctrl-d     Page down  (PageDown)                       │ │
-│ │               │   Ctrl-u     Page up  (PageUp)                           │ │
-│ │               │   <space>a   Open the actions menu of the selected issue │ │
-│ │               │   Enter      Open the selected item                      │ │
-│ │               │   ]]         Next section of the Scrum backlog, or next  │ │
-│ │               │              swimlane                                    │ │
-│ │               │   [[         Previous section of the Scrum backlog, or   │ │
-│ │               │              previous swimlane                           │ │
-│ │               │   za         Expand or collapse sub-tasks of a card, a   │ │
-│ │               │              cut text or a backlog section               │ │
-│ │               │   <space>l   Switch between list and columns            ▼│ │
+│ │   Backlog     │ Issue                                                    │ │
+│ │   Global      │   <space>o   Open the issue in the browser               │ │
+│ │   All actions │   <space>yy  Copy the key of the issue under the cursor  │ │
+│ │   Commands    │   <space>yu  Copy the issue link                         │ │
+│ │               │   <space>ys  Copy the issue key and summary              │ │
+│ │               │   <space>ie  Edit the issue title in place (opens the    │ │
+│ │               │              detail from a list or board)                │ │
+│ │               │   <space>ia  Assign the issue: search people, or         │ │
+│ │               │              unassign                                    │ │
+│ │               │   <space>im  Assign the issue to me                      │ │
+│ │               │   <space>is  Change the status of the issue              │ │
+│ │               │   <space>iC  Create a sub-task of the selected issue     │ │
+│ │               │                                                          │ │
+│ │               │ Rank                                                     │ │
+│ │               │   Alt-k      Rank the issue up (a count moves it that   ▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │

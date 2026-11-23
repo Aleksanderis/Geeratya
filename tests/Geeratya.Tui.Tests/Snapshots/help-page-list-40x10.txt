@@ -2,9 +2,9 @@
                                         
 ╭─ Sample ─────────────────── 1 issue ─╮
 │ ╭─ Help ───────────────────────────╮S│
-│ │   List        │   j              │○│
-│ │   Global      │         Move     │ │
-│ │   All actions │         down    ▼│ │
+│ │   List        │ Issue            │○│
+│ │   Global      │   <space>o       │ │
+│ │   All actions │         Open    ▼│ │
 │ ╰──────────────────────────────────╯ │
 ╰──────────────────────────────────────╯
  HELP      j/k move  Tab page  Esc close

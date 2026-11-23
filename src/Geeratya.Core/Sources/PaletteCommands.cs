@@ -8,6 +8,7 @@ namespace Geeratya.Core.Sources;
 public static class PaletteCommands
 {
     public const string Jql = "jql";
+    public const string Search = "search";
     public const string Filter = "filter";
     public const string Board = "board";
     public const string Backlog = "backlog";
@@ -34,7 +35,8 @@ public static class PaletteCommands
 
     public static IReadOnlyList<PaletteCommand> All { get; } =
     [
-        new(Jql, "jql [query]", "Open a JQL query in a new tab (no query: pick from recent ones)"),
+        new(Search, "search [words]", "Search issues by words in a new tab (no words: open the search prompt)"),
+        new(Jql, "jql [query]", "Open a JQL query in a new tab (no query: pick from recent ones, or edit this tab's query)"),
         new(Filter, "filter [name]", "Open a saved filter in a new tab"),
         new(Board, "board [name]", "Open a board as columns in a new tab"),
         new(Backlog, "backlog [name]", "Open a board's backlog in a new tab"),

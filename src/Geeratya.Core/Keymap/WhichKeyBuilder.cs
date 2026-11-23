@@ -30,16 +30,17 @@ public static class WhichKeyBuilder
         KeymapTable keymap,
         InputMode mode,
         string pending,
-        CommandLevel level = CommandLevel.Advanced)
+        CommandLevel level = CommandLevel.Advanced,
+        ActionContext? context = null)
     {
         var plain = new List<(string Prefix, WhichKeyRow Row)>();
         var groups = new List<WhichKeyRow>();
 
-        foreach (var next in keymap.NextKeys(mode, pending, level))
+        foreach (var next in keymap.NextKeys(mode, pending, level, context))
         {
             if (next.Action is null)
             {
-                var noun = Noun(keymap, mode, $"{pending} {next.Key}", level);
+                var noun = Noun(keymap, mode, $"{pending} {next.Key}", level, context);
 
                 groups.Add(new WhichKeyRow(KeyNotation.Display(next.Key), $"{GroupMarker}{noun} ({next.Count})"));
             }
@@ -140,11 +141,16 @@ public static class WhichKeyBuilder
     /// The noun of a group: the last whole word that every action id under it shares (<c>issue.subtask-*</c> gives
     /// <c>sub-task</c>, so <c>Space t</c> and <c>Space i</c> do not both read "+issue").
     /// </summary>
-    private static string Noun(KeymapTable keymap, InputMode mode, string pending, CommandLevel level)
+    private static string Noun(
+        KeymapTable keymap,
+        InputMode mode,
+        string pending,
+        CommandLevel level,
+        ActionContext? context)
     {
         var actions = new List<string>();
 
-        CollectActions(keymap, mode, pending, level, actions);
+        CollectActions(keymap, mode, pending, level, context, actions);
 
         if (actions.Count == 0)
         {
@@ -163,13 +169,14 @@ public static class WhichKeyBuilder
         InputMode mode,
         string pending,
         CommandLevel level,
+        ActionContext? context,
         List<string> actions)
     {
-        foreach (var next in keymap.NextKeys(mode, pending, level))
+        foreach (var next in keymap.NextKeys(mode, pending, level, context))
         {
             if (next.Action is null)
             {
-                CollectActions(keymap, mode, $"{pending} {next.Key}", level, actions);
+                CollectActions(keymap, mode, $"{pending} {next.Key}", level, context, actions);
             }
             else
             {

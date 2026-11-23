@@ -5,7 +5,10 @@
 │ │   List        │ View                                                     │ │
 │ │   Global      │   <space>A   Open the actions menu of the tab and the    │ │
 │ │   All actions │              view                                        │ │
-│ │   Commands    │   <space>vv  Open a saved view in a new tab              │ │
+│ │   Commands    │   /          Search issues by words or JQL (opens in a   │ │
+│ │               │              new tab)                                    │ │
+│ │               │   <space>vv  Open a saved view in a new tab              │ │
+│ │               │                                                          │ │
 │ │               │ Tabs                                                     │ │
 │ │               │   Tab        Next tab  (gt)                              │ │
 │ │               │   Shift-Tab  Previous tab  (gT)                          │ │
@@ -13,10 +16,7 @@
 │ │               │   Alt-1      Go to tab 1                                 │ │
 │ │               │   Alt-2      Go to tab 2                                 │ │
 │ │               │   Alt-3      Go to tab 3                                 │ │
-│ │               │   Alt-4      Go to tab 4                                 │ │
-│ │               │   Alt-5      Go to tab 5                                 │ │
-│ │               │   Alt-6      Go to tab 6                                 │ │
-│ │               │   Alt-7      Go to tab 7                                ▼│ │
+│ │               │   Alt-4      Go to tab 4                                ▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
 │ │ j/k move   Tab page   / filter   Esc close                               │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │

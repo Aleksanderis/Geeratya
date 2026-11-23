@@ -118,6 +118,7 @@ public static class DefaultMouseMap
         ContextMenuRow(ActionIds.IssueLink),
         ContextMenuRow(ActionIds.IssueUnlink),
         ContextMenuRow(ActionIds.IssueJump, 'V'),
+        ContextMenuRow(ActionIds.ViewSearch, 'V'),
         ContextMenuRow(ActionIds.SettingsOpen, 'V'),
         ContextMenuRow(ActionIds.SprintSwitch, 'V'),
         ContextMenuRow(ActionIds.ViewSavedOpen, 'V'),
