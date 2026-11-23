@@ -1,6 +1,6 @@
 # Release checklist
 
-Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. Agents do not run a release or dispatch `homebrew.yml` / `winget.yml` on their own (they publish to external repositories): they register it as a `needs-owner` issue.
+Short procedure for cutting a release. The mechanics of each workflow are in `docs/internal/architecture.md` ("Releases"); this is the order of steps and the catch-up commands. With `release: after-run` in `.claude/workflow.md` (owner, 2026-11-23) the orchestrator runs steps 1-5 itself at the end of a run that merged user-visible changes; it still does not dispatch `homebrew.yml` / `winget.yml` by hand (they run on publish); if they did not, it registers a `needs-owner` issue.
 
 ## Steps
 
