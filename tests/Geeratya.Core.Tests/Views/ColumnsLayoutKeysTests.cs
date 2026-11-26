@@ -156,6 +156,45 @@ public class ColumnsLayoutKeysTests
     }
 
     [Fact]
+    public void GivenBoardCard_WhenPressingSpaceIS_ThenTheStatusPickerOpensOverTheBoardWithoutOpeningTheIssue()
+    {
+        var state = Press(Loaded(Issues("1:A-1", "2:A-2")), "l");
+
+        var picker = Press(Press(Press(state, "Space"), "i"), "s");
+
+        Assert.Empty(Tab(picker).Detail);
+        Assert.NotNull(Tab(picker).Form);
+        Assert.Equal("A-2", Tab(picker).Form!.Target.IssueKey);
+        Assert.Null(Tab(picker).Form!.Dropdown);
+    }
+
+    [Theory]
+    [InlineData("assign")]
+    [InlineData("priority")]
+    [InlineData("labels")]
+    [InlineData("estimate")]
+    public void GivenBoardCard_WhenOpeningAnotherFieldByCommand_ThenTheFormOpensWithoutOpeningTheIssue(string command)
+    {
+        var state = Loaded(Issues("1:A-1"));
+
+        var form = Run(state, command);
+
+        Assert.Empty(Tab(form).Detail);
+        Assert.NotNull(Tab(form).Form);
+    }
+
+    [Fact]
+    public void GivenOpenedIssue_WhenPressingSpaceIS_ThenThePickerStillHangsUnderTheStatusField()
+    {
+        var opened = Press(Loaded(Issues("1:A-1")), "Enter");
+
+        var picker = Press(Press(Press(opened, "Space"), "i"), "s");
+
+        Assert.Single(Tab(picker).Detail);
+        Assert.Equal("status", Tab(picker).Form!.Dropdown);
+    }
+
+    [Fact]
     public void GivenCardAndEmptyColumn_WhenPressingEnter_ThenTheCardOpensAndTheEmptyColumnOpensNothing()
     {
         var state = Loaded(Issues("1:A-1", "1:A-2"));
