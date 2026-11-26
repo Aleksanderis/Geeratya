@@ -265,7 +265,8 @@ public sealed partial class FakeJiraRouter
             && (path.EndsWith("/backlog", StringComparison.Ordinal) || path.EndsWith("/issue", StringComparison.Ordinal));
     }
 
-    // The generated detail of a key (GEN-n within the dataset) as the recorded reply to lay edits over; null for any other key.
+    // The generated detail of a key (GEN-n within the dataset) as the recorded reply to lay edits over;
+    // null for any other key.
     private byte[]? GeneratedDetail(string key)
     {
         if (!key.StartsWith("GEN-", StringComparison.Ordinal)
@@ -407,10 +408,7 @@ public sealed partial class FakeJiraRouter
         var key = parts[0];
         var recorded = _routes.TryGetValue(path, out var fixture) ? ReadFixture(fixture) : null;
 
-        if (parts.Length == 1)
-        {
-            recorded ??= GeneratedDetail(key);
-        }
+        recorded ??= parts.Length == 1 ? GeneratedDetail(key) : null;
 
         if (parts.Length == 1 && _scrum.IssueDetail(key) is { } scrumIssue)
         {

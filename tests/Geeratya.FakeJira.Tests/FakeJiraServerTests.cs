@@ -218,7 +218,8 @@ public sealed class FakeJiraServerTests : IDisposable
 
         var put = await _client.PutAsync($"{baseUrl}/rest/api/3/issue/GEN-1", edit);
         using var detail = JsonDocument.Parse(await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-1"));
-        var search = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?jql=key%20%3D%20GEN-1&fields=summary,labels");
+        var search = await _client.GetStringAsync(
+            $"{baseUrl}/rest/api/3/search/jql?jql=key%20%3D%20GEN-1&fields=summary,labels");
         using var found = JsonDocument.Parse(search);
         var row = found.RootElement.GetProperty("issues")[0].GetProperty("fields");
         var fields = detail.RootElement.GetProperty("fields");
