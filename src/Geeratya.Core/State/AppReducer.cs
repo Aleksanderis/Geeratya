@@ -58,7 +58,7 @@ public sealed partial class AppReducer
         var result = StartupReducer.Persisted(
             state,
             ChordEnded(GuardConfirm(state, ProfileReducer.ManagerClosed(state, reduced))));
-        var settled = StatusMessages.Settle(result.State, TimeOf(command));
+        var settled = CreateDetailsFit.Synced(StatusMessages.Settle(result.State, TimeOf(command)));
 
         return new ReduceResult(settled, WithCutoff(result.Effects, settled));
     }

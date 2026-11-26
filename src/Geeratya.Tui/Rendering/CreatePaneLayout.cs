@@ -25,10 +25,6 @@ internal sealed class CreatePaneLayout
     private const string TitlePlaceholder = "What needs to be done?";
     private const string DescriptionPlaceholder = "Describe it.";
     private const int NotEditableMinimum = 6;
-    private const int StackedNotEditableMinimum = 16;
-    private const int StackedMinimum = 11;
-    private const int DescriptionShortest = 5;
-    private const int DescriptionTallest = 8;
 
     private readonly FormState _form;
     private readonly KeymapTable _keymap;
@@ -81,7 +77,7 @@ internal sealed class CreatePaneLayout
         var notEditable = NotEditablePane(width);
         var notHeight = notEditable.Rows.Count + Panel.EdgeRows;
         var rest = height - title.Rows.Count - Panel.EdgeRows;
-        var showNot = rest - notHeight >= (wide ? NotEditableMinimum : StackedNotEditableMinimum);
+        var showNot = rest - notHeight >= (wide ? NotEditableMinimum : CreateDetailsFit.StackedNotEditableMinimum);
 
         lines.AddRange(_frames.Build(title, width, title.Rows.Count, 0, 0));
 
@@ -129,21 +125,21 @@ internal sealed class CreatePaneLayout
             return;
         }
 
-        if (!hasDescription || (rest < StackedMinimum && focused == PaneIds.Details))
+        if (!hasDescription || (rest < CreateDetailsFit.StackedMinimum && focused == PaneIds.Details))
         {
             lines.AddRange(Details(width, rest, 0, lines.Count));
 
             return;
         }
 
-        if (rest < StackedMinimum)
+        if (rest < CreateDetailsFit.StackedMinimum)
         {
             AddDescription(lines, width, rest, focused);
 
             return;
         }
 
-        var upper = Math.Clamp(rest / 3, DescriptionShortest, DescriptionTallest);
+        var upper = Math.Clamp(rest / 3, CreateDetailsFit.DescriptionShortest, CreateDetailsFit.DescriptionTallest);
 
         AddDescription(lines, width, upper, focused);
         lines.AddRange(Details(width, rest - upper, 0, lines.Count));

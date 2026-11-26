@@ -69,10 +69,16 @@ public sealed record FormState(
     public bool Navigating { get; init; }
 
     /// <summary>
-    /// The create form shows every optional field (<c>Ctrl-f</c>); off, the optional fields past the first five are
-    /// folded (<see cref="CreatePanes.IsFolded"/>).
+    /// The create form shows every optional field (<c>Ctrl-f</c>); off, the optional fields that do not fit the
+    /// Details pane are folded (<see cref="CreatePanes.IsFolded"/>).
     /// </summary>
     public bool ShowAllFields { get; init; }
+
+    /// <summary>
+    /// The rows of the create form's Details pane in the current viewport (<see cref="CreateDetailsFit"/>, kept up to
+    /// date by the reducer); 0 while unknown, which folds after <see cref="CreatePanes.ShownDetails"/> fields.
+    /// </summary>
+    public int DetailsRows { get; init; }
 
     /// <summary>True while the create form asks for the issue type.</summary>
     public bool IsChoosingType => TypeChoices is not null;

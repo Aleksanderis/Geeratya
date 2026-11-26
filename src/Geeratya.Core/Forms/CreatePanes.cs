@@ -14,7 +14,7 @@ namespace Geeratya.Core.Forms;
 /// </summary>
 public static class CreatePanes
 {
-    /// <summary>How many Details fields show before the rest is folded (required ones always show).</summary>
+    /// <summary>How many Details fields show while the viewport is unknown (see <see cref="CreateDetailsFit"/>).</summary>
     public const int ShownDetails = 5;
 
     /// <summary>The pane of a field, or null for a field the form cannot edit.</summary>
@@ -43,7 +43,7 @@ public static class CreatePanes
     }
 
     /// <summary>
-    /// Whether the field is folded away: a Details field past the first <see cref="ShownDetails"/>, unless it is
+    /// Whether the field is folded away: a Details field past the ones that fit the pane (<see cref="CreateDetailsFit.Limit"/>), unless it is
     /// required, changed or has an error (those always show), while <see cref="FormState.ShowAllFields"/> is off.
     /// </summary>
     public static bool IsFolded(FormState form, int index)
@@ -60,7 +60,7 @@ public static class CreatePanes
             return false;
         }
 
-        return DetailRank(form, index) >= ShownDetails;
+        return DetailRank(form, index) >= Limit(form);
     }
 
     /// <summary>The indexes of the fields of <paramref name="pane"/> that show, in order.</summary>
@@ -205,7 +205,14 @@ public static class CreatePanes
     {
         var field = form.Fields[index];
 
-        return PaneOf(field) == PaneIds.Details && !field.Required && DetailRank(form, index) >= ShownDetails;
+        return PaneOf(field) == PaneIds.Details && !field.Required && DetailRank(form, index) >= Limit(form);
+    }
+
+    private static int Limit(FormState form)
+    {
+        var count = form.Fields.Count(field => PaneOf(field) == PaneIds.Details);
+
+        return CreateDetailsFit.Limit(form.DetailsRows, count);
     }
 
     private static int LastShown(FormState form)
