@@ -30,7 +30,7 @@
 │           │               │   l          Move right  (Right)                                             │           │
 │           │               │   gg         Go to the top  (Home)                                          ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
-│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
+│           │ j/k move   J/K scroll   Tab page   / filter   Esc close                                      │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- HELP                                                                            j/k move  Tab page  / filter  Esc close
+ HELP                                                                j/k move  J/K scroll  Tab page  / filter  Esc close

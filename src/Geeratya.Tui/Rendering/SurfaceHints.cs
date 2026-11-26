@@ -96,7 +96,20 @@ public static class SurfaceHints
 
         return
         [
-            DialogFooter.Pair(keymap, InputMode.Help, ActionIds.NavigateDown, ActionIds.NavigateUp, HintLabels.Move),
+            DialogFooter.Pair(
+                keymap,
+                InputMode.Help,
+                ActionIds.NavigateDown,
+                ActionIds.NavigateUp,
+                withPages ? HintLabels.Move : HintLabels.Scroll),
+            withPages
+                ? DialogFooter.Pair(
+                    keymap,
+                    InputMode.Help,
+                    ActionIds.HelpScrollDown,
+                    ActionIds.HelpScrollUp,
+                    HintLabels.Scroll)
+                : null,
             withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page) : null,
             withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpFilter, HintLabels.Filter) : null,
             DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.Close),

@@ -18,7 +18,7 @@
 │ │               │ Rank                                                     │ │
 │ │               │   Alt-k      Rank the issue up (a count moves it that   ▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
-│ │ j/k move   Tab page   / filter   Esc close                               │ │
+│ │ j/k move   J/K scroll   Tab page   / filter   Esc close                  │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- HELP                                    j/k move  Tab page  / filter  Esc close
+ HELP                        j/k move  J/K scroll  Tab page  / filter  Esc close

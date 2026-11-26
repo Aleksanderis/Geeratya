@@ -18,7 +18,7 @@
 │ │               │   Alt-3      Go to tab 3                                 │ │
 │ │               │   Alt-4      Go to tab 4                                ▼│ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
-│ │ j/k move   Tab page   / filter   Esc close                               │ │
+│ │ j/k move   J/K scroll   Tab page   / filter   Esc close                  │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- HELP                                    j/k move  Tab page  / filter  Esc close
+ HELP                        j/k move  J/K scroll  Tab page  / filter  Esc close

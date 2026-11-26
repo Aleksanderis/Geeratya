@@ -31,6 +31,6 @@
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
-│ j/k move   Esc close                                                                                                 │
+│ j/k scroll   Esc close                                                                                               │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- MESSAGES                                                                                            j/k move  Esc close
+ MESSAGES                                                                                          j/k scroll  Esc close

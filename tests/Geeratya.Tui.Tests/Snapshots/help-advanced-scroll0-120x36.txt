@@ -30,7 +30,7 @@
 │           │               │   <space>sb  Move the selected issues to the backlog                         │           │
 │           │               │                                                                             ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
-│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
+│           │ j/k move   J/K scroll   Tab page   / filter   Esc close                                      │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- HELP                                                                            j/k move  Tab page  / filter  Esc close
+ HELP                                                                j/k move  J/K scroll  Tab page  / filter  Esc close

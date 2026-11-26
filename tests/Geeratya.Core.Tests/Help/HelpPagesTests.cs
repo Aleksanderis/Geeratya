@@ -129,6 +129,27 @@ public class HelpPagesTests
     }
 
     [Fact]
+    public void GivenTheDefaultKeymap_WhenCheckingKeys_ThenEveryBoundKeyIsOnTheRowOfItsAction()
+    {
+        var lines = HelpPages.Lines(Advanced(HelpAt(1)), _keymap);
+
+        foreach (var action in _keymap.Bindings.Select(binding => binding.Action).Distinct())
+        {
+            var title = ActionCatalog.All.Single(candidate => candidate.Id == action).Title;
+            var row = lines.First(line => line.EndsWith(" " + title) || line.Contains(" " + title + "  ("));
+            var normal = _keymap.Bindings.Where(binding => binding.Mode == InputMode.Normal && binding.Action == action);
+            var shown = normal.Any() ? normal : _keymap.Bindings.Where(binding => binding.Action == action);
+
+            foreach (var binding in shown)
+            {
+                Assert.True(
+                    row.Contains(KeyNotation.Display(binding.Keys)),
+                    $"{binding.Mode} key {binding.Keys} of {action} is missing from its help row: {row}");
+            }
+        }
+    }
+
+    [Fact]
     public void GivenTheCatalog_WhenCheckingScopes_ThenTheTableNamesOnlyCatalogActions()
     {
         var ids = ActionCatalog.All.Select(definition => definition.Id).ToHashSet();
