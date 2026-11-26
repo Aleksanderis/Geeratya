@@ -130,7 +130,13 @@ public static partial class FormReducer
     {
         var field = FormEditor.Choose(form.Fields[form.Focus], picked);
 
-        return form with { Fields = WithField(form.Fields, form.Focus, field), TopError = null, Suggest = null };
+        return form with
+        {
+            Fields = WithField(form.Fields, form.Focus, field),
+            TopError = null,
+            Suggest = null,
+            TextTop = null,
+        };
     }
 
     private static bool LeavesField(string? action)

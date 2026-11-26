@@ -13,4 +13,4 @@ namespace Geeratya.Core.State;
 /// The first line of the text the frame showed (a long Description edited in place shows a window of it); the window
 /// stays there while the caret is in it, so the next press hits the line the user saw.
 /// </param>
-public sealed record TextPointed(int Index, int Line, int Cell, int Width, bool Word, int Top = 0) : Command;
+public sealed record TextPointed(int Index, int Line, int Cell, int Width, bool Word, int Top) : Command;

@@ -58,6 +58,21 @@ public class FieldKindContractTests
         Assert.Equal(["frontend"], taken.Fields[0].Value.Chosen);
     }
 
+    [Fact]
+    public void GivenAPinnedTextWindow_WhenASuggestionRowIsTaken_ThenThePinIsDropped()
+    {
+        var opened = Open("edit", Labels("backend", "frontend"));
+        var tab = opened.Session.Tabs[0];
+        var pinned = opened with
+        {
+            Session = opened.Session with { Tabs = [tab with { Form = tab.Form! with { TextTop = 5 } }] },
+        };
+
+        var taken = Press(Press(pinned, "Down").State, "Tab").State.Session.Tabs[0].Form!;
+
+        Assert.Null(taken.TextTop);
+    }
+
     [Theory]
     [MemberData(nameof(Presentations))]
     public void GivenALabelsFieldWithNoLabels_WhenItGetsTheFocus_ThenNoRowIsListed(string presentation)
