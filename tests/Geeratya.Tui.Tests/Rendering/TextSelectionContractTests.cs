@@ -255,6 +255,16 @@ public class TextSelectionContractTests
 
     [Theory]
     [MemberData(nameof(Surfaces))]
+    public void GivenACursorMoveAndReturn_WhenTypingAgain_ThenTheEarlierRunIsNotJoined(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("ab"), "Left", "Right", "c"]);
+
+        Assert.Equal(("abc", 3), Read(surface, typed));
+        Assert.Equal(("ab", 2), Read(surface, Keys(typed, "Ctrl-z")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
     public void GivenNothingToUndoOrRedo_WhenPressed_ThenTheTextStays(string surface)
     {
         var opened = Open(surface);

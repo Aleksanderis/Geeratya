@@ -41,13 +41,21 @@ public sealed record TextHistory
         Deleting,
     }
 
+    /// <summary>The same steps, but the next edit starts a new one (the cursor moved).</summary>
+    public TextHistory Broken()
+    {
+        return Last == HistoryKind.Other ? this : this with { Last = HistoryKind.Other };
+    }
+
     /// <summary>Whether <paramref name="text"/> is the one the history belongs to.</summary>
     public bool Fits(string text)
     {
         return Tip is { } tip && string.Equals(tip.Text, text, StringComparison.Ordinal);
     }
 
-    /// <summary>The history after <paramref name="before"/> was edited into <paramref name="after"/> (their texts differ).</summary>
+    /// <summary>
+    /// The history after <paramref name="before"/> was edited into <paramref name="after"/> (their texts differ).
+    /// </summary>
     public TextHistory Recorded(TextBuffer before, TextBuffer after)
     {
         var kind = KindOf(before, after);

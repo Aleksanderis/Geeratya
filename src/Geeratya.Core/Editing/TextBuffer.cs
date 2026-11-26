@@ -161,9 +161,13 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
 
     private TextBuffer Recorded(TextBuffer next)
     {
-        return string.Equals(next.Text, Text, StringComparison.Ordinal)
-            ? next
-            : next with { History = History.Recorded(this, next) };
+        if (!string.Equals(next.Text, Text, StringComparison.Ordinal))
+        {
+            return next with { History = History.Recorded(this, next) };
+        }
+
+        // A move ends the typed run, even when the cursor later comes back to the same place.
+        return next.Cursor == Cursor && next.Anchor == Anchor ? next : next with { History = History.Broken() };
     }
 
     private TextBuffer ApplyEdit(EditorOperation operation, int capacity, int page)
