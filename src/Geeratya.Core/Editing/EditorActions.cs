@@ -23,9 +23,40 @@ public static class EditorActions
             ActionIds.EditorDeleteWordBefore => EditorOperation.DeleteWordBefore,
             ActionIds.EditorDeleteWordAfter => EditorOperation.DeleteWordAfter,
             ActionIds.EditorDeleteToStart => EditorOperation.DeleteToStart,
+            ActionIds.EditorSelectLeft => EditorOperation.SelectLeft,
+            ActionIds.EditorSelectRight => EditorOperation.SelectRight,
+            ActionIds.EditorSelectRowStart => EditorOperation.SelectRowStart,
+            ActionIds.EditorSelectRowEnd => EditorOperation.SelectRowEnd,
+            ActionIds.EditorSelectWordLeft => EditorOperation.SelectWordLeft,
+            ActionIds.EditorSelectWordRight => EditorOperation.SelectWordRight,
+            ActionIds.EditorSelectAll => EditorOperation.SelectAll,
+            ActionIds.EditorSelectUp when withLines => EditorOperation.SelectUp,
+            ActionIds.EditorSelectDown when withLines => EditorOperation.SelectDown,
             ActionIds.EditorPageUp when withLines => EditorOperation.PageUp,
             ActionIds.EditorPageDown when withLines => EditorOperation.PageDown,
             _ => null,
+        };
+    }
+
+    /// <summary>
+    /// The plain action a select action stands for on a surface that does not select (the palette, the pickers, an
+    /// entry field, a popup that is open): <c>Shift-Down</c> is then <c>Down</c>, as before the text areas selected.
+    /// Null for <c>editor.select-all</c> (nothing to do there); any other action is returned as it is.
+    /// </summary>
+    public static string? Unselected(string? action)
+    {
+        return action switch
+        {
+            ActionIds.EditorSelectLeft => ActionIds.EditorLeft,
+            ActionIds.EditorSelectRight => ActionIds.EditorRight,
+            ActionIds.EditorSelectUp => ActionIds.PickerPrevious,
+            ActionIds.EditorSelectDown => ActionIds.PickerNext,
+            ActionIds.EditorSelectRowStart => ActionIds.EditorRowStart,
+            ActionIds.EditorSelectRowEnd => ActionIds.EditorRowEnd,
+            ActionIds.EditorSelectWordLeft => ActionIds.EditorWordLeft,
+            ActionIds.EditorSelectWordRight => ActionIds.EditorWordRight,
+            ActionIds.EditorSelectAll => null,
+            _ => action,
         };
     }
 }

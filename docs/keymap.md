@@ -244,6 +244,17 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Ctrl-Delete` | Delete the word after the cursor | `editor.delete-word-after` | everyday |
 | `Ctrl-u` | Delete from the cursor to the start of the line | `editor.delete-to-start` | everyday |
 | `Alt-e` | Edit the comment in the outside editor ($VISUAL or $EDITOR) | `editor.external` | everyday |
+| `Shift-Left` | Select one character to the left of the cursor | `editor.select-left` | everyday |
+| `Shift-Right` | Select one character to the right of the cursor | `editor.select-right` | everyday |
+| `Shift-Up` | Extend the selection one row up | `editor.select-up` | everyday |
+| `Shift-Down` | Extend the selection one row down | `editor.select-down` | everyday |
+| `Shift-Home` | Select to the start of the row | `editor.select-row-start` | everyday |
+| `Shift-End` | Select to the end of the row | `editor.select-row-end` | everyday |
+| `Ctrl-Shift-Left` | Select to the start of the word | `editor.select-word-left` | everyday |
+| `Ctrl-Shift-Right` | Select to the end of the word | `editor.select-word-right` | everyday |
+| `Alt-a` | Select all the text | `editor.select-all` | everyday |
+| `Alt-w` | Copy the selected text to the clipboard | `editor.copy` | everyday |
+| `Alt-x` | Cut the selected text to the clipboard | `editor.cut` | everyday |
 
 ## Palette commands
 

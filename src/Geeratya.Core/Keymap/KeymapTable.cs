@@ -49,6 +49,12 @@ public sealed class KeymapTable
             }
         }
 
+        if (!isPrefix && KeyNotation.WithoutShift(key) is { } plain)
+        {
+            // No binding for the shifted cursor key here: it acts as the plain one (only the editors select with it).
+            return Resolve(mode, pending, plain);
+        }
+
         return new KeyResolution(isPrefix ? KeyResolutionKind.Prefix : KeyResolutionKind.None, null);
     }
 

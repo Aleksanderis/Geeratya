@@ -76,7 +76,9 @@ public static class HelpReducer
                 return Step(state, keymap, -1);
         }
 
-        if (EditorActions.OperationOf(keymap.Resolve(InputMode.Insert, string.Empty, key).Action) is { } operation)
+        var action = EditorActions.Unselected(keymap.Resolve(InputMode.Insert, string.Empty, key).Action);
+
+        if (EditorActions.OperationOf(action) is { } operation)
         {
             return Edited(state, Prompt(state).Apply(operation));
         }

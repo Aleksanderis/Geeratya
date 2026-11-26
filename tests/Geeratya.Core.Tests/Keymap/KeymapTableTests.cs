@@ -148,4 +148,29 @@ public class KeymapTableTests
         Assert.Equal(KeyResolutionKind.None, keymap.Resolve(InputMode.Normal, string.Empty, "w").Kind);
         Assert.Equal(KeyResolutionKind.None, keymap.Resolve(InputMode.Normal, "g", "x").Kind);
     }
+
+    [Fact]
+    public void GivenShiftedCursorKeys_WhenResolving_ThenEditorsSelectAndOtherModesStillMove()
+    {
+        var keymap = DefaultKeymap.Load();
+
+        Assert.Equal(ActionIds.EditorSelectLeft, keymap.Resolve(InputMode.Insert, string.Empty, "Shift-Left").Action);
+        Assert.Equal(
+            ActionIds.EditorSelectWordRight,
+            keymap.Resolve(InputMode.Insert, string.Empty, "Ctrl-Shift-Right").Action);
+        Assert.Equal(
+            keymap.Resolve(InputMode.Normal, string.Empty, "Down").Action,
+            keymap.Resolve(InputMode.Normal, string.Empty, "Shift-Down").Action);
+    }
+
+    [Theory]
+    [InlineData("Shift-Left", true)]
+    [InlineData("Ctrl-Shift-End", true)]
+    [InlineData("Shift-Tab", true)]
+    [InlineData("Shift-Enter", false)]
+    [InlineData("Shift-x", false)]
+    public void GivenKeySpellings_WhenValidating_ThenOnlyCursorKeysTakeShift(string key, bool valid)
+    {
+        Assert.Equal(valid, KeyNotation.IsValid(key));
+    }
 }
