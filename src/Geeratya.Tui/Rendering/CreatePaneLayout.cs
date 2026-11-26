@@ -22,7 +22,6 @@ internal sealed class CreatePaneLayout
     private const string NotEditableTitle = "Not editable here";
     private const string NotEditableText = "Attachments and comments are added after the issue exists.";
     private const string OpenAfterText = "opens after create";
-    private const string SavingText = "Saving…";
     private const string TitlePlaceholder = "What needs to be done?";
     private const string DescriptionPlaceholder = "Describe it.";
     private const int NotEditableMinimum = 6;
@@ -202,11 +201,6 @@ internal sealed class CreatePaneLayout
     private List<StyledLine> Notices(int inner)
     {
         var notices = new List<StyledLine>();
-
-        if (_form.IsSaving)
-        {
-            notices.Add(StyledLine.Of(SavingText, TextRole.Loading));
-        }
 
         if (_form.TopError is not null)
         {

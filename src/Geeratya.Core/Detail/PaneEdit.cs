@@ -22,7 +22,6 @@ public sealed record PaneEdit(string Pane, FormState Form)
     private const string CancelText = " cancel";
     private const string Gap = "   ";
     private const string EditingText = "editing";
-    private const string SavingText = "Saving…";
 
     private FormField Field => Form.Fields[Math.Clamp(Form.Focus, 0, Form.Fields.Count - 1)];
 
@@ -123,11 +122,6 @@ public sealed record PaneEdit(string Pane, FormState Form)
     private List<StyledLine> Notices(int inner)
     {
         var notices = new List<StyledLine>();
-
-        if (Form.IsSaving)
-        {
-            notices.Add(StyledLine.Of(SavingText, TextRole.Loading));
-        }
 
         if (Field.Error is { } error)
         {

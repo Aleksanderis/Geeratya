@@ -15,8 +15,6 @@ namespace Geeratya.Tui.Rendering;
 public static class DetailDropdown
 {
     private const int SidebarInset = 1;
-    private const string LoadingText = "Loading…";
-    private const string SavingText = "Saving…";
     private const string ReadOnlyText = "Not editable here";
     private const int TextRows = 4;
 
@@ -124,12 +122,12 @@ public static class DetailDropdown
                 return Notice(FieldRows.Error(top, inner));
             }
 
-            return Notice(LoadingText, TextRole.Loading);
+            return Notice(string.Empty, TextRole.Muted);
         }
 
         if (form.IsSaving)
         {
-            return Notice(SavingText, TextRole.Loading);
+            return Notice(string.Empty, TextRole.Muted);
         }
 
         var field = form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)];

@@ -199,19 +199,19 @@ public class CommentEditorOverlayTests
     }
 
     [Fact]
-    public void GivenSavingAnErrorAndAWarning_WhenRendering_ThenEachHasItsLine()
+    public void GivenSavingAnErrorAndAWarning_WhenRendering_ThenSavingShowsOnlyInTheStatusBarAndTheOthersHaveTheirLine()
     {
         var editor = Editor("x") with { OperationId = 9, Error = "No permission to edit", Warning = "Not your comment" };
 
         var frame = Frame(editor, 80, 24);
         var plain = string.Join('\n', frame.PlainLines());
 
-        Assert.Contains("Saving…", plain);
+        Assert.DoesNotContain("Saving…", plain);
         Assert.Contains("No permission to edit", plain);
         Assert.Contains("Not your comment", plain);
         Assert.Contains("saving…", frame.StatusLine);
         Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Error));
-        Assert.Contains(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Loading));
+        Assert.DoesNotContain(frame.Body, row => row.Spans.Any(span => span.Role == TextRole.Loading));
     }
 
     [Fact]

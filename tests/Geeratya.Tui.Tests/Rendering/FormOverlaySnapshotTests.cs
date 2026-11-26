@@ -109,13 +109,14 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
-    public void GivenALoadingForm_WhenBuildingTheFrame_ThenItSaysLoading()
+    public void GivenALoadingForm_WhenBuildingTheFrame_ThenLoadingShowsOnlyInTheStatusBar()
     {
         var state = WithForm(FormState.Opened(Target(), 3, null));
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("Loading fields…", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines.Take(lines.Count - 1), line => line.Contains("Loading", StringComparison.Ordinal));
+        Assert.Contains("Loading fields…", lines[^1], StringComparison.Ordinal);
     }
 
     [Fact]
@@ -245,6 +246,17 @@ public class FormOverlaySnapshotTests
         Assert.Contains(lines, line => line.Contains("Docs", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, line => line.Contains("Frontend", StringComparison.Ordinal));
         Assert.Contains(lines, line => line.Contains("Esc clear filter", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GivenASavingForm_WhenBuildingTheFrame_ThenSavingShowsOnlyInTheStatusBar()
+    {
+        var saving = SampleForm() with { OperationId = 7 };
+        var lines = FrameBuilder.Build(WithForm(saving), 120, 36, _keymap);
+        var body = lines.Take(lines.Count - 1);
+
+        Assert.DoesNotContain(body, line => line.Contains("Saving", StringComparison.Ordinal));
+        Assert.Contains("Saving…", lines[^1], StringComparison.Ordinal);
     }
 
     [Fact]
