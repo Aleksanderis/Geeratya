@@ -11,6 +11,7 @@ namespace Geeratya.Tui.Tests.Rendering;
 /// Description, a field form's text field), through the drawn regions, the real resolver and the real reducer: the
 /// regions must start where the text is drawn, or a click would select the wrong character.
 /// </summary>
+[Trait("Os", "Independent")]
 public class TextSelectionMouseTests
 {
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
@@ -66,6 +67,25 @@ public class TextSelectionMouseTests
         var later = Drag(first, Frame(first), start, Cell(frame, "three", 3), true);
 
         Assert.Equal("two thr", later.Editor!.Buffer.SelectedText);
+    }
+
+    [Fact]
+    public void GivenAKeyboardSelection_WhenADragStartsAndFirstMovesOffTheText_ThenTheNextMoveStartsFromThePress()
+    {
+        var editor = CommentEditorOverlayTests.Editor("one two three");
+        var state = CommentEditorOverlayTests.StateWith(editor with { Buffer = editor.Buffer.SelectAll() });
+        var frame = Frame(state);
+        var start = Cell(frame, "two", 0);
+        var off = new ScreenCell(0, start.Row);
+        var height = frame.Header.Count + frame.Body.Count + 1;
+        var context = MouseContext.From(state, 120, height, frame.Header.Count, _at, frame.Regions);
+        var reducer = new AppReducer(_keymap);
+
+        var first = MouseResolver.ResolveDragMove(context, start.Column, start.Row, off.Column, off.Row, true);
+        var placed = reducer.Reduce(state, Assert.Single(first)).State;
+        var later = Drag(placed, Frame(placed), start, Cell(frame, "three", 0), true);
+
+        Assert.Equal("two ", later.Editor!.Buffer.SelectedText);
     }
 
     [Fact]

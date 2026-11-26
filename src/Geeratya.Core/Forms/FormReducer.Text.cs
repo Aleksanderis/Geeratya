@@ -1,6 +1,6 @@
 using Geeratya.Core.Editing;
-using Geeratya.Core.State;
 using Geeratya.Core.Keymap;
+using Geeratya.Core.State;
 
 namespace Geeratya.Core.Forms;
 
@@ -18,7 +18,7 @@ public static partial class FormReducer
             pointed.Index,
             buffer =>
             {
-                var index = IndexAt(buffer, pointed.Line, pointed.Cell, pointed.Width);
+                var index = TextPointing.IndexInLine(buffer, pointed.Line, pointed.Cell, pointed.Width);
 
                 return pointed.Word ? TextPointing.Word(buffer, index) : TextPointing.Placed(buffer, index);
             });
@@ -34,16 +34,11 @@ public static partial class FormReducer
             {
                 var from = buffer.Anchor is { } kept && dragged.Continued
                     ? kept
-                    : IndexAt(buffer, dragged.FromLine, dragged.FromCell, dragged.Width);
-                var to = IndexAt(buffer, dragged.ToLine, dragged.ToCell, dragged.Width);
+                    : TextPointing.IndexInLine(buffer, dragged.FromLine, dragged.FromCell, dragged.Width);
+                var to = TextPointing.IndexInLine(buffer, dragged.ToLine, dragged.ToCell, dragged.Width);
 
                 return TextPointing.Dragged(buffer, from, to);
             });
-    }
-
-    private static int IndexAt(TextBuffer buffer, int line, int cell, int width)
-    {
-        return TextPointing.IndexInLine(buffer, line, cell, width);
     }
 
     private static ReduceResult Pointing(AppState state, int index, Func<TextBuffer, TextBuffer> point)

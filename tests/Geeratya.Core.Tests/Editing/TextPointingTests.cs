@@ -3,6 +3,7 @@ using Geeratya.Core.Text;
 
 namespace Geeratya.Core.Tests.Editing;
 
+[Trait("Os", "Independent")]
 public class TextPointingTests
 {
     [Theory]

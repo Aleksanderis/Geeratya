@@ -70,7 +70,11 @@ public static class CommentEditorOverlay
     }
 
     // The rows that show text take the pointer: the caret, a word, a range. Line is the visual row of the text.
-    private static void MarkText(List<OverlayRegion>? regions, CommentEditor editor, IReadOnlyList<EditorRow> rows, TextBox box)
+    private static void MarkText(
+        List<OverlayRegion>? regions,
+        CommentEditor editor,
+        IReadOnlyList<EditorRow> rows,
+        TextBox box)
     {
         if (regions is null)
         {

@@ -272,8 +272,9 @@ public static class MouseResolver
         return [new TextPointed(region.Index, region.Line, column - region.Left, region.Width, word)];
     }
 
-    // A drag that starts on the text being edited and is now over a row of the same text; the pointer outside it
-    // changes nothing (the range stays where it was).
+    // A drag that starts on the text being edited and is now over a row of the same text. A pointer outside the text
+    // changes nothing once the range exists; on the first move it still places the caret on the press cell, so a
+    // selection made earlier by keys is dropped and the next move starts from the press.
     private static TextDragged? TextDrag(
         MouseContext context,
         int fromColumn,
@@ -288,13 +289,14 @@ public static class MouseResolver
             {
                 Target: MouseTarget.EditorText,
                 Region: { } start,
-            }
-            || MouseHitTester.Locate(context, toColumn, toRow) is not
-            {
-                Target: MouseTarget.EditorText,
-                Region: { } end,
-            }
-            || start.Index != end.Index)
+            })
+        {
+            return null;
+        }
+
+        var end = TextRowAt(context, toColumn, toRow, start.Index);
+
+        if (end is null && continued)
         {
             return null;
         }
@@ -303,10 +305,22 @@ public static class MouseResolver
             start.Index,
             start.Line,
             fromColumn - start.Left,
-            end.Line,
-            toColumn - end.Left,
+            (end ?? start).Line,
+            (end is null ? fromColumn : toColumn) - (end ?? start).Left,
             start.Width,
             continued);
+    }
+
+    // The row of the text of field <index> under the cell, null anywhere else.
+    private static OverlayRegion? TextRowAt(MouseContext context, int column, int row, int index)
+    {
+        if (MouseHitTester.Locate(context, column, row) is { Target: MouseTarget.EditorText, Region: { } region }
+            && region.Index == index)
+        {
+            return region;
+        }
+
+        return null;
     }
 
     // A drag from one cell of the opened issue to another: select and copy the text between them (mouse table: Detail).
