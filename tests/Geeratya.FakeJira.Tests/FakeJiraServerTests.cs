@@ -208,6 +208,29 @@ public sealed class FakeJiraServerTests : IDisposable
     }
 
     [Fact]
+    public async Task GivenGeneratedIssue_WhenItsLabelsAreEdited_ThenDetailAndSearchKeepTheSummaryAndTheNewLabels()
+    {
+        var baseUrl = StartServer(10, 0, 0);
+        using var edit = new StringContent(
+            "{\"fields\":{\"labels\":[\"kept\"]}}",
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        var put = await _client.PutAsync($"{baseUrl}/rest/api/3/issue/GEN-1", edit);
+        using var detail = JsonDocument.Parse(await _client.GetStringAsync($"{baseUrl}/rest/api/3/issue/GEN-1"));
+        var search = await _client.GetStringAsync($"{baseUrl}/rest/api/3/search/jql?jql=key%20%3D%20GEN-1&fields=summary,labels");
+        using var found = JsonDocument.Parse(search);
+        var row = found.RootElement.GetProperty("issues")[0].GetProperty("fields");
+        var fields = detail.RootElement.GetProperty("fields");
+
+        Assert.Equal(HttpStatusCode.NoContent, put.StatusCode);
+        Assert.Equal("Generated issue 1", fields.GetProperty("summary").GetString());
+        Assert.Equal("kept", fields.GetProperty("labels")[0].GetString());
+        Assert.Equal("Generated issue 1", row.GetProperty("summary").GetString());
+        Assert.Equal("kept", row.GetProperty("labels")[0].GetString());
+    }
+
+    [Fact]
     public async Task GivenOrderByMinusCreated_WhenReadingComments_ThenTheNewestComesFirst()
     {
         var baseUrl = StartServer(10, 0, 0);
