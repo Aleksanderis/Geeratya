@@ -106,21 +106,20 @@ public static class CreatePanes
     }
 
     /// <summary>
-    /// The focus after a navigate-state motion, or null when <paramref name="action"/> is not one of them. <c>j</c> and
-    /// <c>k</c> move inside the focused pane (not wrapping), <c>h</c>/<c>l</c> and the pane keys go to the nearest
-    /// field of the pane in that direction (one column below 100 columns: <c>Ctrl-j</c>/<c>Ctrl-k</c> step through
-    /// the panes, <c>h</c>/<c>l</c> do nothing). A motion that has nowhere to go keeps the focus.
+    /// The focus after a navigate-state motion, or null when <paramref name="action"/> is not one of them. Summary, the
+    /// Description and every shown Details field are one list of fields in reading order (the order <c>Tab</c>
+    /// follows), whatever the pane or the overlay width: <c>j</c>, <c>l</c>, <c>Ctrl-j</c> and <c>Ctrl-l</c> go to the
+    /// next field, <c>k</c>, <c>h</c>, <c>Ctrl-k</c> and <c>Ctrl-h</c> to the previous one, without wrapping. A motion
+    /// at either end keeps the focus.
     /// </summary>
-    public static int? Move(FormState form, int overlayWidth, string? action)
+    public static int? Move(FormState form, string? action)
     {
         return action switch
         {
-            ActionIds.NavigateDown => Within(form, 1),
-            ActionIds.NavigateUp => Within(form, -1),
-            ActionIds.NavigateLeft or ActionIds.PaneFocusLeft => Across(form, overlayWidth, PaneDirection.Left),
-            ActionIds.NavigateRight or ActionIds.PaneFocusRight => Across(form, overlayWidth, PaneDirection.Right),
-            ActionIds.PaneFocusDown => Across(form, overlayWidth, PaneDirection.Down),
-            ActionIds.PaneFocusUp => Across(form, overlayWidth, PaneDirection.Up),
+            ActionIds.NavigateDown or ActionIds.NavigateRight or ActionIds.PaneFocusDown or ActionIds.PaneFocusRight
+                => Along(form, 1),
+            ActionIds.NavigateUp or ActionIds.NavigateLeft or ActionIds.PaneFocusUp or ActionIds.PaneFocusLeft
+                => Along(form, -1),
             _ => null,
         };
     }
@@ -150,51 +149,15 @@ public static class CreatePanes
         return new PaneGrid(slots);
     }
 
-    private static int? Within(FormState form, int delta)
+    private static int? Along(FormState form, int delta)
     {
-        if (FocusedPane(form) is not { } pane)
-        {
-            return form.Focus;
-        }
-
-        var shown = Shown(form, pane);
+        var shown = Enumerable.Range(0, form.Fields.Count)
+            .Where(index => PaneOf(form.Fields[index]) is not null && !IsFolded(form, index))
+            .ToList();
         var position = shown.IndexOf(form.Focus);
         var target = position + delta;
 
         return position < 0 || target < 0 || target >= shown.Count ? form.Focus : shown[target];
-    }
-
-    private static int? Across(FormState form, int overlayWidth, PaneDirection direction)
-    {
-        if (FocusedPane(form) is not { } current)
-        {
-            return form.Focus;
-        }
-
-        var grid = Grid(form, overlayWidth);
-        var target = PaneNavigator.Move(grid, current, direction);
-
-        if (target == current)
-        {
-            return form.Focus;
-        }
-
-        var shown = Shown(form, target);
-
-        // Leaving Details to the left lands on the title only from its first field, else on the Description below it.
-        if (current == PaneIds.Details && direction == PaneDirection.Left && grid.Find(PaneIds.Description) is not null
-            && Shown(form, PaneIds.Details).IndexOf(form.Focus) > 0)
-        {
-            shown = Shown(form, PaneIds.Description);
-        }
-
-        // Entering Details from above lands on its first field, from below on its last one.
-        if (target == PaneIds.Details && direction == PaneDirection.Up)
-        {
-            return shown[^1];
-        }
-
-        return shown[0];
     }
 
     private static int DetailRank(FormState form, int index)

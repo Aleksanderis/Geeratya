@@ -1,4 +1,3 @@
-using Geeratya.Core.Detail;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Panes;
@@ -236,7 +235,7 @@ public static partial class FormReducer
         return form.Suggest is not null && toggled.Suggest is null ? Result(next, tab.Id) : Result(next);
     }
 
-    // The navigate state of the create form: the three panes of CreatePanes, Ctrl-f and Ctrl-g work here too.
+    // The navigate state of the create form: one list of fields (CreatePanes.Move), Ctrl-f and Ctrl-g work here too.
     private static ReduceResult? CreateNavigating(
         AppState state,
         TabState tab,
@@ -254,7 +253,7 @@ public static partial class FormReducer
             return Result(CreateFormReducer.ToggleOpenAfter(state, tab, form));
         }
 
-        if (CreatePanes.Move(form, DetailSize.Columns(state), motion) is not { } focus)
+        if (CreatePanes.Move(form, motion) is not { } focus)
         {
             return null;
         }
