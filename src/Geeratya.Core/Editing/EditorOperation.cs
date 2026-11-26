@@ -31,4 +31,6 @@ public enum EditorOperation
     SelectWordLeft,
     SelectWordRight,
     SelectAll,
+    Undo,
+    Redo,
 }

@@ -64,7 +64,7 @@ public static class FormEditor
     /// <summary>The value text of a field with its caret and selection, for drawing it (see <see cref="CaretText"/>).</summary>
     public static TextBuffer ValueBuffer(FormField field)
     {
-        var buffer = TextBuffer.FromBack(field.Value.Text, field.Back);
+        var buffer = TextBuffer.FromBack(field.Value.Text, field.Back) with { History = field.History };
 
         return field.AnchorBack is { } anchorBack ? WithAnchor(buffer, anchorBack) : buffer;
     }
@@ -397,6 +397,7 @@ public static class FormEditor
             Value = FormValue.OfText(prompt.Text),
             Back = prompt.Back,
             AnchorBack = anchorBack,
+            History = prompt.History,
             Error = null,
         };
     }

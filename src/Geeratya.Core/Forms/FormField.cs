@@ -43,6 +43,12 @@ public sealed record FormField(
     /// </summary>
     public int? AnchorBack { get; init; }
 
+    /// <summary>
+    /// The undo and redo steps of the value text (only the typed text and paragraph kinds record). See
+    /// <see cref="TextBuffer.History"/>.
+    /// </summary>
+    public TextHistory History { get; init; } = TextHistory.None;
+
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
     /// <summary>True when the user changed the field, counting a label that is typed and not yet added, or text typed into a person or parent field and not picked.</summary>

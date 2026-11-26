@@ -214,6 +214,8 @@
     { "mode": "insert", "keys": "Alt-a", "action": "editor.select-all" },
     { "mode": "insert", "keys": "Alt-w", "action": "editor.copy" },
     { "mode": "insert", "keys": "Alt-x", "action": "editor.cut" },
+    { "mode": "insert", "keys": "Ctrl-z", "action": "editor.undo" },
+    { "mode": "insert", "keys": "Ctrl-y", "action": "editor.redo" },
     { "mode": "command", "keys": "Alt-Left", "action": "editor.word-left" },
     { "mode": "command", "keys": "Alt-Right", "action": "editor.word-right" },
     { "mode": "command", "keys": "Alt-b", "action": "editor.word-left" },

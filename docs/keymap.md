@@ -255,6 +255,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `Alt-a` | Select all the text | `editor.select-all` | everyday |
 | `Alt-w` | Copy the selected text to the clipboard | `editor.copy` | everyday |
 | `Alt-x` | Cut the selected text to the clipboard | `editor.cut` | everyday |
+| `Ctrl-z` | Undo the last edit of the text | `editor.undo` | everyday |
+| `Ctrl-y` | Redo the edit that was undone | `editor.redo` | everyday |
 
 ## Palette commands
 
