@@ -119,6 +119,21 @@ public class FormNavigationTests
     }
 
     [Fact]
+    public void GivenEditingAField_WhenAnotherFieldIsClicked_ThenEditingMovesToItAndNoPopupStaysOpen()
+    {
+        var editing = Press(Loaded(), "Enter").State;
+        var clicked = new OverlayRowClicked(MouseTarget.FormField, 1, ActionIds.FormFieldNext, _start);
+
+        Assert.False(Form(editing).Navigating);
+
+        var form = Form(_reducer.Reduce(editing, clicked).State);
+
+        Assert.Equal(1, form.Focus);
+        Assert.False(form.Navigating);
+        Assert.Null(form.Suggest);
+    }
+
+    [Fact]
     public void GivenNavigating_WhenTheFocusedFieldIsClicked_ThenItIsEdited()
     {
         var clicked = new OverlayRowClicked(MouseTarget.FormField, 0, ActionIds.FormFieldNext, _start);

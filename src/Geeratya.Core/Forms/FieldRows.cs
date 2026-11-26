@@ -147,7 +147,8 @@ public static class FieldRows
         return StyledLine.Of(DisplayText.Cut(text.ReplaceLineEndings(SpaceGap), width), look.Role);
     }
 
-    // No typed text: the placeholder of the presentation (italic and muted, hidden while the field is focused, edited or not) or the shared empty word, muted; the caret cell when edited.
+    // No typed text: the placeholder of the presentation (italic and muted, hidden while the field is focused,
+    // edited or not) or the shared empty word, muted; the caret cell when edited.
     private static StyledLine Empty(FormField field, FieldLook look)
     {
         var width = Math.Max(1, look.Width);
