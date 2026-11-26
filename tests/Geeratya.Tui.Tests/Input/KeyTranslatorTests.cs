@@ -53,6 +53,16 @@ public class KeyTranslatorTests
     }
 
     [Fact]
+    public void GivenAltShiftLetter_WhenTranslating_ThenAltAndUppercaseAndAltLetterStaysLowercase()
+    {
+        Assert.Equal("Alt-L", KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask | KeyCode.ShiftMask)));
+        Assert.Equal("Alt-l", KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask)));
+        Assert.Equal(
+            "Ctrl-Alt-l",
+            KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask | KeyCode.CtrlMask | KeyCode.ShiftMask)));
+    }
+
+    [Fact]
     public void GivenCtrlLetter_WhenTranslating_ThenCtrlPrefixAndLowercase()
     {
         Assert.Equal("Ctrl-d", KeyTranslator.Translate(new Key(KeyCode.D | KeyCode.CtrlMask)));

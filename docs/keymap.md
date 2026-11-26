@@ -50,6 +50,8 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `gt` | Next tab | `tab.next` | everyday |
 | `Shift-Tab` | Previous tab | `tab.previous` | everyday |
 | `gT` | Previous tab | `tab.previous` | everyday |
+| `Alt-L` | Next tab | `tab.next` | everyday |
+| `Alt-H` | Previous tab | `tab.previous` | everyday |
 | `Ctrl-^` | Previously active tab | `tab.last-active` | everyday |
 | `<space><Tab>` | Previously active tab | `tab.last-active` | everyday |
 | `Alt-1` | Go to tab 1 | `tab.go-to.1` | everyday |

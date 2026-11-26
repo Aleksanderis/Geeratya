@@ -392,3 +392,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-26 (Gitunia tab keys, #1065)
 
 **UI:** Closing a tab is `Ctrl-w c` (Gitunia key), no longer `<space>c`; the other shared tab keys already matched, and the kept differences are listed in `ux-keymap.md` under the vim key table. Why: owner asked for the same keys for shared actions; Gitunia had spent more design time on them. Overrides the M1 `<space>c` leaf.
+
+## 2026-11-26 (vim tab keys, #1066)
+
+**UI:** Next and previous tab are `Alt-L` / `Alt-H` (Alt-Shift) here, with `g t` / `g T`, `Tab` and `Shift-Tab` kept; Gitunia (Gitunia#1505) chose `Alt-l` / `Alt-h`. Why: those two are the card move in Geeratya (`issue.transition-next` / `-previous`), so taking them would break M2; the Alt-Shift twins stay on the same physical keys and are read by `KeyTranslator` with their case. Gitunia keeps its keys (its Alt-h/l are free); the difference is listed in `ux-keymap.md`.
