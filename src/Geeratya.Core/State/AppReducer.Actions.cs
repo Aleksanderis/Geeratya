@@ -130,6 +130,8 @@ public sealed partial class AppReducer
             ActionIds.FormSubmit when state.Form is not null => ProfileReducer.Save(state),
             ActionIds.FormSubmit => CommentEditing.Save(state, at),
             ActionIds.EditorExternal when state.Form is null => CommentEditing.External(state),
+            ActionIds.EditorCopy or ActionIds.EditorCut when state.Form is null
+                => CommentEditing.Copy(state, action == ActionIds.EditorCut),
             ActionIds.CommentAdd => InNormal(state, () => CommentEditing.Add(state)),
             ActionIds.CommentEdit => InNormal(state, () => CommentEditing.Edit(state)),
             ActionIds.CommentReply => InNormal(state, () => CommentEditing.Reply(state)),

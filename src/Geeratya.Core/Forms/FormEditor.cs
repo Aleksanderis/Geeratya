@@ -1,6 +1,7 @@
 using System.Globalization;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Suggestions;
+using Geeratya.Core.Text;
 using Geeratya.Jira.Issues;
 using Geeratya.Jira.Suggestions.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -43,12 +44,37 @@ public static class FormEditor
     /// </summary>
     public static FormField Apply(FormField field, EditorOperation operation)
     {
-        if (!field.IsEditable)
+        if (!field.IsEditable || (IsSelecting(operation) && !CanSelect(field, operation)))
         {
             return field;
         }
 
         return WithPrompt(field, Prompt(field).Apply(operation));
+    }
+
+    /// <summary>The value text of a field with its caret and selection, for drawing it (see <see cref="CaretText"/>).</summary>
+    public static TextBuffer ValueBuffer(FormField field)
+    {
+        var buffer = TextBuffer.FromBack(field.Value.Text, field.Back);
+
+        return field.AnchorBack is { } anchorBack ? WithAnchor(buffer, anchorBack) : buffer;
+    }
+
+    /// <summary>The text selected in a field that selects (a typed text or paragraph), else an empty string.</summary>
+    public static string SelectedText(FormField field)
+    {
+        return field.IsEditable && !TypesInEntry(field) ? Prompt(field).SelectedText : string.Empty;
+    }
+
+    /// <summary>The field without its selected text; the same field when nothing is selected.</summary>
+    public static FormField DeleteSelection(FormField field)
+    {
+        if (!field.IsEditable || TypesInEntry(field) || !Prompt(field).HasSelection)
+        {
+            return field;
+        }
+
+        return WithPrompt(field, Prompt(field).DeleteSelection());
     }
 
     /// <summary>
@@ -62,7 +88,7 @@ public static class FormEditor
             return field;
         }
 
-        return WithPrompt(field, Prompt(field).Vertical(lines, TextBuffer.NoWrap));
+        return WithPrompt(field, Prompt(field).Deselect().Vertical(lines, TextBuffer.NoWrap));
     }
 
     /// <summary>Deletes the last character; in an empty label buffer it removes the last label.</summary>
@@ -316,9 +342,39 @@ public static class FormEditor
         return field.Kind == FormFieldKind.Labels || FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind);
     }
 
+    // Only the typed text and paragraph kinds select, and a paragraph alone has rows to select up and down.
+    private static bool CanSelect(FormField field, EditorOperation operation)
+    {
+        if (TypesInEntry(field))
+        {
+            return false;
+        }
+
+        var vertical = operation is EditorOperation.SelectUp or EditorOperation.SelectDown;
+
+        return !vertical || field.Kind == FormFieldKind.Paragraph;
+    }
+
+    private static bool IsSelecting(EditorOperation operation)
+    {
+        return operation is >= EditorOperation.SelectLeft and <= EditorOperation.SelectAll;
+    }
+
     private static TextBuffer Prompt(FormField field)
     {
-        return TextBuffer.FromBack(TypesInEntry(field) ? field.Entry : field.Value.Text, field.Back);
+        if (TypesInEntry(field))
+        {
+            return TextBuffer.FromBack(field.Entry, field.Back);
+        }
+
+        return ValueBuffer(field);
+    }
+
+    private static TextBuffer WithAnchor(TextBuffer buffer, int anchorBack)
+    {
+        var anchor = buffer.Text.Length - Math.Clamp(anchorBack, 0, buffer.Text.Length);
+
+        return buffer with { Anchor = anchor == buffer.Text.Length ? anchor : EditorLayout.StartAtOrBefore(buffer.Text, anchor) };
     }
 
     private static FormField WithPrompt(FormField field, TextBuffer prompt)
@@ -328,7 +384,20 @@ public static class FormEditor
             return field with { Entry = prompt.Text, Back = prompt.Back, Error = null };
         }
 
-        return field with { Value = FormValue.OfText(prompt.Text), Back = prompt.Back, Error = null };
+        int? anchorBack = null;
+
+        if (prompt is { HasSelection: true, Anchor: { } anchor })
+        {
+            anchorBack = prompt.Text.Length - anchor;
+        }
+
+        return field with
+        {
+            Value = FormValue.OfText(prompt.Text),
+            Back = prompt.Back,
+            AnchorBack = anchorBack,
+            Error = null,
+        };
     }
 
     // Typed text goes in at the caret; text beyond the limit is dropped.

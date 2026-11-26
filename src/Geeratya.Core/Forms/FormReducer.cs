@@ -117,16 +117,33 @@ public static partial class FormReducer
             ActionIds.FormFieldPrevious => Result(Replace(state, tab, form with { Focus = Step(form, -1) })),
             ActionIds.FormNext => Enter(state, tab, form, at),
             ActionIds.FormBackspace => Edited(Edit(state, tab, form, FormEditor.Backspace), tab.Id),
+            ActionIds.EditorCopy or ActionIds.EditorCut => CopySelection(state, tab, form, action == ActionIds.EditorCut),
             ActionIds.PickerPrevious or ActionIds.PickerNext or ActionIds.EditorPageUp or ActionIds.EditorPageDown
                 when InParagraph(form)
                 => Result(Edit(state, tab, form, field => FormEditor.MoveLines(field, LinesOf(action, state)))),
             null => Edited(Typed(state, tab, form, KeyNotation.ToText(key)), tab.Id),
-            _ when EditorActions.OperationOf(action) is { } operation
+            _ when EditorActions.OperationOf(action, InParagraph(form)) is { } operation
                 => Edited(Edit(state, tab, form, field => FormEditor.Apply(field, operation)), tab.Id),
             _ => Result(state),
         };
 
         return Choosing(LeavesField(action) ? Unsuggested(result, tab.Id) : result, tab.Id);
+    }
+
+    // Copy puts the selected text of the focused field on the clipboard; cut also removes it.
+    private static ReduceResult CopySelection(AppState state, TabState tab, FormState form, bool cut)
+    {
+        var field = form.Fields[Math.Clamp(form.Focus, 0, form.Fields.Count - 1)];
+        var selected = FormEditor.SelectedText(field);
+
+        if (selected.Length == 0)
+        {
+            return Result(state);
+        }
+
+        var next = cut ? Edit(state, tab, form, FormEditor.DeleteSelection) : state;
+
+        return new ReduceResult(next, SelectionCopy.Effects(selected));
     }
 
     // Up, Down, PageUp and PageDown move the caret between the lines of a paragraph field (the Description editor).
