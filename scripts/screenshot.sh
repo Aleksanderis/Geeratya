@@ -23,7 +23,7 @@ timeout_ms=${TIMEOUT_MS:-5000}
 # those carry sub-tasks, links, attachments and epic children; `:jql key = KEY` opens one recorded issue there.
 # sprint-no-active runs against a third fake started with --no-active-sprint (the generated Scrum board without an active sprint).
 # In keys, `}` sends Alt-j and `{` sends Alt-k (rank down and up), `^` sends Alt-m (mark), `<` sends Left (the prompt
-# caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar).
+# caret), `>` sends Ctrl-j (focus the pane below) and `]` sends Ctrl-l (focus the pane to the right, the Details sidebar), `\\` sends Tab, `[` sends Shift-Left and `_` Ctrl-Shift-Left (select text in an editor).
 # Add a row per new screen.
 profile_ready="Connected|Open a view"
 all_scenarios=(
@@ -88,6 +88,11 @@ all_scenarios=(
   # detail-edit-description-zoom: Ctrl-j (>) to Description, <space>z zooms it, Enter (|) starts the large editor
   "detail-edit-summary;120;36;dark;:jql project = GEN|jjjj| ie;editing"
   "detail-edit-description-zoom;120;36;dark;:jql project = GEN|jjjj|> z|;editing"
+  # editor-select: Shift-Left and Ctrl-Shift-Left select text in the comment editor
+  "detail-edit-summary-select;120;36;dark;:jql project = GEN|jjjj| ie_[[;editing"
+  # form-create-select: the create form's Description (Tab from the Summary) with a word and two characters selected
+  "form-create-select;120;36;dark;:jql key = GTM-11| ic|Fix login redirect\\First line|Second line here_[[;Second line"
+  "comment-editor-select;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語_[[;Second line"
   "comment-editor;120;36;dark;:jql project = GEN|jjjj| maLooks good to me|Second line, with wide 日本語;Second line"
   "comment-editor-mention;120;36;dark;:jql project = GEN|jjjj| maThanks @test;Tab/Enter choose"
   "comment-editor-issue;120;36;dark;:jql project = GEN|jjjj| maSee #GEN;Tab/Enter choose"
@@ -277,6 +282,12 @@ capture_scenario() {
       tmux -L "$socket" send-keys -t s C-j
     elif [ "$key" = "]" ]; then
       tmux -L "$socket" send-keys -t s C-l
+    elif [ "$key" = "\\" ]; then
+      tmux -L "$socket" send-keys -t s Tab
+    elif [ "$key" = "[" ]; then
+      tmux -L "$socket" send-keys -t s S-Left
+    elif [ "$key" = "_" ]; then
+      tmux -L "$socket" send-keys -t s C-S-Left
     else
       tmux -L "$socket" send-keys -t s -l "$key"
     fi

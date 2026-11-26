@@ -396,3 +396,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-26 (vim tab keys, #1066)
 
 **UI:** Next and previous tab are `Alt-L` / `Alt-H` (Alt-Shift) here, with `g t` / `g T`, `Tab` and `Shift-Tab` kept; Gitunia (Gitunia#1505) chose `Alt-l` / `Alt-h`. Why: those two are the card move in Geeratya (`issue.transition-next` / `-previous`), so taking them would break M2; the Alt-Shift twins stay on the same physical keys and are read by `KeyTranslator` with their case. Gitunia keeps its keys (its Alt-h/l are free); the difference is listed in `ux-keymap.md`.
+
+## 2026-11-26 (text selection in the text areas, #1070)
+
+**UI:** The Summary and Description fields and the comment editor select text through `TextBuffer.Anchor` (one component for all three), with `Shift-` cursor keys, `Alt-a`, `Alt-w` (copy, Gitunia's key) and `Alt-x` (cut; `Ctrl-x` is taken by the profile list in Insert mode). Single-line prompts keep a caret only. Why: owner asked for editor behaviour at component level. A key spelling `Shift-<cursor key>` is now valid and `KeymapTable.Resolve` falls back to the plain key where nothing binds it, so lists and prompts behave as before. Mouse selection (#1076) and undo (#1077) were left out.
