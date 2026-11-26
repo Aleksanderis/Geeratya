@@ -388,3 +388,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-23 (release after each run, #1058)
 
 **Process:** `release: after-run`: the orchestrator tags and publishes a release at the end of every run that merged user-visible changes (overrides the earlier rule that agents never release because publishing reaches Homebrew and winget). Why: the owner asked for it every run (2026-11-17, 2026-11-18, #1058). Details: `.claude/workflow.md`, `docs/internal/release-checklist.md`.
+
+## 2026-11-26 (Gitunia tab keys, #1065)
+
+**UI:** Closing a tab is `Ctrl-w c` (Gitunia key), no longer `<space>c`; the other shared tab keys already matched, and the kept differences are listed in `ux-keymap.md` under the vim key table. Why: owner asked for the same keys for shared actions; Gitunia had spent more design time on them. Overrides the M1 `<space>c` leaf.
