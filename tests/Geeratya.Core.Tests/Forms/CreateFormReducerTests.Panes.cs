@@ -128,6 +128,18 @@ public partial class CreateFormReducerTests
     }
 
     [Fact]
+    public void GivenNavigating_WhenPressingCtrlWThenJOrK_ThenTheFocusStepsTheFieldsLikeTheMotionKeys()
+    {
+        var state = Navigating(WideForm());
+
+        var down = Press(Press(state, "Ctrl-w").State, "j").State;
+        var up = Press(Press(down, "Ctrl-w").State, "k").State;
+
+        Assert.Equal("description", FocusedId(down));
+        Assert.Equal("summary", FocusedId(up));
+    }
+
+    [Fact]
     public void GivenNavigating_WhenPressingTabAndShiftTab_ThenTheFocusFollowsTheReadingOrderAndWraps()
     {
         var state = Navigating(WideForm());

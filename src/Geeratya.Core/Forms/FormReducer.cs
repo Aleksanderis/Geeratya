@@ -158,7 +158,7 @@ public static partial class FormReducer
         DateTimeOffset at,
         KeymapTable keymap)
     {
-        if (PaneChord(state, tab, key, at, keymap) is { } chord)
+        if (PaneChord(state, tab, form, key, at, keymap) is { } chord)
         {
             return chord;
         }
@@ -209,18 +209,34 @@ public static partial class FormReducer
     // The Ctrl-w h/j/k/l fallback of the pane keys (decision 2026-11-04): in the navigate state, with panes on the tab,
     // Ctrl-w is held in PendingKeys and the next key resolves in Normal mode; any other second key drops the chord.
     // Null when the key is not part of a chord. The editing state never gets here, so Ctrl-w stays delete-word.
-    private static ReduceResult? PaneChord(AppState state, TabState tab, string key, DateTimeOffset at, KeymapTable keymap)
+    // In the create form the second key steps the form's fields like Ctrl-h/j/k/l (#1071), whatever the view behind has.
+    private static ReduceResult? PaneChord(
+        AppState state,
+        TabState tab,
+        FormState form,
+        string key,
+        DateTimeOffset at,
+        KeymapTable keymap)
     {
+        var create = form.Target is CreateFormTarget;
+
         if (state.PendingKeys.Length > 0)
         {
             var cleared = state with { PendingKeys = string.Empty, PendingSince = null };
             var action = keymap.Resolve(InputMode.Normal, state.PendingKeys, key).Action;
 
+            if (create)
+            {
+                var focus = CreatePanes.Move(form, action) ?? form.Focus;
+
+                return Result(Replace(cleared, tab, form with { Focus = focus }));
+            }
+
             return Result(PaneActions.Apply(cleared, action) ?? cleared);
         }
 
         var starts = key == "Ctrl-w"
-            && tab.Panes.HasPanes
+            && (create || tab.Panes.HasPanes)
             && keymap.Resolve(InputMode.Normal, string.Empty, key).Kind == KeyResolutionKind.Prefix;
 
         return starts ? Result(state with { PendingKeys = key, PendingSince = at, Message = null }) : null;

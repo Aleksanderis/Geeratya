@@ -111,7 +111,7 @@ all_scenarios=(
   "form-create-panes;120;36;dark;:jql key = GTM-11| ic|;Not editable here"
   "form-create-panes-narrow;100;28;dark;:jql key = GTM-11| ic|;Create"
   # form-create-navigate: Esc, then j twice from Summary: past the Description to the first Details field (#1071)
-  "form-create-navigate;120;36;dark;:jql key = GTM-11| ic|!jj;Not editable here"
+  "form-create-navigate;120;36;dark;:jql key = GTM-11| ic|!jj;[navigate]"
   "link-form;120;36;dark;:jql key = GTM-11|| il;Link GTM-11"
   "link-unlink-confirm;120;36;dark;:jql key = GTM-11||>>>j iu;Jira cannot undo"
   "picker;120;36;dark;:tab new|;Open a view"

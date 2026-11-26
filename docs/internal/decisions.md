@@ -396,3 +396,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 ## 2026-11-26 (vim tab keys, #1066)
 
 **UI:** Next and previous tab are `Alt-L` / `Alt-H` (Alt-Shift) here, with `g t` / `g T`, `Tab` and `Shift-Tab` kept; Gitunia (Gitunia#1505) chose `Alt-l` / `Alt-h`. Why: those two are the card move in Geeratya (`issue.transition-next` / `-previous`), so taking them would break M2; the Alt-Shift twins stay on the same physical keys and are read by `KeyTranslator` with their case. Gitunia keeps its keys (its Alt-h/l are free); the difference is listed in `ux-keymap.md`.
+
+## 2026-11-26 (create form navigation, #1071)
+
+**UI:** In the create form's navigate state Summary, Description and the Details fields are one list in reading order: `j`/`l`/`Ctrl-j`/`Ctrl-l` (and `Ctrl-w j/l`) go to the next field, `k`/`h`/`Ctrl-k`/`Ctrl-h` (and `Ctrl-w h/k`) to the previous, no wrap; the pane keys are aliases. Why: the owner found `j`/`k` inside a pane and `h`/`l` across panes confusing. Supersedes the pane-focus meaning of `Ctrl-h/j/k/l` in the create form (2026-11-04, #701) and the pane-crossing `h`/`l` of #708; other forms and the detail keep them.

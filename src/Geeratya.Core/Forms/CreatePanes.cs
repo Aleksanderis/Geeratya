@@ -1,6 +1,5 @@
 using Geeratya.Core.Detail;
 using Geeratya.Core.Keymap;
-using Geeratya.Core.Panes;
 
 namespace Geeratya.Core.Forms;
 
@@ -122,31 +121,6 @@ public static class CreatePanes
                 => Along(form, -1),
             _ => null,
         };
-    }
-
-    /// <summary>The pane grid of the create form for an overlay <paramref name="overlayWidth"/> columns wide.</summary>
-    public static PaneGrid Grid(FormState form, int overlayWidth)
-    {
-        var panes = new[] { PaneIds.Title, PaneIds.Description, PaneIds.Details }
-            .Where(pane => Shown(form, pane).Count > 0)
-            .ToList();
-        var wide = DetailLayout.HasSidebar(overlayWidth);
-        var slots = new List<PaneSlot>();
-        var rows = panes.Count(pane => pane != PaneIds.Details);
-
-        foreach (var pane in panes)
-        {
-            if (wide && pane == PaneIds.Details)
-            {
-                slots.Add(new PaneSlot(pane, 1, 0, 1, Math.Max(1, rows)));
-            }
-            else
-            {
-                slots.Add(new PaneSlot(pane, 0, slots.Count(slot => slot.Column == 0)));
-            }
-        }
-
-        return new PaneGrid(slots);
     }
 
     private static int? Along(FormState form, int delta)
