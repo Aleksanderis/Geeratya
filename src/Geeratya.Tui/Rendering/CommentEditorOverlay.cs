@@ -17,7 +17,6 @@ public static class CommentEditorOverlay
     private const string NewTitle = "Comment on";
     private const string EditTitle = "Edit comment on";
     private const string ReplyTitle = "Reply to";
-    private const string SavingText = "Saving…";
     private const string PlaceholderText = " Type the comment here";
     private const int MinimumBoxWidth = 12;
     private const int MinimumHeight = 6;
@@ -163,11 +162,6 @@ public static class CommentEditorOverlay
     private static List<StyledLine> Notes(CommentEditor editor, int inner)
     {
         var lines = new List<StyledLine>();
-
-        if (editor.IsSaving)
-        {
-            lines.Add(StyledLine.Of(SavingText, TextRole.Loading));
-        }
 
         AddWrapped(lines, editor.Error, TextRole.Error, inner);
         AddWrapped(lines, editor.Warning, TextRole.Stale, inner);

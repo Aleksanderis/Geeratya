@@ -248,6 +248,17 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenASavingForm_WhenBuildingTheFrame_ThenSavingShowsOnlyInTheStatusBar()
+    {
+        var saving = SampleForm() with { OperationId = 7 };
+        var lines = FrameBuilder.Build(WithForm(saving), 120, 36, _keymap);
+        var body = lines.Take(lines.Count - 1);
+
+        Assert.DoesNotContain(body, line => line.Contains("Saving", StringComparison.Ordinal));
+        Assert.Contains("Saving…", lines[^1], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenACardMoveStillLoading_WhenBuildingTheFrame_ThenNoFormBoxShows()
     {
         var target = new TransitionPickTarget("A-1", ["2"], "In Progress", []);

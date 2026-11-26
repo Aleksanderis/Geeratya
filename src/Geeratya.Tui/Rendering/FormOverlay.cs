@@ -321,16 +321,6 @@ public static partial class FormOverlay
 
     private static void AddNotices(List<StyledLine> lines, FormState form, int width)
     {
-        if (form.IsLoading)
-        {
-            lines.Add(StyledLine.Of(LoadingText, TextRole.Loading));
-        }
-
-        if (form.IsSaving)
-        {
-            lines.Add(StyledLine.Of(SavingText, TextRole.Loading));
-        }
-
         if (form.TopError is not null)
         {
             lines.AddRange(FieldRows.Error(form.TopError, width));
