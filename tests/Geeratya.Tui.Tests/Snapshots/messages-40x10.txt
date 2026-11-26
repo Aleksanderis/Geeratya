@@ -7,4 +7,4 @@
 │                                      │
 │                                      │
 ╰──────────────────────────────────────╯
- MESSAGES            j/k move  Esc close
+ MESSAGES          j/k scroll  Esc close

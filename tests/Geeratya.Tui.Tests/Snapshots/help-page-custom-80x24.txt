@@ -18,7 +18,7 @@
 │ │               │                                                          │ │
 │ │               │                                                          │ │
 │ ├──────────────────────────────────────────────────────────────────────────┤ │
-│ │ j/k move   Tab page   / filter   Esc close                               │ │
+│ │ j/k move   Tab page   / filter   J/K scroll   Esc close                  │ │
 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- HELP                                    j/k move  Tab page  / filter  Esc close
+ HELP                        j/k move  Tab page  / filter  J/K scroll  Esc close

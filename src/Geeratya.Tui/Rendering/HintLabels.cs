@@ -27,6 +27,9 @@ public static class HintLabels
     /// <summary>Up and Down move the highlight.</summary>
     public const string Move = "move";
 
+    /// <summary>The scroll keys move the text of a page or list by a line.</summary>
+    public const string Scroll = "scroll";
+
     /// <summary>Enter opens the highlighted thing (an issue, a board, a view).</summary>
     public const string Open = "open";
 

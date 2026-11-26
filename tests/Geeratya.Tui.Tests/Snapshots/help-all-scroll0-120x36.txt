@@ -30,7 +30,7 @@
 │           │               │   <space>me  Edit the comment under the cursor                               │           │
 │           │               │   <space>mr  Reply to the comment under the cursor                          ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
-│           │ j/k move   Tab page   / filter   Esc close                                                   │           │
+│           │ j/k move   Tab page   / filter   J/K scroll   Esc close                                      │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- HELP                                                                            j/k move  Tab page  / filter  Esc close
+ HELP                                                                j/k move  Tab page  / filter  J/K scroll  Esc close

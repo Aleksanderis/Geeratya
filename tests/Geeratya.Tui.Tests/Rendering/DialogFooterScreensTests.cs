@@ -17,11 +17,11 @@ public class DialogFooterScreensTests
     private static readonly KeymapTable _keymap = DefaultKeymap.Load();
 
     [Fact]
-    public void GivenTheOpenHelp_WhenBuildingTheFrame_ThenTheFooterNamesMovePageFilterAndClose()
+    public void GivenTheOpenHelp_WhenBuildingTheFrame_ThenTheFooterNamesMoveScrollPageFilterAndClose()
     {
         var text = Text(AppState.Initial with { Mode = InputMode.Help }, 100, 30);
 
-        Assert.Contains("j/k move   Tab page   / filter   Esc close", text, StringComparison.Ordinal);
+        Assert.Contains("j/k move   Tab page   / filter   J/K scroll   Esc close", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class DialogFooterScreensTests
     {
         var text = Text(StatusMessages.OpenHistory(AppState.Initial with { Mode = InputMode.Help }), 100, 24);
 
-        Assert.Contains("j/k move   Esc close", text, StringComparison.Ordinal);
+        Assert.Contains("j/k scroll   Esc close", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Tab page   / filter", text, StringComparison.Ordinal);
     }
 
