@@ -365,7 +365,10 @@ public static partial class FormReducer
             field = field with { Error = FormValidation.FormatError(field) };
         }
 
-        return Replace(state, tab, form with { Fields = WithField(form.Fields, form.Focus, field), TopError = null });
+        return Replace(
+            state,
+            tab,
+            form with { Fields = WithField(form.Fields, form.Focus, field), TopError = null, TextTop = null });
     }
 
     private static AppState Typed(AppState state, TabState tab, FormState form, string? text)

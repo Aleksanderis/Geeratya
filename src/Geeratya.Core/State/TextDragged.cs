@@ -14,6 +14,7 @@ namespace Geeratya.Core.State;
 /// Whether an earlier move of this drag already set the anchor: it stays, because the text is drawn around its caret
 /// and the press cell no longer maps to the same character once the caret moved.
 /// </param>
+/// <param name="Top">The first line of the text the frame showed, as for <see cref="TextPointed"/>.</param>
 public sealed record TextDragged(
     int Index,
     int FromLine,
@@ -21,4 +22,5 @@ public sealed record TextDragged(
     int ToLine,
     int ToCell,
     int Width,
-    bool Continued) : Command;
+    bool Continued,
+    int Top = 0) : Command;

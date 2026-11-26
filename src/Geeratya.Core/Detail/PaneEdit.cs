@@ -80,6 +80,14 @@ public sealed record PaneEdit(string Pane, FormState Form)
         var room = Math.Max(1, maxRows - notices.Count);
         var shown = Math.Min(room, lines.Length);
         var first = Math.Clamp(caretRow - (shown / 2), 0, lines.Length - shown);
+
+        // A window the pointer placed stays while the caret is in it, so the next press hits the line that was seen.
+        if (Form.TextTop is { } pinned && caretRow >= pinned && caretRow < pinned + shown
+            && pinned <= lines.Length - shown)
+        {
+            first = pinned;
+        }
+
         var rows = FieldRows.Paragraph(field, Look(inner), first, shown);
 
         rows.AddRange(notices);

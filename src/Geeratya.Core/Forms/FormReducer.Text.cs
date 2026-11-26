@@ -16,6 +16,7 @@ public static partial class FormReducer
         return Pointing(
             state,
             pointed.Index,
+            pointed.Top,
             buffer =>
             {
                 var index = TextPointing.IndexInLine(buffer, pointed.Line, pointed.Cell, pointed.Width);
@@ -30,6 +31,7 @@ public static partial class FormReducer
         return Pointing(
             state,
             dragged.Index,
+            dragged.Top,
             buffer =>
             {
                 var from = buffer.Anchor is { } kept && dragged.Continued
@@ -41,7 +43,7 @@ public static partial class FormReducer
             });
     }
 
-    private static ReduceResult Pointing(AppState state, int index, Func<TextBuffer, TextBuffer> point)
+    private static ReduceResult Pointing(AppState state, int index, int top, Func<TextBuffer, TextBuffer> point)
     {
         if (ActiveTab(state) is not { Form: { } form } tab || form.IsSaving || form.Navigating
             || state.Mode == InputMode.Confirm || index != form.Focus || index < 0 || index >= form.Fields.Count)
@@ -52,11 +54,15 @@ public static partial class FormReducer
         var field = form.Fields[index];
         var moved = FormEditor.Pointed(field, point);
 
-        if (ReferenceEquals(moved, field))
+        var pinned = form.Pane is null ? form.TextTop : top;
+
+        if (ReferenceEquals(moved, field) && pinned == form.TextTop)
         {
             return Result(state);
         }
 
-        return Result(Replace(state, tab, form with { Fields = WithField(form.Fields, index, moved) }));
+        var fields = WithField(form.Fields, index, moved);
+
+        return Result(Replace(state, tab, form with { Fields = fields, TextTop = pinned }));
     }
 }

@@ -28,13 +28,11 @@ public sealed class IssueDetailRenderer : IBodyRenderer
     {
         var tab = ActiveTab(state)!;
         var top = tab.Detail[^1];
-        var stripRows = top.Zoomed is null ? 0 : DetailZoom.StripRows;
-        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows - stripRows);
-        var editing = PaneEdit.PaneOf(tab.Form, top.Key);
-        var document = top.Document is { } laidOut && laidOut.Width == width && editing is null
-            ? laidOut
-            : IssueDocumentBuilder.Build(top, width, rows, null, tab.Form);
-        var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
+        var view = Layout(state, width, height);
+        var document = view.Document;
+        var editing = view.Editing;
+        var rows = view.Rows;
+        var first = view.First;
         var side = document.Side;
         var onSide = side is not null && top.SideCursor is not null && editing is null;
         var focused = document.Sections.Count == 0 || onSide ? -1 : document.SectionAt(top.Cursor);
@@ -43,12 +41,10 @@ public sealed class IssueDetailRenderer : IBodyRenderer
 
         if (editing is not null)
         {
-            // The edited pane keeps the focus, whatever its rows did to the line numbers; a screen scrolled past it
-            // shows it from its top edge.
+            // The edited pane keeps the focus, whatever its rows did to the line numbers.
             focused = IndexOf(document.SectionIds, editing);
             block = null;
             cursor = -1;
-            first = focused >= 0 ? Math.Min(first, document.PaneStarts[focused]) : first;
         }
 
         var shown = side is null ? Math.Max(0, Math.Min(rows, document.Lines.Count - first)) : rows;
@@ -84,6 +80,34 @@ public sealed class IssueDetailRenderer : IBodyRenderer
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// The document of the active tab's top issue as drawn in <paramref name="width"/> by <paramref name="height"/>
+    /// cells, with the first line shown: the one place that decides which window of it the screen shows, so the
+    /// mouse regions of the in-place editors (<see cref="DetailEditorRegions"/>) match the frame.
+    /// </summary>
+    internal static DetailView Layout(AppState state, int width, int height)
+    {
+        var tab = ActiveTab(state)!;
+        var top = tab.Detail[^1];
+        var stripRows = top.Zoomed is null ? 0 : DetailZoom.StripRows;
+        var rows = Math.Max(0, height - DetailLayout.HeaderRows - DetailLayout.FooterRows - stripRows);
+        var editing = PaneEdit.PaneOf(tab.Form, top.Key);
+        var document = top.Document is { } laidOut && laidOut.Width == width && editing is null
+            ? laidOut
+            : IssueDocumentBuilder.Build(top, width, rows, null, tab.Form);
+        var first = Math.Clamp(top.Scroll, 0, Math.Max(0, document.Lines.Count - rows));
+
+        if (editing is not null)
+        {
+            // A screen scrolled past the edited pane shows it from its top edge.
+            var focused = IndexOf(document.SectionIds, editing);
+
+            first = focused >= 0 ? Math.Min(first, document.PaneStarts[focused]) : first;
+        }
+
+        return new DetailView(document, first, rows, stripRows, editing);
     }
 
     /// <summary>

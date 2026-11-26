@@ -9,4 +9,8 @@ namespace Geeratya.Core.State;
 /// <param name="Cell">The column in the text as drawn, from its left edge.</param>
 /// <param name="Width">The columns the text is drawn in.</param>
 /// <param name="Word">Whether to select the word under the pointer (a double-click) instead of placing the caret.</param>
-public sealed record TextPointed(int Index, int Line, int Cell, int Width, bool Word) : Command;
+/// <param name="Top">
+/// The first line of the text the frame showed (a long Description edited in place shows a window of it); the window
+/// stays there while the caret is in it, so the next press hits the line the user saw.
+/// </param>
+public sealed record TextPointed(int Index, int Line, int Cell, int Width, bool Word, int Top = 0) : Command;

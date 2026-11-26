@@ -7,6 +7,7 @@ using Geeratya.Core.Profiles;
 using Geeratya.Core.State;
 using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
+using Geeratya.Jira.Adf;
 using Geeratya.Jira.Issues.Models;
 using Geeratya.Jira.Search.Models;
 using Geeratya.Jira.Transitions.Models;
@@ -104,6 +105,146 @@ public class DetailDropdownMouseTests
         Assert.Contains("High)", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void GivenTheTitleInItsEditState_WhenDoubleClickingAWordInTheDrawnFrame_ThenThatWordIsSelected()
+    {
+        var state = TitleEditing();
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var cell = TextCell(frame, "login", 2);
+
+        var result = RegionProbe.At(state, frame, cell.Column, cell.Row, MouseGesture.DoubleClick)!;
+
+        Assert.Equal("login", FormEditor.SelectedText(result.State.Session.Tabs[0].Form!.Fields[0]));
+    }
+
+    [Fact]
+    public void GivenTheDescriptionInItsEditState_WhenDraggingAcrossRows_ThenTheTextBetweenIsSelected()
+    {
+        var state = DescriptionEditing("alpha beta\n\ngamma delta");
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var from = TextCell(frame, "beta", 1);
+        var to = TextCell(frame, "gamma", 2);
+        var context = MouseContext.From(state, Width, Height, FrameBuilder.HeaderRows, _now, frame.Regions);
+
+        var commands = MouseResolver.ResolveDrag(context, from.Column, from.Row, to.Column, to.Row, _now);
+        var result = _reducer.Reduce(state, Assert.Single(commands)).State;
+
+        Assert.Equal("eta\n\nga", FormEditor.SelectedText(result.Session.Tabs[0].Form!.Fields[0]));
+    }
+
+    [Fact]
+    public void GivenTheDescriptionInItsEditState_WhenReadingTheTextRegions_ThenEachStartsWhereItsTextIsDrawn()
+    {
+        var state = DescriptionEditing("alpha\nbeta\ngamma");
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var lines = frame.PlainLines();
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+
+        Assert.Equal([0, 1, 2], rows.Select(row => row.Line));
+        Assert.StartsWith("alpha", lines[rows[0].Top][rows[0].Left..]);
+        Assert.StartsWith("beta", lines[rows[1].Top][rows[1].Left..]);
+        Assert.StartsWith("gamma", lines[rows[2].Top][rows[2].Left..]);
+    }
+
+    [Fact]
+    public void GivenALongDescriptionScrolledByItsCaret_WhenClickingAShownRow_ThenTheCaretGoesToThatTextLine()
+    {
+        var text = LongText();
+        var state = DescriptionEditing(text);
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var shown = frame.PlainLines()[rows[2].Top][rows[2].Left..];
+
+        var cell = TextCell(frame, shown[..5], 2);
+        var result = RegionProbe.At(state, frame, cell.Column, cell.Row, MouseGesture.Click)!;
+
+        var field = result.State.Session.Tabs[0].Form!.Fields[0];
+        Assert.Equal(string.Join('\n', text.Split('\n').Skip(rows[2].Line)).Length - 2, field.Back);
+    }
+
+    [Fact]
+    public void GivenALongDescription_WhenClickingThenDoubleClickingAtTheSameCell_ThenTheWordOfThatLineIsSelected()
+    {
+        var state = DescriptionEditing(LongText());
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var word = frame.PlainLines()[rows[1].Top][rows[1].Left..].Trim()[..5];
+        var cell = TextCell(frame, word, 1);
+
+        var clicked = RegionProbe.At(state, frame, cell.Column, cell.Row, MouseGesture.Click)!.State;
+        var again = FrameBuilder.BuildStyled(clicked, Width, Height, _keymap)!;
+        var selected = RegionProbe.At(clicked, again, cell.Column, cell.Row, MouseGesture.DoubleClick)!.State;
+
+        Assert.Equal(word, FormEditor.SelectedText(selected.Session.Tabs[0].Form!.Fields[0]));
+    }
+
+    [Fact]
+    public void GivenALongDescription_WhenDraggingInSeveralMoves_ThenTheWindowStaysAndTheSelectionFollowsThePointer()
+    {
+        var state = DescriptionEditing(LongText());
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var from = new ScreenCell(rows[1].Left + 1, rows[1].Top);
+        var to = new ScreenCell(rows[4].Left + 3, rows[4].Top);
+        var current = state;
+
+        for (var move = 0; move < 3; move++)
+        {
+            var drawn = FrameBuilder.BuildStyled(current, Width, Height, _keymap)!;
+            var context = MouseContext.From(current, Width, Height, FrameBuilder.HeaderRows, _now, drawn.Regions);
+            var commands = MouseResolver.ResolveDragMove(context, from.Column, from.Row, to.Column, to.Row, move > 0);
+
+            current = _reducer.Reduce(current, Assert.Single(commands)).State;
+        }
+
+        var expected = string.Join('\n', LongText().Split('\n')[(rows[1].Line)..(rows[4].Line + 1)]);
+        var selected = FormEditor.SelectedText(current.Session.Tabs[0].Form!.Fields[0]);
+        Assert.StartsWith(expected[1..5], selected);
+        Assert.Equal(3, selected.Count(static character => character == '\n'));
+    }
+
+    private static string LongText()
+    {
+        return string.Join('\n', Enumerable.Range(1, 30).Select(static number => $"row{number:00}"));
+    }
+
+    private static ScreenCell TextCell(StyledFrame frame, string text, int offset)
+    {
+        var lines = frame.PlainLines();
+        var region = frame.Regions
+            .Where(candidate => candidate.Target == MouseTarget.EditorText)
+            .First(candidate => lines[candidate.Top][candidate.Left..].Contains(text, StringComparison.Ordinal));
+
+        return new ScreenCell(lines[region.Top].IndexOf(text, region.Left, StringComparison.Ordinal) + offset, region.Top);
+    }
+
+    private AppState DescriptionEditing(string text)
+    {
+        var state = Loaded(AdfMarkdownParser.Parse(text));
+
+        for (var step = 0; step < 40 && !OnDescription(state); step++)
+        {
+            state = Keys(state, "j");
+        }
+
+        var opened = _reducer.Reduce(state, new KeyPressed("Enter"));
+        var tab = opened.State.Session.Tabs[0];
+        var field = FormField.Create(FormFieldIds.Description, "Description", FormFieldKind.Paragraph, false, [])
+            .WithInitial(FormValue.OfText(text));
+
+        return _reducer.Reduce(opened.State, new FormMetadataLoaded(tab.Id, tab.Form!.RequestId, [field])).State;
+    }
+
+    private static bool OnDescription(AppState state)
+    {
+        var detail = state.Session.Tabs[0].Detail[^1];
+
+        return detail.Document!.Targets[detail.Cursor] is { Kind: DetailTargetKind.Field } target
+            && target.Value == DetailFieldIds.Description;
+    }
+
+    private readonly record struct ScreenCell(int Column, int Row);
+
     private AppState TitleEditing()
     {
         var opened = _reducer.Reduce(Loaded(), new KeyPressed("Enter"));
@@ -136,7 +277,7 @@ public class DetailDropdownMouseTests
         return keys.Aggregate(state, (current, key) => _reducer.Reduce(current, new KeyPressed(key)).State);
     }
 
-    private AppState Loaded()
+    private AppState Loaded(AdfDocument? description = null)
     {
         var state = AppState.Initial with
         {
@@ -158,10 +299,10 @@ public class DetailDropdownMouseTests
         var shown = _reducer.Reduce(listed, new KeyPressed("Enter")).State;
         var detail = shown.Session.Tabs[0].Detail[0];
 
-        return _reducer.Reduce(shown, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(), _now)).State;
+        return _reducer.Reduce(shown, new IssueDetailLoaded(tab.Id, detail.IssueRequest, Issue(description), _now)).State;
     }
 
-    private static IssueDetail Issue()
+    private static IssueDetail Issue(AdfDocument? description)
     {
         return new IssueDetail(
             "1",
@@ -176,7 +317,7 @@ public class DetailDropdownMouseTests
             _now.AddDays(-9),
             _now.AddHours(-2),
             "GCM",
-            null,
+            description,
             null,
             [new IssueStub("GCM-18", "Migration", _status, _type)],
             [],
