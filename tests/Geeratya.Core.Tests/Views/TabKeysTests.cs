@@ -216,7 +216,7 @@ public class TabKeysTests
         var opened = Open(Start(), "project = A");
         var tab = opened.State.Session.Tabs[0];
 
-        var closed = Press(Press(opened.State, "Space").State, "c");
+        var closed = Press(Press(opened.State, "Ctrl-w").State, "c");
         var late = _reducer.Reduce(closed.State, new ViewPageLoaded(tab.Id, tab.RequestId, Page(2), _now));
 
         Assert.Equal(tab.Id, Assert.IsType<CancelTabEffect>(Assert.Single(closed.Effects)).Tab);
@@ -227,7 +227,7 @@ public class TabKeysTests
     [Fact]
     public void GivenNoTab_WhenClosing_ThenTheStatusLineSaysSo()
     {
-        var result = Press(Press(Start(), "Space").State, "c");
+        var result = Press(Press(Start(), "Ctrl-w").State, "c");
 
         Assert.Equal("No tab to close.", result.State.Message);
     }
