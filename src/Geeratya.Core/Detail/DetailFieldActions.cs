@@ -54,12 +54,13 @@ internal static class DetailFieldActions
         return Open(state, fieldId, true);
     }
 
-    // Fields whose openers work from the selected card without an opened issue.
+    // Fields whose openers work from the selected card without an opened issue. Reporter is not one: a board row
+    // carries no reporter, so its form would show an empty current value.
     private static bool InPlace(string fieldId)
     {
         return fieldId is DetailFieldIds.Status or DetailFieldIds.Assignee or DetailFieldIds.Estimate
-            or DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter or DetailFieldIds.DueDate
-            or DetailFieldIds.Parent or DetailFieldIds.Epic;
+            or DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.DueDate or DetailFieldIds.Parent
+            or DetailFieldIds.Epic;
     }
 
     // hung: the form hangs under its field in the issue view; without an issue view it is the plain form.

@@ -169,13 +169,13 @@ public class ColumnsLayoutKeysTests
     }
 
     [Theory]
-    [InlineData("a")]
-    [InlineData("p")]
-    [InlineData("l")]
-    public void GivenBoardCard_WhenOpeningAnotherFieldByCommand_ThenTheFormOpensWithoutOpeningTheIssue(string field)
+    [InlineData("assign")]
+    [InlineData("priority")]
+    [InlineData("labels")]
+    [InlineData("estimate")]
+    public void GivenBoardCard_WhenOpeningAnotherFieldByCommand_ThenTheFormOpensWithoutOpeningTheIssue(string command)
     {
         var state = Loaded(Issues("1:A-1"));
-        var command = field switch { "a" => "assign", "p" => "priority", _ => "labels" };
 
         var form = Run(state, command);
 
