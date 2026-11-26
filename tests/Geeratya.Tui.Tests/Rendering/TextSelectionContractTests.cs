@@ -192,6 +192,53 @@ public class TextSelectionContractTests
         Assert.DoesNotContain(spans, static span => span.Role == CaretText.SelectedRole);
     }
 
+    [Fact]
+    public void GivenThePalette_WhenShiftDownOrShiftLeftIsPressed_ThenTheHighlightAndTheCaretMoveAsWithoutShift()
+    {
+        var typed = Keys(TextEditorContractTests.Open("palette"), [.. Type("ra")]);
+        var plain = Keys(typed, "Down", "Left");
+        var shifted = Keys(typed, "Shift-Down", "Shift-Left");
+
+        Assert.Equal(plain.PalettePick, shifted.PalettePick);
+        Assert.Equal(plain.PaletteBack, shifted.PaletteBack);
+        Assert.NotEqual(typed.PalettePick, shifted.PalettePick);
+        Assert.NotEqual(typed.PaletteBack, shifted.PaletteBack);
+    }
+
+    [Fact]
+    public void GivenThePalette_WhenAltAIsPressed_ThenTheCaretStaysWhereItIs()
+    {
+        var typed = Keys(TextEditorContractTests.Open("palette"), [.. Type("rank"), "Left"]);
+
+        var selected = Keys(typed, "Alt-a");
+
+        Assert.Equal(typed.PaletteBack, selected.PaletteBack);
+    }
+
+    [Fact]
+    public void GivenTheSummaryField_WhenShiftDownIsPressed_ThenItActsAsDownAndSelectsNothing()
+    {
+        var typed = Keys(Open("form-text"), [.. Type("abc")]);
+
+        var shifted = Keys(typed, "Shift-Down");
+
+        Assert.Equal(Keys(typed, "Down").Session.Tabs[0].Form!.Focus, shifted.Session.Tabs[0].Form!.Focus);
+        Assert.Equal(string.Empty, Selected("form-text", shifted));
+    }
+
+    [Fact]
+    public void GivenALabelsEntry_WhenShiftLeftIsPressed_ThenTheCaretMovesLikeLeftAndNothingIsSelected()
+    {
+        var labels = FormField.Create("labels", "Labels", FormFieldKind.Labels, false, []);
+        var typed = Keys(TextEditorContractTests.OpenForm(labels), [.. Type("abc")]);
+
+        var shifted = Keys(typed, "Shift-Left", "Shift-Left");
+
+        var field = shifted.Session.Tabs[0].Form!.Fields[0];
+        Assert.Equal(2, field.Back);
+        Assert.Null(field.AnchorBack);
+    }
+
     private static string[] Type(string text)
     {
         return [.. text.Select(static character => character == ' ' ? "Space" : character.ToString())];

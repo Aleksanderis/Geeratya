@@ -52,6 +52,15 @@ public static class FormEditor
         return WithPrompt(field, Prompt(field).Apply(operation));
     }
 
+    /// <summary>
+    /// Whether the editor keys of <paramref name="field"/> select: a typed text or paragraph field does (up and down
+    /// only a paragraph); the entry buffer of a choice, label or person field only has a caret.
+    /// </summary>
+    public static bool Selects(FormField field, bool vertical)
+    {
+        return field.IsEditable && !TypesInEntry(field) && (!vertical || field.Kind == FormFieldKind.Paragraph);
+    }
+
     /// <summary>The value text of a field with its caret and selection, for drawing it (see <see cref="CaretText"/>).</summary>
     public static TextBuffer ValueBuffer(FormField field)
     {
@@ -342,17 +351,9 @@ public static class FormEditor
         return field.Kind == FormFieldKind.Labels || FormFieldKinds.IsChoice(field.Kind) || FormFieldKinds.IsPicked(field.Kind);
     }
 
-    // Only the typed text and paragraph kinds select, and a paragraph alone has rows to select up and down.
     private static bool CanSelect(FormField field, EditorOperation operation)
     {
-        if (TypesInEntry(field))
-        {
-            return false;
-        }
-
-        var vertical = operation is EditorOperation.SelectUp or EditorOperation.SelectDown;
-
-        return !vertical || field.Kind == FormFieldKind.Paragraph;
+        return Selects(field, operation is EditorOperation.SelectUp or EditorOperation.SelectDown);
     }
 
     private static bool IsSelecting(EditorOperation operation)

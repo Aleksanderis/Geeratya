@@ -224,7 +224,7 @@ public class TextEditorContractTests
         };
     }
 
-    private static AppState OpenForm(FormField field)
+    internal static AppState OpenForm(FormField field)
     {
         var other = FormField.Create("other", "Other", FormFieldKind.Text, false, []);
         var form = FormState.Opened(new AssignFormTarget("A-1", null), 3, null) with

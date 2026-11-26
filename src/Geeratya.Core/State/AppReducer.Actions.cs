@@ -26,6 +26,17 @@ public sealed partial class AppReducer
 {
     private ReduceResult Apply(AppState state, string action, DateTimeOffset at)
     {
+        // Only the comment editor (with no suggestion popup open) selects here; elsewhere Shift-Down is Down.
+        if (state.Editor is not { Suggest: null })
+        {
+            if (EditorActions.Unselected(action) is not { } plain)
+            {
+                return Result(state);
+            }
+
+            action = plain;
+        }
+
         if (SettingsScreenReducer.Handle(state, action) is { } onScreen)
         {
             return onScreen;

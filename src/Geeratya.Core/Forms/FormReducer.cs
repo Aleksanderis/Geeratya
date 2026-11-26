@@ -79,7 +79,7 @@ public static partial class FormReducer
     {
         var tab = ActiveTab(state)!;
         var form = tab.Form!;
-        var action = keymap.Resolve(InputMode.Insert, string.Empty, key).Action;
+        var action = Unselected(form, keymap.Resolve(InputMode.Insert, string.Empty, key).Action);
 
         if (form.IsSaving)
         {
@@ -128,6 +128,20 @@ public static partial class FormReducer
         };
 
         return Choosing(LeavesField(action) ? Unsuggested(result, tab.Id) : result, tab.Id);
+    }
+
+    // A select key in a field that does not select (a typed entry, a picker, up and down in a single line) is the
+    // plain key it extends, so a popup or a picker still moves with Shift held.
+    private static string? Unselected(FormState form, string? action)
+    {
+        var vertical = action is ActionIds.EditorSelectUp or ActionIds.EditorSelectDown;
+
+        if (form.Fields.Count == 0 || form.Focus >= form.Fields.Count || form.Focus < 0)
+        {
+            return EditorActions.Unselected(action);
+        }
+
+        return FormEditor.Selects(form.Fields[form.Focus], vertical) ? action : EditorActions.Unselected(action);
     }
 
     // Copy puts the selected text of the focused field on the clipboard; cut also removes it.
