@@ -184,7 +184,7 @@ internal sealed class CreatePaneLayout
     {
         var field = _form.Fields[index];
         var editing = index == _form.Focus && !_form.Navigating && !_form.IsSaving;
-        var look = new FieldLook(Math.Max(1, inner)) { Editing = editing, Placeholder = TitlePlaceholder };
+        var look = new FieldLook(Math.Max(1, inner)) { Editing = editing, Focused = index == _form.Focus, Placeholder = TitlePlaceholder };
 
         return FieldRows.Value(field, look)[0];
     }
@@ -220,6 +220,7 @@ internal sealed class CreatePaneLayout
             var look = new FieldLook(inner)
             {
                 Editing = editing,
+                Focused = index == _form.Focus,
                 Expanded = true,
                 Placeholder = DescriptionPlaceholder,
             };
@@ -241,6 +242,7 @@ internal sealed class CreatePaneLayout
         {
             FocusStart = Math.Max(0, caretRow),
             FocusLength = 1,
+            FillIndex = index,
         };
     }
 

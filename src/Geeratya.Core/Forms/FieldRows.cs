@@ -147,7 +147,8 @@ public static class FieldRows
         return StyledLine.Of(DisplayText.Cut(text.ReplaceLineEndings(SpaceGap), width), look.Role);
     }
 
-    // No typed text: the placeholder of the presentation or the shared empty word, muted, plus the caret cell when edited.
+    // No typed text: the placeholder of the presentation (italic and muted, hidden while the field is focused,
+    // edited or not) or the shared empty word, muted; the caret cell when edited.
     private static StyledLine Empty(FormField field, FieldLook look)
     {
         var width = Math.Max(1, look.Width);
@@ -157,19 +158,15 @@ public static class FieldRows
             return CaretText.Field(TextBuffer.Empty, width);
         }
 
-        if (look.Placeholder is { } placeholder)
+        // A focused field shows only the caret: the placeholder is a hint for an untouched field.
+        if (look.Placeholder is { } placeholder && !look.Editing && !look.Focused)
         {
-            var spans = new List<StyledSpan>
-            {
-                new(DisplayText.Cut(placeholder, Math.Max(1, width - (look.Editing ? 1 : 0))), TextRole.Muted),
-            };
+            return new StyledLine([new StyledSpan(DisplayText.Cut(placeholder, width), TextRole.Placeholder)]);
+        }
 
-            if (look.Editing)
-            {
-                spans.Add(new StyledSpan(SpaceGap, TextRole.EditCaret));
-            }
-
-            return new StyledLine(spans);
+        if (look.Placeholder is not null && !look.Editing)
+        {
+            return StyledLine.Empty;
         }
 
         if (look.Editing)

@@ -24,6 +24,7 @@ public static class PaletteTable
             RoleStyle.Reverse,
             RoleGround.Bar),
         [PaletteRole.Muted] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.None),
+        [PaletteRole.Placeholder] = new(ThemeColor.Muted, ThemeColor.BaseBackground, RoleStyle.Italic),
         [PaletteRole.Divider] = new(ThemeColor.Border, ThemeColor.BaseBackground, RoleStyle.None),
         [PaletteRole.Error] = new(ThemeColor.Bad, ThemeColor.BaseBackground, RoleStyle.Bold),
         [PaletteRole.Loading] = new(ThemeColor.Info, ThemeColor.BaseBackground, RoleStyle.Underline),
@@ -177,6 +178,7 @@ public static class PaletteTable
     {
         [TextRole.Body] = PaletteRole.Body,
         [TextRole.Muted] = PaletteRole.Muted,
+        [TextRole.Placeholder] = PaletteRole.Placeholder,
         [TextRole.Heading] = PaletteRole.Heading,
         [TextRole.Strong] = PaletteRole.Strong,
         [TextRole.Emphasis] = PaletteRole.Emphasis,

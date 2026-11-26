@@ -25,6 +25,9 @@ public sealed record FieldLook(int Width, TextRole Role = TextRole.Editable)
     /// <summary>The text of an empty value in place of the shared empty word (for example the title's question).</summary>
     public string? Placeholder { get; init; }
 
+    /// <summary>The field has the focus (edited or not): its placeholder is hidden.</summary>
+    public bool Focused { get; init; }
+
     /// <summary>The edited text is drawn as an input box on the field fill (the in-place editors).</summary>
     public bool Boxed { get; init; }
 }

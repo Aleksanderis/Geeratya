@@ -380,9 +380,11 @@ Mockup notes: Comments has the focus (accent frame); each comment's first row is
 
 ### Create form
 
+An empty Summary and Description show their hint (`What needs to be done?`, `Describe it.`) in the `Placeholder` role (muted, italic) until the field gets the focus; a focused field shows only the caret, and the hint does not come back while it is focused. A click anywhere in a field's box, the blank rows of the Description included, focuses it and leaves the box that was being edited.
+
 ```text
 ╭─ Create · GEN · Story ─────────────────────────────────────────────╮ ╭─ Details ─────────────────────╮
-│ What needs to be done?_                                            │ │ Parent *  from selection      │
+│ _                                                                  │ │ Parent *  from selection      │
 ╰────────────────────────────────────────────────────────────────────╯ │ [GEN-12 Checkout epic]        │
 ╭─ Description ──────────────────────── markdown, Enter adds a line ─╮ │                               │
 │ Describe it.                                                       │ │ Priority                      │

@@ -6,6 +6,7 @@ public enum PaletteRole
     Body,
     Status,
     Muted,
+    Placeholder,
     Divider,
     Error,
     Loading,

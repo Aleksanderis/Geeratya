@@ -300,8 +300,11 @@ send " ic"
 wait_for "Choose the issue type"
 click "│   Task  "
 wait_for "Create GCM · Task · Summary" # the status line names the focused field
+wait_gone "What needs to be done?" # the focused Summary hides its placeholder
 click "Describe it."
 wait_for "Create GCM · Task · Description"
+wait_gone "Describe it." # a click while the Summary is edited leaves it and focuses the Description
+wait_for "What needs to be done?"
 tmux -L "$socket" send-keys -t s Escape
 wait_for "[navigate]" # the first Esc stops editing, the second closes the untouched form
 tmux -L "$socket" send-keys -t s Escape

@@ -116,6 +116,20 @@ public class StyledRenderingTests
         Assert.NotEqual(Resolve(ColorSupport.Basic16, PaletteRole.Body), Resolve(ColorSupport.Basic16, palette));
     }
 
+    [Theory]
+    [InlineData(ColorSupport.TrueColor)]
+    [InlineData(ColorSupport.Basic16)]
+    [InlineData(ColorSupport.None)]
+    public void GivenAnyTier_WhenResolvingPlaceholder_ThenItIsItalicAndNotTheBodyOrMutedLook(ColorSupport tier)
+    {
+        var placeholder = Resolve(tier, PaletteRole.Placeholder);
+
+        Assert.Equal(PaletteRole.Placeholder, PaletteTable.For(TextRole.Placeholder));
+        Assert.True(placeholder.Style.HasFlag(RoleStyle.Italic));
+        Assert.NotEqual(Resolve(tier, PaletteRole.Body), placeholder);
+        Assert.NotEqual(Resolve(tier, PaletteRole.Muted), placeholder);
+    }
+
     [Fact]
     public void GivenGreyTextRole_WhenMapping_ThenItUsesTheMutedRole()
     {
