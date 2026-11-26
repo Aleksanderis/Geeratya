@@ -339,6 +339,7 @@ wait_for "geeratya-seed-GCM-backlo" # the popup lists the labels of tests/Geerat
 click "geeratya-seed-GCM-backlo"
 wait_gone "Edit GEN-1" # a form of one field saves when a click takes the row (like Enter)
 wait_for "geeratya-seed-GCM-backlo"
+wait_for "GEN-1  B Generated issue 1" # the saved issue keeps its type and summary (#1089: the fake once answered it without them)
 
 # Comment editor: the mention popup row is taken by a click.
 send " maThanks @test"

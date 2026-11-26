@@ -265,6 +265,19 @@ public sealed partial class FakeJiraRouter
             && (path.EndsWith("/backlog", StringComparison.Ordinal) || path.EndsWith("/issue", StringComparison.Ordinal));
     }
 
+    // The generated detail of a key (GEN-n within the dataset) as the recorded reply to lay edits over;
+    // null for any other key.
+    private byte[]? GeneratedDetail(string key)
+    {
+        if (!key.StartsWith("GEN-", StringComparison.Ordinal)
+            || !int.TryParse(key.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out var number))
+        {
+            return null;
+        }
+
+        return number >= 1 && number <= _options.GeneratedIssues ? GeneratedIssues.Detail(number) : null;
+    }
+
     /// <summary>
     /// The detail, comments and remote links of a generated issue (<c>GEN-n</c>, n within the dataset); null for any
     /// other path.
@@ -394,6 +407,8 @@ public sealed partial class FakeJiraRouter
         var parts = path[IssuePrefix.Length..].Split('/');
         var key = parts[0];
         var recorded = _routes.TryGetValue(path, out var fixture) ? ReadFixture(fixture) : null;
+
+        recorded ??= parts.Length == 1 ? GeneratedDetail(key) : null;
 
         if (parts.Length == 1 && _scrum.IssueDetail(key) is { } scrumIssue)
         {
@@ -735,7 +750,7 @@ public sealed partial class FakeJiraRouter
         var key = match.Groups[1].Value;
         var recorded = _routes.TryGetValue(IssuePrefix + key, out var fixture) ? ReadFixture(fixture) : null;
 
-        recorded ??= _scrum.IssueDetail(key);
+        recorded ??= _scrum.IssueDetail(key) ?? GeneratedDetail(key);
 
         if ((_writes.Issue(key, recorded) ?? recorded) is not { } bytes)
         {
