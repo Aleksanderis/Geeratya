@@ -336,13 +336,13 @@ wait_for "Reporter"
 tmux -L "$socket" send-keys -t s Escape; sleep 0.3
 send ":jql project = GEN|:labels|geer"
 wait_for "geeratya-seed"
-wait_for "Enter accept" # the suggestion popup is open before the click
-click "geeratya-seed-GCM-backlog-2"
+wait_for "geeratya-seed-GCM-backlo" # the suggestion popup lists the matching labels (cut by the popup width) before the click
+click "geeratya-seed-GCM-backlo"
 wait_gone "Edit GEN-1" # a form of one field saves when a click takes the row (like Enter)
 wait_for "geeratya-seed-GCM-backlo"
 
 # Comment editor: the mention popup row is taken by a click.
-send "jjjj| maThanks @test"
+send " maThanks @test"
 wait_for "Tab/Enter choose"
 click "Test User 3"
 wait_gone "Tab/Enter choose"
