@@ -69,6 +69,23 @@ public static class FormEditor
         return field.AnchorBack is { } anchorBack ? WithAnchor(buffer, anchorBack) : buffer;
     }
 
+    /// <summary>
+    /// The field with its value text changed by the pointer (<paramref name="point"/> gets the text with its caret and
+    /// selection and returns it moved); the same field when it does not select or nothing moved.
+    /// </summary>
+    public static FormField Pointed(FormField field, Func<TextBuffer, TextBuffer> point)
+    {
+        if (!field.IsEditable || TypesInEntry(field))
+        {
+            return field;
+        }
+
+        var before = ValueBuffer(field);
+        var after = point(before);
+
+        return after == before ? field : WithPrompt(field, after);
+    }
+
     /// <summary>The text selected in a field that selects (a typed text or paragraph), else an empty string.</summary>
     public static string SelectedText(FormField field)
     {

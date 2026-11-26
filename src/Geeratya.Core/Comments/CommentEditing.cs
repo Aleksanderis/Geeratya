@@ -149,6 +149,35 @@ internal static partial class CommentEditing
         return Change(state, buffer => buffer.Apply(operation, capacity, page));
     }
 
+    /// <summary>A click (the caret) or double-click (the word) on a row of the comment text.</summary>
+    public static AppState Pointed(AppState state, TextPointed pointed)
+    {
+        return Change(
+            state,
+            buffer =>
+            {
+                var index = TextPointing.IndexInRows(buffer, pointed.Line, pointed.Cell, pointed.Width);
+
+                return pointed.Word ? TextPointing.Word(buffer, index) : TextPointing.Placed(buffer, index);
+            });
+    }
+
+    /// <summary>A drag over rows of the comment text: the text between the press and the pointer is selected.</summary>
+    public static AppState Dragged(AppState state, TextDragged dragged)
+    {
+        return Change(
+            state,
+            buffer =>
+            {
+                var from = buffer.Anchor is { } kept && dragged.Continued
+                    ? kept
+                    : TextPointing.IndexInRows(buffer, dragged.FromLine, dragged.FromCell, dragged.Width);
+                var to = TextPointing.IndexInRows(buffer, dragged.ToLine, dragged.ToCell, dragged.Width);
+
+                return TextPointing.Dragged(buffer, from, to);
+            });
+    }
+
     /// <summary>
     /// <c>editor.copy</c> and <c>editor.cut</c>: the selected text goes to the clipboard, a cut also removes it from
     /// the comment. Nothing happens without a selection.

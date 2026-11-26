@@ -4,7 +4,7 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (Ctrl-t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
+# popup row, text selection in the comment editor (double-click, drag, click, Ctrl-z and Ctrl-y), a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
 # backlog, checked in the fake's own backlog list), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
@@ -141,6 +141,21 @@ release_held() {
   sleep 0.4
 }
 
+# dclick <text> [offset]: a double-click (two press-release pairs in one write, so the terminal timing sees a double) on the
+# cell <offset> columns into the first line that holds <text>.
+dclick() {
+  local text=$1 offset=${2:-0} line row col prefix seq
+  line=$(body | grep -nF -- "$text" | tail -n 1) || fail "no line with '$text' to double-click"
+  row=${line%%:*}
+  line=${line#*:}
+  prefix=${line%%"$text"*}
+  col=$((${#prefix} + 2 + offset))
+  printf -v seq '\033[<0;%d;%dM\033[<0;%d;%dm\033[<0;%d;%dM\033[<0;%d;%dm' "$col" "$row" "$col" "$row" "$col" "$row" "$col" "$row"
+  tmux -L "$socket" send-keys -t s -l "$seq"
+  sleep 0.4
+  echo "double-clicked '$text' at $col,$row"
+}
+
 # The start screen opens the "Open a view" picker on its own once the connection is checked; it would take the keys of
 # the next step, so wait briefly for it and close it with Esc (nothing to do when it does not come).
 dismiss_start_picker() {
@@ -211,10 +226,10 @@ echo "ok: auto-scroll below the body, stopped by the release"
 send ":backlog GEN board|"
 wait_for "Generated Sprint 3"
 drag_to "GEN-14 " "Generated Sprint 3"
-wait_for "Jira has no undo"
+wait_for "Jira cannot undo"
 wait_for "(GEN-14," # the live range of the drag (GEN-14 to the end of its sprint) moves, not the row alone (#604)
 tmux -L "$socket" send-keys -t s Escape
-wait_gone "Jira has no undo"
+wait_gone "Jira cannot undo"
 
 # Confirmed drop (#506), both project kinds: a row of the future sprint dragged onto the backlog section, answered with y,
 # appears in the fake's backlog list (the fake's reply is the check, not only the frame).
@@ -244,11 +259,11 @@ for kind in "GCS 6" "GTS 5"; do
   [[ $key =~ ^[A-Z]+-[0-9]+$ ]] || fail "no row in Seed Sprint 3 of $project (got '$key')"
   fake_lists "board/$board/backlog" "$key" && fail "$key is in the backlog before the drop"
   drag_to "$key " "├─ Backlog "
-  wait_for "Jira has no undo"
+  wait_for "Jira cannot undo"
   wait_for "Move $key from sprint" # one row, not a range
   fake_lists "board/$board/backlog" "$key" && fail "$key moved before y"
   send "y"
-  wait_gone "Jira has no undo"
+  wait_gone "Jira cannot undo"
   wait_for_backlog_size $((size + 1))
   fake_lists "board/$board/backlog" "$key" || fail "$key is not in the fake's backlog after y"
   echo "ok: $project drop on the backlog with y moved $key"
@@ -332,6 +347,35 @@ wait_for "Tab/Enter choose"
 click "Test User 3"
 wait_gone "Tab/Enter choose"
 wait_for "Test User 3"
+
+# Text selection (#1076): in the comment editor a double-click selects a word, a drag selects text, a click moves the caret;
+# typing replaces the selection. Ctrl-z and Ctrl-y (#1077) work on the real terminal too (Ctrl-z is no job-control stop there).
+start "$one"
+wait_for "fake: fake@example.com"
+dismiss_start_picker
+send ":jql project = GCM|"
+wait_for "issues"
+send "jjjj| ma"
+wait_for "Comment on"
+send "hello world foo"
+wait_for "hello world foo"
+dclick "world" 2
+send "X"
+wait_for "hello X foo"
+echo "ok: double-click selected the word, typing replaced it"
+drag "hello" 4 # the helper presses on the second cell of the text: "ello" is selected
+send "Y"
+wait_for "hY X foo"
+echo "ok: drag selected text, typing replaced it"
+click "foo" 0
+send "Z"
+wait_for "hY X fZoo"
+echo "ok: click placed the caret"
+tmux -L "$socket" send-keys -t s C-z
+wait_for "hY X foo"
+tmux -L "$socket" send-keys -t s C-y
+wait_for "hY X fZoo"
+echo "ok: Ctrl-z and Ctrl-y undo and redo in the comment editor, the app stays in the foreground"
 
 # Profile list: right-click asks to remove (Esc keeps it), click switches.
 start "$two"

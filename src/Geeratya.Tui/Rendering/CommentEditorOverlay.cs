@@ -27,6 +27,9 @@ public static class CommentEditorOverlay
     private const int WallColumns = 4;
     private const int DividerMargin = 2;
 
+    // The columns before the text: the box wall and its padding.
+    private const int TextColumn = 2;
+
     /// <summary>Draws the editor of <paramref name="state"/> over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
     public static IReadOnlyList<StyledLine> Compose(
         IReadOnlyList<StyledLine> body,
@@ -56,6 +59,7 @@ public static class CommentEditorOverlay
         OverlayBox.Cover(regions, top, left, boxWidth, box.Count);
 
         MarkPopup(regions, editor, top + 1 + area, left, boxWidth);
+        MarkText(regions, editor, rows, new TextBox(top + 1, left + TextColumn, inner, area));
 
         for (var index = 0; index < box.Count && top + index < result.Count; index++)
         {
@@ -63,6 +67,31 @@ public static class CommentEditorOverlay
         }
 
         return result;
+    }
+
+    // The rows that show text take the pointer: the caret, a word, a range. Line is the visual row of the text.
+    private static void MarkText(List<OverlayRegion>? regions, CommentEditor editor, IReadOnlyList<EditorRow> rows, TextBox box)
+    {
+        if (regions is null)
+        {
+            return;
+        }
+
+        var first = FirstRow(editor, rows, box.Rows);
+        var shown = Math.Min(box.Rows, rows.Count - first);
+
+        for (var row = 0; row < shown; row++)
+        {
+            regions.Add(new OverlayRegion(MouseTarget.EditorText, box.Top + row, box.Left, box.Width, 1, 0, first + row));
+        }
+    }
+
+    // The first row shown: the cursor row is the last one when the text is longer than the box.
+    private static int FirstRow(CommentEditor editor, IReadOnlyList<EditorRow> rows, int area)
+    {
+        var cursor = EditorLayout.Locate(editor.Buffer.Text, rows, editor.Buffer.Cursor);
+
+        return cursor.Row < area ? 0 : cursor.Row - area + 1;
     }
 
     // The popup rows are the first rows under the text; the first index shown follows the cursor.
@@ -108,7 +137,7 @@ public static class CommentEditorOverlay
     {
         var text = editor.Buffer.Text;
         var cursor = EditorLayout.Locate(text, rows, editor.Buffer.Cursor);
-        var first = cursor.Row < area ? 0 : cursor.Row - area + 1;
+        var first = FirstRow(editor, rows, area);
         var lines = new List<StyledLine>();
 
         for (var index = first; index < rows.Count && lines.Count < area; index++)

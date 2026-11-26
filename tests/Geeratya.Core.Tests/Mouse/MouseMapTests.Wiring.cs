@@ -141,13 +141,16 @@ public partial class MouseMapTests
     {
         var box = Region(MouseTarget.OverlayBox, 0) with { Top = ProbeRow - 1, Height = 5, Width = 60 };
         var target = Region(row.Target, 0);
+
+        // The text of a text area spans rows, so a drag can start on one and end on another.
+        var rows = row.Target == MouseTarget.EditorText ? [target, target with { Top = ProbeRow + 2, Line = 2 }] : new[] { target };
         var wheeling = row.Gesture is MouseGesture.WheelUp or MouseGesture.WheelDown;
 
         return context with
         {
             OverlayOpen = true,
             ConfirmOpen = row.Target is MouseTarget.ConfirmYes or MouseTarget.ConfirmNo,
-            Regions = [box, target],
+            Regions = [box, .. rows],
             WheelTarget = wheeling ? row.Target : null,
             WheelScope = ScopeOf(row.Target),
         };

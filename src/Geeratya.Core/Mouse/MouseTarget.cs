@@ -130,6 +130,12 @@ public enum MouseTarget
     /// <summary>A row of the comment editor's suggestion popup (a click takes it).</summary>
     EditorChoice,
 
+    /// <summary>
+    /// One row of the text being edited in a selecting text area (the Summary and Description fields, the comment
+    /// editor): a click places the caret, a double-click selects a word, a drag selects text.
+    /// </summary>
+    EditorText,
+
     /// <summary>A page name in the first rows of the help overlay (a click shows that page).</summary>
     HelpPage,
 

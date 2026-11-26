@@ -45,7 +45,7 @@ public class MouseHitTesterTests
         ];
         var context = new MouseContext(width, height, 2, true, false) { Regions = regions };
 
-        Assert.Equal(new MouseHit(MouseTarget.PickerRow, 5, 1), MouseHitTester.Locate(context, 1, 3));
+        Assert.Equal(new MouseHit(MouseTarget.PickerRow, 5, 1, regions[1]), MouseHitTester.Locate(context, 1, 3));
         Assert.Null(MouseHitTester.Locate(context, 0, 3));
         Assert.Null(MouseHitTester.Locate(context, 1, 4));
         Assert.Equal(MouseTarget.Backdrop, MouseHitTester.Locate(context, 1, 0)!.Target);

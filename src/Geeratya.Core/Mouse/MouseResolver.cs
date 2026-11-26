@@ -9,7 +9,7 @@ namespace Geeratya.Core.Mouse;
 public static class MouseResolver
 {
     /// <summary>The parts of the mouse table that are wired today; rows of later parts have no effect yet.</summary>
-    public const string WiredParts = "ABOMV";
+    public const string WiredParts = "ABOMVT";
 
     private static readonly IReadOnlyList<Command> _none = [];
 
@@ -55,6 +55,11 @@ public static class MouseResolver
             }
 
             hit = hit with { Target = MouseTarget.Detail };
+        }
+
+        if (hit.Target == MouseTarget.EditorText)
+        {
+            return TextClick(hit, column, gesture);
         }
 
         if (IsOverlayRow(hit.Target))
@@ -175,6 +180,11 @@ public static class MouseResolver
         DateTimeOffset at = default,
         bool live = false)
     {
+        if (TextDrag(context, fromColumn, fromRow, toColumn, toRow, live) is { } textDrag)
+        {
+            return [textDrag];
+        }
+
         if (DetailDrag(context, fromColumn, fromRow, toColumn, toRow) is { } detailDrag)
         {
             return [detailDrag];
@@ -213,6 +223,11 @@ public static class MouseResolver
         int toRow,
         bool first)
     {
+        if (TextDrag(context, fromColumn, fromRow, toColumn, toRow, !first) is { } textDrag)
+        {
+            return [textDrag];
+        }
+
         if (LiveStart(context, fromColumn, fromRow) is not { } start)
         {
             return _none;
@@ -239,6 +254,59 @@ public static class MouseResolver
     public static int DragScrollStep(MouseContext context, int fromColumn, int fromRow, int pointerRow)
     {
         return LiveStart(context, fromColumn, fromRow) is null ? 0 : DragAutoScroll.StepFor(context, pointerRow);
+    }
+
+    // A click or double-click on the text being edited: the caret or the word under the pointer.
+    private static IReadOnlyList<Command> TextClick(MouseHit hit, int column, MouseGesture gesture)
+    {
+        if (gesture is not (MouseGesture.Click or MouseGesture.DoubleClick)
+            || hit.Region is not { } region
+            || DefaultMouseMap.Find(MouseTarget.EditorText, gesture) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return _none;
+        }
+
+        var word = gesture == MouseGesture.DoubleClick;
+
+        return [new TextPointed(region.Index, region.Line, column - region.Left, region.Width, word)];
+    }
+
+    // A drag that starts on the text being edited and is now over a row of the same text; the pointer outside it
+    // changes nothing (the range stays where it was).
+    private static TextDragged? TextDrag(
+        MouseContext context,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow,
+        bool continued)
+    {
+        if (!context.OverlayOpen || DefaultMouseMap.Find(MouseTarget.EditorText, MouseGesture.DragRows) is not { } found
+            || !WiredParts.Contains(found.Part)
+            || MouseHitTester.Locate(context, fromColumn, fromRow) is not
+            {
+                Target: MouseTarget.EditorText,
+                Region: { } start,
+            }
+            || MouseHitTester.Locate(context, toColumn, toRow) is not
+            {
+                Target: MouseTarget.EditorText,
+                Region: { } end,
+            }
+            || start.Index != end.Index)
+        {
+            return null;
+        }
+
+        return new TextDragged(
+            start.Index,
+            start.Line,
+            fromColumn - start.Left,
+            end.Line,
+            toColumn - end.Left,
+            start.Width,
+            continued);
     }
 
     // A drag from one cell of the opened issue to another: select and copy the text between them (mouse table: Detail).
