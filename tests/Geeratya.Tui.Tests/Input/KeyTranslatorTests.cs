@@ -57,6 +57,9 @@ public class KeyTranslatorTests
     {
         Assert.Equal("Alt-L", KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask | KeyCode.ShiftMask)));
         Assert.Equal("Alt-l", KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask)));
+        Assert.Equal(
+            "Ctrl-Alt-l",
+            KeyTranslator.Translate(new Key(KeyCode.L | KeyCode.AltMask | KeyCode.CtrlMask | KeyCode.ShiftMask)));
     }
 
     [Fact]
