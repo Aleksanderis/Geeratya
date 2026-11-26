@@ -236,7 +236,7 @@ create_form() {
   key Down
   key Down
   key Enter
-  wait_for "What needs to be done?"
+  wait_for "Describe it." # the Summary has the focus, so only the Description shows its placeholder
   wait_status "Esc stop editing"
 }
 

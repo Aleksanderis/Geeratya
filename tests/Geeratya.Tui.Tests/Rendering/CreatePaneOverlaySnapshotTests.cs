@@ -207,6 +207,26 @@ public class CreatePaneOverlaySnapshotTests
     }
 
     [Fact]
+    public void GivenAnEmptyDescription_WhenCollectingMouseRegions_ThenItsBlankRowsFocusTheDescriptionToo()
+    {
+        var frame = FrameBuilder.BuildStyled(Open(Form()), 120, 36, _keymap)!;
+
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.FormField && region.Index == 1).ToList();
+
+        Assert.True(rows.Count > 3, $"the description box has {rows.Count} clickable rows");
+    }
+
+    [Fact]
+    public void GivenTheSummaryHasTheFocus_WhenBuildingTheStyledFrame_ThenOnlyTheOtherPlaceholderShowsInItsRole()
+    {
+        var frame = FrameBuilder.BuildStyled(Open(Form() with { Focus = 0 }), 120, 36, _keymap)!;
+        var spans = frame.Body.SelectMany(static line => line.Spans).ToList();
+
+        Assert.DoesNotContain(spans, static span => span.Text.Contains("What needs to be done?", StringComparison.Ordinal));
+        Assert.Contains(spans, static span => span.Role == TextRole.Placeholder && span.Text == "Describe it.");
+    }
+
+    [Fact]
     public void GivenTheSummaryWithTheCaretInside_WhenBuildingTheStyledFrame_ThenOneCaretCellCoversACharacter()
     {
         var form = Form();

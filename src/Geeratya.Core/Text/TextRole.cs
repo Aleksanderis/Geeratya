@@ -5,6 +5,9 @@ public enum TextRole
 {
     Body,
     Muted,
+
+    /// <summary>The hint of an empty field ("What needs to be done?"): muted and italic, so it never reads as typed text.</summary>
+    Placeholder,
     Heading,
     Strong,
     Emphasis,

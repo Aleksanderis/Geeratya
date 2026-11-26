@@ -56,6 +56,10 @@ internal sealed class CreatePaneFrames
             {
                 _regions.Add(new OverlayRegion(target, top + 1 + row, left + 1, width - 2, 1, shown.Index));
             }
+            else if (shown is null && spec.FillIndex >= 0)
+            {
+                _regions.Add(new OverlayRegion(MouseTarget.FormField, top + 1 + row, left + 1, width - 2, 1, spec.FillIndex));
+            }
         }
 
         if (pinned > 0)

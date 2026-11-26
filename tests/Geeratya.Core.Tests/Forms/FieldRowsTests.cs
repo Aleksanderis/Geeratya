@@ -99,15 +99,36 @@ public class FieldRowsTests
     }
 
     [Fact]
-    public void GivenAnEmptyFieldWithAPlaceholder_WhenEdited_ThenThePlaceholderShowsMutedBeforeTheCaret()
+    public void GivenAnEmptyFieldWithAPlaceholder_WhenNotFocused_ThenItShowsInThePlaceholderRole()
     {
         var field = FormField.Create(FormFieldIds.Summary, "A", FormFieldKind.Text, true, []);
 
-        var row = Assert.Single(FieldRows.Value(field, new FieldLook(30) { Editing = true, Placeholder = "What now?" }));
+        var row = Assert.Single(FieldRows.Value(field, new FieldLook(30) { Placeholder = "What now?" }));
 
-        Assert.Equal("What now? ", row.PlainText);
-        Assert.Equal(TextRole.Muted, row.Spans[0].Role);
-        Assert.Equal(TextRole.EditCaret, row.Spans[^1].Role);
+        Assert.Equal("What now?", row.PlainText);
+        Assert.Equal(TextRole.Placeholder, Assert.Single(row.Spans).Role);
+    }
+
+    [Fact]
+    public void GivenAnEmptyFieldWithAPlaceholder_WhenEdited_ThenOnlyTheCaretShows()
+    {
+        var field = FormField.Create(FormFieldIds.Summary, "A", FormFieldKind.Text, true, []);
+
+        var row = Assert.Single(FieldRows.Value(field, new FieldLook(30) { Editing = true, Focused = true, Placeholder = "What now?" }));
+
+        Assert.DoesNotContain("What", row.PlainText);
+        Assert.DoesNotContain(row.Spans, span => span.Role == TextRole.Placeholder);
+        Assert.Contains(row.Spans, span => span.Role == TextRole.EditCaret);
+    }
+
+    [Fact]
+    public void GivenAnEmptyFieldWithAPlaceholder_WhenFocusedButNotEdited_ThenTheRowIsBlank()
+    {
+        var field = FormField.Create(FormFieldIds.Summary, "A", FormFieldKind.Text, true, []);
+
+        var row = Assert.Single(FieldRows.Value(field, new FieldLook(30) { Focused = true, Placeholder = "What now?" }));
+
+        Assert.Equal(string.Empty, row.PlainText);
     }
 
     [Fact]

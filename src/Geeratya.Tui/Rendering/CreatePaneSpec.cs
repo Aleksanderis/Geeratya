@@ -21,4 +21,7 @@ internal sealed record CreatePaneSpec(
 
     /// <summary>A row drawn at the bottom of the pane whatever the scroll (the fold hint), or null.</summary>
     public StyledLine? Pinned { get; init; }
+
+    /// <summary>The field whose box the empty rows under the content belong to (a click there focuses it), or -1.</summary>
+    public int FillIndex { get; init; } = -1;
 }

@@ -1,7 +1,7 @@
  1 JQL A   +              <space>g jump 
                                         
 ╭─ Create · A · Task * ────────────────╮
-│ What needs to be done?               │
+│                                      │
 ╰──────────────────────────────────────╯
 ╭─ Description ─ markdown, Enter add… ─╮
 │ Describe it.                         │
