@@ -77,76 +77,66 @@ public partial class CreateFormReducerTests
         Assert.Null(closed.Session.Tabs[0].Form);
     }
 
-    [Fact]
-    public void GivenNavigatingTheDetails_WhenPressingJAndK_ThenTheFocusMovesInsideThePaneAndStopsAtItsEnds()
+    [Theory]
+    [InlineData(false, "j")]
+    [InlineData(false, "l")]
+    [InlineData(false, "Ctrl-j")]
+    [InlineData(false, "Ctrl-l")]
+    [InlineData(true, "j")]
+    [InlineData(true, "l")]
+    [InlineData(true, "Ctrl-j")]
+    [InlineData(true, "Ctrl-l")]
+    public void GivenNavigating_WhenPressingAForwardKey_ThenTheFocusWalksEveryFieldInReadingOrderAndStopsAtTheEnd(
+        bool narrow,
+        string key)
     {
-        var state = Focused(Navigating(WideForm()), "parent");
+        var state = Navigating(WideForm(narrow ? NarrowColumns : WideColumns));
+        var visited = new List<string> { FocusedId(state) };
 
-        var down = Press(state, "j").State;
-        var up = Press(Press(down, "k").State, "k").State;
-        var past = Press(Focused(state, "assignee"), "j").State;
+        for (var step = 0; step < 6; step++)
+        {
+            state = Press(state, key).State;
+            visited.Add(FocusedId(state));
+        }
 
-        Assert.Equal("priority", FocusedId(down));
-        Assert.Equal("parent", FocusedId(up));
-        Assert.Equal("assignee", FocusedId(past));
+        Assert.Equal(["summary", "description", "parent", "priority", "assignee", "assignee", "assignee"], visited);
+    }
+
+    [Theory]
+    [InlineData(false, "k")]
+    [InlineData(false, "h")]
+    [InlineData(false, "Ctrl-k")]
+    [InlineData(false, "Ctrl-h")]
+    [InlineData(true, "k")]
+    [InlineData(true, "h")]
+    [InlineData(true, "Ctrl-k")]
+    [InlineData(true, "Ctrl-h")]
+    public void GivenNavigating_WhenPressingABackwardKey_ThenTheFocusWalksEveryFieldBackAndStopsAtTheSummary(
+        bool narrow,
+        string key)
+    {
+        var state = Focused(Navigating(WideForm(narrow ? NarrowColumns : WideColumns)), "assignee");
+        var visited = new List<string> { FocusedId(state) };
+
+        for (var step = 0; step < 5; step++)
+        {
+            state = Press(state, key).State;
+            visited.Add(FocusedId(state));
+        }
+
+        Assert.Equal(["assignee", "priority", "parent", "description", "summary", "summary"], visited);
     }
 
     [Fact]
-    public void GivenNavigatingTheTitle_WhenPressingJ_ThenTheFocusStaysBecauseJMovesInsideAPane()
+    public void GivenNavigating_WhenPressingCtrlWThenJOrK_ThenTheFocusStepsTheFieldsLikeTheMotionKeys()
     {
         var state = Navigating(WideForm());
 
-        Assert.Equal("summary", FocusedId(Press(state, "j").State));
-    }
+        var down = Press(Press(state, "Ctrl-w").State, "j").State;
+        var up = Press(Press(down, "Ctrl-w").State, "k").State;
 
-    [Fact]
-    public void GivenNavigatingWide_WhenPressingLAndH_ThenTheFocusCrossesToTheNearestFieldOfTheOtherPane()
-    {
-        var state = Navigating(WideForm());
-
-        var details = Press(state, "l").State;
-        var fromDescription = Press(Focused(state, "description"), "l").State;
-        var second = Press(Focused(state, "priority"), "h").State;
-        var first = Press(Focused(state, "parent"), "h").State;
-
-        Assert.Equal("parent", FocusedId(details));
-        Assert.Equal("parent", FocusedId(fromDescription));
-        Assert.Equal("description", FocusedId(second));
-        Assert.Equal("summary", FocusedId(first));
-    }
-
-    [Fact]
-    public void GivenNavigatingWide_WhenPressingThePaneKeys_ThenTheFocusMovesBetweenPanes()
-    {
-        var state = Navigating(WideForm());
-
-        var below = Press(state, "Ctrl-j").State;
-        var right = Press(below, "Ctrl-l").State;
-        var left = Press(right, "Ctrl-h").State;
-        var above = Press(below, "Ctrl-k").State;
-        var nowhere = Press(right, "Ctrl-j").State;
-
-        Assert.Equal("description", FocusedId(below));
-        Assert.Equal("parent", FocusedId(right));
-        Assert.Equal("summary", FocusedId(left));
-        Assert.Equal("summary", FocusedId(above));
-        Assert.Equal("parent", FocusedId(nowhere));
-    }
-
-    [Fact]
-    public void GivenNavigatingInOneColumn_WhenPressingThePaneKeys_ThenTheyStepThroughThePanesInReadingOrder()
-    {
-        var state = Navigating(WideForm(NarrowColumns));
-
-        var description = Press(state, "Ctrl-j").State;
-        var details = Press(description, "Ctrl-j").State;
-        var back = Press(details, "Ctrl-k").State;
-        var sideways = Press(description, "l").State;
-
-        Assert.Equal("description", FocusedId(description));
-        Assert.Equal("parent", FocusedId(details));
-        Assert.Equal("description", FocusedId(back));
-        Assert.Equal("description", FocusedId(sideways));
+        Assert.Equal("description", FocusedId(down));
+        Assert.Equal("summary", FocusedId(up));
     }
 
     [Fact]

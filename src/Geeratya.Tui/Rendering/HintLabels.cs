@@ -57,9 +57,6 @@ public static class HintLabels
     /// <summary>Enter jumps to the nearest flash target.</summary>
     public const string Nearest = "nearest";
 
-    /// <summary>Moves the focus between the panes of the create form.</summary>
-    public const string Pane = "pane";
-
     /// <summary>Folds the more fields of the create form in or out.</summary>
     public const string MoreFields = "more fields";
 

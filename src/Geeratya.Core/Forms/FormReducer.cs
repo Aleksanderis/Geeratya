@@ -1,4 +1,3 @@
-using Geeratya.Core.Detail;
 using Geeratya.Core.Editing;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Panes;
@@ -190,7 +189,7 @@ public static partial class FormReducer
         DateTimeOffset at,
         KeymapTable keymap)
     {
-        if (PaneChord(state, tab, key, at, keymap) is { } chord)
+        if (PaneChord(state, tab, form, key, at, keymap) is { } chord)
         {
             return chord;
         }
@@ -241,18 +240,34 @@ public static partial class FormReducer
     // The Ctrl-w h/j/k/l fallback of the pane keys (decision 2026-11-04): in the navigate state, with panes on the tab,
     // Ctrl-w is held in PendingKeys and the next key resolves in Normal mode; any other second key drops the chord.
     // Null when the key is not part of a chord. The editing state never gets here, so Ctrl-w stays delete-word.
-    private static ReduceResult? PaneChord(AppState state, TabState tab, string key, DateTimeOffset at, KeymapTable keymap)
+    // In the create form the second key steps the form's fields like Ctrl-h/j/k/l (#1071), whatever the view behind has.
+    private static ReduceResult? PaneChord(
+        AppState state,
+        TabState tab,
+        FormState form,
+        string key,
+        DateTimeOffset at,
+        KeymapTable keymap)
     {
+        var create = form.Target is CreateFormTarget;
+
         if (state.PendingKeys.Length > 0)
         {
             var cleared = state with { PendingKeys = string.Empty, PendingSince = null };
             var action = keymap.Resolve(InputMode.Normal, state.PendingKeys, key).Action;
 
+            if (create)
+            {
+                var focus = CreatePanes.Move(form, action) ?? form.Focus;
+
+                return Result(Replace(cleared, tab, form with { Focus = focus }));
+            }
+
             return Result(PaneActions.Apply(cleared, action) ?? cleared);
         }
 
         var starts = key == "Ctrl-w"
-            && tab.Panes.HasPanes
+            && (create || tab.Panes.HasPanes)
             && keymap.Resolve(InputMode.Normal, string.Empty, key).Kind == KeyResolutionKind.Prefix;
 
         return starts ? Result(state with { PendingKeys = key, PendingSince = at, Message = null }) : null;
@@ -267,7 +282,7 @@ public static partial class FormReducer
         return form.Suggest is not null && toggled.Suggest is null ? Result(next, tab.Id) : Result(next);
     }
 
-    // The navigate state of the create form: the three panes of CreatePanes, Ctrl-f and Ctrl-g work here too.
+    // The navigate state of the create form: one list of fields (CreatePanes.Move), Ctrl-f and Ctrl-g work here too.
     private static ReduceResult? CreateNavigating(
         AppState state,
         TabState tab,
@@ -285,7 +300,7 @@ public static partial class FormReducer
             return Result(CreateFormReducer.ToggleOpenAfter(state, tab, form));
         }
 
-        if (CreatePanes.Move(form, DetailSize.Columns(state), motion) is not { } focus)
+        if (CreatePanes.Move(form, motion) is not { } focus)
         {
             return null;
         }

@@ -11,8 +11,6 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 public static class FormFooter
 {
-    private const string CtrlPrefix = "Ctrl-";
-
     /// <summary>The footer of <paramref name="form"/> in at most <paramref name="width"/> columns.</summary>
     public static StyledLine Line(FormState form, KeymapTable keymap, int width)
     {
@@ -144,12 +142,6 @@ public static class FormFooter
             chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormNext, HintLabels.Edit));
         }
 
-        // The pane keys act in the navigate state only; typing and choosing keep the Insert rows.
-        if (panes && form.Navigating)
-        {
-            chips.Add(new HintChip(PaneKeys(keymap), HintLabels.Pane));
-        }
-
         if (panes && CreatePanes.CanFold(form))
         {
             chips.Add(DialogFooter.Chip(keymap, InputMode.Insert, ActionIds.FormMoreFields, HintLabels.MoreFields));
@@ -201,28 +193,5 @@ public static class FormFooter
             ActionIds.FormFieldNext,
             ActionIds.FormFieldPrevious,
             HintLabels.Field);
-    }
-
-    // Ctrl-h/j/k/l when the four pane keys are Ctrl plus a letter, else the keys joined by a slash.
-    private static string PaneKeys(KeymapTable keymap)
-    {
-        string[] actions =
-        [
-            ActionIds.PaneFocusLeft,
-            ActionIds.PaneFocusDown,
-            ActionIds.PaneFocusUp,
-            ActionIds.PaneFocusRight,
-        ];
-        var keys = actions
-            .Select(action => KeyNotation.Display(keymap.FindKeys(InputMode.Normal, action)) ?? string.Empty)
-            .ToList();
-
-        if (keys.All(static key => key.Length == CtrlPrefix.Length + 1
-            && key.StartsWith(CtrlPrefix, StringComparison.Ordinal)))
-        {
-            return $"{CtrlPrefix}{string.Join('/', keys.Select(static key => key[^1]))}";
-        }
-
-        return string.Join('/', keys);
     }
 }
