@@ -123,20 +123,42 @@ internal sealed class CreateDetailsRows
 
         var key = _keymap.FindKeyLabel(InputMode.Insert, ActionIds.FormMoreFields) ?? "Ctrl-f";
         var action = $"{key} {(_form.ShowAllFields ? FewerText : MoreText)}";
-        var names = _form.ShowAllFields
-            ? string.Empty
-            : string.Join(Separator, CreatePanes.Folded(_form).Select(NameOf));
         var room = inner - DisplayWidth.Of(action) - 3;
         var spans = new List<StyledSpan>();
+        var names = _form.ShowAllFields ? string.Empty : WholeNames(room);
 
-        if (names.Length > 0 && room >= 4)
+        if (names.Length > 0)
         {
-            spans.Add(new StyledSpan($"{DisplayText.Cut(names, room)}   ", TextRole.Muted));
+            spans.Add(new StyledSpan($"{names}   ", TextRole.Muted));
         }
 
         spans.Add(new StyledSpan(key, TextRole.Key));
         spans.Add(new StyledSpan(action[key.Length..], TextRole.Muted));
 
         return new StyledLine(spans);
+    }
+
+    // The folded names that fit in full, then an ellipsis when more follow; a name is never cut in the middle.
+    private string WholeNames(int room)
+    {
+        var folded = CreatePanes.Folded(_form).Select(NameOf).ToList();
+        var text = string.Empty;
+
+        for (var count = 0; count < folded.Count; count++)
+        {
+            var candidate = text.Length == 0 ? folded[count] : $"{text}{Separator}{folded[count]}";
+            var suffix = count < folded.Count - 1 ? DisplayText.Ellipsis : string.Empty;
+
+            if (DisplayWidth.Of(candidate) + DisplayWidth.Of(suffix) > room)
+            {
+                return text.Length > 0 && DisplayWidth.Of(text) + DisplayWidth.Of(DisplayText.Ellipsis) <= room
+                    ? $"{text}{DisplayText.Ellipsis}"
+                    : string.Empty;
+            }
+
+            text = candidate;
+        }
+
+        return text;
     }
 }

@@ -3,6 +3,7 @@ using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
 using Geeratya.Core.State;
+using Geeratya.Core.Views;
 using Geeratya.Core.Writes;
 using Geeratya.Jira.Create.Models;
 
@@ -14,6 +15,9 @@ public partial class CreateFormReducerTests
     private const int WideColumns = 120;
     private const int NarrowColumns = 80;
     private const int BodyRows = 30;
+
+    // Gives the Details sidebar 15 rows: five fields and the fold row fit, seven fields do not.
+    private const int ShortBodyRows = 24;
 
     [Fact]
     public void GivenCreateMetadata_WhenMapped_ThenSummaryAndDescriptionLeadAndParentIsFirstOfTheRest()
@@ -269,6 +273,42 @@ public partial class CreateFormReducerTests
     }
 
     [Fact]
+    public void GivenTheDetailsFieldsFitTheViewport_WhenTheFormOpens_ThenNoneIsFoldedAndCtrlFHasNothingToDo()
+    {
+        var tall = Sized(ManyFieldsForm(), WideColumns);
+
+        var state = Navigating(tall);
+        var form = state.Session.Tabs[0].Form!;
+        var after = Press(state, "Ctrl-f").State.Session.Tabs[0].Form!;
+
+        Assert.Empty(CreatePanes.Folded(form));
+        Assert.False(CreatePanes.CanFold(form));
+        Assert.False(after.ShowAllFields);
+    }
+
+    [Fact]
+    public void GivenTheTerminalGrows_WhenTheViewportIsReported_ThenFoldedFieldsShowWithoutCtrlF()
+    {
+        var shortForm = Navigating(ManyFieldsForm());
+
+        var grown = _reducer.Reduce(shortForm, new ViewportChanged(BodyRows + 2, WideColumns, BodyRows)).State;
+
+        Assert.Equal(2, CreatePanes.Folded(shortForm.Session.Tabs[0].Form!).Count);
+        Assert.Empty(CreatePanes.Folded(grown.Session.Tabs[0].Form!));
+    }
+
+    [Fact]
+    public void GivenTheFocusIsOnALateField_WhenTheTerminalShrinks_ThenTheFocusMovesToAShownField()
+    {
+        var tall = Navigating(Sized(ManyFieldsForm(), WideColumns));
+        var state = _reducer.Reduce(Focused(tall, "opt6"), new ViewportChanged(ShortBodyRows + 2, WideColumns, ShortBodyRows)).State;
+        var form = state.Session.Tabs[0].Form!;
+
+        Assert.Equal(2, CreatePanes.Folded(form).Count);
+        Assert.Equal("opt4", FocusedId(state));
+    }
+
+    [Fact]
     public void GivenAFewFields_WhenCtrlFIsPressed_ThenNothingChanges()
     {
         var state = Navigating(WideForm());
@@ -309,7 +349,7 @@ public partial class CreateFormReducerTests
             .Select(number => FormField.Create($"opt{number}", $"Optional {number}", FormFieldKind.Text, false, []));
         FormField[] fields = [SummaryField(), DescriptionField(), ParentField(true), .. optional];
 
-        return Sized(ChosenForm(_task, false, fields), WideColumns);
+        return Sized(ChosenForm(_task, false, fields), WideColumns, ShortBodyRows);
     }
 
     private static List<string> ShownIds(FormState form)
@@ -317,9 +357,9 @@ public partial class CreateFormReducerTests
         return [.. CreatePanes.Shown(form, PaneIds.Details).Select(index => form.Fields[index].Id)];
     }
 
-    private static AppState Sized(AppState state, int columns)
+    private static AppState Sized(AppState state, int columns, int bodyRows = BodyRows)
     {
-        return state with { ViewportColumns = columns, ViewportBodyHeight = BodyRows };
+        return state with { ViewportColumns = columns, ViewportBodyHeight = bodyRows };
     }
 
     private AppState Navigating(AppState state)

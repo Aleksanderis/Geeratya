@@ -105,6 +105,27 @@ public class CreatePaneOverlaySnapshotTests
         Assert.DoesNotContain(lines, line => line.Contains("Optional 6", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData(80, 24)]
+    [InlineData(100, 30)]
+    [InlineData(120, 36)]
+    public void GivenFoldedFieldsWithLongNames_WhenBuildingTheHintRow_ThenOnlyWholeNamesShow(int width, int height)
+    {
+        string[] names = ["Flagged for follow-up review", "Reviewed by the security team", "Escalation contact person"];
+        var form = Form();
+        var optional = names.Select(name => FormField.Create(name, name, FormFieldKind.Text, false, []));
+        var state = Open(form with { Fields = [.. form.Fields.Take(3), .. optional], DetailsRows = 6 })
+            with { ViewportColumns = width, ViewportBodyHeight = height };
+
+        var lines = FrameBuilder.Build(state, width, height, _keymap);
+        var hint = lines.Single(line => line.Contains("Ctrl-f show more fields", StringComparison.Ordinal));
+        var before = hint[..hint.IndexOf("Ctrl-f", StringComparison.Ordinal)];
+        var shown = before[(before.LastIndexOf('│') + 1)..];
+        var segments = shown.Trim().TrimEnd('…', ' ').Split(" · ", StringSplitOptions.TrimEntries);
+
+        Assert.All(segments.Where(segment => segment.Length > 0), segment => Assert.Contains(segment, names));
+    }
+
     [Fact]
     public void GivenAnErrorAtTheSummary_WhenBuildingTheFrame_ThenTheErrorShowsUnderTheSummaryInTheTitlePane()
     {
