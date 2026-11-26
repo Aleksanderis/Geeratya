@@ -109,13 +109,14 @@ public class FormOverlaySnapshotTests
     }
 
     [Fact]
-    public void GivenALoadingForm_WhenBuildingTheFrame_ThenItSaysLoading()
+    public void GivenALoadingForm_WhenBuildingTheFrame_ThenLoadingShowsOnlyInTheStatusBar()
     {
         var state = WithForm(FormState.Opened(Target(), 3, null));
 
         var lines = FrameBuilder.Build(state, 80, 24, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("Loading fields…", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines.Take(lines.Count - 1), line => line.Contains("Loading", StringComparison.Ordinal));
+        Assert.Contains("Loading fields…", lines[^1], StringComparison.Ordinal);
     }
 
     [Fact]

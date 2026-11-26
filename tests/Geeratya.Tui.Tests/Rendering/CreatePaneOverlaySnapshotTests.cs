@@ -238,7 +238,8 @@ public class CreatePaneOverlaySnapshotTests
 
         var lines = FrameBuilder.Build(Open(loading), 120, 36, _keymap);
 
-        Assert.Contains(lines, line => line.Contains("Loading fields…", StringComparison.Ordinal));
+        Assert.DoesNotContain(lines.Take(lines.Count - 1), line => line.Contains("Loading", StringComparison.Ordinal));
+        Assert.Contains("Loading fields…", lines[^1], StringComparison.Ordinal);
         Assert.DoesNotContain(lines, line => line.Contains("Not editable here", StringComparison.Ordinal));
     }
 
