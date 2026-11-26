@@ -10,7 +10,9 @@ namespace Geeratya.Core.Forms;
 /// </summary>
 public static class CreateDetailsFit
 {
-    /// <summary>Overlay rows below the title pane in one column from which Description and Details share them.</summary>
+    /// <summary>
+    /// Overlay rows below the title pane in one column from which Description and Details share them.
+    /// </summary>
     public const int StackedMinimum = 11;
 
     /// <summary>Overlay rows below the title pane in one column from which "Not editable here" shows too.</summary>
@@ -27,7 +29,10 @@ public static class CreateDetailsFit
     private const int TitleRows = 1;
     private const int NotEditableText = 1;
 
-    /// <summary>The rows of the Details pane for a viewport; 0 while the viewport is unknown.</summary>
+    /// <summary>
+    /// The rows of the Details pane for a viewport; 0 while the viewport is unknown. An estimate: it assumes a one-row
+    /// title pane and a Description pane in one column (the pane scrolls when it is off by a row or two).
+    /// </summary>
     public static int Rows(FormState form, int columns, int bodyHeight)
     {
         if (columns <= 0 || bodyHeight < 0)
@@ -96,6 +101,19 @@ public static class CreateDetailsFit
 
         var rows = Rows(form, state.ViewportColumns, state.ViewportBodyHeight);
 
-        return rows == form.DetailsRows ? state : FormReducer.Replace(state, tab, form with { DetailsRows = rows });
+        if (rows == form.DetailsRows)
+        {
+            return state;
+        }
+
+        var fitted = form with { DetailsRows = rows };
+
+        // A smaller viewport can fold the focused field: the focus moves to the last shown one, as with Ctrl-f.
+        if (CreatePanes.IsFolded(fitted, fitted.Focus))
+        {
+            fitted = fitted with { Focus = CreatePanes.LastShown(fitted), Suggest = null };
+        }
+
+        return FormReducer.Replace(state, tab, fitted);
     }
 }

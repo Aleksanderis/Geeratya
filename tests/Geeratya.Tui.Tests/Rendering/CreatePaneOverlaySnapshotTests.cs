@@ -109,22 +109,21 @@ public class CreatePaneOverlaySnapshotTests
     [InlineData(80, 24)]
     [InlineData(100, 30)]
     [InlineData(120, 36)]
-    public void GivenFoldedFieldsWithLongNames_WhenBuildingTheHintRow_ThenNoNameIsCutNextToTheHint(int width, int height)
+    public void GivenFoldedFieldsWithLongNames_WhenBuildingTheHintRow_ThenOnlyWholeNamesShow(int width, int height)
     {
-        const string longName = "Flagged for follow-up review";
+        string[] names = ["Flagged for follow-up review", "Reviewed by the security team", "Escalation contact person"];
         var form = Form();
-        var long1 = FormField.Create("long1", longName, FormFieldKind.Text, false, []);
-        var long2 = FormField.Create("long2", $"{longName} two", FormFieldKind.Text, false, []);
-        var long3 = FormField.Create("long3", $"{longName} three", FormFieldKind.Text, false, []);
-        var state = Open(form with { Fields = [.. form.Fields.Take(3), long1, long2, long3], DetailsRows = 6 })
+        var optional = names.Select(name => FormField.Create(name, name, FormFieldKind.Text, false, []));
+        var state = Open(form with { Fields = [.. form.Fields.Take(3), .. optional], DetailsRows = 6 })
             with { ViewportColumns = width, ViewportBodyHeight = height };
 
         var lines = FrameBuilder.Build(state, width, height, _keymap);
         var hint = lines.Single(line => line.Contains("Ctrl-f show more fields", StringComparison.Ordinal));
+        var before = hint[..hint.IndexOf("Ctrl-f", StringComparison.Ordinal)];
+        var shown = before[(before.LastIndexOf('│') + 1)..];
+        var segments = shown.Trim().TrimEnd('…', ' ').Split(" · ", StringSplitOptions.TrimEntries);
 
-        Assert.Equal(
-            hint.Split("Flagged").Length - 1,
-            hint.Split(longName).Length - 1);
+        Assert.All(segments.Where(segment => segment.Length > 0), segment => Assert.Contains(segment, names));
     }
 
     [Fact]

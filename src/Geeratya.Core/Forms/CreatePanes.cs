@@ -14,7 +14,9 @@ namespace Geeratya.Core.Forms;
 /// </summary>
 public static class CreatePanes
 {
-    /// <summary>How many Details fields show while the viewport is unknown (see <see cref="CreateDetailsFit"/>).</summary>
+    /// <summary>
+    /// How many Details fields show while the viewport is unknown (see <see cref="CreateDetailsFit"/>).
+    /// </summary>
     public const int ShownDetails = 5;
 
     /// <summary>The pane of a field, or null for a field the form cannot edit.</summary>
@@ -43,8 +45,8 @@ public static class CreatePanes
     }
 
     /// <summary>
-    /// Whether the field is folded away: a Details field past the ones that fit the pane (<see cref="CreateDetailsFit.Limit"/>), unless it is
-    /// required, changed or has an error (those always show), while <see cref="FormState.ShowAllFields"/> is off.
+    /// Whether the field is folded away: a Details field past the ones that fit the pane
+    /// (<see cref="CreateDetailsFit.Limit"/>), unless it is required, changed or has an error (those always show), while <see cref="FormState.ShowAllFields"/> is off.
     /// </summary>
     public static bool IsFolded(FormState form, int index)
     {
@@ -215,7 +217,7 @@ public static class CreatePanes
         return CreateDetailsFit.Limit(form.DetailsRows, count);
     }
 
-    private static int LastShown(FormState form)
+    internal static int LastShown(FormState form)
     {
         var shown = Shown(form, PaneIds.Details);
 

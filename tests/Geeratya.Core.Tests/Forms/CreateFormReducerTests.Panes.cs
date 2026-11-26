@@ -298,6 +298,17 @@ public partial class CreateFormReducerTests
     }
 
     [Fact]
+    public void GivenTheFocusIsOnALateField_WhenTheTerminalShrinks_ThenTheFocusMovesToAShownField()
+    {
+        var tall = Navigating(Sized(ManyFieldsForm(), WideColumns));
+        var state = _reducer.Reduce(Focused(tall, "opt6"), new ViewportChanged(ShortBodyRows + 2, WideColumns, ShortBodyRows)).State;
+        var form = state.Session.Tabs[0].Form!;
+
+        Assert.Equal(2, CreatePanes.Folded(form).Count);
+        Assert.Equal("opt4", FocusedId(state));
+    }
+
+    [Fact]
     public void GivenAFewFields_WhenCtrlFIsPressed_ThenNothingChanges()
     {
         var state = Navigating(WideForm());

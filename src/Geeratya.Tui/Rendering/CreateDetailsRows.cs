@@ -17,7 +17,6 @@ internal sealed class CreateDetailsRows
     private const string MoreText = "show more fields";
     private const string FewerText = "fewer fields";
     private const string Separator = " · ";
-    private const string Ellipsis = "…";
     private const int PanePadding = 2;
 
     private readonly FormState _form;
@@ -148,12 +147,12 @@ internal sealed class CreateDetailsRows
         for (var count = 0; count < folded.Count; count++)
         {
             var candidate = text.Length == 0 ? folded[count] : $"{text}{Separator}{folded[count]}";
-            var suffix = count < folded.Count - 1 ? Ellipsis : string.Empty;
+            var suffix = count < folded.Count - 1 ? DisplayText.Ellipsis : string.Empty;
 
             if (DisplayWidth.Of(candidate) + DisplayWidth.Of(suffix) > room)
             {
-                return text.Length > 0 && DisplayWidth.Of(text) + DisplayWidth.Of(Ellipsis) <= room
-                    ? $"{text}{Ellipsis}"
+                return text.Length > 0 && DisplayWidth.Of(text) + DisplayWidth.Of(DisplayText.Ellipsis) <= room
+                    ? $"{text}{DisplayText.Ellipsis}"
                     : string.Empty;
             }
 
