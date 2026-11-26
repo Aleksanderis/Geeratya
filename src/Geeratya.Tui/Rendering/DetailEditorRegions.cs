@@ -34,7 +34,16 @@ internal static class DetailEditorRegions
         var scroll = document.PaneScrolls[pane];
         var count = view.Editing == PaneIds.Title ? 1 : scroll?.Viewport ?? TextLines(form);
         var firstText = scroll?.Offset ?? 0;
-        var width = Panel.InnerWidth(document.Side is null ? document.Width : DetailLayout.MainWidth(document.Width));
+        var columns = DetailLayout.HasSidebar(document.Width) && !document.IsZoomed
+            ? DetailLayout.MainWidth(document.Width)
+            : document.Width;
+
+        if (columns < Panel.MinFramedWidth)
+        {
+            return;
+        }
+
+        var width = Panel.InnerWidth(columns);
 
         for (var row = 0; row < count; row++)
         {

@@ -59,7 +59,7 @@ public static class MouseResolver
 
         if (hit.Target == MouseTarget.EditorText)
         {
-            return TextClick(hit, column, gesture);
+            return TextClick(context, hit, column, gesture);
         }
 
         if (IsOverlayRow(hit.Target))
@@ -257,7 +257,11 @@ public static class MouseResolver
     }
 
     // A click or double-click on the text being edited: the caret or the word under the pointer.
-    private static IReadOnlyList<Command> TextClick(MouseHit hit, int column, MouseGesture gesture)
+    private static IReadOnlyList<Command> TextClick(
+        MouseContext context,
+        MouseHit hit,
+        int column,
+        MouseGesture gesture)
     {
         if (gesture is not (MouseGesture.Click or MouseGesture.DoubleClick)
             || hit.Region is not { } region
@@ -269,7 +273,9 @@ public static class MouseResolver
 
         var word = gesture == MouseGesture.DoubleClick;
 
-        return [new TextPointed(region.Index, region.Line, column - region.Left, region.Width, word)];
+        var top = TopOf(context, region);
+
+        return [new TextPointed(region.Index, region.Line, column - region.Left, region.Width, word, top)];
     }
 
     // A drag that starts on the text being edited and is now over a row of the same text. A pointer outside the text
@@ -308,7 +314,18 @@ public static class MouseResolver
             (end ?? start).Line,
             (end is null ? fromColumn : toColumn) - (end ?? start).Left,
             start.Width,
-            continued);
+            continued,
+            TopOf(context, start));
+    }
+
+    // The first line of the text of the field of <region> that the frame shows (a window of a long text).
+    private static int TopOf(MouseContext context, OverlayRegion region)
+    {
+        return context.Regions
+            .Where(candidate => candidate.Target == MouseTarget.EditorText && candidate.Index == region.Index)
+            .Select(static candidate => candidate.Line)
+            .DefaultIfEmpty(region.Line)
+            .Min();
     }
 
     // The row of the text of field <index> under the cell, null anywhere else.

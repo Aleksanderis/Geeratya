@@ -65,6 +65,12 @@ public sealed record FormState(
     /// </summary>
     public bool Navigable { get; init; }
 
+    /// <summary>
+    /// The first text line of the in-place Description window the pointer last placed (null: the window follows the
+    /// caret, centred). A key edit clears it, so a click, a double-click and a drag read the lines the user saw.
+    /// </summary>
+    public int? TextTop { get; init; }
+
     /// <summary>True while a <see cref="Navigable"/> form moves between fields (no field takes text).</summary>
     public bool Navigating { get; init; }
 

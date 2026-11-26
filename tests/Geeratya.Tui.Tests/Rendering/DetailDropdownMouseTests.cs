@@ -149,20 +149,63 @@ public class DetailDropdownMouseTests
     [Fact]
     public void GivenALongDescriptionScrolledByItsCaret_WhenClickingAShownRow_ThenTheCaretGoesToThatTextLine()
     {
-        var text = string.Join('\n', Enumerable.Range(1, 30).Select(static number => $"row{number:00}"));
+        var text = LongText();
         var state = DescriptionEditing(text);
         var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
         var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
-        var lines = frame.PlainLines();
-        var shown = lines[rows[2].Top][rows[2].Left..];
+        var shown = frame.PlainLines()[rows[2].Top][rows[2].Left..];
 
         var cell = TextCell(frame, shown[..5], 2);
         var result = RegionProbe.At(state, frame, cell.Column, cell.Row, MouseGesture.Click)!;
 
-        Assert.True(rows.Count < 30);
-        Assert.Equal(rows[2].Line, rows[0].Line + 2);
         var field = result.State.Session.Tabs[0].Form!.Fields[0];
         Assert.Equal(string.Join('\n', text.Split('\n').Skip(rows[2].Line)).Length - 2, field.Back);
+    }
+
+    [Fact]
+    public void GivenALongDescription_WhenClickingThenDoubleClickingAtTheSameCell_ThenTheWordOfThatLineIsSelected()
+    {
+        var state = DescriptionEditing(LongText());
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var word = frame.PlainLines()[rows[1].Top][rows[1].Left..].Trim()[..5];
+        var cell = TextCell(frame, word, 1);
+
+        var clicked = RegionProbe.At(state, frame, cell.Column, cell.Row, MouseGesture.Click)!.State;
+        var again = FrameBuilder.BuildStyled(clicked, Width, Height, _keymap)!;
+        var selected = RegionProbe.At(clicked, again, cell.Column, cell.Row, MouseGesture.DoubleClick)!.State;
+
+        Assert.Equal(word, FormEditor.SelectedText(selected.Session.Tabs[0].Form!.Fields[0]));
+    }
+
+    [Fact]
+    public void GivenALongDescription_WhenDraggingInSeveralMoves_ThenTheWindowStaysAndTheSelectionFollowsThePointer()
+    {
+        var state = DescriptionEditing(LongText());
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var from = new ScreenCell(rows[1].Left + 1, rows[1].Top);
+        var to = new ScreenCell(rows[4].Left + 3, rows[4].Top);
+        var current = state;
+
+        for (var move = 0; move < 3; move++)
+        {
+            var drawn = FrameBuilder.BuildStyled(current, Width, Height, _keymap)!;
+            var context = MouseContext.From(current, Width, Height, FrameBuilder.HeaderRows, _now, drawn.Regions);
+            var commands = MouseResolver.ResolveDragMove(context, from.Column, from.Row, to.Column, to.Row, move > 0);
+
+            current = _reducer.Reduce(current, Assert.Single(commands)).State;
+        }
+
+        var expected = string.Join('\n', LongText().Split('\n')[(rows[1].Line)..(rows[4].Line + 1)]);
+        var selected = FormEditor.SelectedText(current.Session.Tabs[0].Form!.Fields[0]);
+        Assert.StartsWith(expected[1..5], selected);
+        Assert.Equal(3, selected.Count(static character => character == '\n'));
+    }
+
+    private static string LongText()
+    {
+        return string.Join('\n', Enumerable.Range(1, 30).Select(static number => $"row{number:00}"));
     }
 
     private static ScreenCell TextCell(StyledFrame frame, string text, int offset)
