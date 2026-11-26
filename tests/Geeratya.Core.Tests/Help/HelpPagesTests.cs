@@ -137,8 +137,8 @@ public class HelpPagesTests
         {
             var title = ActionCatalog.All.Single(candidate => candidate.Id == action).Title;
             var row = lines.First(line => line.EndsWith(" " + title) || line.Contains(" " + title + "  ("));
-            var normal = _keymap.Bindings.Where(binding => binding.Mode == InputMode.Normal && binding.Action == action);
-            var shown = normal.Any() ? normal : _keymap.Bindings.Where(binding => binding.Action == action);
+            var normal = _keymap.Bindings.Where(binding => binding.Mode == InputMode.Normal && binding.Action == action).ToList();
+            var shown = normal.Count > 0 ? normal : _keymap.Bindings.Where(binding => binding.Action == action);
 
             foreach (var binding in shown)
             {
