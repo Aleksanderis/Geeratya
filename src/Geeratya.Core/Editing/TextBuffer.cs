@@ -29,6 +29,14 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
     /// <summary>The row capacity of a surface that does not wrap: a row is a line.</summary>
     public const int NoWrap = int.MaxValue / 2;
 
+    /// <summary>
+    /// The steps <see cref="EditorOperation.Undo"/> and <see cref="EditorOperation.Redo"/> go through. Only the editing
+    /// methods that change the text (<see cref="Apply"/>, <see cref="Insert"/>, <see cref="Replace"/>,
+    /// <see cref="DeleteSelection"/>) record; the history is not part of equality, so two buffers with the same text,
+    /// cursor and selection are equal.
+    /// </summary>
+    public TextHistory History { get; init; } = TextHistory.None;
+
     public static TextBuffer Empty { get; } = new(string.Empty, 0);
 
     /// <summary>An empty buffer for the comment editor (<see cref="Tokens"/>).</summary>
@@ -91,18 +99,78 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
         return Anchor is null ? this : this with { Anchor = null };
     }
 
-    /// <summary>The text without the selected part, the cursor where it started; the same buffer with no selection.</summary>
-    public TextBuffer DeleteSelection()
-    {
-        return HasSelection ? Deselect().DeleteBetween(SelectionStart, SelectionEnd) : Deselect();
-    }
-
     /// <summary>
     /// Applies an editing key; the same buffer when it changes nothing. With text selected, a deleting key removes the
     /// selection, <see cref="EditorOperation.Left"/> and <see cref="EditorOperation.Right"/> collapse it to its start
     /// or end, every other moving key drops it, and the select keys move the cursor and keep the anchor.
     /// </summary>
     public TextBuffer Apply(EditorOperation operation, int capacity = NoWrap, int page = 1)
+    {
+        switch (operation)
+        {
+            case EditorOperation.Undo:
+                return History.Back(this);
+            case EditorOperation.Redo:
+                return History.Forward(this);
+            default:
+                return Recorded(ApplyEdit(operation, capacity, page));
+        }
+    }
+
+    /// <summary>Inserts at the cursor; text beyond <see cref="MaxLength"/> is dropped.</summary>
+    public TextBuffer Insert(string typed)
+    {
+        return Recorded(InsertText(typed));
+    }
+
+    /// <summary>The text with <c>[start, end)</c> replaced by <paramref name="replacement"/>, the cursor after it.</summary>
+    public TextBuffer Replace(int start, int end, string replacement)
+    {
+        var text = $"{Text[..start]}{replacement}{Text[end..]}";
+
+        return text.Length > MaxLength
+            ? this
+            : Recorded(this with { Text = text, Cursor = start + replacement.Length, Anchor = null });
+    }
+
+    /// <summary>The text without the selected part, the cursor where it started; the same buffer with no selection.</summary>
+    public TextBuffer DeleteSelection()
+    {
+        return Recorded(RemoveSelection());
+    }
+
+    /// <summary>Equal when the text, cursor, selection and token flag are; the undo history does not count.</summary>
+    public bool Equals(TextBuffer? other)
+    {
+        return other is not null
+            && Cursor == other.Cursor
+            && Tokens == other.Tokens
+            && Anchor == other.Anchor
+            && string.Equals(Text, other.Text, StringComparison.Ordinal);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Text, Cursor, Tokens, Anchor);
+    }
+
+    private TextBuffer RemoveSelection()
+    {
+        return HasSelection ? Deselect().DeleteBetween(SelectionStart, SelectionEnd) : Deselect();
+    }
+
+    private TextBuffer Recorded(TextBuffer next)
+    {
+        if (!string.Equals(next.Text, Text, StringComparison.Ordinal))
+        {
+            return next with { History = History.Recorded(this, next) };
+        }
+
+        // A move ends the typed run, even when the cursor later comes back to the same place.
+        return next.Cursor == Cursor && next.Anchor == Anchor ? next : next with { History = History.Broken() };
+    }
+
+    private TextBuffer ApplyEdit(EditorOperation operation, int capacity, int page)
     {
         if (operation == EditorOperation.SelectAll)
         {
@@ -123,20 +191,19 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
                 case EditorOperation.Right:
                     return this with { Anchor = null, Cursor = SelectionEnd };
                 case >= EditorOperation.Backspace and <= EditorOperation.DeleteToEnd:
-                    return DeleteSelection();
+                    return RemoveSelection();
             }
         }
 
         return Deselect().ApplyPlain(operation, capacity, page);
     }
 
-    /// <summary>Inserts at the cursor; text beyond <see cref="MaxLength"/> is dropped.</summary>
-    public TextBuffer Insert(string typed)
+    private TextBuffer InsertText(string typed)
     {
         // Typing over a selection replaces it.
         if (Anchor is not null)
         {
-            return typed.Length == 0 ? this : DeleteSelection().Insert(typed);
+            return typed.Length == 0 ? this : RemoveSelection().InsertText(typed);
         }
 
         var room = MaxLength - Text.Length;
@@ -149,7 +216,7 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
         // A cursor moved by rows can sit inside a token: typing goes after it, never into it.
         if (TokenStartingAt(Cursor) is { } token && token.Start < Cursor)
         {
-            return (this with { Cursor = token.End }).Insert(typed);
+            return (this with { Cursor = token.End }).InsertText(typed);
         }
 
         var accepted = typed.Length > room ? Truncated(typed, room) : typed;
@@ -162,7 +229,7 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
     {
         if (HasSelection)
         {
-            return DeleteSelection();
+            return RemoveSelection();
         }
 
         if (Cursor == 0)
@@ -180,22 +247,12 @@ public sealed record TextBuffer(string Text, int Cursor, bool Tokens = false, in
         return this with { Text = Text.Remove(start, Cursor - start), Cursor = start };
     }
 
-    /// <summary>The text with <c>[start, end)</c> replaced by <paramref name="replacement"/>, the cursor after it.</summary>
-    public TextBuffer Replace(int start, int end, string replacement)
-    {
-        var text = $"{Text[..start]}{replacement}{Text[end..]}";
-
-        return text.Length > MaxLength
-            ? this
-            : this with { Text = text, Cursor = start + replacement.Length, Anchor = null };
-    }
-
     /// <summary>Removes the character under the cursor.</summary>
     public TextBuffer Delete()
     {
         if (HasSelection)
         {
-            return DeleteSelection();
+            return RemoveSelection();
         }
 
         if (Cursor >= Text.Length)

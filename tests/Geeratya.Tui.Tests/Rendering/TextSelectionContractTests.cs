@@ -192,6 +192,108 @@ public class TextSelectionContractTests
         Assert.DoesNotContain(spans, static span => span.Role == CaretText.SelectedRole);
     }
 
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenTypedWords_WhenUndoAndRedo_ThenTheyGoOneWordAtATime(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("one two")]);
+
+        var undone = Keys(typed, "Ctrl-z");
+
+        Assert.Equal(("one ", 4), Read(surface, undone));
+        Assert.Equal(("one", 3), Read(surface, Keys(undone, "Ctrl-z")));
+        Assert.Equal(("one ", 4), Read(surface, Keys(undone, "Ctrl-z", "Ctrl-y")));
+        Assert.Equal(("one two", 7), Read(surface, Keys(undone, "Ctrl-y")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenAReplacedSelection_WhenUndone_ThenTheTextAndTheSelectionAreBack(string surface)
+    {
+        var selected = Keys(Open(surface), [.. Type(Words), "Ctrl-Shift-Left"]);
+
+        var replaced = Keys(selected, "X");
+        var undone = Keys(replaced, "Ctrl-z");
+
+        Assert.Equal(("alpha beta X", 12), Read(surface, replaced));
+        Assert.Equal((Words, 11), Read(surface, undone));
+        Assert.Equal("gamma", Selected(surface, undone));
+        Assert.Equal(("alpha beta X", 12), Read(surface, Keys(undone, "Ctrl-y")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenDeletes_WhenUndone_ThenARunOfBackspacesIsOneStepAndACutIsAnother(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("abcdef")]);
+        var backspaced = Keys(typed, "Backspace", "Backspace");
+
+        Assert.Equal(("abcd", 4), Read(surface, backspaced));
+        Assert.Equal(("abcdef", 6), Read(surface, Keys(backspaced, "Ctrl-z")));
+
+        var cut = _reducer.Reduce(Keys(typed, "Shift-Left", "Shift-Left"), new KeyPressed("Alt-x", _now)).State;
+
+        Assert.Equal(("abcd", 4), Read(surface, cut));
+        Assert.Equal(("abcdef", 4), Read(surface, Keys(cut, "Ctrl-z")));
+        Assert.Equal("ef", Selected(surface, Keys(cut, "Ctrl-z")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenACursorMove_WhenTypingAgain_ThenItIsANewStepAndANewEditClearsRedo(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("ab"), "Left", "X"]);
+
+        Assert.Equal(("aXb", 2), Read(surface, typed));
+        Assert.Equal(("ab", 1), Read(surface, Keys(typed, "Ctrl-z")));
+
+        var edited = Keys(typed, "Ctrl-z", "Ctrl-z", "Y");
+
+        Assert.Equal(("Y", 1), Read(surface, edited));
+        Assert.Equal(("Y", 1), Read(surface, Keys(edited, "Ctrl-y")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenACursorMoveAndReturn_WhenTypingAgain_ThenTheEarlierRunIsNotJoined(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("ab"), "Left", "Right", "c"]);
+
+        Assert.Equal(("abc", 3), Read(surface, typed));
+        Assert.Equal(("ab", 2), Read(surface, Keys(typed, "Ctrl-z")));
+    }
+
+    [Theory]
+    [MemberData(nameof(Surfaces))]
+    public void GivenNothingToUndoOrRedo_WhenPressed_ThenTheTextStays(string surface)
+    {
+        var opened = Open(surface);
+        var typed = Keys(opened, [.. Type("abc")]);
+
+        Assert.Equal((string.Empty, 0), Read(surface, Keys(opened, "Ctrl-z", "Ctrl-y")));
+        Assert.Equal(("abc", 3), Read(surface, Keys(typed, "Ctrl-y")));
+        Assert.Equal((string.Empty, 0), Read(surface, Keys(typed, "Ctrl-z", "Ctrl-z", "Ctrl-z")));
+    }
+
+    [Theory]
+    [MemberData(nameof(LineSurfaces))]
+    public void GivenALineBreak_WhenUndone_ThenItIsAStepOfItsOwn(string surface)
+    {
+        var typed = Keys(Open(surface), [.. Type("one"), "Enter", .. Type("two")]);
+
+        Assert.Equal(("one\n", 4), Read(surface, Keys(typed, "Ctrl-z")));
+        Assert.Equal(("one", 3), Read(surface, Keys(typed, "Ctrl-z", "Ctrl-z")));
+    }
+
+    [Fact]
+    public void GivenThePalette_WhenCtrlZIsPressed_ThenTheTypedTextStays()
+    {
+        var typed = Keys(TextEditorContractTests.Open("palette"), [.. Type("rank")]);
+
+        Assert.Equal(typed.PaletteBack, Keys(typed, "Ctrl-z", "Ctrl-y").PaletteBack);
+        Assert.Equal(typed.PaletteText, Keys(typed, "Ctrl-z").PaletteText);
+    }
+
     [Fact]
     public void GivenThePalette_WhenShiftDownOrShiftLeftIsPressed_ThenTheHighlightAndTheCaretMoveAsWithoutShift()
     {

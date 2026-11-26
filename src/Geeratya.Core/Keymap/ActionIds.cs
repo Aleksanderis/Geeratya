@@ -151,6 +151,8 @@ public static class ActionIds
     public const string EditorSelectAll = "editor.select-all";
     public const string EditorCopy = "editor.copy";
     public const string EditorCut = "editor.cut";
+    public const string EditorUndo = "editor.undo";
+    public const string EditorRedo = "editor.redo";
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";
