@@ -37,7 +37,7 @@ A board opens in Columns, everything else in List. `<space>l` switches a board b
 
 ## 5. Tabs
 
-`Tab`/`Shift-Tab` (or `g t`/`g T`) next and previous, wrapping around; `Alt-1` to `Alt-9` go to a tab by number (a missing number does nothing); `Ctrl-w c` closes (the right neighbour becomes active); `Ctrl-t` opens a new one. State (view, layout, selection, scroll, issue stack) is per tab. The tabs of the active profile are saved as they change (see workflow 0).
+`Tab`/`Shift-Tab` (or `g t`/`g T`, or `Alt-L`/`Alt-H`) next and previous, wrapping around; `Alt-1` to `Alt-9` go to a tab by number (a missing number does nothing); `Ctrl-w c` closes (the right neighbour becomes active); `Ctrl-t` opens a new one. State (view, layout, selection, scroll, issue stack) is per tab. The tabs of the active profile are saved as they change (see workflow 0).
 
 ## 6. Refresh, offline, rate limits
 
