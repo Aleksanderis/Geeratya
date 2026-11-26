@@ -1,11 +1,8 @@
                                                                                                              : commands 
                                                                                                                         
 ╭─ Geeratya ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
 │                                           ╭─ <space> ────────────────────────────────────────────────────────────────╮
-│                                           │ Tab                                                                      │
-│                                           │ c         Close the tab                                                  │
-│                                           │ Tab       Previously active tab                                          │
-│                                           │ T         Show a list of open tabs                                       │
 │                                           │ Status                                                                   │
 │                                           │ x         Dismiss the status message                                     │
 │                                           │ n         Show the message history                                       │
@@ -16,6 +13,9 @@
 │                                           │ Menu                                                                     │
 │                                           │ a         Open the actions menu of the selected issue                    │
 │                                           │ A         Open the actions menu of the tab and the view                  │
+│                                           │ Tab                                                                      │
+│                                           │ Tab       Previously active tab                                          │
+│                                           │ T         Show a list of open tabs                                       │
 │                                           │ View                                                                     │
 │                                           │ r         Refresh the view (also retries after an error)                 │
 │                                           │ l         Switch between list and columns                                │

@@ -1,10 +1,10 @@
                                         
                                         
 +- <space> ----------------------------+
-| c         Close the tab              |
-| Tab       Previously active tab      |
-| T         Show a list of open tabs   |
 | x         Dismiss the status message |
-| . 17 more                            |
+| n         Show the message history   |
+| g         Jump to an issue by key    |
+| o         Open the issue in the bro. |
+| . 16 more                            |
 +--------------------------------------+
 [NORMAL] <space>              Esc cancel

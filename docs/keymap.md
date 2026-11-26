@@ -66,7 +66,7 @@ Generated from `src/Geeratya.Core/Keymap/keymap.default.json` by `scripts/gen-ke
 | `<space>tm` | Assign the sub-task under the cursor to me | `issue.subtask-assign-me` | everyday |
 | `Ctrl-t` | Open the source picker for a new tab | `tab.new` | everyday |
 | `Ctrl-w r` | Rename this tab (an empty name restores the source label) | `tab.rename` | everyday |
-| `<space>c` | Close the tab | `tab.close` | everyday |
+| `Ctrl-w c` | Close the tab | `tab.close` | everyday |
 | `<space>T` | Show a list of open tabs | `tab.list` | everyday |
 | `<space>r` | Refresh the view (also retries after an error) | `view.refresh` | everyday |
 | `<space>l` | Switch between list and columns | `view.layout-toggle` | everyday |
