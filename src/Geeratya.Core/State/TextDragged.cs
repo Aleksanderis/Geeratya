@@ -23,4 +23,4 @@ public sealed record TextDragged(
     int ToCell,
     int Width,
     bool Continued,
-    int Top = 0) : Command;
+    int Top) : Command;

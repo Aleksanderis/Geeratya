@@ -203,6 +203,30 @@ public class DetailDropdownMouseTests
         Assert.Equal(3, selected.Count(static character => character == '\n'));
     }
 
+    [Fact]
+    public void GivenAPinnedDescriptionWindow_WhenAKeyEditsTheText_ThenTheWindowIsCentredOnTheCaretAgain()
+    {
+        var state = DescriptionEditing(LongText());
+        var frame = FrameBuilder.BuildStyled(state, Width, Height, _keymap)!;
+        var rows = frame.Regions.Where(region => region.Target == MouseTarget.EditorText).ToList();
+        var clicked = RegionProbe.At(state, frame, rows[1].Left + 1, rows[1].Top, MouseGesture.Click)!.State;
+        Assert.NotNull(clicked.Session.Tabs[0].Form!.TextTop);
+
+        var typed = _reducer.Reduce(clicked, new KeyPressed("x")).State;
+
+        Assert.Null(typed.Session.Tabs[0].Form!.TextTop);
+    }
+
+    [Fact]
+    public void GivenADescriptionEditedInAPaneTooNarrowForAFrame_WhenDrawn_ThenNoTextRegionsAreReported()
+    {
+        var state = DescriptionEditing("alpha\nbeta");
+
+        var frame = FrameBuilder.BuildStyled(state, Panel.MinFramedWidth - 1, Height, _keymap)!;
+
+        Assert.DoesNotContain(frame.Regions, static region => region.Target == MouseTarget.EditorText);
+    }
+
     private static string LongText()
     {
         return string.Join('\n', Enumerable.Range(1, 30).Select(static number => $"row{number:00}"));
