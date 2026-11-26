@@ -77,6 +77,26 @@ public class BulkWriteMergeTests
     }
 
     [Fact]
+    public void GivenAssignOfASubtaskStub_WhenStartedAndFailed_ThenTheStubShowsThePersonAndIsRestored()
+    {
+        var state = WithStub(Loaded(5));
+        var eve = new IssueAssignee("acc-eve", "Eve Example");
+        var request = new AssignRequest("A-99", eve);
+
+        var started = _reducer.Reduce(state, new WriteRequested(new TabId(1), request, _now)).State;
+
+        var stub = started.Session.Tabs[0].Rows[0].Subtasks[0];
+        Assert.Equal(eve, stub.Assignee);
+        Assert.True(stub.AssigneeKnown);
+
+        var operation = Assert.Single(started.Session.Operations);
+        var failure = new WriteError(WriteErrorKind.Validation, 400, "no", [], []);
+        var failed = _reducer.Reduce(started, new WriteFailed(operation.Id, _now, failure)).State;
+
+        Assert.Null(failed.Session.Tabs[0].Rows[0].Subtasks[0].Assignee);
+    }
+
+    [Fact]
     public void GivenParentAndItsStubBothInTheReply_WhenSettled_ThenTheRowAndTheStubAreBothReplaced()
     {
         var state = Start(WithStub(Loaded(5)), ["A-1", "A-99"]);
