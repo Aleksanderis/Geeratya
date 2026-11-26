@@ -335,8 +335,7 @@ wait_for "Reporter"
 # Field form: :labels opens it on GEN-1's issue; click the field, then a suggestion popup row.
 tmux -L "$socket" send-keys -t s Escape; sleep 0.3
 send ":jql project = GEN|:labels|geer"
-wait_for "geeratya-seed"
-wait_for "geeratya-seed-GCM-backlo" # the suggestion popup lists the matching labels (cut by the popup width) before the click
+wait_for "geeratya-seed-GCM-backlo" # the popup lists the labels of tests/Geeratya.Jira.Tests/Fixtures/suggestions/recorded-labels.json; a prefix, so the popup width does not matter
 click "geeratya-seed-GCM-backlo"
 wait_gone "Edit GEN-1" # a form of one field saves when a click takes the row (like Enter)
 wait_for "geeratya-seed-GCM-backlo"
