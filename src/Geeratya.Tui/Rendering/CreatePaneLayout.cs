@@ -165,7 +165,13 @@ internal sealed class CreatePaneLayout
 
         if (index >= 0)
         {
-            rows.Add(new CreatePaneRow(SummaryLine(index, Panel.InnerWidth(width)), MouseTarget.FormField, index));
+            var edited = index == _form.Focus && !_form.Navigating && !_form.IsSaving;
+
+            rows.Add(
+                new CreatePaneRow(SummaryLine(index, Panel.InnerWidth(width)), MouseTarget.FormField, index)
+                {
+                    TextLine = edited ? 0 : -1,
+                });
 
             if (_form.Fields[index].Error is { } error)
             {
@@ -226,7 +232,14 @@ internal sealed class CreatePaneLayout
             };
 
             caretRow = editing ? TextBuffer.FromBack(field.Value.Text, field.Back).Line : -1;
-            rows.AddRange(FieldRows.Value(field, look).Select(line => new CreatePaneRow(line, MouseTarget.FormField, index)));
+            var firstLine = FieldRows.Edited(field, look)?.First ?? -1;
+
+            rows.AddRange(
+                FieldRows.Value(field, look).Select(
+                    (line, row) => new CreatePaneRow(line, MouseTarget.FormField, index)
+                    {
+                        TextLine = firstLine < 0 ? -1 : firstLine + row,
+                    }));
 
             if (field.Error is { } error)
             {

@@ -9,7 +9,7 @@ namespace Geeratya.Core.Mouse;
 public static class MouseResolver
 {
     /// <summary>The parts of the mouse table that are wired today; rows of later parts have no effect yet.</summary>
-    public const string WiredParts = "ABOMV";
+    public const string WiredParts = "ABOMVT";
 
     private static readonly IReadOnlyList<Command> _none = [];
 
@@ -55,6 +55,11 @@ public static class MouseResolver
             }
 
             hit = hit with { Target = MouseTarget.Detail };
+        }
+
+        if (hit.Target == MouseTarget.EditorText)
+        {
+            return TextClick(hit, column, gesture);
         }
 
         if (IsOverlayRow(hit.Target))
@@ -175,6 +180,11 @@ public static class MouseResolver
         DateTimeOffset at = default,
         bool live = false)
     {
+        if (TextDrag(context, fromColumn, fromRow, toColumn, toRow, live) is { } textDrag)
+        {
+            return [textDrag];
+        }
+
         if (DetailDrag(context, fromColumn, fromRow, toColumn, toRow) is { } detailDrag)
         {
             return [detailDrag];
@@ -213,6 +223,11 @@ public static class MouseResolver
         int toRow,
         bool first)
     {
+        if (TextDrag(context, fromColumn, fromRow, toColumn, toRow, !first) is { } textDrag)
+        {
+            return [textDrag];
+        }
+
         if (LiveStart(context, fromColumn, fromRow) is not { } start)
         {
             return _none;
@@ -239,6 +254,73 @@ public static class MouseResolver
     public static int DragScrollStep(MouseContext context, int fromColumn, int fromRow, int pointerRow)
     {
         return LiveStart(context, fromColumn, fromRow) is null ? 0 : DragAutoScroll.StepFor(context, pointerRow);
+    }
+
+    // A click or double-click on the text being edited: the caret or the word under the pointer.
+    private static IReadOnlyList<Command> TextClick(MouseHit hit, int column, MouseGesture gesture)
+    {
+        if (gesture is not (MouseGesture.Click or MouseGesture.DoubleClick)
+            || hit.Region is not { } region
+            || DefaultMouseMap.Find(MouseTarget.EditorText, gesture) is not { } found
+            || !WiredParts.Contains(found.Part))
+        {
+            return _none;
+        }
+
+        var word = gesture == MouseGesture.DoubleClick;
+
+        return [new TextPointed(region.Index, region.Line, column - region.Left, region.Width, word)];
+    }
+
+    // A drag that starts on the text being edited and is now over a row of the same text. A pointer outside the text
+    // changes nothing once the range exists; on the first move it still places the caret on the press cell, so a
+    // selection made earlier by keys is dropped and the next move starts from the press.
+    private static TextDragged? TextDrag(
+        MouseContext context,
+        int fromColumn,
+        int fromRow,
+        int toColumn,
+        int toRow,
+        bool continued)
+    {
+        if (!context.OverlayOpen || DefaultMouseMap.Find(MouseTarget.EditorText, MouseGesture.DragRows) is not { } found
+            || !WiredParts.Contains(found.Part)
+            || MouseHitTester.Locate(context, fromColumn, fromRow) is not
+            {
+                Target: MouseTarget.EditorText,
+                Region: { } start,
+            })
+        {
+            return null;
+        }
+
+        var end = TextRowAt(context, toColumn, toRow, start.Index);
+
+        if (end is null && continued)
+        {
+            return null;
+        }
+
+        return new TextDragged(
+            start.Index,
+            start.Line,
+            fromColumn - start.Left,
+            (end ?? start).Line,
+            (end is null ? fromColumn : toColumn) - (end ?? start).Left,
+            start.Width,
+            continued);
+    }
+
+    // The row of the text of field <index> under the cell, null anywhere else.
+    private static OverlayRegion? TextRowAt(MouseContext context, int column, int row, int index)
+    {
+        if (MouseHitTester.Locate(context, column, row) is { Target: MouseTarget.EditorText, Region: { } region }
+            && region.Index == index)
+        {
+            return region;
+        }
+
+        return null;
     }
 
     // A drag from one cell of the opened issue to another: select and copy the text between them (mouse table: Detail).

@@ -52,6 +52,26 @@ public sealed partial class AppReducer
         };
     }
 
+    // A click or double-click on the text being edited: the comment editor or the focused text field of a form.
+    private static ReduceResult PointedText(AppState state, TextPointed pointed)
+    {
+        var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
+
+        return state.Editor is not null
+            ? Result(CommentEditing.Pointed(cleared, pointed))
+            : FormReducer.Pointed(cleared, pointed);
+    }
+
+    // A drag over the text being edited (see PointedText).
+    private static ReduceResult DraggedText(AppState state, TextDragged dragged)
+    {
+        var cleared = state with { PendingKeys = string.Empty, Count = 0, Message = null };
+
+        return state.Editor is not null
+            ? Result(CommentEditing.Dragged(cleared, dragged))
+            : FormReducer.Dragged(cleared, dragged);
+    }
+
     /// <summary>
     /// A wheel notch over an overlay with a highlight: the highlight moves and nothing runs, so a stray scroll never
     /// opens or changes anything.

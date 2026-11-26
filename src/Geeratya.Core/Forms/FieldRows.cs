@@ -72,6 +72,38 @@ public static class FieldRows
     }
 
     /// <summary>
+    /// Which lines of the text <see cref="Value"/> draws as the text being edited (so the pointer can select in them):
+    /// null unless <paramref name="look"/> edits a text or paragraph field with the caret in its own rows.
+    /// </summary>
+    public static EditedRows? Edited(FormField field, FieldLook look)
+    {
+        if (!look.Editing || !field.IsEditable || FormFieldKinds.HasEditBox(field)
+            || FormFieldKinds.HasPopup(field.Kind))
+        {
+            return null;
+        }
+
+        var text = field.Value.Text;
+
+        if (text.Length == 0 || field.Kind != FormFieldKind.Paragraph)
+        {
+            return new EditedRows(0, 1);
+        }
+
+        var lines = text.Split('\n').Length;
+
+        if (look.Expanded)
+        {
+            return new EditedRows(0, lines);
+        }
+
+        var shown = Math.Max(1, look.Rows);
+        var first = FirstRow(field, lines, shown);
+
+        return new EditedRows(first, Math.Min(shown, lines - first));
+    }
+
+    /// <summary>
     /// The rows <paramref name="first"/> to <paramref name="first"/> plus <paramref name="count"/> of a paragraph, the
     /// caret in its row while editing: for a presentation that picks its own window (the in-place Description).
     /// </summary>
@@ -201,11 +233,17 @@ public static class FieldRows
             return Paragraph(field, look, 0, rows.Length);
         }
 
-        var caretRow = TextBuffer.FromBack(text, field.Back).Line;
         var shown = Math.Max(1, look.Rows);
-        var first = Math.Clamp(caretRow - shown + 1, 0, Math.Max(0, rows.Length - shown));
 
-        return Paragraph(field, look, first, shown);
+        return Paragraph(field, look, FirstRow(field, rows.Length, shown), shown);
+    }
+
+    // The first line of the window of a paragraph that is edited in place: the caret line is the last one shown.
+    private static int FirstRow(FormField field, int lines, int shown)
+    {
+        var caretRow = TextBuffer.FromBack(field.Value.Text, field.Back).Line;
+
+        return Math.Clamp(caretRow - shown + 1, 0, Math.Max(0, lines - shown));
     }
 
     private static StyledLine ParagraphRow(TextBuffer prompt, string row, int index, FieldLook look)

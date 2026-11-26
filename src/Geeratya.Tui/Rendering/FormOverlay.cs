@@ -1,3 +1,4 @@
+using Geeratya.Core.Detail;
 using Geeratya.Core.Forms;
 using Geeratya.Core.Keymap;
 using Geeratya.Core.Mouse;
@@ -31,6 +32,9 @@ public static partial class FormOverlay
     private const int FooterMinimumInner = 8;
     private const int TopGap = 1;
     private const int Indent = 4;
+
+    // The columns before a field's text: the box wall and its padding, then the field box edge and its padding.
+    private const int TextColumn = 4;
     private const int ParagraphRows = 4;
 
     /// <summary>Draws the open form over <paramref name="body"/> (exactly <paramref name="height"/> lines).</summary>
@@ -211,6 +215,19 @@ public static partial class FormOverlay
                 var width = Math.Max(1, boxWidth - 2);
 
                 regions.Add(new OverlayRegion(tag.Target, top + 1 + index, left + 1, width, 1, tag.Index));
+
+                if (tag.TextLine >= 0)
+                {
+                    regions.Add(
+                        new OverlayRegion(
+                            MouseTarget.EditorText,
+                            top + 1 + index,
+                            left + TextColumn,
+                            tag.TextWidth,
+                            1,
+                            tag.Index,
+                            tag.TextLine));
+                }
             }
         }
     }
@@ -290,6 +307,7 @@ public static partial class FormOverlay
         var tags = new List<RowTag?>();
 
         PadTags(tags, block.Count, new RowTag(MouseTarget.FormField, index));
+        TagText(form, index, valueWidth, tags);
 
         var focused = index == form.Focus && !form.IsSaving;
 
@@ -311,6 +329,26 @@ public static partial class FormOverlay
         return tags;
     }
 
+    // The rows that draw the text being edited also take the pointer: the caret, a word, a range.
+    private static void TagText(FormState form, int index, int valueWidth, List<RowTag?> tags)
+    {
+        var field = form.Fields[index];
+        var editing = index == form.Focus && !form.IsSaving && !form.Navigating;
+        var look = new FieldLook(valueWidth) { Editing = editing, Rows = ParagraphRows };
+        var width = Math.Max(6, valueWidth + Indent);
+
+        if (!editing || width < Panel.MinFramedWidth || FieldRows.Edited(field, look) is not { } edited)
+        {
+            return;
+        }
+
+        for (var row = 0; row < edited.Count; row++)
+        {
+            // The first row of a block is the top edge of its box.
+            tags[1 + row] = tags[1 + row]! with { TextLine = edited.First + row, TextWidth = Panel.InnerWidth(width) };
+        }
+    }
+
     private static void AddTypes(List<StyledLine> lines, FormState form, IReadOnlyList<CreateIssueType> types)
     {
         for (var index = 0; index < types.Count; index++)
@@ -327,7 +365,14 @@ public static partial class FormOverlay
         }
     }
 
-    private sealed record RowTag(MouseTarget Target, int Index);
+    private sealed record RowTag(MouseTarget Target, int Index)
+    {
+        /// <summary>The line of the edited text the row shows, or -1 for a row that is not text.</summary>
+        public int TextLine { get; init; } = -1;
+
+        /// <summary>The columns the text of the row is drawn in.</summary>
+        public int TextWidth { get; init; }
+    }
 
     private sealed record FormContent(List<StyledLine> Lines, int FocusStart, int FocusLength, List<RowTag?> Tags)
     {

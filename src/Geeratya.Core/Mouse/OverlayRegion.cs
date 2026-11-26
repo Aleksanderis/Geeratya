@@ -10,7 +10,17 @@ namespace Geeratya.Core.Mouse;
 /// <param name="Width">Columns covered.</param>
 /// <param name="Height">Rows covered.</param>
 /// <param name="Index">The choice, field or popup row the rectangle stands for.</param>
-public sealed record OverlayRegion(MouseTarget Target, int Top, int Left, int Width, int Height, int Index)
+/// <param name="Line">
+/// For <see cref="MouseTarget.EditorText"/>: the line (or visual row) of the edited text this one-row rectangle shows.
+/// </param>
+public sealed record OverlayRegion(
+    MouseTarget Target,
+    int Top,
+    int Left,
+    int Width,
+    int Height,
+    int Index,
+    int Line = 0)
 {
     public bool Contains(int column, int row)
     {

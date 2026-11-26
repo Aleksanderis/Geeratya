@@ -12,6 +12,9 @@ namespace Geeratya.Tui.Rendering;
 /// </summary>
 internal sealed class CreatePaneFrames
 {
+    // The columns before the text of a row: the pane edge and its padding.
+    private const int TextInset = 2;
+
     private readonly bool _ascii;
     private readonly List<OverlayRegion> _regions;
 
@@ -55,6 +58,19 @@ internal sealed class CreatePaneFrames
             if (shown is { Target: { } target })
             {
                 _regions.Add(new OverlayRegion(target, top + 1 + row, left + 1, width - 2, 1, shown.Index));
+            }
+
+            if (shown is { TextLine: >= 0 } && width >= Panel.MinFramedWidth)
+            {
+                _regions.Add(
+                    new OverlayRegion(
+                        MouseTarget.EditorText,
+                        top + 1 + row,
+                        left + TextInset,
+                        contentWidth,
+                        1,
+                        shown.Index,
+                        shown.TextLine));
             }
             else if (shown is null && spec.FillIndex >= 0)
             {

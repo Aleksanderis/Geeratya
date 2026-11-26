@@ -13,4 +13,10 @@ internal sealed record CreatePaneRow(StyledLine Line, MouseTarget? Target = null
     /// The line spans the pane between its side edges and replaces the padding too (an open picker box).
     /// </summary>
     public bool Bleed { get; init; }
+
+    /// <summary>
+    /// The line of the edited text this row shows (the pointer selects in it), or -1 when the row is not the text
+    /// being edited.
+    /// </summary>
+    public int TextLine { get; init; } = -1;
 }

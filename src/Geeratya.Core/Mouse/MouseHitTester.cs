@@ -78,7 +78,7 @@ public static class MouseHitTester
         {
             if (regions[index].Contains(column, row))
             {
-                return new MouseHit(regions[index].Target, regions[index].Index, column);
+                return new MouseHit(regions[index].Target, regions[index].Index, column, regions[index]);
             }
         }
 
