@@ -102,6 +102,8 @@ public static class SurfaceHints
                 ActionIds.NavigateDown,
                 ActionIds.NavigateUp,
                 withPages ? HintLabels.Move : HintLabels.Scroll),
+            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page) : null,
+            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpFilter, HintLabels.Filter) : null,
             withPages
                 ? DialogFooter.Pair(
                     keymap,
@@ -110,8 +112,6 @@ public static class SurfaceHints
                     ActionIds.HelpScrollUp,
                     HintLabels.Scroll)
                 : null,
-            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpPageNext, HintLabels.Page) : null,
-            withPages ? DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpFilter, HintLabels.Filter) : null,
             DialogFooter.Chip(keymap, InputMode.Help, ActionIds.HelpClose, HintLabels.Close),
         ];
     }

@@ -235,7 +235,7 @@ Mockups below show the box on a few rows of the muted view.
 │               │             from a list or board)                            │
 │               │  <space>o   Open the issue in the browser                    │
 │ ──────────────┴────────────────────────────────────────────────────────────  │
-│ j/k move  J/K scroll  Tab page  / filter  Esc close                          │
+│ j/k move  Tab page  / filter  J/K scroll  Esc close                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 

@@ -30,7 +30,7 @@
 │           │               │   zc         Fold the lane to its header row (stacked lanes)                 │           │
 │           │               │   zo         Open the next folded lane (stacked lanes)                      ▼│           │
 │           ├──────────────────────────────────────────────────────────────────────────────────────────────┤           │
-│           │ j/k move   J/K scroll   Tab page   / filter   Esc close                                      │           │
+│           │ j/k move   Tab page   / filter   J/K scroll   Esc close                                      │           │
 │           ╰──────────────────────────────────────────────────────────────────────────────────────────────╯           │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- HELP                                                                j/k move  J/K scroll  Tab page  / filter  Esc close
+ HELP                                                                j/k move  Tab page  / filter  J/K scroll  Esc close

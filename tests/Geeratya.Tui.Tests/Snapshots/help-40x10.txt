@@ -7,4 +7,4 @@
 │ │   Commands    │         Create  ▼│ │
 │ ╰──────────────────────────────────╯ │
 ╰──────────────────────────────────────╯
- HELP    j/k move  J/K scroll  Esc close
+ HELP      j/k move  Tab page  Esc close

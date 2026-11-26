@@ -38,7 +38,7 @@ public class FooterContractTests
         new("sprint move", "INSERT", "Move to sprint: A-1", ["Up/Down|move", "Enter|move here", "Esc|close"]),
         new("actions menu", "NORMAL", "Actions", ["Up/Down|move", "Enter|run", "Esc|close"]),
         new("palette", "COMMAND", ":", ["Up/Down|move", "Enter|run", "Esc|close"]),
-        new("help", "HELP", string.Empty, ["j/k|move", "J/K|scroll", "Tab|page", "/|filter", "Esc|close"]),
+        new("help", "HELP", string.Empty, ["j/k|move", "Tab|page", "/|filter", "J/K|scroll", "Esc|close"]),
         new("help filter", "HELP", string.Empty, ["Enter|keep filter", "Tab|page", "Esc|clear filter"]),
         new("messages", "MESSAGES", string.Empty, ["j/k|scroll", "Esc|close"]),
         new("comment", "INSERT", "Commenting on A-1", ["Ctrl-s|send", "Enter|new line", "Esc|cancel"]),

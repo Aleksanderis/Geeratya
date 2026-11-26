@@ -136,18 +136,19 @@ public class HelpPagesTests
         foreach (var action in _keymap.Bindings.Select(binding => binding.Action).Distinct())
         {
             var title = ActionCatalog.All.Single(candidate => candidate.Id == action).Title;
-            var row = lines.First(line => line.EndsWith(" " + title) || line.Contains(" " + title + "  ("));
-            var normal = _keymap.Bindings.Where(binding => binding.Mode == InputMode.Normal && binding.Action == action).ToList();
+            var rows = lines.Where(line => line.EndsWith($" {title}") || line.Contains($" {title}  (")).ToList();
+            var normal = _keymap.Bindings
+                .Where(binding => binding.Mode == InputMode.Normal && binding.Action == action)
+                .ToList();
             var shown = normal.Count > 0 ? normal : _keymap.Bindings.Where(binding => binding.Action == action);
+            var wanted = shown.Select(binding => KeyNotation.Display(binding.Keys)).ToHashSet();
 
-            foreach (var binding in shown)
-            {
-                Assert.True(
-                    row.Contains(KeyNotation.Display(binding.Keys)),
-                    $"{binding.Mode} key {binding.Keys} of {action} is missing from its help row: {row}");
-            }
+            Assert.True(
+                rows.Any(row => wanted.IsSubsetOf(KeysOf(row, title))),
+                $"{action}: keys {string.Join(' ', wanted)} are not all on one row of \"{title}\"");
         }
     }
+
 
     [Fact]
     public void GivenTheCatalog_WhenCheckingScopes_ThenTheTableNamesOnlyCatalogActions()
@@ -246,6 +247,15 @@ public class HelpPagesTests
         Assert.Contains(lines, line => line.Contains("Ctrl-q") && line.Contains("app.quit") && line.Contains("Quit"));
         Assert.Contains("  Unbound: q", lines);
         Assert.DoesNotContain(lines, line => line.Contains("no.such-action"));
+    }
+
+    // The key tokens of a row: the keys column and the "(a, b)" list after the title.
+    private static HashSet<string> KeysOf(string row, string title)
+    {
+        var open = row.LastIndexOf("  (", StringComparison.Ordinal);
+        var others = open < 0 || !row.EndsWith(')') ? [] : row[(open + 3)..^1].Split(", ");
+
+        return [.. others, row[..row.IndexOf($" {title}", StringComparison.Ordinal)].Trim()];
     }
 
     private static AppState Help(AppState state)

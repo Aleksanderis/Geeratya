@@ -21,7 +21,7 @@ public class DialogFooterScreensTests
     {
         var text = Text(AppState.Initial with { Mode = InputMode.Help }, 100, 30);
 
-        Assert.Contains("j/k move   J/K scroll   Tab page   / filter   Esc close", text, StringComparison.Ordinal);
+        Assert.Contains("j/k move   Tab page   / filter   J/K scroll   Esc close", text, StringComparison.Ordinal);
     }
 
     [Fact]
