@@ -152,6 +152,7 @@ all_scenarios=(
   "rank-across-sections;120;36;dark;:backlog GEN board|]]^j^{;Jira cannot undo"
   "rank-board;120;36;dark;:board GCM|};Ranked"
   "rank-board-team;120;36;dark;:board GTM|};Ranked"
+  "board-status-picker;120;36;dark;:board GCM| is;Status"
   "theme-latte;120;36;light;:board GCM|:theme catppuccin-latte|;Theme catppuccin-latte."
   "theme-high-contrast;120;36;dark;:board GCM|:theme high-contrast|;Theme high-contrast."
   "theme-gruvbox;120;36;dark;:board GCM|:theme gruvbox-dark-medium|;Theme gruvbox-dark-medium."

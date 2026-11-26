@@ -29,6 +29,13 @@ internal static class DetailFieldActions
             return Open(state, fieldId);
         }
 
+        // A card of the columns layout edits in place: the picker or form opens over the board for the selected card,
+        // the same way the sub-task keys do, and no issue view opens first (#1063).
+        if (tab.Definition.Layout == ViewLayout.Columns && InPlace(fieldId))
+        {
+            return Open(state, fieldId, false);
+        }
+
         var effects = new List<Effect>();
         var opened = DetailReducer.OpenSelected(state, effects);
 
@@ -44,6 +51,20 @@ internal static class DetailFieldActions
 
     public static ReduceResult Open(AppState state, string fieldId)
     {
+        return Open(state, fieldId, true);
+    }
+
+    // Fields whose openers work from the selected card without an opened issue.
+    private static bool InPlace(string fieldId)
+    {
+        return fieldId is DetailFieldIds.Status or DetailFieldIds.Assignee or DetailFieldIds.Estimate
+            or DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter or DetailFieldIds.DueDate
+            or DetailFieldIds.Parent or DetailFieldIds.Epic;
+    }
+
+    // hung: the form hangs under its field in the issue view; without an issue view it is the plain form.
+    private static ReduceResult Open(AppState state, string fieldId, bool hung)
+    {
         if (Refused(state, fieldId))
         {
             return Say(state, $"{Title(fieldId)} cannot be edited on this issue.");
@@ -51,14 +72,14 @@ internal static class DetailFieldActions
 
         return fieldId switch
         {
-            DetailFieldIds.Status => Dropdown(TransitionForms.OpenPicker(state), fieldId),
-            DetailFieldIds.Assignee => Dropdown(FormOpener.Assign(state), fieldId),
-            DetailFieldIds.Estimate => Dropdown(FormOpener.Estimate(state), fieldId),
-            DetailFieldIds.Sprint => Dropdown(SprintMoveActions.OpenField(state), fieldId),
+            DetailFieldIds.Status => Dropdown(TransitionForms.OpenPicker(state), fieldId, hung),
+            DetailFieldIds.Assignee => Dropdown(FormOpener.Assign(state), fieldId, hung),
+            DetailFieldIds.Estimate => Dropdown(FormOpener.Estimate(state), fieldId, hung),
+            DetailFieldIds.Sprint => Dropdown(SprintMoveActions.OpenField(state), fieldId, hung),
             DetailFieldIds.Parent or DetailFieldIds.Epic
-                => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId),
+                => Dropdown(FormOpener.EditField(state, FormFieldIds.Parent), fieldId, hung),
             DetailFieldIds.Priority or DetailFieldIds.Labels or DetailFieldIds.Reporter or DetailFieldIds.DueDate
-                => Dropdown(FormOpener.EditField(state, fieldId), fieldId),
+                => Dropdown(FormOpener.EditField(state, fieldId), fieldId, hung),
             DetailFieldIds.Summary or DetailFieldIds.Description => FormOpener.EditInPane(state, fieldId),
             _ => Say(state, $"{Title(fieldId)} is read-only here."),
         };
@@ -81,8 +102,13 @@ internal static class DetailFieldActions
     }
 
     // The opened form hangs under the field as a dropdown instead of being drawn as a box of its own.
-    private static ReduceResult Dropdown(ReduceResult opened, string fieldId)
+    private static ReduceResult Dropdown(ReduceResult opened, string fieldId, bool hung = true)
     {
+        if (!hung)
+        {
+            return opened;
+        }
+
         var tab = ActiveTab(opened.State);
 
         if (tab?.Form is not { } form)
@@ -90,9 +116,9 @@ internal static class DetailFieldActions
             return opened;
         }
 
-        var hung = tab with { Form = form with { Dropdown = fieldId }, Detail = AtField(tab.Detail, fieldId) };
+        var under = tab with { Form = form with { Dropdown = fieldId }, Detail = AtField(tab.Detail, fieldId) };
 
-        return new ReduceResult(ViewReducer.Replace(opened.State, hung), opened.Effects);
+        return new ReduceResult(ViewReducer.Replace(opened.State, under), opened.Effects);
     }
 
     // The dropdown hangs under the cursor field: a field opened by command (:priority, a list key) takes the cursor
