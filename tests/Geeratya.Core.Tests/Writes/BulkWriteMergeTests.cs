@@ -76,6 +76,41 @@ public class BulkWriteMergeTests
         Assert.Equal("Sub-task", failed.Session.Tabs[0].Rows[0].Subtasks[0].Summary);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenAssignOfASubtaskStub_WhenStartedAndFailed_ThenTheStubShowsThePersonAndIsRestored(bool known)
+    {
+        var bob = new IssueAssignee("acc-bob", "Bob Example");
+        var eve = new IssueAssignee("acc-eve", "Eve Example");
+        var state = WithStub(Loaded(5), known ? bob : null, known);
+
+        var started = _reducer.Reduce(state, new WriteRequested(new TabId(1), new AssignRequest("A-99", eve), _now));
+
+        Assert.Equal(eve, started.State.Session.Tabs[0].Rows[0].Subtasks[0].Assignee);
+
+        var operation = Assert.Single(started.State.Session.Operations);
+        var failure = new WriteError(WriteErrorKind.Validation, 400, "no", [], []);
+        var failed = _reducer.Reduce(started.State, new WriteFailed(operation.Id, _now, failure)).State;
+
+        var stub = failed.Session.Tabs[0].Rows[0].Subtasks[0];
+        Assert.Equal(known ? bob : null, stub.Assignee);
+        Assert.Equal(known, stub.AssigneeKnown);
+    }
+
+    [Fact]
+    public void GivenAKnownAssigneeOnASubtaskStub_WhenUnassigning_ThenTheChipIsUnassigned()
+    {
+        var bob = new IssueAssignee("acc-bob", "Bob Example");
+        var state = WithStub(Loaded(5), bob, true);
+
+        var started = _reducer.Reduce(state, new WriteRequested(new TabId(1), new AssignRequest("A-99", null), _now));
+
+        var stub = started.State.Session.Tabs[0].Rows[0].Subtasks[0];
+        Assert.Null(stub.Assignee);
+        Assert.True(stub.AssigneeKnown);
+    }
+
     [Fact]
     public void GivenParentAndItsStubBothInTheReply_WhenSettled_ThenTheRowAndTheStubAreBothReplaced()
     {
@@ -145,10 +180,14 @@ public class BulkWriteMergeTests
         Assert.Equal(2, blockedOnEdit.Session.Operations.Count);
     }
 
-    private static AppState WithStub(AppState state)
+    private static AppState WithStub(AppState state, IssueAssignee? assignee = null, bool known = false)
     {
         var tab = state.Session.Tabs[0];
-        var stub = new IssueSubtask("A-99", "Sub-task", new IssueStatus("1", "To Do", "new"), "Sub-task");
+        var stub = new IssueSubtask("A-99", "Sub-task", new IssueStatus("1", "To Do", "new"), "Sub-task")
+        {
+            Assignee = assignee,
+            AssigneeKnown = known,
+        };
         var rows = tab.Rows.ToArray();
 
         rows[0] = rows[0] with { Subtasks = [stub] };

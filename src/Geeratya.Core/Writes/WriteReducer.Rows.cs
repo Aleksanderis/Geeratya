@@ -349,8 +349,9 @@ public static partial class WriteReducer
     }
 
     /// <summary>
-    /// The row with the status and title of its sub-task stubs mapped too: an expanded sub-task of a board card is not
-    /// a row of the tab, it is listed from the parent's stub, so a write on it must change the stub to show (#645).
+    /// The row with the status, title and assignee of its sub-task stubs mapped too: an expanded sub-task of a board
+    /// card is not a row of the tab, it is listed from the parent's stub, so a write on it must change the stub to
+    /// show (#645, #1062).
     /// </summary>
     private static IssueSummary MapStubs(IssueSummary parent, HashSet<string> keys, Func<IssueSummary, IssueSummary> map)
     {
@@ -374,10 +375,27 @@ public static partial class WriteReducer
             }
 
             copy ??= [.. parent.Subtasks];
-            copy[index] = stub with { Status = mapped.Status, Summary = mapped.Summary };
+            copy[index] = WithMapped(stub, listed, mapped);
         }
 
         return copy is null ? parent : parent with { Subtasks = copy };
+    }
+
+    /// <summary>
+    /// The stub with the status, title and assignee of the mapped row. Whether the assignee is known is left as it
+    /// is: a chip that is shown (known) changes at once and goes back on a refused write, and a stub whose assignee
+    /// was never read stays hidden until the read arrives, so a rollback never shows a wrong "unassigned".
+    /// </summary>
+    private static IssueSubtask WithMapped(IssueSubtask stub, IssueSummary listed, IssueSummary mapped)
+    {
+        var moved = mapped.Assignee != listed.Assignee;
+
+        return stub with
+        {
+            Status = mapped.Status,
+            Summary = mapped.Summary,
+            Assignee = moved ? mapped.Assignee : stub.Assignee,
+        };
     }
 
     private static Operation? Find(AppState state, long operationId)
