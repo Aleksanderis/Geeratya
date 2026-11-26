@@ -115,7 +115,7 @@ public static class CommentEditorOverlay
         {
             var row = rows[index];
 
-            lines.Add(index == cursor.Row ? CursorRow(editor, text, row) : Plain(text, row));
+            lines.Add(index == cursor.Row ? CursorRow(editor, text, row) : Plain(editor, text, row));
         }
 
         while (lines.Count < area)
@@ -131,24 +131,21 @@ public static class CommentEditorOverlay
         return StyledLine.Of(new string(OverlayBox.Horizontal, Math.Max(0, contentWidth - DividerMargin)), TextRole.Muted);
     }
 
-    private static StyledLine Plain(string text, EditorRow row)
+    // A row without the cursor; selected cells are in the selection role.
+    private static StyledLine Plain(CommentEditor editor, string text, EditorRow row)
     {
-        return StyledLine.Of(string.Concat(EditorLayout.RowCells(text, row).Select(cell => cell.Display)));
+        var cells = EditorLayout.RowCells(text, row).ToList();
+
+        return new StyledLine(CaretText.OverCells(cells, -1, editor.Buffer.SelectionStart, editor.Buffer.SelectionEnd));
     }
 
     // The cell under the cursor is drawn as the caret; a cursor inside a token (moved by rows) selects the whole token.
     private static StyledLine CursorRow(CommentEditor editor, string text, EditorRow row)
     {
-        var cursor = editor.Buffer.Cursor;
+        var buffer = editor.Buffer;
         var cells = EditorLayout.RowCells(text, row).ToList();
-        var under = cells.FindIndex(cell => cursor >= cell.Start && cursor < cell.End);
-        var before = under < 0 ? cells : [.. cells.Take(under)];
-        List<EditorCell> after = under < 0 ? [] : [.. cells.Skip(under + 1)];
         var spans = new List<StyledSpan>(
-            CaretText.Over(
-                string.Concat(before.Select(cell => cell.Display)),
-                under < 0 ? " " : cells[under].Display,
-                string.Concat(after.Select(cell => cell.Display))));
+            CaretText.OverCells(cells, buffer.Cursor, buffer.SelectionStart, buffer.SelectionEnd));
 
         if (text.Length == 0)
         {

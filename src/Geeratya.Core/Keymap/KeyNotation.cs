@@ -14,6 +14,7 @@ public static class KeyNotation
 
     private const string CtrlPrefix = "Ctrl-";
     private const string AltPrefix = "Alt-";
+    private const string ShiftPrefix = "Shift-";
 
     private static readonly string[] _keyNames =
     [
@@ -21,20 +22,41 @@ public static class KeyNotation
         "Home", "End", "PageUp", "PageDown", "Delete",
     ];
 
+    private static readonly string[] _shiftable = ["Up", "Down", "Left", "Right", "Home", "End"];
+
     /// <summary>Whether one key (not a sequence) is spelled correctly.</summary>
     public static bool IsValid(string key)
     {
         if (key.StartsWith(CtrlPrefix, StringComparison.Ordinal))
         {
-            return IsValidBase(key[CtrlPrefix.Length..]);
+            return IsValidShifted(key[CtrlPrefix.Length..]);
         }
 
         if (key.StartsWith(AltPrefix, StringComparison.Ordinal))
         {
-            return IsValidBase(key[AltPrefix.Length..]);
+            return IsValidShifted(key[AltPrefix.Length..]);
         }
 
-        return IsValidBase(key);
+        return IsValidShifted(key);
+    }
+
+    /// <summary>
+    /// The key without its <c>Shift-</c> when it is a shifted cursor key (<c>Shift-Left</c>, <c>Ctrl-Shift-End</c>),
+    /// else null: a context that binds no shifted spelling treats it as the plain cursor key, as before the editors
+    /// had selections.
+    /// </summary>
+    public static string? WithoutShift(string key)
+    {
+        var at = key.IndexOf(ShiftPrefix, StringComparison.Ordinal);
+
+        if (at < 0 || (at > 0 && key[..at] is not (CtrlPrefix or AltPrefix or $"{CtrlPrefix}{AltPrefix}")))
+        {
+            return null;
+        }
+
+        var name = key[(at + ShiftPrefix.Length)..];
+
+        return _shiftable.Contains(name) ? $"{key[..at]}{name}" : null;
     }
 
     /// <summary>
@@ -99,6 +121,17 @@ public static class KeyNotation
         var bracketed = token[0] == '<' && token[^1] == '>';
 
         return token.Length > 1 && token != "<space>" && !bracketed;
+    }
+
+    // A cursor key takes Shift to select; the other names and the characters spell their shift themselves.
+    private static bool IsValidShifted(string key)
+    {
+        if (key.StartsWith(ShiftPrefix, StringComparison.Ordinal) && _shiftable.Contains(key[ShiftPrefix.Length..]))
+        {
+            return true;
+        }
+
+        return IsValidBase(key);
     }
 
     private static bool IsValidBase(string key)

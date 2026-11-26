@@ -22,4 +22,13 @@ public enum EditorOperation
     DeleteWordAfter,
     DeleteToStart,
     DeleteToEnd,
+    SelectLeft,
+    SelectRight,
+    SelectUp,
+    SelectDown,
+    SelectRowStart,
+    SelectRowEnd,
+    SelectWordLeft,
+    SelectWordRight,
+    SelectAll,
 }

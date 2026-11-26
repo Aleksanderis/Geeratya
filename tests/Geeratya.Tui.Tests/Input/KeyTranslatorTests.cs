@@ -89,4 +89,26 @@ public class KeyTranslatorTests
     {
         Assert.True(KeyNotation.IsValid(KeyTranslator.Translate(new Key(code))!));
     }
+
+    [Theory]
+    [InlineData(KeyCode.CursorLeft, "Shift-Left")]
+    [InlineData(KeyCode.CursorRight, "Shift-Right")]
+    [InlineData(KeyCode.CursorUp, "Shift-Up")]
+    [InlineData(KeyCode.CursorDown, "Shift-Down")]
+    [InlineData(KeyCode.Home, "Shift-Home")]
+    [InlineData(KeyCode.End, "Shift-End")]
+    public void GivenShiftedCursorKey_WhenTranslating_ThenTheShiftIsKept(KeyCode code, string expected)
+    {
+        Assert.Equal(expected, KeyTranslator.Translate(new Key(code | KeyCode.ShiftMask)));
+        Assert.True(KeyNotation.IsValid(expected));
+    }
+
+    [Fact]
+    public void GivenCtrlShiftLeft_WhenTranslating_ThenItIsASpelledKeyTheKeymapAccepts()
+    {
+        var key = KeyTranslator.Translate(new Key(KeyCode.CursorLeft | KeyCode.CtrlMask | KeyCode.ShiftMask));
+
+        Assert.Equal("Ctrl-Shift-Left", key);
+        Assert.True(KeyNotation.IsValid(key!));
+    }
 }

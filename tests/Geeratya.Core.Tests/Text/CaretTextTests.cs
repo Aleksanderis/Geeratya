@@ -87,4 +87,77 @@ public sealed class CaretTextTests
         Assert.True(flags is [false, false, true]);
         Assert.Equal("r", Assert.Single(rows[2], static span => span.Role == TextRole.EditCaret).Text);
     }
+
+    [Fact]
+    public void GivenASelection_WhenBuildingSpans_ThenTheSelectedTextIsInTheSelectionRoleAndTheCaretCellKeepsItsOwn()
+    {
+        var buffer = TextBuffer.Of("alpha beta").Apply(EditorOperation.SelectWordLeft);
+
+        var spans = CaretText.Spans(buffer, 40);
+
+        Assert.Equal("alpha beta", string.Concat(spans.Select(static span => span.Text)));
+        Assert.Equal("b", Assert.Single(spans, static span => span.Role == TextRole.EditCaret).Text);
+        Assert.Equal("eta", string.Concat(spans.Where(static span => span.Role == CaretText.SelectedRole).Select(static span => span.Text)));
+    }
+
+    [Fact]
+    public void GivenASelectionAcrossRows_WhenBuildingParagraphSpans_ThenEveryRowDrawsItsPartOfTheSelection()
+    {
+        var buffer = new TextBuffer("one\ntwo\nthree", 9, false, 2);
+
+        var first = CaretText.ParagraphSpans(buffer, "one", 0, 40);
+        var second = CaretText.ParagraphSpans(buffer, "two", 1, 40);
+        var third = CaretText.ParagraphSpans(buffer, "three", 2, 40);
+
+        Assert.Equal("e", SelectedOf(first));
+        Assert.Equal("two", SelectedOf(second));
+        Assert.Equal("t", SelectedOf(third));
+        Assert.DoesNotContain(second, static span => span.Role == TextRole.EditCaret);
+    }
+
+    [Fact]
+    public void GivenALongSelectedRowCutOnBothSides_WhenBuildingSpans_ThenOnlyVisibleSelectedTextIsMarkedAndTheRowFits()
+    {
+        var text = "0123456789abcdefghijklmnopqrstuvwxyz";
+        var buffer = new TextBuffer(text, 20, false, 14);
+
+        var spans = CaretText.Spans(buffer, 12);
+
+        var shown = string.Concat(spans.Select(static span => span.Text));
+        var selected = SelectedOf(spans);
+
+        Assert.True(shown.Length <= 12);
+        Assert.NotEmpty(selected);
+        Assert.Contains(selected, text, StringComparison.Ordinal);
+        Assert.DoesNotContain("…", selected, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenCellsAndASelection_WhenOverCells_ThenSelectedCellsAreMarkedAndTheCaretCellIsNot()
+    {
+        var cells = EditorLayout.RowCells("abcd", new EditorRow(0, 4)).ToList();
+
+        var spans = CaretText.OverCells(cells, 1, 1, 3);
+
+        Assert.Equal("abcd", string.Concat(spans.Select(static span => span.Text)));
+        Assert.Equal("b", Assert.Single(spans, static span => span.Role == TextRole.EditCaret).Text);
+        Assert.Equal("c", SelectedOf(spans));
+    }
+
+    [Fact]
+    public void GivenTheCaretPastTheLastCell_WhenOverCells_ThenATrailingSpaceCarriesTheCaret()
+    {
+        var cells = EditorLayout.RowCells("ab", new EditorRow(0, 2)).ToList();
+
+        var spans = CaretText.OverCells(cells, 2, 0, 0);
+
+        Assert.Equal("ab ", string.Concat(spans.Select(static span => span.Text)));
+        Assert.Equal(" ", Assert.Single(spans, static span => span.Role == TextRole.EditCaret).Text);
+        Assert.DoesNotContain(CaretText.OverCells(cells, -1, 0, 0), static span => span.Role == TextRole.EditCaret);
+    }
+
+    private static string SelectedOf(IReadOnlyList<StyledSpan> spans)
+    {
+        return string.Concat(spans.Where(static span => span.Role == CaretText.SelectedRole).Select(static span => span.Text));
+    }
 }

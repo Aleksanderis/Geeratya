@@ -32,7 +32,7 @@ public static class KeyTranslator
 
         if (name is not null)
         {
-            return WithModifiers(key, name, name == "Tab");
+            return WithModifiers(key, name, name is "Tab" or "Up" or "Down" or "Left" or "Right" or "Home" or "End");
         }
 
         if (!Rune.IsValid((int)(code & KeyCode.CharMask)) || (code & KeyCode.CharMask) == KeyCode.Null)

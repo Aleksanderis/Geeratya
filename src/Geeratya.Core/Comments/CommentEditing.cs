@@ -150,6 +150,22 @@ internal static partial class CommentEditing
     }
 
     /// <summary>
+    /// <c>editor.copy</c> and <c>editor.cut</c>: the selected text goes to the clipboard, a cut also removes it from
+    /// the comment. Nothing happens without a selection.
+    /// </summary>
+    public static ReduceResult Copy(AppState state, bool cut)
+    {
+        if (state.Editor is not { IsSaving: false } editor || !editor.Buffer.HasSelection)
+        {
+            return Result(state);
+        }
+
+        var effects = SelectionCopy.Effects(editor.Buffer.SelectedText);
+
+        return new ReduceResult(cut ? Change(state, static buffer => buffer.DeleteSelection()) : state, effects);
+    }
+
+    /// <summary>
     /// Esc: closes an editor whose text is unchanged; otherwise asks before the text is thrown away. While the save
     /// runs nothing is closed (the write cannot be cancelled).
     /// </summary>

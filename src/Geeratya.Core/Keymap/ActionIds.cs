@@ -140,6 +140,17 @@ public static class ActionIds
     public const string EditorDeleteWordAfter = "editor.delete-word-after";
     public const string EditorDeleteToStart = "editor.delete-to-start";
     public const string EditorExternal = "editor.external";
+    public const string EditorSelectLeft = "editor.select-left";
+    public const string EditorSelectRight = "editor.select-right";
+    public const string EditorSelectUp = "editor.select-up";
+    public const string EditorSelectDown = "editor.select-down";
+    public const string EditorSelectRowStart = "editor.select-row-start";
+    public const string EditorSelectRowEnd = "editor.select-row-end";
+    public const string EditorSelectWordLeft = "editor.select-word-left";
+    public const string EditorSelectWordRight = "editor.select-word-right";
+    public const string EditorSelectAll = "editor.select-all";
+    public const string EditorCopy = "editor.copy";
+    public const string EditorCut = "editor.cut";
     public const string FormFieldNext = "form.field-next";
     public const string FormFieldPrevious = "form.field-previous";
     public const string FormSubmit = "form.submit";

@@ -397,6 +397,10 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **UI:** Next and previous tab are `Alt-L` / `Alt-H` (Alt-Shift) here, with `g t` / `g T`, `Tab` and `Shift-Tab` kept; Gitunia (Gitunia#1505) chose `Alt-l` / `Alt-h`. Why: those two are the card move in Geeratya (`issue.transition-next` / `-previous`), so taking them would break M2; the Alt-Shift twins stay on the same physical keys and are read by `KeyTranslator` with their case. Gitunia keeps its keys (its Alt-h/l are free); the difference is listed in `ux-keymap.md`.
 
+## 2026-11-26 (text selection in the text areas, #1070)
+
+**UI:** The Summary and Description fields and the comment editor select text through `TextBuffer.Anchor` (one component for all three), with `Shift-` cursor keys, `Alt-a`, `Alt-w` (copy, Gitunia's key) and `Alt-x` (cut; `Ctrl-x` is taken by the profile list in Insert mode). Single-line prompts keep a caret only. Why: owner asked for editor behaviour at component level. A key spelling `Shift-<cursor key>` is now valid and `KeymapTable.Resolve` falls back to the plain key where nothing binds it, so lists and prompts behave as before. Mouse selection (#1076) and undo (#1077) were left out.
+
 ## 2026-11-26 (create form navigation, #1071)
 
 **UI:** In the create form's navigate state Summary, Description and the Details fields are one list in reading order: `j`/`l`/`Ctrl-j`/`Ctrl-l` (and `Ctrl-w j/l`) go to the next field, `k`/`h`/`Ctrl-k`/`Ctrl-h` (and `Ctrl-w h/k`) to the previous, no wrap; the pane keys are aliases. Why: the owner found `j`/`k` inside a pane and `h`/`l` across panes confusing. Supersedes the pane-focus meaning of `Ctrl-h/j/k/l` in the create form (2026-11-04, #701) and the pane-crossing `h`/`l` of #708; other forms and the detail keep them.

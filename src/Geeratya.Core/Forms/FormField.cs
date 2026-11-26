@@ -36,6 +36,13 @@ public sealed record FormField(
     /// </summary>
     public int Back { get; init; }
 
+    /// <summary>
+    /// Units between the other end of the selected text and the end of the value text, or null while nothing is
+    /// selected (the caret is <see cref="Back"/>). Only the typed text and paragraph kinds select. See
+    /// <see cref="TextBuffer.Anchor"/>.
+    /// </summary>
+    public int? AnchorBack { get; init; }
+
     public bool IsEditable => FormFieldKinds.IsEditable(Kind);
 
     /// <summary>True when the user changed the field, counting a label that is typed and not yet added, or text typed into a person or parent field and not picked.</summary>

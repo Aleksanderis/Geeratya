@@ -77,7 +77,7 @@ public static class FieldRows
     /// </summary>
     public static List<StyledLine> Paragraph(FormField field, FieldLook look, int first, int count)
     {
-        var prompt = TextBuffer.FromBack(field.Value.Text, field.Back);
+        var prompt = FormEditor.ValueBuffer(field);
         var rows = field.Value.Text.Split('\n');
         var lines = new List<StyledLine>();
 
@@ -134,7 +134,7 @@ public static class FieldRows
 
         if (look.Editing && text.Length > 0)
         {
-            var prompt = TextBuffer.FromBack(text, field.Back);
+            var prompt = FormEditor.ValueBuffer(field);
 
             return look.Boxed ? CaretText.Field(prompt, width) : new StyledLine(CaretText.Spans(prompt, width));
         }
