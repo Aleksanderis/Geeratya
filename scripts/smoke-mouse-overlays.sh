@@ -4,7 +4,7 @@
 # Runs the real binary in a private tmux server with private XDG directories, sends SGR mouse sequences with
 # `send-keys -l` (press and release at a cell found by searching the captured frame for a text) and checks the result:
 # source picker row (Ctrl-t), create form (type row, field focus), jump prompt row, field form field and suggestion popup row, comment editor mention
-# popup row, text selection in the comment editor (double-click, drag, click, Ctrl-z and Ctrl-y), a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
+# popup row, text selection in the comment editor (double-click, drag, click, Ctrl-z and Ctrl-y) and in the in-place Summary of the issue detail, a row dragged onto another backlog section (asks first; Esc keeps, and on GCS and GTS y moves it to the
 # backlog, checked in the fake's own backlog list), a card drag to the next column, and `:profile list` (click switches, right-click asks to remove, Esc keeps the profile, the confirm buttons by click).
 # Exit 0 pass, 1 check failed, 2 bad arguments, 3 missing tool. Linux only. TIMEOUT_MS (default 8000) bounds each wait.
 # DUMP=1 prints the frame after every step.
@@ -376,6 +376,28 @@ wait_for "hY X foo"
 tmux -L "$socket" send-keys -t s C-y
 wait_for "hY X fZoo"
 echo "ok: Ctrl-z and Ctrl-y undo and redo in the comment editor, the app stays in the foreground"
+
+# Text selection in the in-place editors of the issue detail (#1086): the Summary is edited in place (i on the title pane),
+# a double-click selects a word of it, a drag selects text, and typing replaces the selection.
+start "$one"
+wait_for "fake: fake@example.com"
+dismiss_start_picker
+send ":jql project = GCM|"
+wait_for "issues"
+send "jjjj|"
+wait_for "Description"
+send "i"
+wait_for "Ctrl-s"
+send " alpha beta"
+wait_for "alpha beta"
+dclick "alpha" 2
+send "X"
+wait_for " X beta"
+echo "ok: double-click selected a word of the in-place Summary, typing replaced it"
+drag "beta" 2
+send "Y"
+wait_for " X bY"
+echo "ok: drag selected text of the in-place Summary, typing replaced it"
 
 # Profile list: right-click asks to remove (Esc keeps it), click switches.
 start "$two"

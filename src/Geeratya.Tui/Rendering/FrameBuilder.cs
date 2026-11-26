@@ -195,7 +195,10 @@ public static class FrameBuilder
     {
         if (form.Pane is not null && DetailOverlay.Applies(state))
         {
-            // The pane of the detail draws its own editor; a form still loading shows nothing yet.
+            // The pane of the detail draws its own editor (its text rows take the mouse); a form still loading shows
+            // nothing yet.
+            DetailEditorRegions.Add(state, DetailOverlayGeometry.Place(width, height), regions);
+
             return body;
         }
 
