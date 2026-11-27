@@ -393,7 +393,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 **UI:** Closing a tab is `Ctrl-w c` (Gitunia key), no longer `<space>c`; the other shared tab keys already matched, and the kept differences are listed in `ux-keymap.md` under the vim key table. Why: owner asked for the same keys for shared actions; Gitunia had spent more design time on them. Overrides the M1 `<space>c` leaf.
 
-## 2026-11-26 (vim tab keys, #1066)
+## 2026-11-26 (vim tab keys, #1066, superseded 2026-11-27)
 
 **UI:** Next and previous tab are `Alt-L` / `Alt-H` (Alt-Shift) here, with `g t` / `g T`, `Tab` and `Shift-Tab` kept; Gitunia (Gitunia#1505) chose `Alt-l` / `Alt-h`. Why: those two are the card move in Geeratya (`issue.transition-next` / `-previous`), so taking them would break M2; the Alt-Shift twins stay on the same physical keys and are read by `KeyTranslator` with their case. Gitunia keeps its keys (its Alt-h/l are free); the difference is listed in `ux-keymap.md`.
 
@@ -406,3 +406,7 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 **UI:** In the create form's navigate state Summary, Description and the Details fields are one list in reading order: `j`/`l`/`Ctrl-j`/`Ctrl-l` (and `Ctrl-w j/l`) go to the next field, `k`/`h`/`Ctrl-k`/`Ctrl-h` (and `Ctrl-w h/k`) to the previous, no wrap; the pane keys are aliases. Why: the owner found `j`/`k` inside a pane and `h`/`l` across panes confusing. Supersedes the pane-focus meaning of `Ctrl-h/j/k/l` in the create form (2026-11-04, #701) and the pane-crossing `h`/`l` of #708; other forms and the detail keep them.
 
 **UI:** Undo and redo in the text areas (#1077) are `Ctrl-z` and `Ctrl-y`, kept in `TextBuffer` (`TextHistory`) so the Summary, Description and comment editor share them. Gitunia has no editor undo to follow; both keys are free in Insert mode (`Ctrl-x` was the clash that moved cut to `Alt-x`). Why: the keys every editor uses, at component level as the issue asked. The history is not part of buffer equality, and it only applies while the text is the one the last step ended with, so a text set from outside (external editor) cannot be undone into an older one.
+
+## 2026-11-27 (tab keys L / H, #1066)
+
+**UI:** Next and previous tab are `L` / `H` (Shift-l, Shift-h, Normal mode), the same as Gitunia; `Alt-L` / `Alt-H` are removed, and so is the Alt-Shift case rule in `KeyTranslator`. Why: owner: vim keymaps are not blockers by themselves, and `Alt-h` / `Alt-l` clash with the Alt keys of the owner's terminal multiplexer (Herdr). Supersedes the 2026-11-26 entry above; `Alt-h` / `Alt-l` stay the card move. The vim-clash rule gives way here: vim's `H` / `L` (screen top and bottom) are not a Geeratya feature.

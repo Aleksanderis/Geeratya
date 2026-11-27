@@ -42,12 +42,6 @@ public static class KeyTranslator
 
         var text = new Rune((int)(code & KeyCode.CharMask)).ToString();
 
-        if (key.IsAlt && !key.IsCtrl && key.IsShift && IsUpperLetter(code))
-        {
-            // Alt-Shift letters keep their case (Alt-H, Alt-L: the tab keys), as Shift letters do without Alt.
-            return $"Alt-{text}";
-        }
-
         if (key.IsCtrl || key.IsAlt)
         {
             return WithModifiers(key, text.ToLowerInvariant(), false);

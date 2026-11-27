@@ -43,14 +43,14 @@ public class TabKeysTests
     }
 
     [Fact]
-    public void GivenThreeTabs_WhenPressingAltLAndAltH_ThenTheyStepTabsAndLeaveTheCardMoveKeysAlone()
+    public void GivenThreeTabs_WhenPressingShiftLAndShiftH_ThenTheyStepTabsAndLeaveTheCardMoveKeysAlone()
     {
         var state = OpenTabs(3);
         var ids = state.Session.Tabs.Select(tab => tab.Id).ToArray();
 
-        var next = Press(state, "Alt-L");
-        var previous = Press(next.State, "Alt-H");
-        var wrapped = Press(previous.State, "Alt-H");
+        var next = Press(state, "L");
+        var previous = Press(next.State, "H");
+        var wrapped = Press(previous.State, "H");
 
         Assert.Equal(ids[0], next.State.Session.Active);
         Assert.Equal(ids[2], previous.State.Session.Active);
