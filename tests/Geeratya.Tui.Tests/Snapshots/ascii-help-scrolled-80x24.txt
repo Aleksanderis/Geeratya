@@ -16,7 +16,7 @@
 | |               |   <space>*   Switch the command level for the session    | |
 | |               |                                                          | |
 | |               | Tabs                                                     | |
-| |               |   Tab        Next tab  (gt, Alt-L)                      v| |
+| |               |   Tab        Next tab  (gt, L)                          v| |
 | +--------------------------------------------------------------------------+ |
 | | j/k move   Tab page   / filter   J/K scroll   Esc close                  | |
 | +--------------------------------------------------------------------------+ |

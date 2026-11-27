@@ -16,8 +16,8 @@
 │           │               │   <space>sg  Show the full goal of the sprint                                │           │
 │           │               │                                                                              │           │
 │           │               │ Tabs                                                                         │           │
-│           │               │   Tab        Next tab  (gt, Alt-L)                                           │           │
-│           │               │   Shift-Tab  Previous tab  (gT, Alt-H)                                       │           │
+│           │               │   Tab        Next tab  (gt, L)                                               │           │
+│           │               │   Shift-Tab  Previous tab  (gT, H)                                           │           │
 │           │               │   Ctrl-^     Previously active tab  (<space><Tab>)                           │           │
 │           │               │   Alt-1      Go to tab 1                                                     │           │
 │           │               │   Alt-2      Go to tab 2                                                     │           │

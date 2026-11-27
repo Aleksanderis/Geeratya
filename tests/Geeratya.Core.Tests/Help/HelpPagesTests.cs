@@ -95,7 +95,7 @@ public class HelpPagesTests
         var line = HelpPages.Lines(HelpAt(0), _keymap).First(row => row.Contains("Next tab"));
 
         Assert.StartsWith("  Tab ", line);
-        Assert.EndsWith("Next tab  (gt, Alt-L)", line);
+        Assert.EndsWith("Next tab  (gt, L)", line);
     }
 
     [Fact]
