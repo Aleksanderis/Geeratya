@@ -409,4 +409,4 @@ Owner asked for maximum autonomy; each took the recommended default (agent: orch
 
 ## 2026-11-27 (tab keys L / H, #1066)
 
-**UI:** Next and previous tab are `L` / `H` (Shift-l, Shift-h, Normal mode), the same as Gitunia; `Alt-L` / `Alt-H` are removed, and so is the Alt-Shift case rule in `KeyTranslator`. Why: owner: vim keymaps are not blockers by themselves, and `Alt-h` / `Alt-l` clash with Herdr. Supersedes the 2026-11-26 entry above; `Alt-h` / `Alt-l` stay the card move. The vim-clash rule gives way here: vim's `H` / `L` (screen top and bottom) are not a Geeratya feature.
+**UI:** Next and previous tab are `L` / `H` (Shift-l, Shift-h, Normal mode), the same as Gitunia; `Alt-L` / `Alt-H` are removed, and so is the Alt-Shift case rule in `KeyTranslator`. Why: owner: vim keymaps are not blockers by themselves, and `Alt-h` / `Alt-l` clash with the Alt keys of the owner's terminal multiplexer (Herdr). Supersedes the 2026-11-26 entry above; `Alt-h` / `Alt-l` stay the card move. The vim-clash rule gives way here: vim's `H` / `L` (screen top and bottom) are not a Geeratya feature.
